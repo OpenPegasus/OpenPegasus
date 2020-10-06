@@ -1,0 +1,210 @@
+<html>
+
+<head>
+<title>osinfo</title>
+</head>
+
+<body>
+
+<ul>
+
+<h2>osinfo</h2>
+<h3>NAME</h3>
+    osinfo - returns infomation about the operating system running on a host system.
+<h3>SYNOPSIS</h3>
+    osinfo [-s] [-h <u>hostname</u>] [-p <u>portnumber</u>]
+           [-u <u>username</u>] [-w <u>password</u>] [-t <u>timeout</u>] [-c]
+
+<h3>DESCRIPTION</h3>
+      <p>The osinfo command displays information about the operating system
+      running on either the local or a designated host system.  osinfo is a CIM Client
+      application and requires a CIM Server to be running on the target system.</p>
+
+      <p>If a property value is unavailable, the value "UNKNOWN" will be
+      displayed.</p>
+
+      <p>By default, information about the operating system running on
+         the local system is displayed.</p>
+
+<h3>OPTIONS</h3>
+   <p>osinfo recognizes the following options:</p>
+
+<ul>
+
+<table border="0" cellspacing="1" width=70%
+    style='font-size=10.0pt;font-family:Arial'>
+  <tr>
+    <td width=20%>-s</td>
+    <td>
+       <br>
+       <p>Enable the use of the SSL protocol between
+       osinfo and the CIM server.  The -s option should
+       be specified if the CIM Server on the specified
+       hostname/portnumber expects clients to connect
+       using HTTPS.  This option is ignored if neither
+       hostname nor portnumber is specified.
+       </p>
+    </td>
+  </tr>
+  <tr>
+    <td width=20%>-h <u>hostname</u></td>
+    <td>
+       <br>
+       <p>Connect to the CIM Server on the specified <u>hostname</u>.
+       If this option is not specified, osinfo connects
+       to the local host.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width=20%>-p <u>portnumber</u></td>
+    <td>
+       <br>
+       <p>Connect to the CIM Server on the specified
+       <u>portnumber</u>. If this option is not specified, osinfo
+       connects to the default port for the wbem-http service,
+       or if the -s option is specified, to the default port
+       of the wbem-https service.
+       </p>
+    </td>
+  </tr>
+  <tr>
+    <td width=20%>-u <u>username</h></td>
+    <td>
+       <br>
+       <p>Connect as the specified <u>username</u>.
+       If <u>username</u> is not specified, the
+       current logged in user is used for authentication.
+       This option is ignored if neither <u>hostname</u>
+       nor <u>portnumber</u> is specified.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width=20%>-w <u>password</h></td>
+    <td>
+       <br>
+       <p>Authenticate the connection using the specified
+       <u>password</u>. If the <u>password</u> is not
+       specified, the user is prompted for a password.
+       This option is ignored if neither <u>hostname</u>
+       nor <u>portnumber</u> is specified.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width=20%>-t <u>timeout</h></td>
+    <td>
+       <br>
+       <p>Defines the number of milliseconds to wait
+       for a response before "timing out" the
+       operation.  The default <u>timeout</u> value is 2000.
+       The <u>timeout</u> value must be an integer
+       value greater than 0.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width=20%>-c</td>
+    <td>
+    <br>
+       <p>Use the CIM formats for DateTime and SystemUpTime
+       values (not the formatting done by default).  As
+       specified by the DMTF, the CIMDateTime format is
+       yyyymmddhhmmss.mmmmmmsutc, where yyyy is a 4-digit
+       year, mm is the month, dd is the day, hh is the
+       hour on a 24-hour clock, mm is the minute, ss is
+       the second, mmmmmm is the number of microseconds,
+       s is a "+" or "-" indicating the sign of the UTC
+       (Universal Time Code) correction field (since the
+       DateTime is returned in the local time zone of the
+       system), and utc is the offset from UTC in minutes.</p>
+    </td>
+  </tr>
+ </table>
+
+ </ul>
+
+
+<h3>EXIT STATUS</h3>
+   <p>When an error occurs, an error message is written to stderr and
+   an appropriate value is returned.  The following values are returned:</p>
+
+<ul>
+
+<table border="0" cellspacing="1" width=50%
+    style='font-size=10.0pt;font-family:Arial'>
+  <tr>
+    <td align="center" width=10%>0</td>
+    <td width=90%>Success</td>
+  </tr>
+  <tr>
+    <td align="center" width=10%>1</td>
+    <td width=90%>Error</td>
+  </tr>
+
+ </table>
+
+ </ul>
+
+<h3>DIAGNOSTICS</h3>
+   <p>osinfo error: Cannot connect to: &lt;hostname &gt;: &lt;portnumber &gt;</p>
+   <ul>
+      There was a failure attempting to connect to the CIM Server running on
+      the target host system.
+   </ul>
+
+<h3>EXAMPLES</h3>
+   <p>Run the default osinfo command on bryce.</p>
+   <ul>
+      osinfo
+      <br><br>
+      OperatingSystem Information<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Host: bryce.cup.hp.com<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Name: HP-UX<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Version: B.11.00<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;UserLicense: Unlimited user license<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Number of Users: 4 users<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Number of Processes: 71 processes<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;OSCapability: 32 bit<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;LastBootTime: Sep 24, 2001  9:16:6 (-0700)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;LocalDateTime: Feb 9, 2003  18:59:43 (-0700)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;SystemUpTime: 43497817 seconds = 503 days, 10 hrs, 43 mins, 37 secs<br>
+   </ul>
+
+   <br><br>
+   <p>From bryce, display information about the operating system running on bodie.</p>
+   <ul>
+      osinfo -s -h bodie -u guest -w guest
+      <br><br>
+      OperatingSystem Information<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Host: bodie.cup.hp.com<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Name: HP-UX<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Version: B.11.00<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;UserLicense: Unlimited user license<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Number of Users: 0 users<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Number of Processes: 67 processes<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;OSCapability: 32 bit<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;LastBootTime: May 28, 2002  11:10:25 (-0700)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;LocalDateTime: Feb 10, 2003  18:18:5 (-0700)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;SystemUpTime: 22320460 seconds = 258 days, 8 hrs, 7 mins, 40 secs<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;Host: bryce.cup.hp.com<br>
+   </ul>
+
+   <br><br>
+   <p>From bryce, display information about the operating system running on bodie,
+      but this time specify a ridiculously short timeout value.</p>
+   <ul>
+      osinfo -s -h bodie -u guest -w guest -t1
+      <br><br>
+         osinfo error: connection timed out<br>
+   </ul>
+
+   <h3>Standards Conformance</h3>
+   <p><b>osinfo</b> uses the WBEM (Web-Based Enterprise Management) and CIM (Common
+      Information Model) standards specified by the DMTF
+      (Distributed Management Task Force).</p>
+
+   <h3>Author</h3>
+   <p><b>osinfo</b> was developed by the Hewlett-Packard Company.</p>
+
+</ul>
+</body>
+
+</html>

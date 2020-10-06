@@ -1,0 +1,288 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+Java Manageability Programming Interface (JMPI)
+-----------------------------------------------
+
+JMPI is a bridge between clients and providers written in Java and the Open
+Pegasus project.
+
+More information on JMPI's status can be found at
+   http://www.openpegasus.org/page.tpl?ggid=799
+
+
+Environment settings
+--------------------
+
+In order to build the JMPI support a few environment variables have to used.
+The following script has been proven useful for setting up the build and
+execution environment. You might need to adjust this to your system layout.
+
+   An example setJPeg script file:
+   export PEGASUS_HOME=`pwd`
+   export PEGASUS_ROOT=${PEGASUS_HOME}
+   export PEGASUS_PLATFORM=LINUX_IX86_GNU
+   export PEGASUS_ENABLE_JMPI_PROVIDER_MANAGER=true
+   export PEGASUS_JVM=sun
+   export JAVA_SDK=/usr/java/j2sdk1.4.2_08
+   export JAVA_SDKINC=${JAVA_SDK}/include
+   export PEGASUS_JAVA_ARCH=i386
+   export PEGASUS_JAVA_TYPE=client
+   export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${JAVA_SDK}/jre/lib/${PEGASUS_JAVA_ARCH}/server:${JAVA_SDK}/jre/lib/${PEGASUS_JAVA_ARCH}/native_threads:${JAVA_SDK}/jre/lib/${PEGASUS_JAVA_ARCH}
+   export PATH=${JAVA_SDK}/bin/:${PEGASUS_HOME}/bin:${PATH}
+   export CLASSPATH=${CLASSPATH}:${PEGASUS_HOME}/lib/JMPIImpl.jar
+
+Lets walk through an example for the mandatory environment variables.
+
+(1) The first tells Pegasus to build the Java provider manager:
+      export PEGASUS_ENABLE_JMPI_PROVIDER_MANAGER=true
+
+(2) The second says which JRE to use.  The choices are as follows:
+      export PEGASUS_JVM=gcj    Gnu's jvm (ex: gcj (GCC) 4.1.1 20061011 (Red Hat 4.1.1-30))
+      export PEGASUS_JVM=sun    Sun's jvm (ex: j2sdk1.4.2_07)
+      export PEGASUS_JVM=ibm    IBM's jvm (ex: IBMJava2-142)
+      export PEGASUS_JVM=ibm64  IBM's jvm for 64 bit machine.
+      export PEGASUS_JVM=bea    Suse's IBM jvm (ex: BEAJava2-1.4.2)
+    So, pick one and export that variable to the environment.  For example:
+      export PEGASUS_JVM=sun
+    NOTE: As the primary maintainer of the JMPI code, IBM developers have
+    independently tested (and routinely test) JMPI with the following JREs.
+    The results of these tests are not yet reported on the OpenPegasus Nightly
+    Build and Test Status page.
+      - LINUX_IX86_GNU (Fedora Core 5), Sun JVM 1.4.2_08
+      - LINUX_IX86_GNU (Fedora Core 5), Gcc JVM 4.1.1 20060525
+      - LINUX_IX86_GNU (RHEL 5.1), Gcc JVM 4.1.2 20070626
+      - LINUX_X86_64_GNU (SLES 9 SP3), Sun JVM 1.4.2_15
+      - LINUX_X86_64_GNU (RHEL 5.0), IBM Classic VM (build 1.4.2, J2RE 1.4.2 IBM build cxz64142-20070317 (SR8) (JIT disabled))
+      - LINUX_ZSERIES64_GNU (RHEL 5.0), IBM J9SE VM (build 2.2, J2RE 1.4.2 IBM J9 2.2 Linux amd64-64
+      - ZOS_ZSERIES_IBM (z/OS 1.7), J2RE 1.4.2 IBM z/OS Persistent Reusable VM build cm142-20060824 (SR6)
+      - ZOS_ZSERIES_IBM (z/OS 1.8), J2RE 1.4.2 IBM z/OS Persistent Reusable VM build cm142-20060824 (SR6)
+      - ZOS_ZSERIES_IBM (z/OS 1.9), J2RE 1.4.2 IBM z/OS Persistent Reusable VM build cm142-20060824 (SR6)
+      - WIN32_IX86_MSVC (Microsoft Windows XP Professional), Sun JVM 1.6.0_02
+
+(3, 4) The third and fourth say where the JRE libraries and header files are
+    located. This may or may not be necessary depending upon the compiler's
+    default search paths. Since in this example we are using Sun's JRE, we
+    point to Sun's paths:
+      export JAVA_SDK=/usr/java/j2sdk1.4.2_08
+      export JAVA_SDKINC=${JAVA_SDK}/include
+
+(5) The fifth variable defines the Java architecture of the JMV:
+      export PEGASUS_JAVA_ARCH=i386
+
+(6) The sixth variable defines which version of the jvm library to link to
+    (the client or the server):
+      export PEGASUS_JAVA_TYPE=client
+
+    As a test to make sure your environment variables are correct in this
+    example:
+      ls ${JAVA_SDK}/jre/lib/${PEGASUS_JAVA_ARCH}/${PEGASUS_JAVA_TYPE}
+    should show you libjvm.so for Sun's JRE.
+
+(7) The seventh may be necessary to tell the linker where to load the JRE
+    libraries:
+      export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${JAVA_SDK}/jre/lib/${PEGASUS_JAVA_ARCH}/server:${JAVA_SDK}/jre/lib/${PEGASUS_JAVA_ARCH}/native_threads:${JAVA_SDK}/jre/lib/${PEGASUS_JAVA_ARCH}
+
+(8) The eighth one may be necessary to get the JVM's executable files into the
+    PATH:
+      export PATH=${JAVA_SDK}/bin/:${PEGASUS_HOME}/bin:${PATH}
+
+(9) The nineth tells the JRE to include JMPI's Java classes:
+      export CLASSPATH=${CLASSPATH}:${PEGASUS_HOME}/lib/JMPIImpl.jar
+
+There are a couple of optional environment variables to determine how the JRE
+is initialized.  These are as follows (the variable name and what JRE option
+that it corresponds to):
+
+  PEGASUS_JMPI_MAX_HEAP               -Xmx
+  PEGASUS_JMPI_INITIAL_HEAP           -Xms
+  PEGASUS_JMPI_JAVA_THREAD_STACK_SIZE -Xss
+
+So, for example, you would perform the following if you want to change the
+maximum heap size to 128 megabytes:
+
+  export PEGASUS_JMPI_MAX_HEAP=128m
+
+There is a new optional environment variable that tells the JVM to output more
+debugging information.  The variable name is called PEGASUS_JMPI_VERBOSE.
+An example usage is as follows:
+
+  export PEGASUS_JMPI_VERBOSE="jni,class"
+
+This will tell the JVM to output debug information on the JNI layer and class
+loading.
+
+When using this script, place a copy of this script above your PEGASUS_HOME
+directory, "cd" to PEGASUS_HOME, and issue ". ./setJPeg". Then do a normal
+make.
+
+
+Known restrictions
+------------------
+
+This installment has the following restrictions:
+
+   Unloading of idle providers is not supported and Java will increase the
+     memory footprint.
+
+   Java 1.5 is not currently supported.
+
+   Gcj on 31 bit machines is only supported using gcc version 4.1.1 or later.
+   Gcj on 64 bit machines is not supported.  Bugs 5913, 5921, and 5963 have
+     been written to address that issue. Instead, you should use the Sun ported
+     JVM from the Blackdown project located at www.blackdown.org.
+
+
+Level of test coverage
+----------------------
+
+All interfaces to a provider have a sample provider written for them and are
+part of the testcases.  All main CIM java classes have testcases written for
+them as well.
+
+
+Outstanding issues
+------------------
+
+Java documentation needs to be written for the classes and methods within JMPI.
+
+
+Testing
+-------
+
+This installment has a set of tests located under
+  src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/
+
+    Static/
+
+      These tests have been modelled after wetest/static. (For the tests, we
+      had to modify "diff" to "diff -w", why that is needed I do not
+      understand.)
+
+   Providers/
+
+      These tests implement the many variants of provider interfaces.
+
+   Client/
+
+      These tests test out the client code and various Java classes.
+
+
+Running the tests
+-----------------
+
+Tests are run with the following process.
+
+If the repository has not already been built then issue the following:
+
+   cd to ${PEGASUS_HOME}/src/Pegasus/ProviderManager2/JMPI/
+   Issue "make repository"
+
+   This will load a schema to the repository and register the provider.
+
+Next, run the tests.
+
+   cd to ${PEGASUS_HOME}/src/Pegasus/ProviderManager2/JMPI/
+   Issue "find -name \*.rsp -exec rm {} \;" to clean up *.rsp files from failed tests.
+   Issue "make poststarttests"
+
+
+Samples
+-------
+
+ There are four sample providers located in
+   ${PEGASUS_HOME}/src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Providers/
+
+   Associations/
+
+      This provider implements an association provider.
+
+   Instances/
+
+      This provider implements an instance provider.
+
+   Indications/
+
+      This provider implements an indication provider.
+
+   Properties/
+
+      This provider implements a property provider.
+
+   There is also sample Java code that deals with CIM classes that is located in
+   ${PEGASUS_HOME}/src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Client/
+
+
+Provider Registration
+---------------------
+
+JMPI providers are registered as usual. The Location property in
+PG_ProviderModule has a special format. The format is:
+  <jar-file-name>:<provider-class-name>
+
+JMPI providers now fall into two groups.
+
+(1) Legacy providers use:
+      InterfaceType = "JMPI"
+    and use one of the 3 following based on existing JMPI samples:
+      InterfaceVersion = "1.0.0";
+      InterfaceVersion = "2.0.0";
+      InterfaceVersion = "2.2.0";
+    Note that there is no difference in behavior in the three versions.
+
+    instance of PG_ProviderModule
+    {
+       Name             = "JMPIInstanceProviderModule";
+       Location         = "JMPIInstanceProvider.jar:Instances/JMPIInstanceProvider";
+       Vendor           = "OpenPegasus";
+       Version          = "2.0.0";
+       InterfaceType    = "JMPI";
+       InterfaceVersion = "1.0.0";
+    };
+
+(2) New style providers use:
+      InterfaceType = "JMPIExperimental"
+    and:
+      InterfaceVersion = "0.0.1";
+
+    instance of PG_ProviderModule
+    {
+       Name             = "JMPIExpInstanceProviderModule";
+       Location         = "JMPIExpInstanceProvider.jar:Instances/JMPIExpInstanceProvider";
+       Vendor           = "OpenPegasus";
+       Version          = "2.0.0";
+       InterfaceType    = "JMPIExperimental";
+       InterfaceVersion = "0.0.1";
+    };
+
+
+Bug reports
+-----------
+
+   Use normal Pegasus bugzilla procedures to report malfunctions.

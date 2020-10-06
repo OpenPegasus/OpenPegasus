@@ -1,0 +1,1425 @@
+// ===================================================================
+// Title: Device_StorageServices
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_StorageServices.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines
+//              a model for storage services.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+//  CR1171 - Add WRITE qualifiers to StorageSetting.x
+//  CR1151 -  Clarify description of
+//  AllocatedFromStoragePool.SpaceConsummed
+//  CR1227 - Missing commas in ModelCorrespondences in StorageSetting
+//  CR1202 - Remove Experimental to Final for Device
+//  CR1223 - Omnibus SysDev Cr - minor MOF corrections
+// 
+// Change Log for v2.8 Preliminary
+//  CR997  - clarify StorageEfficiencyHint
+//  CR1028 - Add CreateSetting to StorageCapabilities
+//  CR1033 - Extent copy services.
+//  CR1044 - Add:
+//             StoragePool.TotalManagedSpace
+//             StoragePool.TotalAvailableSpace
+//             StoragePool.Primordial
+//         - Remove TotalAvailableSpace
+//  CR1046 - Add StorageConfigurationCapabilities
+//  CR1141 - Correction of StorageSynchronized.SyncState.
+// 
+// Change Log for v2.7.1
+//       - Fix MaxValue declarations in StorageSettingWithHints - the
+//         properties, AccessDirectionHint and AccessBandwidthWeight
+// 
+// Change Log for v2.7 Final
+// CR970 - Removal of the Experimental qualifier
+//       - Remove StoragePool.GetSupportedSize and StoragePool.
+//         GetSupportedSizeRange so they can remain experimental in 2.8
+// CR978 - Clarify the use of settings and capabilities
+//       - Change 'spindle' to 'package'
+//       - Add ElementType in StoragePool methods
+//       - Add ElementName to creation methods
+//       - Fix ValueMap issues
+//       - Generalize the "goal" parameter in CreateOrModifyElement
+//       - Change units from megabytes to bytes.
+// CR994 - Update description for InstanceID
+// 
+// Change Log for v2.7
+// CR775 - Add StorageSetting, StoragePool, StorageCapabilities,
+//         StorageConfigurationService, StorageSettingsWithHints,
+//         HostedStoragePool, and AllocatedStoragePool
+// CR759 - Add ConfigurationReportingService
+// CR777 - Add StorageSynchrononized
+//         Add StorageSetting.DeltaReservation,
+//         StorageCpabilities.DeltaReservationMin,
+//         StorageCpabilities.DeltaReservationMax,
+//         StorageCpabilities.DeltaReservationDefault,
+//         StorageConfigurationService.CreateReplica() and
+//         StorageConfigurationService.ModifySynchronization()
+// CR895 - Correct the method return Values/ValueMaps for all the
+//         methods in the ConfigurationReportingService.
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// StorageSynchronized
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "Indicates that two Storage objects were replicated at the "
+       "specified point in time. If the CopyType property is set to "
+       "'Sync' (=3), then synchronization of the Storage objects is "
+       "preserved.")]
+class CIM_StorageSynchronized : CIM_Synchronized {
+
+      [Override ( "SystemElement" ), Description (
+          "SystemElement represents the Storage that is the source of "
+          "the replication.")]
+   CIM_ManagedElement REF SystemElement;
+
+      [Override ( "SyncedElement" ), Description (
+          "SyncedElement represents the Storage that is the target of "
+          "the replication.")]
+   CIM_ManagedElement REF SyncedElement;
+
+      [Description (
+          "CopyType describes the Replication Policy. Values are: \n"
+          "Async: create and maintain an asynchronous copy of the "
+          "source. \n"
+          "Sync: create and maintain a synchronized copy of the "
+          "source. \n"
+          "UnSyncAssoc: create an unsynchronized copy and maintain an "
+          "association to the source."), 
+       ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Async", "Sync", "UnSyncAssoc", "DMTF Reserved",
+          "Vendor Specific" }]
+   uint16 CopyType;
+
+      [Description (
+          "ReplicaType provides information on how the Replica is "
+          "being maintained. Values are: \n"
+          "Full Copy: This indicates that a full copy of the source "
+          "object is (or will be) generated . \n"
+          "Before Delta: This indicates that the source object will be "
+          "maintained as a delta data from the replica. \n"
+          "After Delta: This indicates that the replica will be "
+          "maintained as delta data from the source object. \n"
+          "Log: This indicates that the replica object is being "
+          "maintained as a log of changes to the source. \n"
+          "Not Specified: The method of maintaining the copy is not "
+          "specified."), 
+       ValueMap { "0", "2", "3", "4", "5","..", "0x8000.." }, 
+       Values { "Not Specified", "Full Copy", "Before Delta",
+          "After Delta", "Log","DMTF Reserved", "Vendor Specific" }]
+   uint16 ReplicaType;
+
+      [Description (
+          "SyncState describes the state of the association with "
+          "respect to Replication activity. Values are: \n"
+          "Initialized: The link to enable replication is established. "
+          "\nPrepareInProgress: Preparation for Replication is in "
+          "progress. \n"
+          "Prepared: All necessary preparation has completed. \n"
+          "ResyncInProgress: Synchronization or Resynchronization is "
+          "in progress. \n"
+          "This may be the initial 'copy' or subsequent changes being "
+          "copied. \n"
+          "Synchronized: An Async or Sync replication is currently "
+          "synchronized. When this value is set, SyncMaintained will "
+          "be true. \n"
+          "FractureInProgress: An operation to fracture an Async or "
+          "Sync replication is in progress. \n"
+          "Fractured: An Async or Sync replication is fractured. \n"
+          "QuiesceInProgress: A quiesce operation is in progress. \n"
+          "Quiesced: The replication has been quiesced and is ready "
+          "for a change. \n"
+          "RestoreInProgress: An operation is in progress to copy the "
+          "Synced object to the System object. \n"
+          "Idle: The 'normal' state for an UnSyncAssoc replica. \n"
+          "Broken: The relationship is non-functional due to errors in "
+          "the source, the target, the path between the two or space "
+          "constraints."), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
+          "12", "13", "..", "0x8000.." }, 
+       Values { "Initialized", "PrepareInProgress", "Prepared",
+          "ResyncInProgress", "Synchronized", "Fracture In Progress",
+          "QuiesceInProgress", "Quiesced", "Restore In Progresss",
+          "Idle", "Broken", "Fractured", "DMTF Reserved",
+          "Vendor Specific" }]
+   uint16 SyncState;
+};
+
+
+// ==================================================================
+// StorageSetting
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "StorageSetting is roughly equivalent to a Service Level "
+       "Agreement (SLA) It defines the characteristics, qualities of "
+       "service and goals when used in a CreateOrModifyElement "
+       "FromStoragePool or CreateOrModifyStoragePool method in the "
+       "StorageConfigurationService. It specifies a series of "
+       "properties with Maximum and Minimum values that define the "
+       "(inclusive) bounds that the object should maintain. Note that "
+       "the setting is associated to a StorageVolume, using "
+       "ElementSetting.")]
+class CIM_StorageSetting : CIM_SettingData {
+
+      [Write, Description (
+          "Indicates the desired value for No Single Point of Failure. "
+          "Possible values are false = single point of failure, and "
+          "true = no single point of failure.")]
+   boolean NoSinglePointOfFailure;
+
+      [Write, Description (
+          "DataRedundancyMax describes the maximum number of complete "
+          "copies of data to be maintained. Examples would be RAID 5 "
+          "where 1 copy is maintained and RAID 1 where 2 or more "
+          "copies are maintained. Possible values are 1 to n. The "
+          "desired redundancy is specified using DataRedundancyGoal, "
+          "while the minimum is defined by DataRedundancyMin."), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DataRedundancyMin",
+          "CIM_StorageSetting.DataRedundancyGoal" }]
+   uint16 DataRedundancyMax;
+
+      [Write, Description (
+          "DataRedundancyMin describes the minimum number of complete "
+          "copies of data to be maintained. Examples would be RAID 5 "
+          "where 1 copy is maintained and RAID 1 where 2 or more "
+          "copies are maintained. Possible values are 1 to n. The "
+          "desired redundancy is specified using DataRedundancyGoal, "
+          "while the maximum is defined by DataRedundancyMax."), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DataRedundancyMax",
+          "CIM_StorageSetting.DataRedundancyGoal" }]
+   uint16 DataRedundancyMin;
+
+      [Write, Description (
+          "DataRedundancyGoal describes the desired number of complete "
+          "copies of data to be maintained. Examples would be RAID 5 "
+          "where 1 copy is maintained and RAID 1 where 2 or more "
+          "copies are maintained. Possible values are 1 to n. The "
+          "bounds (max and min) for redundancy are defined using the "
+          "properties, DataRedundancyMax and DataRedundancyMin."), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DataRedundancyMax",
+          "CIM_StorageSetting.DataRedundancyMin" }]
+   uint16 DataRedundancyGoal;
+
+      [Write, Description (
+          "PackageRedundancyMax describes the maximum number of "
+          "redundant packages to be used. For example, in the storage "
+          "domain, package redundancy describes how many disk spindles "
+          "can fail without data loss including, at most, one spare. "
+          "An example would be RAID5 with a spare disk which would "
+          "have a PackageRedundancy of 2. Possible values are 0 to n. "
+          "The desired redundancy is specified using "
+          "PackageRedundancyGoal, while the minimum is defined by "
+          "PackageRedundancyMin."), 
+       ModelCorrespondence { "CIM_StorageSetting.PackageRedundancyMin",
+          "CIM_StorageSetting.PackageRedundancyGoal" }]
+   uint16 PackageRedundancyMax;
+
+      [Write, Description (
+          "PackageRedundancyMin describes the minimum number of "
+          "redundant packages to be used. For example, in the storage "
+          "domain, package redundancy describes how many disk spindles "
+          "can fail without data loss including, at most, one spare. "
+          "An example would be RAID5 with a spare disk which would "
+          "have a PackageRedundancy of 2. Possible values are 0 to n. "
+          "The desired redundancy is specified using "
+          "PackageRedundancyGoal, while the maximum is defined by "
+          "PackageRedundancyMax."), 
+       ModelCorrespondence { "CIM_StorageSetting.PackageRedundancyMax",
+          "CIM_StorageSetting.PackageRedundancyGoal" }]
+   uint16 PackageRedundancyMin;
+
+      [Write, Description (
+          "PackageRedundancyGoal describes the desired number of "
+          "redundant packages to be used. For example, in the storage "
+          "domain, package redundancy describes how many disk spindles "
+          "can fail without data loss including, at most, one spare. "
+          "An example would be RAID5 with a spare disk which would "
+          "have a PackageRedundancy of 2. Possible values are 0 to n. "
+          "The bounds (max and min) for redundancy are defined using "
+          "the properties, PackageRedundancyMax and "
+          "PackageRedundancyMin."), 
+       ModelCorrespondence { "CIM_StorageSetting.PackageRedundancyMax",
+          "CIM_StorageSetting.PackageRedundancyMin" }]
+   uint16 PackageRedundancyGoal;
+
+      [Write, Description (
+          "DeltaReservationMax is a number between 1 (1%) and a 100 "
+          "(100%) which specifies the maximum amount of space that "
+          "should be reserved in a replica for caching changes. For a "
+          "complete copy this would be 100%. The desired reservation "
+          "is specified using DeltaReservationGoal, while the minimum "
+          "is defined by DeltaReservationMin."), 
+       Units ( "Percentage" ), MinValue ( 1 ), MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DeltaReservationMin",
+          "CIM_StorageSetting.DeltaReservationGoal" }]
+   uint8 DeltaReservationMax;
+
+      [Write, Description (
+          "DeltaReservationMin is a number between 1 (1%) and a 100 "
+          "(100%) which specifies the minimum amount of space that "
+          "should be reserved in a replica for caching changes. For a "
+          "complete copy this would be 100%. The desired reservation "
+          "is specified using DeltaReservationGoal, while the maximum "
+          "is defined by DeltaReservationMax."), 
+       Units ( "Percentage" ), MinValue ( 1 ), MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DeltaReservationMax",
+          "CIM_StorageSetting.DeltaReservationGoal" }]
+   uint8 DeltaReservationMin;
+
+      [Write, Description (
+          "DeltaReservationGoal is a number between 1 (1%) and a 100 "
+          "(100%) which specifies the desired amount of space that "
+          "should be reserved in a replica for caching changes. For a "
+          "complete copy this would be 100%. The bounds (max and min) "
+          "for the reservation are defined using the properties, "
+          "DeltaReservationMax and DeltaReservationMin."), 
+       Units ( "Percentage" ), MinValue ( 1 ), MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DeltaReservationMin",
+          "CIM_StorageSetting.DeltaReservationMax" }]
+   uint8 DeltaReservationGoal;
+};
+
+
+// ==================================================================
+// StoragePool
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A pool of Storage that is managed within the scope of a "
+       "particular System. StoragePools may consist of component "
+       "StoragePools or StorageExtents. StorageExtents that belong to "
+       "the StoragePool have a Component relationship to the "
+       "StoragePool. StorageExtents/StoragePools that are elements of "
+       "a pool have their available space aggregated into the pool. "
+       "StoragePools and StorageVolumes may be created from "
+       "StoragePools. This is indicated by the "
+       "AllocatedFromStoragePool association. StoragePool is scoped to "
+       "a system by the HostedStoragePool association.")]
+class CIM_StoragePool : CIM_LogicalElement {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "InstanceID is not re-used across any InstanceIDs produced "
+          "by this or other providers for this instance's NameSpace. \n"
+          "For DMTF defined instances, the 'preferred' algorithm MUST "
+          "be used with the <OrgID> set to 'CIM'.")]
+   string InstanceID;
+
+      [Required, Description (
+          "A unique name in the context of the System that identifies "
+          "this pool."), 
+       MaxLen ( 256 )]
+   string PoolID;
+
+      [Description (
+          "If true, \"Primordial\" indicates that the containing "
+          "System does not have the ability to create or delete this "
+          "operational element. This is important because higher-level "
+          "StoragePools may be assembled using the Component or "
+          "AllocatedFromStoragePool associations. Although the "
+          "higher-level abstractions can be created and deleted, the "
+          "most basic, (i.e. primordial), hardware-based StoragePools "
+          "cannot. They are physically realized as part of the System, "
+          "or are actually managed by some other System and imported "
+          "as if they were physically realized.")]
+   boolean Primordial=false;
+
+      [Description (
+          "The total amount of raw storage (in bytes) managed by this "
+          "StoragePool. This includes all of the bytes consumed to "
+          "create the storage surfaced by this StoragePool, including "
+          "all of the overhead bytes that are not reflected in the "
+          "size of the logical storage allocated from this "
+          "StoragePool. \n"
+          "Conceptually TotalManagedSpace reflects all storage known "
+          "via Component associations to underlying StorageExtents or "
+          "via AllocatedFromStoragePool associations to underlying "
+          "StoragePools. However, note that this underlying storage "
+          "may not be surfaced by the instrumentation."), 
+       Units ( "Bytes" ), 
+       ModelCorrespondence { "CIM_StoragePool.RemainingManagedSpace" }]
+   uint64 TotalManagedSpace;
+
+      [Required, Description (
+          "The remaining amount of raw storage (in bytes) from the "
+          "TotalManagedSpace of this StoragePool. This property is "
+          "maintained here to provide efficient access to this "
+          "information. However, note that it is possible to compute "
+          "RemainingManagedSpace as (TotalManagedSpace minus the sum "
+          "of SpaceConsumed from all of the AllocatedFromStoragePool "
+          "references from this StoragePool). Note that SpaceConsumed "
+          "remains useful to determine the amount of raw storage "
+          "consumed by a particular allocated element."), 
+       Units ( "Bytes" ), 
+       ModelCorrespondence { "CIM_StoragePool.TotalManagedSpace",
+          "CIM_AllocatedFromStoragePool.SpaceConsumed" }]
+   uint64 RemainingManagedSpace;
+
+      [Description (
+          "For pools that support discrete sizes for volume or pool "
+          "creation, this method can be used to retrieve a list of "
+          "supported sizes. Note that different pool implementations "
+          "may support either or both the GetSupportedSizes and "
+          "GetSupportedSizeRanges methods at different times, "
+          "depending on Pool configuration. Also note that the "
+          "advertised sizes may change after the call due to requests "
+          "from other clients. If the pool currently only supports a "
+          "range of sizes, then the return value will be set to 1."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Method completed OK", "Method not supported",
+          "Use GetSupportedSizeRange instead" }]
+   uint32 GetSupportedSizes ( 
+         [IN, Description (
+             "The type of element for which supported sizes are "
+             "reported for."), 
+          ValueMap { "2", "3" }, 
+          Values { "Storage Pool", "Storage Volume" }]
+      uint16 ElementType, 
+         [IN, Description (
+             "The StorageSetting for which supported sizes should be "
+             "reported for.")]
+      CIM_StorageSetting REF Goal, 
+         [IN ( false ), OUT, Description (
+             "List of supported sizes for a Volume/Pool creation or "
+             "modification."), 
+          Units ( "Bytes" )]
+      uint64 Sizes[] ); 
+
+      [Description (
+          "For pools that that support a range of sizes for volume or "
+          "pool creation, this method can be used to retrieve the "
+          "supported range. Note that different pool implementations "
+          "may support either or both the GetSupportedSizes and "
+          "GetSupportedSizeRanges methods at different times, "
+          "depending on Pool configuration. Also note that the "
+          "advertised sizes may change after the call due to requests "
+          "from other clients. If the pool currently only supports "
+          "discrete sizes, then the return value will be set to 1."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Method completed OK", "Method not supported",
+          "Use GetSupportedSizes instead" }]
+   uint32 GetSupportedSizeRange ( 
+         [IN, Description (
+             "The type of element for which supported size ranges are "
+             "reported for."), 
+          ValueMap { "2", "3" }, 
+          Values { "Storage Pool", "Storage Volume" }]
+      uint16 ElementType, 
+         [IN, Description (
+             "The StorageSetting for which supported size ranges "
+             "should be reported for.")]
+      CIM_StorageSetting REF Goal, 
+         [IN ( false ), OUT, Description (
+             "The minimum size for a volume/pool in bytes."), 
+          Units ( "Bytes" )]
+      uint64 MinimumVolumeSize, 
+         [IN ( false ), OUT, Description (
+             "The maximum size for a volume/pool in bytes."), 
+          Units ( "Bytes" )]
+      uint64 MaximumVolumeSize, 
+         [IN ( false ), OUT, Description (
+             "A volume/pool size must be a multiple of this value "
+             "which is specified in bytes."), 
+          Units ( "Bytes" )]
+      uint64 VolumeSizeDivisor); 
+};
+
+
+// ==================================================================
+// StorageCapabilities
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A subclass of Capabilities that defines the Capabilities of a "
+       "StorageService or StoragePool. For example, an instance of "
+       "StorageCapabilities could be associated with either a "
+       "StorageConfigurationService or StoragePool by using "
+       "ElementCapabilities.")]
+class CIM_StorageCapabilities : CIM_Capabilities {
+
+      [Description (
+          "Enumeration indicating the type of element to which this "
+          "StorageCapabilities applies."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Reserved", "Any Type", "StorageVolume",
+          "StorageExtent", "StoragePool",
+       "StorageConfigurationService" }]
+   uint16 ElementType;
+
+      [Description (
+          "Indicates whether or not the associated element supports no "
+          "single point of failure. Values are: FALSE = does not "
+          "support no single point of failure, and TRUE = supports no "
+          "single point of failure."), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.NoSinglePointOfFailureDefault" }]
+   boolean NoSinglePointOfFailure;
+
+      [Description (
+          "Indicates the default value for the NoSinglePointOfFailure "
+          "property."), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.NoSinglePointOfFailure" }]
+   boolean NoSinglePointOfFailureDefault;
+
+      [Description (
+          "DataRedundancyMax describes the maximum number of complete "
+          "copies of data that can be maintained. Examples would be "
+          "RAID 5 (where 1 copy is maintained) and RAID 1 (where 2 or "
+          "more copies are maintained). Possible values are 1 to n. "
+          "The default redundancy is specified using "
+          "DataRedundancyDefault, while the minimum is defined by "
+          "DataRedundancyMin."), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.DataRedundancyMin",
+          "CIM_StorageCapabilities.DataRedundancyDefault" }]
+   uint16 DataRedundancyMax;
+
+      [Description (
+          "DataRedundancyMin describes the minimum number of complete "
+          "copies of data that can be maintained. Examples would be "
+          "RAID 5 where 1 copy is maintained and RAID 1 where 2 or "
+          "more copies are maintained). Possible values are 1 to n. "
+          "The default redundancy is specified using "
+          "DataRedundancyDefault, while the maximum is defined by "
+          "DataRedundancyMax."), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.DataRedundancyMax",
+          "CIM_StorageCapabilities.DataRedundancyDefault" }]
+   uint16 DataRedundancyMin;
+
+      [Description (
+          "DataRedundancyDefault describes the default number of "
+          "complete copies of data that can be maintained. Examples "
+          "would be RAID 5 where 1 copy is maintained and RAID 1 where "
+          "2 or more copies are maintained. Possible values are 1 to "
+          "n. The bounds for the redundancy (max and min) are defined "
+          "by DataRedundancyMax and DataRedundancyMin."), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.DataRedundancyMax",
+          "CIM_StorageCapabilities.DataRedundancyMin" }]
+   uint16 DataRedundancyDefault;
+
+      [Description (
+          "PackageRedundancyMax describes the maximum number of "
+          "redundant packages that can be used. For example, in the "
+          "storage domain, package redundancy describes how many disk "
+          "spindles can fail without data loss including, at most, one "
+          "spare. An example would be RAID5 with a spare disk which "
+          "would have a PackageRedundancy of 2. Possible values are 0 "
+          "to n. The default redundancy is specified using "
+          "PackageRedundancyDefault, while the maximum is defined by "
+          "PackageRedundancyMax."), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.PackageRedundancyMin",
+          "CIM_StorageCapabilities.PackageRedundancyDefault" }]
+   uint16 PackageRedundancyMax;
+
+      [Description (
+          "PackageRedundancyMin describes the minimum number of "
+          "redundant packages that can be used. For example, in the "
+          "storage domain, package redundancy describes how many disk "
+          "spindles can fail without data loss including, at most, one "
+          "spare. An example would be RAID5 with a spare disk which "
+          "would have a PackageRedundancy of 2. Possible values are 0 "
+          "to n. The default redundancy is specified using "
+          "PackageRedundancyDefault, while the minimum is defined by "
+          "PackageRedundancyMin."), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.PackageRedundancyMax",
+          "CIM_StorageCapabilities.PackageRedundancyDefault" }]
+   uint16 PackageRedundancyMin;
+
+      [Description (
+          "PackageRedundancyDefault describes the default number of "
+          "redundant packages that will be used. For example, in the "
+          "storage domain, package redundancy describes how many disk "
+          "spindles can fail without data loss including, at most, one "
+          "spare. An example would be RAID5 with a spare disk which "
+          "would have a PackageRedundancy of 2. Possible values are 0 "
+          "to n. The bounds for redundancy are specified using the "
+          "properties, PackageRedundancyMax and PackageRedundancyMin."), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.PackageRedundancyMin",
+          "CIM_StorageCapabilities.PackageRedundancyMax" }]
+   uint16 PackageRedundancyDefault;
+
+      [Description (
+          "DeltaReservatioMax is a number between 1 (1%) and a 100 "
+          "(100%) that specifies the maximum amount of space reserved "
+          "in a replica for caching changes. For a complete copy this "
+          "would be 100%, but it can be lower in some implementations. "
+          "This parameter sets the upper limit, while "
+          "DeltaReservationMin sets the lower limit."), 
+       Units ( "Percentage" ), MinValue ( 0 ), MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.DeltaReservationMin",
+          "CIM_StorageCapabilities.DeltaReservationDefault" }]
+   uint16 DeltaReservationMax;
+
+      [Description (
+          "DeltaReservationMin is a number between 1 (1%) and a 100 "
+          "(100%) that specifies the minimum amount of space that "
+          "should be reserved in a replica for caching changes. For a "
+          "complete copy this would be 100%, but it can be lower in "
+          "some implementations. This parameter sets the lower limit, "
+          "while DeltaReservationMax sets the upper limit."), 
+       Units ( "Percentage" ), MinValue ( 0 ), MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.DeltaReservationMax",
+          "CIM_StorageCapabilities.DeltaReservationDefault" }]
+   uint16 DeltaReservationMin;
+
+      [Description (
+          "Delta reservation is a number between 1 (1%) and a 100 "
+          "(100%) that specifies how much space should be reserved by "
+          "default in a replica for caching changes. For a complete "
+          "copy this would be 100%, but it can be lower in some "
+          "implementations. This parameter sets the default value, "
+          "while DeletaReservationMax and DeltReservationMin set the "
+          "upper and lower bounds."), 
+       Units ( "Percentage" ), MinValue ( 0 ), MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_StorageCapabilities.DeltaReservationMax",
+          "CIM_StorageCapabilities.DeltaReservationMin" }]
+   uint16 DeltaReservationDefault;
+
+      [Description (
+          "Method to create and populate a StorageSetting instance "
+          "from a StorageCapability instance. This removes the need to "
+          "populate default settings and other settings in the context "
+          "of each StorageCapabilities (which could be numerous). If "
+          "the underlying instrumentation supports the "
+          "StorageSettingWithHints subclass, then an instance of that "
+          "class will be created instead."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "DMTF Reserved",
+          "Vendor Specific" }]
+   uint32 CreateSetting ( 
+         [IN, Description (
+             "If 'Default' is passed for the CreateDefault parameter, "
+             "the Max, Goal, and Min setting attributes are set to the "
+             "Default values of the parent StorageCapabilities when "
+             "the instance is created. \n"
+             "If set to 'Goal' the new StorageSetting attributes are "
+             "set to the related attributes of the parent "
+             "StorageCapabilities, e.g. Min to Min, Goal to Default, "
+             "and Max to Max. \n"
+             "\n"
+             "This method maybe deprecated in lieu of intrinsics once "
+             "limitations in the CIM Operations are addressed."), 
+          ValueMap { "2", "3" }, 
+          Values { "Default", "Goal" }]
+      uint16 SettingType, 
+         [IN ( False ), OUT, Description (
+             "Reference to the created StorageSetting instance.")]
+      CIM_StorageSetting REF NewSetting ); 
+};
+
+// ==================================================================
+// StorageConfigurationService
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "This service allows the active management of a Storage Server. "
+       "It allows jobs to be started for the creation, modification "
+       "and deletion of storage objects (StoragePools and "
+       "StorageVolumes).")]
+class CIM_StorageConfigurationService : CIM_Service {
+
+      [Description (
+          "Starts a job to create (or modify) a StoragePool. The "
+          "StoragePool will be (or must be) scoped to the same System "
+          "as this Service. One of the parameters for this method is "
+          "Size. As an input parameter, Size specifies the desired "
+          "size of the pool. As an output parameter, it specifies the "
+          "size achieved. Space is taken from either or both of the "
+          "specified input StoragePools and StorageExtents (InPools "
+          "and InExtents). The capability requirements that the Pool "
+          "must support are defined using the Goal parameter. If the "
+          "requested pool size cannot be created, no action will be "
+          "taken, the Return Value will be 4097/0x1001, and the output "
+          "value of Size will be set to the nearest possible size. If "
+          "0 is returned, then the task completed successfully and the "
+          "use of ConcreteJob was not required. If the task will take "
+          "some time to complete, a ConcreteJob will be created and "
+          "its reference returned in the output parameter Job."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096",
+          "4097", "4098..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported",
+          "Unknown", "Timeout", "Failed", "Invalid Parameter",
+          "In Use", "DMTF Reserved",
+          "Method Parameters Checked - Job Started",
+          "Size Not Supported", "Method Reserved", "Vendor Specific" }]
+   uint32 CreateOrModifyStoragePool ( 
+         [IN, Description (
+             "A end user relevant name for the pool being created. If "
+             "NULL, then a system supplied default name can be used. "
+             "The value will be stored in the 'ElementName' property "
+             "for the created pool. If not NULL, this parameter will "
+             "supply a new name when modifying an existing pool.")]
+      string ElementName, 
+         [IN ( false ), OUT, Description (
+             "Reference to the job (may be null if job completed).")]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description (
+             "Reference to an instance of StorageSetting that defines "
+             "the desired capabilities of the StoragePool. If set to a "
+             "null value, the default configuration from the source "
+             "pool will be used. If not NULL, this parameter will "
+             "supply a new Goal setting when modifying an existing "
+             "pool.")]
+      CIM_StorageSetting REF Goal, 
+         [IN, OUT, Description (
+             "As an input parameter this specifies the desired pool "
+             "size in bytes. As an output parameter this specifies the "
+             "size achieved."), 
+          Units ( "Bytes" )]
+      uint64 Size, 
+         [IN, Description (
+             "Array of strings containing representations of "
+             "references to CIM_StoragePool instances, that are used "
+             "to create the Pool or modify the source pools.")]
+      string InPools[], 
+         [IN, Description (
+             "Array of strings containing representations of "
+             "references to CIM_StorageExtent instances, that are used "
+             "to create the Pool or modify the source extents.")]
+      string InExtents[], 
+         [IN, OUT, Description (
+             "As an input parameter: if null, creates a new "
+             "StoragePool. If not null, modifies the referenced Pool. "
+             "When returned, it is a reference to the resulting "
+             "StoragePool.")]
+      CIM_StoragePool REF Pool); 
+
+      [Description (
+          "Start a job to create (or modify) a specified element (for "
+          "example a StorageVolume or StorageExtent) from a "
+          "StoragePool. One of the parameters for this method is Size. "
+          "As an input parameter, Size specifies the desired size of "
+          "the element. As an output parameter, it specifies the size "
+          "achieved. Space is taken from the input StoragePool. The "
+          "desired settings for the element are specified by the Goal "
+          "parameter. If the requested size cannot be created, no "
+          "action will be taken, and the Return Value will be "
+          "4097/0x1001. Also, the output value of Size is set to the "
+          "nearest possible size. If 0 is returned, the function "
+          "completed successfully and no ConcreteJob instance was "
+          "required. If 4096/0x1000 is returned, a ConcreteJob will be "
+          "started to create the element. The Job's reference will be "
+          "returned in the output parameter Job."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096",
+          "4097", "4098..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported",
+          "Unknown", "Timeout", "Failed", "Invalid Parameter",
+          "In Use", "DMTF Reserved",
+          "Method Parameters Checked - Job Started",
+          "Size Not Supported", "Method Reserved", "Vendor Specific" }]
+   uint32 CreateOrModifyElementFromStoragePool( 
+         [IN, Description (
+             "A end user relevant name for the element being created. "
+             "If NULL, then a system supplied default name can be "
+             "used. The value will be stored in the 'ElementName' "
+             "property for the created element. If not NULL, this "
+             "parameter will supply a new name when modifying an "
+             "existing element.")]
+      string ElementName, 
+         [IN, Description (
+             "Enumeration indicating the type of element being created "
+             "or modified. If the input parameter TheElement is "
+             "specified when the operation is a 'modify', this type "
+             "value must match the type of that instance."), 
+          ValueMap { "0", "1", "2", "3", "..", "32768..65535" }, 
+          Values { "Unknown", "Reserved", "StorageVolume",
+             "StorageExtent", "DMTF Reserved", "Vendor Specific" }]
+      uint16 ElementType, 
+         [IN ( false ), OUT, Description (
+             "Reference to the job (may be null if job completed).")]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description (
+             "The requirements for the element to maintain. If set to "
+             "a null value, the default configuration from the source "
+             "pool will be used. This parameter should be a reference "
+             "to a Setting or Profile appropriate to the element being "
+             "created. If not NULL, this parameter will supply a new "
+             "Goal when modifying an existing element.")]
+      CIM_ManagedElement REF Goal, 
+         [IN, OUT, Description (
+             "As an input parameter Size specifies the desired size. "
+             "If not NULL, this parameter will supply a new size when "
+             "modifying an existing element. As an output parameter "
+             "Size specifies the size achieved."), 
+          Units ( "Bytes" )]
+      uint64 Size, 
+         [IN, Description (
+             "The Pool from which to create the element. This "
+             "parameter must be set to null if the input parameter "
+             "TheElement is specified (in the case of a 'modify' "
+             "operation).")]
+      CIM_StoragePool REF InPool, 
+         [IN, OUT, Description (
+             "As an input parameter: if null, creates a new element. "
+             "If not null, then the method modifies the specified "
+             "element. As an output parameter, it is a reference to "
+             "the resulting element.")]
+      CIM_LogicalElement REF TheElement); 
+
+      [Description (
+          "Start a job to delete a StoragePool. The freed space is "
+          "returned source StoragePools (indicated by AllocatedFrom "
+          "StoragePool) or back to underlying storage extents. If 0 is "
+          "returned, the function completed successfully, and no "
+          "ConcreteJob was required. If 4096/0x1000 is returned, a "
+          "ConcreteJob will be started to delete the StoragePool. A "
+          "reference to the Job is returned in the Job parameter."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096",
+          "4097..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported",
+          "Unknown", "Timeout", "Failed", "Invalid Parameter",
+          "In Use", "DMTF Reserved",
+          "Method Parameters Checked - Job Started", "Method Reserved",
+          "Vendor Specific" }]
+   uint32 DeleteStoragePool ( 
+         [IN ( false ), OUT, Description (
+             "Reference to the job (may be null if job completed).")]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description (
+             "Reference to the pool to delete.")]
+      CIM_StoragePool REF Pool); 
+
+      [Description (
+          "Start a job to delete an element previously created from a "
+          "StoragePool. The freed space is returned to the source "
+          "StoragePool. If 0 is returned, the function completed "
+          "successfully and no ConcreteJob was required. If "
+          "4096/0x1000 is returned, a ConcreteJob will be started to "
+          "delete the element. A reference to the Job is returned in "
+          "the Job parameter."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096",
+          "4097..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported",
+          "Unknown", "Timeout", "Failed", "Invalid Parameter",
+          "In Use", "DMTF Reserved",
+          "Method Parameters Checked - Job Started", "Method Reserved",
+          "Vendor Specific" }]
+   uint32 ReturnToStoragePool( 
+         [IN ( false ), OUT, Description (
+             "Reference to the job (may be null if job completed).")]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description (
+             "Reference to the element to return to the StoragePool.")]
+      CIM_LogicalElement REF TheElement); 
+
+      [Description (
+          "Start a job to create a new storage object which is a "
+          "replica of the specified source storage object. "
+          "(SourceElement). Note that using the input paramter, "
+          "CopyType, this function can be used to instantiate the "
+          "replica, and to create an ongoing association between the "
+          "source and replica. If 0 is returned, the function "
+          "completed successfully and no ConcreteJob instance is "
+          "created. If 4096/0x1000 is returned, a ConcreteJob is "
+          "started, a reference to which is returned in the Job output "
+          "parameter."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096",
+          "4097..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported",
+          "Unknown", "Timeout", "Failed", "Invalid Parameter",
+          "In Use", "DMTF Reserved",
+          "Method Parameters Checked - Job Started", "Method Reserved",
+          "Vendor Specific" }]
+   uint32 CreateReplica( 
+         [IN, Description (
+             "A end user relevant name for the element being created. "
+             "If NULL, then a system supplied default name can be "
+             "used. The value will be stored in the 'ElementName' "
+             "property for the created element.")]
+      string ElementName, 
+         [IN ( false ), OUT, Description (
+             "Reference to the job (may be null if job completed).")]
+      CIM_ConcreteJob REF Job, 
+         [Required, IN, Description (
+             "The source storage object which may be a StorageVolume "
+             "or storage object.")]
+      CIM_LogicalElement REF SourceElement, 
+         [IN ( false ), OUT, Description (
+             "Reference to the created target storage element (i.e., "
+             "the replica).")]
+      CIM_LogicalElement REF TargetElement, 
+         [IN, Description (
+             "The definition for the StorageSetting to be maintained "
+             "by the target storage object (the replica).")]
+      CIM_StorageSetting REF TargetSettingGoal, 
+         [IN, Description (
+             "The underlying storage for the target element (the "
+             "replica) will be drawn from TargetPool if specified, "
+             "otherwise the allocation is implementation specific.")]
+      CIM_StoragePool REF TargetPool, 
+         [IN, Description (
+             "CopyType describes the type of copy that will be made. "
+             "Values are: \n"
+             "Async: Create and maintain an asynchronous copy of the "
+             "source. \n"
+             "Sync: Create and maintain a synchronized copy of the "
+             "source. \n"
+             "UnSyncAssoc: Create an unsynchronized copy and maintain "
+             "an association to the source. \n"
+             "UnSyncUnAssoc: Create unassociated copy of the source "
+             "element."), 
+          ValueMap { "2", "3", "4", "5", "..", "32768..65535" }, 
+          Values { "Async", "Sync", "UnSyncAssoc", "UnSyncUnAssoc",
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 CopyType); 
+
+      [Description (
+          "Modify (or start a job to modify) the synchronization "
+          "association between two storage objects. If 0 is returned, "
+          "the function completed successfully and no ConcreteJob "
+          "instance was created. If 0x1000 is returned, a ConcreteJob "
+          "was started and a reference to this Job is returned in the "
+          "Job output parameter. A return value of 1 indicates the "
+          "method is not supported. All other values indicate some "
+          "type of error condition."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x1000",
+          "0x1001..0x7FFF", "0x8000..0xFFFF" }, 
+       Values { "Job Completed with No Error", "Not Supported",
+          "Unspecified Error", "Timeout", "Failed",
+          "Invalid Parameter", "In Use", "DMTF Reserved",
+          "Method Parameters Checked - Job Started", "Method Reserved",
+          "Vendor Specific" }]
+   uint32 ModifySynchronization( 
+         [IN, Description (
+             "Operation describes the type of modification to be made "
+             "to the replica. Values are: \n"
+             "Detach: 'Forget' the synchronization between two storage "
+             "objects. Start to treat the objects as independent. \n"
+             "Fracture: Suspend the synchronization between two "
+             "storage objects. The association and (typically) changes "
+             "are remembered to allow a fast resynchronization. This "
+             "may be used during a backup cycle to allow one of the "
+             "objects to be copied while the other remains in "
+             "production. \n"
+             "Resync Replica: Re-establish the synchronization of a "
+             "replica. This will negate the action of a previous "
+             "Fracture operation. \n"
+             "Restore from Replica: Renew the contents of the original "
+             "storage object from a replica. \n"
+             "Prepare: Get the link ready for a Resync operation to "
+             "take place. Some implementations will require this "
+             "operation to be invoked to keep the Resync operation as "
+             "fast as possible. \n"
+             "Unprepare: Clear a prepared state if a Prepare is not to "
+             "be followed by a Resync operation. \n"
+             "Quiesce: Some applications require notification so that "
+             "they can ready the link for an operation. For example "
+             "flush any cached data or buffered changes. \n"
+             "Unquiesce: Take the link from the quiesced state "
+             "(without executing the intended operation. \n"
+             "Reset To Sync: Change the CopyType of the association to "
+             "Sync (e.g., from the Async CopyType). \n"
+             "Reset To Async: Change the CopyType of the association "
+             "to Async (e.g., from the Sync CopyType)."), 
+          ValueMap { "0","1","2", "3", "4", "5", "6", "7", "8", "9",
+             "10", "11", "..", "0x8000..0xFFFF" }, 
+          Values { "DMTF Reserved", "DMTF Reserved", "Detach",
+             "Fracture", "Resync Replica", "Restore from Replica",
+             "Prepare", "Unprepare", "Quiesce", "Unquiesce",
+             "Reset To Sync", "Reset To Async", "DMTF Reserved",
+             "Vendor Specific" }]
+      uint16 Operation, 
+         [IN ( false ), OUT, Description (
+             "Reference to the job (may be null if the task "
+             "completed).")]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description (
+             "The referenced to the StorageSynchronized association "
+             "describing the storage source/replica relationship.")]
+      CIM_StorageSynchronized REF Synchronization); 
+
+      [Description (
+          "Create (or start a job to create) a StorageSynchronized "
+          "relationship between two existing storage objects. Note "
+          "that using the input parameter, CopyType, this function can "
+          "be used to to create an ongoing association between the "
+          "source and replica. If 0 is returned, the function "
+          "completed successfully and no ConcreteJob instance is "
+          "created. If 0x1000 is returned, a ConcreteJob is started, a "
+          "reference to which is returned in the Job output parameter. "
+          "A return value of 1 indicates the method is not supported. "
+          "All other values indicate some type of error condition."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x1000",
+          "0x1001..0x7FFF", "0x8000..0xFFFF" }, 
+       Values { "Job Completed with No Error", "Not Supported",
+          "Unspecified Error", "Timeout", "Failed",
+          "Invalid Parameter", "In Use", "DMTF Reserved",
+          "Method Parameters Checked - Job Started", "Method Reserved",
+          "Vendor Specific" }]
+   uint32 AttachReplica( 
+         [IN ( false ), OUT, Description (
+             "Reference to the job (may be null if the task "
+             "completed).")]
+      CIM_ConcreteJob REF Job, 
+         [Required, IN, Description (
+             "The source storage object which may be a StorageVolume "
+             "or other storage object.")]
+      CIM_ManagedElement REF SourceElement, 
+         [IN, Description (
+             "Reference to the target storage element (i.e., the "
+             "replica).")]
+      CIM_ManagedElement REF TargetElement, 
+         [IN, Description (
+             "CopyType describes the type of Synchronized relationship "
+             "that will be created. Values are: \n"
+             "Async: Create and maintain an asynchronous copy of the "
+             "source. \n"
+             "Sync: Create and maintain a synchronized copy of the "
+             "source. \n"
+             "UnSyncAssoc: Create an unsynchronized copy and maintain "
+             "an association to the source. \n"
+             "UnSyncUnAssoc: Create unassociated copy of the source "
+             "element."), 
+          ValueMap { "2", "3", "4", "5", "..", "0x8000..0xFFFF" }, 
+          Values { "Async", "Sync", "UnSyncAssoc", "UnSyncUnAssoc",
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 CopyType); 
+};
+
+// ==================================================================
+//  StorageConfigurationCapabilities
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A subclass of Capabilities that defines the Capabilities of a "
+       "StorageConfigurationService. An instance of "
+       "StorageConfigurationCapabilities is associated with a "
+       "StorageConfigurationService using ElementCapabilities.")]
+class CIM_StorageConfigurationCapabilities : CIM_Capabilities {
+
+      [Description (
+          "Enumeration indicating what operations will be executed as "
+          "asynchronous jobs. If an operation is included in both this "
+          "and SupportedSynchronousActions then the underlying "
+          "implementation is indicating that it may or may not create "
+          "a job."), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10" }, 
+       Values { "Storage Pool Creation", "Storage Pool Deletion",
+          "Storage Pool Modification", "Storage Element Creation",
+          "Storage Element Return", "Storage Element Modification",
+          "Replica Creation", "Replica Modification",
+          "Replica Attachment" }, 
+       ModelCorrespondence { 
+          "CIM_StorageConfigurationCapabilities.SupportedSynchronousActions" 
+          }]
+   uint16 SupportedAsynchronousActions[];
+
+      [Description (
+          "Enumeration indicating what operations will be executed "
+          "without the creation of a job. If an operation is included "
+          "in both this and SupportedAsynchronousActions then the "
+          "underlying instrumentation is indicating that it may or may "
+          "not create a job."), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10" }, 
+       Values { "Storage Pool Creation", "Storage Pool Deletion",
+          "Storage Pool Modification", "Storage Element Creation",
+          "Storage Element Return", "Storage Element Modification",
+          "Replica Creation", "Replica Modification",
+          "Replica Attachment" }, 
+       ModelCorrespondence { "CIM_StorageConfigurationCapabilities." 
+          "SupportedAsynchronousActions" }]
+   uint16 SupportedSynchronousActions[];
+
+      [Description (
+          "Enumeration indicating the type of storage elements that "
+          "are supported by the associated "
+          "StorageConfigurationService."), 
+       ValueMap { "2", "3", "..", "0x8000..0xFFFF" }, 
+       Values { "StorageVolume", "StorageExtent", "DMTF Reserved",
+          "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_StorageConfigurationService." 
+          "CreateOrModifyElementFromStoragePool.ElementType" }]
+   uint16 SupportedStorageElementTypes[];
+
+      [Description (
+          "Enumeration indicating features supported by the "
+          "StoragePool methods."), 
+       ValueMap { "2", "3", "4", "..", "0x8000..0xFFFF" }, 
+       Values { "InExtents", "Single InPool", "Multiple InPools",
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_StorageConfigurationService." 
+          "CreateOrModifyStoragePool.InPools",
+          "CIM_StorageConfigurationService." 
+          "CreateOrModifyStoragePool.InExtents" }]
+   uint16 SupportedStoragePoolFeatures[];
+
+      [Description (
+          "Enumeration indicating features supported by the Storage "
+          "Element methods."), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "..",
+       "0x8000..0xFFFF" }, 
+       Values { "StorageExtent Creation", "StorageVolume Creation",
+          "StorageExtent Modification", "StorageVolume Modification",
+          "Single InPool", "Multiple InPools", "DMTF Reserved",
+          "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_StorageConfigurationService." 
+          "CreateOrModifyElementFromStoragePool.ElementType",
+          "CIM_StorageConfigurationService." 
+          "CreateOrModifyElementFromStoragePool.InPool" }]
+   uint16 SupportedStorageElementFeatures[];
+
+      [Description (
+          "SupportedCopyTypes describes the replication capabilities "
+          "supported by the associated StorageConfigurationServices. "
+          "Values are: \n"
+          "Async: asynchronous copies may be created and maintained. \n"
+          "Sync: synchronous copies may be created and maintained. \n"
+          "UnSyncAssoc: unsynchronized copies may be created and "
+          "maintained. \n"
+          "UnSyncUnAssoc: a 'straight copy' may be created."), 
+       ValueMap { "2", "3", "4", "5", "..", "0x8000..0xFFFF" }, 
+       Values { "Async", "Sync", "UnSyncAssoc", "UnSyncUnAssoc",
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_StorageConfigurationService.CreateReplica.CopyType" }]
+   uint16 SupportedCopyTypes[];
+
+      [Description (
+          "InitialReplicationState specifies which initial "
+          "ReplicationState is supported by a particular provider. "
+          "Values are: \n"
+          "Initialized: The replication relationship is known and "
+          "unsynchronized, but time required to synchronize may be "
+          "long. \n"
+          "Prepared: The replication relationship is known and "
+          "unsynchronized and the time required to synchronize will be "
+          "short. \n"
+          "Synchronized: The replicas are synchronized."), 
+       ValueMap { "2", "3", "4", "..", "0x8000..0xFFFF" }, 
+       Values { "Initialized", "Prepared", "Synchronized",
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_StorageConfigurationService.AttachReplica",
+          "CIM_StorageConfigurationService.CreateReplica" }]
+   uint16 InitialReplicationState;
+};
+
+// ====================================================================
+// StorageSettingWithHints
+// ====================================================================
+   [Version ( "2.7.1" ), Description (
+       "This subclass of StorageSetting allows a client to specify "
+       "'hint's for optimization of the volume performance. The effect "
+       "of these hints is implementation dependent.")]
+class CIM_StorageSettingWithHints : CIM_StorageSetting {
+
+      [Write, Description (
+          "This hint is an indication from a client of the importance "
+          "placed on data availability. Values are 0=Don't Care to "
+          "10=Very Important."), 
+       MinValue ( 0 ), MaxValue ( 10 )]
+   uint16 DataAvailabilityHint;
+
+      [Write, Description (
+          "This hint is an indication from a client of the randomness "
+          "of accesses. Values are 0=Entirely Sequential to "
+          "10=Entirely Random."), 
+       MinValue ( 0 ), MaxValue ( 10 )]
+   uint16 AccessRandomnessHint;
+
+      [Write, Description (
+          "This hint is an indication from a client of the direction "
+          "of accesses. Values are 0=Entirely Read to 10=Entirely "
+          "Write."), 
+       MinValue ( 0 ), MaxValue ( 10 )]
+   uint16 AccessDirectionHint;
+
+      [Write, Description (
+          "This hint is an indication from a client of the optimal "
+          "access sizes (in bytes). Since this property is an array, "
+          "several sizes can be specified."), 
+       Units ( "Bytes" )]
+   uint16 AccessSizeHint[];
+
+      [Write, Description (
+          "This hint is an indication from a client how important "
+          "access latency is. Values are 0=Don't Care to 10=Very "
+          "Important."), 
+       MinValue ( 0 ), MaxValue ( 10 )]
+   uint16 AccessLatencyHint;
+
+      [Write, Description (
+          "This hint is an indication from a client of bandwidth "
+          "prioritization. Values are 0=Don't Care to 10=Very "
+          "Important."), 
+       MinValue ( 0 ), MaxValue ( 10 )]
+   uint16 AccessBandwidthWeight;
+
+      [Write, Description (
+          "This hint is an indication of the importance the client "
+          "places on the cost of storage. Values are 0=Don't Care to "
+          "10=Very Important. A StorageVolume provider might choose to "
+          "place data on low cost or high cost drives based on this "
+          "parameter."), 
+       MinValue ( 0 ), MaxValue ( 10 )]
+   uint16 StorageCostHint;
+
+      [Write, Description (
+          "This hint is an indication of the importance placed on "
+          "storage space efficiency by the client. Values are 0=Don't "
+          "Care to 10=Very Important. A StorageVolume provider might "
+          "choose different RAID levels based on this hint."), 
+       MinValue ( 0 ), MaxValue ( 10 )]
+   uint16 StorageEfficiencyHint;
+};
+
+
+// ===================================================================
+// AllocatedFromStoragePool
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "AllocatedFromStoragePool is an association describing how "
+       "LogicalElements are allocated from underlying StoragePools. "
+       "These elements typically would be subclasses of StorageExtents "
+       "or StoragePools.")]
+class CIM_AllocatedFromStoragePool : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The StoragePool.")]
+   CIM_StoragePool REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The subsidiary element.")]
+   CIM_LogicalElement REF Dependent;
+
+      [Required, Description (
+          "Space consumed from this Pool, in bytes. This value MUST be "
+          "maintained so that, relative to the Antecedent StoragePool, "
+          "it is possible to compute TotalManagedSpace as "
+          "StoragePool.RemainingManagedSpace plus the sum of "
+          "SpaceConsumed from all of the AllocatedFromStoragePool "
+          "references from the antecedent StoragePool."), 
+       Units ( "Bytes" ), 
+       ModelCorrespondence { "CIM_StoragePool.TotalManagedSpace",
+          "CIM_StoragePool.RemainingManagedSpace" }]
+   uint64 SpaceConsumed;
+
+};
+
+
+// ==================================================================
+// HostedStoragePool
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "SystemStoragePool is a specialization of SystemComponent "
+       "association that establishes that the StoragePool is defined "
+       "in the context of the System.")]
+class CIM_HostedStoragePool : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The parent system in the Association.")]
+   CIM_System REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The StoragePool that is a component of a System.")]
+   CIM_StoragePool REF PartComponent;
+};
+
+
+// ===================================================================
+// ConfigurationReportingService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Service to provide reports on current configuration and "
+       "potential for growth. The service may be used in several "
+       "circumstances: \n"
+       "- To report growth potential (how many can I have) \n"
+       "- To report information on objects not directly modeled for "
+       "performance or other reasons. \n"
+       "It can also report counts of 'things' or counts of 'units'. "
+       "For example, the number of disk drives could be reported or "
+       "the capacity that they would provide.")]
+class CIM_ConfigurationReportingService : CIM_Service {
+
+      [Description (
+          "Returns a list of classes that the given Managed Element "
+          "supports or has installed."), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout",
+          "Failed", "DMTF Reserved", "Vendor Specific" }]
+   uint32 GetClassTypes( 
+         [IN, Description (
+             "The type of inquiry to be performed."), 
+          ValueMap { "2", "3" }, 
+          Values { "Supports", "Installed" }]
+      uint16 InquiryType, 
+         [IN, Description (
+             "False : Only report on elements directly contained "
+             "in/attached to the given ManagedElement. \n"
+             "True : Report on all objects contained in/attached to "
+             "the given ManagedElement.")]
+      boolean Recursive, 
+         [IN, Description (
+             "The target of query, for example a rack or a chassis.")]
+      CIM_ManagedElement REF Target, 
+         [IN ( false ), OUT, Description (
+             "Array containing the class names (typically the leaf "
+             "classes) that the given ManagedElement can support or "
+             "has installed.")]
+      string ClassTypes[]); 
+
+      [Description (
+          "Returns a list of UnitTypes that are installed for a given "
+          "ClassType on a given ManagedElement."), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout",
+          "Failed", "DMTF Reserved", "Vendor Specific" }]
+   uint32 GetUnitTypes( 
+         [IN, Description (
+             "The type of inquiry to be performed."), 
+          ValueMap { "2", "3" }, 
+          Values { "Supported", "Installed" }]
+      uint16 InquiryType, 
+         [IN, Description (
+             "False : Only report on elements directly contained "
+             "in/attached to the given ManagedElement. \n"
+             "True : Report on all objects contained in/attached to "
+             "the given ManagedElement.")]
+      boolean Recursive, 
+         [IN, Description (
+             "The target of query, for example a rack or a chassis.")]
+      CIM_ManagedElement REF Target, 
+         [IN, Description (
+             "The ClassType for the query. This should be a entry "
+             "returned in the GetClassTypes.ClassTypes property.")]
+      string ClassType, 
+         [IN ( false ), OUT, Description (
+             "A list of supported UnitTypes."), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10",
+             "..", "32768..65535" }, 
+          Values { "None", "Front Side", "Back Side", "Contained",
+             "Connected", "I/O", "Memory", "StorageMediaLocation",
+             "Megabytes", "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_ConfigurationReportingService." 
+             "ReportCapacity(UnitType)" }]
+      uint16 UnitTypes[]); 
+
+      [Description (
+          "Returns the maximum number supported or the number of "
+          "currently installed units for the given UnitType, for a "
+          "given ClassType on a given ManagedElement."), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout",
+          "Failed", "DMTF Reserved", "Vendor Specific" }]
+   uint32 ReportCapacity( 
+         [IN, Description (
+             "The type of inquiry to be performed."), 
+          ValueMap { "2", "3" }, 
+          Values { "Supported", "Installed" }]
+      uint16 InquiryType, 
+         [IN, Description (
+             "False : Only report on elements directly contained "
+             "in/attached to the given ManagedElement. \n"
+             "True : Report on all objects contained in/attached to "
+             "the given ManagedElement.")]
+      boolean Recursive, 
+         [IN, Description (
+             "The target of query, for example a rack or a chassis.")]
+      CIM_ManagedElement REF Target, 
+         [IN, Description (
+             "The ClassType for the query. This should be a entry "
+             "returned in the GetClassTypes.ClassTypes property.")]
+      string ClassType, 
+         [IN, Description (
+             "The UnitType for the query."), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10",
+             "..", "32768..65535" }, 
+          Values { "None", "Front Side", "Back Side", "Contained",
+             "Connected", "I/O", "Memory", "StorageMediaLocation",
+             "Megabytes", "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_ConfigurationReportingService." 
+             "GetUnitTypes(UnitTypes)" }]
+      uint16 UnitType, 
+         [IN ( false ), OUT, Description (
+             "The maximum number of supported or the number of "
+             "currently installed units.")]
+      uint64 NumberOfUnits); 
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

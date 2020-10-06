@@ -1,0 +1,75 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_Sensor
+// ==================================================================
+   [UMLPackagePath ( "CIM::Device::Sensors" ), Abstract,
+       Version ( "2.6.0" ), Description (
+       "A Sensor is a hardware device capable of measuring the "
+       "characteristics of some physical property - for example, the "
+       "temperature or voltage characteristics of a UnitaryComputer "
+       "System.")]
+class CIM_Sensor : CIM_LogicalDevice {
+
+      [Description (
+          "The Type of the Sensor, e.g. Voltage or Temperature Sensor. "
+          "If the type is set to \"Other\", then the OtherSensorType "
+          "Description can be used to further identify the type, or if "
+          "the Sensor has numeric readings, then the type of the "
+          "Sensor can be implicitly determined by the Units. A "
+          "description of the different Sensor types is as follows: A "
+          "Temperature Sensor measures the environmental temperature. "
+          "Voltage and Current Sensors measure electrical voltage and "
+          "current readings. A Tachometer measures speed/revolutions "
+          "of a Device. For example, a Fan Device can have an "
+          "associated Tachometer which measures its speed. A Counter "
+          "is a general purpose Sensor that measures some numerical "
+          "property of a Device. A Counter value can be cleared, but "
+          "it never decreases. A Switch Sensor has states like "
+          "Open/Close, On/Off, or Up/Down. A Lock has states of "
+          "Locked/Unlocked. Humidity, Smoke Detection and Air Flow "
+          "Sensors measure the equivalent environmental "
+          "characteristics. A Presence Sensor detects the presence of "
+          "a PhysicalElement."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12" }, 
+       Values { "Unknown", "Other", "Temperature", "Voltage",
+          "Current", "Tachometer", "Counter", "Switch", "Lock",
+          "Humidity", "Smoke Detection", "Presence", "Air Flow" }, 
+       ModelCorrespondence { "CIM_Sensor.OtherSensorTypeDescription" }]
+   uint16 SensorType;
+
+      [Description (
+          "A string describing the Sensor type - used when the "
+          "SensorType property is set to \"Other\"."), 
+       MaxLen ( 128 ), 
+       ModelCorrespondence { "CIM_Sensor.SensorType" }]
+   string OtherSensorTypeDescription;
+
+      [Description (
+          "PossibleStates enumerates the string outputs of the Sensor. "
+          "For example, a \"Switch\" Sensor may output the states "
+          "\"On\", or \"Off\". Another implementation of the Switch "
+          "may output the states \"Open\", and \"Close\". Another "
+          "example is a NumericSensor supporting thresholds. This "
+          "Sensor can report the states like \"Normal\", \"Upper "
+          "Fatal\", \"Lower Non-Critical\", etc. A NumericSensor that "
+          "does not publish readings and thresholds, but stores this "
+          "data internally, can still report its states."), 
+       MaxLen ( 128 )]
+   string PossibleStates[];
+
+      [Description (
+          "The current state indicated by the Sensor. This is always "
+          "one of the \"PossibleStates\"."), 
+       MaxLen ( 128 )]
+   string CurrentState;
+
+      [Description (
+          "The polling interval that the Sensor hardware or the "
+          "instrumentation uses to determine the current state of the "
+          "Sensor."), 
+       Units ( "NanoSeconds" )]
+   uint64 PollingInterval;
+};

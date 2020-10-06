@@ -1,0 +1,46 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_ProtocolControllerForDevice
+// ==================================================================
+   [Association, UMLPackagePath ( "CIM::Device::ProtocolController" ),
+    Abstract, Version ( "2.8.0" ), Description (
+       "This association indicates a subclass of LogicalDevice (for "
+       "example a Storage Volume) is connected through a specific "
+       "ProtocolController. In many situations (for example storage "
+       "LUN masking), there may be many of these associations used to "
+       "relate to different objects. Therefore subclasses have been "
+       "defined to optimize enumeration of the associations.")]
+class CIM_ProtocolControllerForDevice : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The ProtocolController.")]
+   CIM_ProtocolController REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The controlled Device.")]
+   CIM_LogicalDevice REF Dependent;
+
+      [Description (
+          "Address of the associated Device in the context of the "
+          "Antecedent Controller.")]
+   string DeviceNumber;
+
+      [Description (
+          "This property describes the priority given to accesses of "
+          "the device through this Controller. The highest priority "
+          "path will have the lowest value for this parameter.")]
+   uint16 AccessPriority;
+
+      [Description (
+          "The State property indicates whether the Controller is "
+          "actively commanding or accessing the device (value=2) or "
+          "not (value=3). Also, the value, \"Unknown\" (0), can be "
+          "defined. This information is necessary when a LogicalDevice "
+          "can be commanded by, or accessed through, multiple "
+          "ProtocolControllers."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "Active", "Inactive" }]
+   uint16 AccessState;
+};

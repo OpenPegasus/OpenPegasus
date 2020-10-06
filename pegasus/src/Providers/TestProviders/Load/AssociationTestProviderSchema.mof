@@ -1,0 +1,121 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+[Version ("2.2.0")]
+class TST_ClassA
+{
+    [key]
+    string name;
+};
+
+[Version ("2.2.0")]
+class TST_ClassB : TST_ClassA
+{
+};
+
+[Version ("2.2.0")]
+class TST_ClassC : TST_ClassA
+{
+};
+
+[Version ("2.2.0")]
+class TST_ClassD : TST_ClassB
+{
+};
+
+[association, Version ("2.2.0")]
+class TST_Assoc1
+{
+	[key]TST_ClassA ref from;
+	[key]TST_ClassA ref to;
+};
+
+[association, Version ("2.2.0")]
+class TST_Assoc2 : TST_Assoc1
+{
+	[key]TST_ClassB ref from;
+	[key]TST_ClassC ref to;
+};
+
+[association, Version ("2.2.0")]
+class TST_Assoc3 : TST_Assoc1
+{
+	[key]TST_ClassA ref from;
+	[key]TST_ClassC ref to;
+};
+
+[association, Version ("2.2.0")]
+class TST_Assoc4 : TST_Assoc1
+{
+	[key]TST_ClassC ref from;
+	[key]TST_ClassD ref to;
+};
+
+[association, Version ("2.2.0")]
+class TST_Assoc5 : TST_Assoc1
+{
+	[key]TST_ClassB ref from;
+	[key]TST_ClassB ref to;
+};
+
+[association, Version ("2.2.0")]
+class TST_Assoc6 : TST_Assoc1
+{
+	[key]TST_ClassD ref from;
+	[key]TST_ClassD ref to;
+};
+
+//////////////////////////////////////
+// Instances definition
+
+instance of TST_ClassA { name = "InstanceA1"; };
+instance of TST_ClassA { name = "InstanceA2"; };
+
+instance of TST_ClassB { name = "InstanceB1"; };
+instance of TST_ClassB { name = "InstanceB2"; };
+
+instance of TST_ClassC { name = "InstanceC1"; };
+instance of TST_ClassC { name = "InstanceC2"; };
+
+instance of TST_ClassD { name = "InstanceD1"; };
+instance of TST_ClassD { name = "InstanceD2"; };
+
+/// Association Definitions
+
+instance of TST_Assoc1
+{
+    from = "TST_ClassA.name=\"InstanceA1\"";
+    to =   "TST_ClassA.name=\"InstanceA2\"";
+};
+
+instance of TST_Assoc2
+{
+    from = "TST_ClassB.name=\"InstanceA1\"";
+    to =   "TST_ClassC.name=\"InstanceA2\"";
+};
+

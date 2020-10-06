@@ -1,0 +1,678 @@
+.\" .TA c \" lowercase initial leter of .TH name
+.TH "cimconfig" "8" "" "" ""
+.SH "NAME"
+cimconfig \- get, set, unset, or list CIM Server configuration properties
+.SH "SYNOPSIS"
+\fBcimconfig\fP \fB\-g\fP name [ \fB\-c\fP ] [ \fB\-d\fP ] [ \fB\-p\fP ]
+
+\fBcimconfig\fP \fB\-s\fP name=value [ \fB\-c\fP ] [ \fB\-p\fP ]
+
+\fBcimconfig\fP \fB\-u\fP name [ \fB\-c\fP ] [ \fB\-p\fP ]
+
+\fBcimconfig\fP \fB\-l\fP [ \fB\-c\fP | \fB\-p\fP ]
+
+\fBcimconfig\fP \fB\-h\fP
+
+\fBcimconfig\fP \fB\-\-help\fP
+
+\fBcimconfig\fP \fB\-\-H name\fP | \fB"All"\fP
+
+\fBcimconfig\fP \fB\-\-version\fP
+
+.SH "DESCRIPTION"
+.PP 
+The 
+.B cimconfig 
+command manages
+CIM Server configuration properties. The operations are executed on the local
+host by submitting requests to the CIM Server.
+An operation on a current configuration property takes effect immediately,
+and an operation on a planned configuration property takes effect the next time
+the CIM Server is started with 
+.B "cimserver (8)" .
+Modifications to a configuration property via 
+.B cimconfig 
+remain in effect
+until changed via another 
+.B cimconfig 
+command.  Configuration properties may also be modified temporarily via the
+.B "cimserver (8)"
+command, in which case, the modification of the configuration
+property remains in effect for that execution of the 
+.B "cimserver (8)"
+command only. A default value is associated with each configuration property.
+Each configuration property is initially
+assigned its default value, until modified by a 
+.B cimconfig 
+command or 
+.B "cimserver (8)"
+command.  Dynamic configuration
+properties are those whose current values may be set while the CIM server is
+running.
+.PP 
+The following configuration properties are available:
+.PP 
+.B authorizedUserGroups
+.IP 
+.BR Description: " If set, the value is interpreted as a list of
+comma-separated user groups whose members may issue CIM requests.
+A user who is not a member of any of these groups is restricted
+from issuing CIM requests, with the exception of privileged users
+(superuser). If unset, any user may issue CIM requests. Note:
+This configuration property operates in conjunction with other
+CIM request authorization conditions rather than overriding them.
+.PD 0
+.IP 
+.BR "Default Value: " (None)
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B enableAssociationTraversal
+.IP 
+.BR Description: " If True, the CIM Server will support the four association traversal operators:
+Associators, AssociatorNames, References, and ReferenceNames.
+.PD 0
+.IP 
+.BR "Default Value: " True
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP
+.B enableAuditLog
+.IP
+.BR Description: " If True, audit log entries for certain types of CIM
+Server activities will be written to the system log.  Examples of audited
+activities include a CIM Server configuration change, a Provider registration
+change, an authentication attempt and a modification to the CIM Schema or a
+CIM Instance.  An audit log entry describes the who, what, and when associated
+with an audited activity.
+.PD 0
+.IP
+.BR "Default Value: " False
+.IP
+.BR Dynamic: \0Yes
+.PD
+.PP 
+.B enableIndicationService
+.IP 
+.BR Description: " If True, the CIM Server will support CIM Indications."
+.PD 0
+.IP 
+.BR "Default Value: " True
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B enableHttpConnection
+.IP 
+.BR Description: " If True, allows connections to the CIM Server
+using the HTTP protocol
+.PD 0
+.IP 
+.BR "Default Value: " False
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B enableHttpsConnection
+.IP 
+.BR Description: " If True, allows connections to the CIM Server
+using the HTTPS protocol (HTTP using Secure Socket Layer encryption)
+.PD 0
+.IP 
+.BR "Default Value: " True
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B enableNamespaceAuthorization
+.IP 
+.BR Description: " If True, the CIM Server restricts access to
+namespaces based on configured user authorizations [user authorizations may
+be configured using
+.B "cimauth (8)"
+]
+.PD 0
+.IP 
+.BR "Default Value: " False
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B enableRemotePrivilegedUserAccess
+.IP 
+.BR Description: " If True, the CIM Server allows access by a
+privileged user from a remote system. Many management operations require
+privileged user access. Disabling remote access by privileged user could
+significantly affect functionality
+.PD 0
+.IP 
+.BR "Default Value: " True
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B enableSubscriptionsForNonprivilegedUsers
+.IP 
+.BR Description: " If True, nonprivileged user of the system will be 
+allowed to manipulate indication subscriptions, indication filters,
+and listener destination instances otherwise privileged access
+is required.
+.PD 0
+.IP 
+.BR "Default Value: " False
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B forceProviderProcesses
+.IP 
+.BR Description: " If true, the CIM Server runs Providers in separate
+processes rather than loading and calling Provider libraries directly
+within the CIM Server process.
+.PD 0
+.IP 
+.BR "Default Value: " True
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B hostname
+.IP 
+.BR Description: " Can be used to override the local system supplied
+hostname (without domain) the CIM Server uses to build objects.
+If not set, querying this configuration option will report the system
+supplied hostname and behavior is not changed.
+Setting this value to a valid hostname on CIM Server startup or as
+planned value will force the server to assume the configured name as the
+local hosts name. Setting this allows the administrator to set the name 
+that operations such as associator, reference etc. return with object paths.
+When setting this option, 
+.B fullyQualifiedHostName
+should be set also.
+.IP
+In common setups it is not recommended to explicitly set this value.
+Some scenarios scenarios in which changing the default value makes sense include:
+.IP
+- The case where what the CIM Server shall return to clients for host name
+is NOT the name of the current host but some administrator defined name
+(ex. system behind a firewall or some redirector).
+.IP
+- Embedded systems that have a system set hostname which is not valid and
+needs to be overridden by CIM administrator without changing the actual IP
+configuration. 
+.PD 0
+.IP 
+.BR "Default Value: " (blank)
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B fullyQualifiedHostName
+.IP 
+.BR Description: "  Can be used to override the local system supplied
+fully qualified hostname (with domain) the CIM Server is using to build objects.
+If not set, querying this configuration option will report the system
+supplied fully qualified hostname and behavior is not changed.
+Setting this value to a valid hostname on CIM Server startup or as planned
+value will force the server to assume the configured name as the local hosts
+name with domain. Setting this allows the administrator to set the name that
+indication operations and the CIM_ObjectManager assume for SystemName returned
+as instance and key properties.
+.IP In common setups it is not recommended to explicitly set this value.
+Some scenarios scenarios in which changing the default value makes sense include:
+.IP
+- The case where what the CIM Server shall return to clients for host name
+is NOT the name of the current host but some administrator defined name
+(ex. system behind a firewall or some redirector).
+.IP
+- Embedded systems that have a system set hostname which is not valid and
+needs to be overridden by CIM administrator without changing the actual IP
+configuration. 
+.PD 0
+.IP 
+.BR "Default Value: " (blank)
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B idleConnectionTimeout
+.IP 
+.BR Description: " If set to a positive integer, this value specifies a
+minimum timeout value for idle client connections.  If set to zero, idle
+client connections do not time out.
+.IP
+A client connection is considered idle when it is not in the process of
+sending a request and the CIM Server is not processing a request from that
+connection.  An idle connection timeout allows reclamation of the system
+resources allocated for idle CIM Server connections.  Note that the
+CIM Server may allow an idle connection to persist longer than the configured
+timeout value based on server activity.
+.IP
+Some client applications may not behave correctly if a connection timeout
+is introduced.  Client compatibility should be considered when configuring an
+idle connection timeout value.
+The idle connection time is computed using the system clock.  Thus,
+resetting the system clock may cause unexpected timeout behavior.
+.PD 0
+.IP 
+.BR "Default Value: " 0
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B listenAddress
+.IP
+.BR Description: " Network interfaces, if specified,
+.B "cimserver(8) " 
+should listen to for connection requests. It accepts a comma seperated 
+list(without space) of network interfaces. Both ipv4 and ipv6 addresses 
+is accepted. Default value of "All" make cimserver to listen to all the
+available network interfaces. Examples include:
+.PD 0
+.IP
+.BR - "listenAddress=All"
+.PD 0
+.IP
+.BR - "listenAddress=121.12.33.112"
+.PD 0
+.IP
+.BR - "listenAddress=121.33.21.26,127.0.0.1,fe80::fe62:9346%eth0"
+.PD 0
+.IP
+.BR "Default Value: " All
+.IP
+.BR Dynamic: \0No
+.PD
+
+.PP
+.B maxFailedProviderModuleRestarts
+.IP
+.BR Description: " If set to a positive integer, this value specifies the number
+of times a failed provider module with indications enabled are restarted
+automatically before being moved to Degraded state. If set to zero, failed
+provider module is not restarted with indications enabled automatically and
+will be moved to Degraded state immediately.
+.IP
+This option controls the automatic re-enabling of the failed provider module
+with indications enabled. If the provider module with indications enabled fails
+very frequently, it affects the CIMServer normal operations because CIMServer would
+be busy reloading the provider module every time it fails. This option would be
+helpful if a long running indication provider crashes and the management
+application wants to receive the indications from the provider while provider fix
+is being delivered.
+.IP
+In case of provider module grouping, if one of the indication provider crashes,
+it affects all indication providers in the provider modules of the group.
+.IP
+Note that this is the facility provided by the CIMServer for temporary
+recovery of the provider and the ultimate goal SHALL be to fix the faulty provider.
+.PD 0
+.IP
+.BR "Default Value: " 3
+.IP
+.BR Dynamic: \0Yes
+.PD
+.PP
+.B maxIndicationDeliveryRetryAttempts
+.IP
+.BR Description: "If set to a positive integer, value defines the number of times
+indication service will enable the reliableIndication feature and try
+to deliver an indication to a particular listener destination.This does not
+effect the original delivery attempt. A value of 0 disables reliable indication
+feature completely, and cimserver will deliver the indication once.
+.IP
+This value is used to set the CIM_IndicationService.DeliveryRetryAttempts property. See
+CIM_IndicationService.DeliveryRetryAttempts property for more details.
+.PD 0
+.IP
+.BR "Default Value: " 3
+.IP
+.BR Dynamic: \0No
+.PD
+.PP
+.B minIndicationDeliveryRetryInterval
+.IP
+.BR Description: "If set to a positive integer, this value defines the minimal time interval
+in seconds for the indication service to wait before retrying to deliver an indication to a
+listener destination that previously failed. Cimserver may take longer due to QoS or other processing.
+.IP
+This value is used to initialize the property CIM_IndicationService.DeliveryRetryInterval. See
+CIM_IndicationService.DeliveryRetryInterval property for more details.
+.PD 0
+.IP
+.BR "Default Value: " 30
+.IP
+.BR Dynamic: \0No
+.PD
+.PP
+.B shutdownTimeout
+.IP 
+.BR Description: " When a
+.B cimserver \-s
+shutdown command is
+issued, specifies the maximum time in seconds for the CIM Server to complete
+outstanding CIM operation requests before shutting down; if the specified
+timeout period expires, the CIM Server will shut down, even if there are
+still CIM operations in progress.
+Minimum value is 2 seconds.
+.PD 0
+.IP 
+.BR "Default Value: " 30
+.IP 
+.BR Dynamic: \0Yes
+.PD
+.PP 
+.B slpProviderStartupTimeout
+.IP
+.BR Description: " Timeout value in milli seconds used to specify 
+how long the registration with an SLP SA may take. Registration will be 
+retried three times.
+.IP
+This value only needs to be increased in case that 
+the loading of a set of providers whose implementation of a registered profile
+takes very long.
+.PD 0
+.IP 
+.BR "Default Value: " 300000
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP 
+.B socketWriteTimeout
+.IP
+.BR Description: " Specifies the number of seconds the CIM Server will wait
+for a client connection to be ready to receive data.  If the CIM Server is
+unable to write to a connection in this time, the connection is closed.
+.IP
+A client connection can become unable to receive data if the client fails
+to read the data that has already been sent.  This timeout allows the CIM
+Server to reclaim resources that are allocated to a malfunctioning client.
+.IP
+One might consider increasing this timeout value if the CIM Server
+prematurely closes connections with well-behaved clients.
+.PD 0
+.IP 
+.BR "Default Value: " 20
+.IP 
+.BR Dynamic: \0Yes
+.PD
+.PP
+.B sslClientVerificationMode 
+.IP 
+.BR Description: " Defines the desired level of support for
+certificate-based authentication. It can be set to 
+.B required, optional
+or
+.B disabled.
+If set to
+.B required,
+the CIM Server will require all clients connecting
+over HTTPS to authenticate using a certificate.  If the client
+certificate is not sent or not trusted the connection 
+will be rejected.
+If set to
+.B optional,
+the CIM Server will allow, but not require, HTTPS clients
+to authenticate using a certificate. If the client does not
+send a certificate, the CIM Server will attempt to authenticate
+the client using HTTP basic authentication.
+If set to
+.B disabled,
+the CIM Server will not allow HTTPS clients to authenticate
+using a certificate. Basic authentication will be used
+to authenticate all HTTPS clients. This property is only used if
+.B enableHttpsConnection
+is true.
+.PD 0
+.IP 
+.BR "Default Value: " disabled
+.IP 
+.BR Dynamic: \0No
+.PD
+.PP
+.B traceFileSizeKBytes
+.IP 
+.BR Description: "Defines the size of the tracefile in Kilo bytes. 
+The trace file will be rolled once its size exceeds the specified size."
+.PD 0
+.IP 
+.BR "Default Value: " 1048576
+.IP 
+.BR Dynamic: \0Yes
+.PD
+.PP 
+.B numberOfTraceFiles
+.IP 
+.BR Description: "Specifies the number of the tracefiles for rolling."
+.PD 0
+.IP 
+.BR "Default Value: " 3
+.IP 
+.BR Dynamic: \0Yes
+.PD
+.PP 
+.B sslCipherSuite
+.IP
+.BR Description: " String containing OpenSSL cipher specifications to 
+configure the cipher suite the client is permitted to negotiate with 
+the server during the SSL handshake phase. The value should be 
+mentioned between single quotes since it can contain special characters 
+like .+, !, -. 
+.PD 0
+.IP
+.BR "Default Value: " DEFAULT\ (The\ default\ cipher\ list\ of\ OpenSSL)
+.IP
+.BR Dynamic: \0No
+.PD
+.PP
+
+.B sslBackwardCompatibility
+.IP
+.BR Description: "This setting specifies whether the ssl supports SSLv3 
+and versions of TLS lesser than 1.2 .Ideally for security Compilance 
+purposes it is by default set to false. 
+.PD 0
+.IP
+.BR "Default Value: " false
+.IP
+.BR Dynamic: \0No
+.PD
+.PP
+
+.B webRoot
+.IP
+.BR Description: "Points to a location where the static web pages to be served
+by the pegasus webserver are stored. 
+.PD 0
+.IP
+.BR "Default Value: " /var/tog-pegasus/www
+.IP
+.BR Dynamic: \0No
+.PD
+.PP
+
+.B indexFile
+.IP
+.BR Description: "Specifies the name of index file used by pegasus webserver, default to index.html,
+This file should be available at the webRoot path.
+.PD 0
+.IP
+.BR "Default Value: " index.html
+.IP
+.BR Dynamic: \0No
+.PD
+.PP
+
+.B mimeTypesFile 
+.IP
+.BR Description: " Refers to the file which holds the mime types being served
+by the pegasus webserver.
+.PD 0
+.IP
+.BR "Default Value: "/var/tog-pegasus/www/mimeTypes.txt 
+.IP
+.BR Dynamic: \0No
+.PD
+.PP
+
+
+If both the 
+.B enableHttpsConnection
+and
+.B enableHttpConnection
+properties are set to
+.B False , 
+neither HTTP nor HTTPS connections will be allowed. On some platforms, the 
+OpenPegasus CIM Server has been enhanced to include support for a local 
+(single system), non-standard protocol. This allows the OpenPegasus CIM Server 
+to continue to receive and process requests from local OpenPegasus CIM Clients 
+even if both HTTP ports are disabled. If a local protocol is not supported, 
+the CIM Server will be shut down and  disabled  from  automatically  being  
+re\-started.
+.PP 
+The current and planned
+values of the configuration properties are stored in the files
+.B /var/opt/tog\-pegasus/cimserver_current.conf
+and
+.B /var/opt/tog\-pegasus/cimserver_planned.conf ,
+respectively.  The configuration
+properties may only be modified via the
+.B cimconfig
+and
+.B "cimserver (8)"
+commands;
+the files must not be edited directly.
+.SS Options
+.PP 
+The 
+.B cimconfig
+command recognizes the following options:
+.RS
+.TP 15
+\fB\-g\fP configuration_property
+Gets the specified value (current, planned and/or default) of the specified
+configuration property.  By default, gets the current value.
+.TP 
+\fB\-s\fP configuration_property = value
+Sets the specified value (current and/or planned) of the specified configuration
+property to 
+.I R value .  
+By default, sets the current value.
+.TP 
+\fB\-u\fP configuration_property
+Unsets the specified
+value (current and/or planned) of the specified configuration property, and
+resets it to its default value.  By
+default, unsets the current value and resets it to its default value.
+.TP 
+.B \-l
+Lists all the specified (current or planned) configuration property name and 
+value pairs in the CIM Server.  By default,
+lists only the names of all the current configuration properties.
+.TP 
+.B \-c
+Specifies that the operation (get, set, unset, or list) be performed on the 
+current configuration properties.  For set or
+unset operations, returns an error when the CIM Server is not running or the
+specified property is not a dynamic property.
+.TP 
+.B \-p
+Specifies that the operation (get, set, unset, or list) be performed on the 
+planned configuration properties.  For set and
+unset operations, operates on the value of the specified property in the
+planned configuration file if the CIM Server is not running.
+.TP 
+.B \-d
+Specifies that the get operation be performed on the default configuration
+properties.  Returns an error when the CIM Server is not running.
+.TP 
+.B \-h, --help
+Display the command usage message.
+.TP 
+.B \-H name\fP|\fB"All"\FP
+Display detailed help information on the configuraton property defined by
+the name parameter or on all properties if the keyword "All" is used.
+.RE
+.PP 
+
+.SH "EXIT STATUS"
+.PP 
+When an error occurs, an
+error message is written to stderr and an error value of 1 is returned. The
+following return values are returned:
+.RS
+.TP 
+.B 0
+Successful completion
+.PD 0
+.TP 
+.B 1
+Error
+.PD
+.RE
+.SH "EXAMPLES"
+.PP 
+Get the current value for the configuration property 
+.B shutdownTimeout .
+.IP 
+.B cimconfig \-g shutdownTimeout \-c
+.PP 
+Get the planned value for the configuration property
+.B  shutdownTimeout .
+.IP 
+.B cimconfig \-g shutdownTimeout \-p
+.PP 
+Get the default value for the configuration property 
+.B shutdownTimeout .
+.IP 
+.B cimconfig \-g shutdownTimeout \-d
+.PP 
+Set the current value of the property 
+.B shutdownTimeout
+to the new value 15.
+.IP 
+.B cimconfig \-s shutdownTimeout=15 \-c
+.PP 
+Set the planned value of the property 
+.B shutdownTimeout , 
+to the new value 5.
+.IP 
+.B cimconfig \-s shutdownTimeout=5 \-p
+.PP 
+Reset the current value of the property 
+.B shutdownTimeout
+to its default value.
+.IP 
+.B cimconfig \-u shutdownTimeout \-c
+.PP 
+Reset the planned value of the property 
+.B shutdownTimeout 
+to its default value.
+.IP 
+.B cimconfig \-u shutdownTimeout \-p
+.PP 
+List all the current configuration property names.
+.IP 
+.B cimconfig \-l
+.PP 
+List all the current configuration property names and their values.
+.IP 
+.B cimconfig \-l \-c
+.PP 
+List all the planned configuration property names and their values.
+.IP 
+.B cimconfig \-l \-p
+.SH "FILES"
+.TP 30
+.PD 0
+.B /var/opt/tog\-pegasus/cimserver_current.conf
+Current configuration
+.TP 
+.B /var/opt/tog\-pegasus/cimserver_planned.conf
+Planned configuration
+.PD
+.SH "SEE ALSO"
+.PP 
+cimserver (8), cimauth (8).

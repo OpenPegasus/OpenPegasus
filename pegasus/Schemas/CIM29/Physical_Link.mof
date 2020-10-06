@@ -1,0 +1,154 @@
+// ===================================================================
+// Title: Physical_Link
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Physical_Link.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Physical Model defines modeling concepts related
+//              to actual boxes and packaging. This file defines the
+//              concepts related to physical links.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Preliminary
+// CR01004 - Remove wireless as a type of PhysicalCable.
+// 
+// Change Log for v2.7 - None
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// PhysicalLink
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The PhysicalLink class represents the cabling of "
+       "PhysicalElements together. For example, serial or Ethernet "
+       "cables would be subclasses (if additional properties or "
+       "associations are defined) or instances of PhysicalLink. In "
+       "many cases, the numerous physical cables within a "
+       "PhysicalPackage or Network will not be modeled. However, where "
+       "these cables or Links are critical components, or are tagged "
+       "assets of the company, these objects can be instantiated using "
+       "this class or one of its descendent classes.")]
+class CIM_PhysicalLink : CIM_PhysicalElement {
+
+      [Description (
+          "The maximum length of the PhysicalLink in feet."), 
+       Units ( "Feet" )]
+   real64 MaxLength;
+
+      [Description (
+          "The current length of the PhysicalLink in feet. For some "
+          "connections, especially wireless technologies, this "
+          "property may not be applicable and should be left "
+          "uninitialized."), 
+       Units ( "Feet" )]
+   real64 Length;
+
+      [Description (
+          "Boolean indicating whether the PhysicalLink is an actual "
+          "cable (TRUE) or a wireless connection (FALSE).")]
+   boolean Wired;
+
+      [Description (
+          "The MediaType property defines the particular type of Media "
+          "through which transmission signals pass. Common network "
+          "media include twisted-pair (value=11 or 12), coaxial (7, 8 "
+          "or 9) and fiber-optic cable (10)."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17" }, 
+       Values { "Unknown", "Other", "Cat1", "Cat2", "Cat3", "Cat4",
+          "Cat5", "50-ohm Coaxial", "75-ohm Coaxial",
+          "100-ohm Coaxial", "Fiber-optic", "UTP", "STP",
+          "Ribbon Cable", "Twinaxial", "Optical 9um", "Optical 50um",
+          "Optical 62.5um" }, 
+       MappingStrings { "MIF.DMTF|Fibre Channel Bus Port " 
+          "Extensions|001.4" }]
+   uint16 MediaType;
+};
+
+
+// ===================================================================
+// ElementsLinked
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The ElementsLinked association indicates which Physical "
+       "Elements are cabled together by a PhysicalLink.")]
+class CIM_ElementsLinked : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PhysicalLink.")]
+   CIM_PhysicalLink REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PhysicalElement that is linked.")]
+   CIM_PhysicalElement REF Dependent;
+};
+
+
+// ==================================================================
+// LinkHasConnector
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Cables and Links utilize PhysicalConnectors to actually "
+       "'connect' PhysicalElements. This association explicitly "
+       "defines this relationship of Connectors for PhysicalLinks.")]
+class CIM_LinkHasConnector : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The PhysicalLink that has a Connector.")]
+   CIM_PhysicalLink REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The PhysicalConnector.")]
+   CIM_PhysicalConnector REF PartComponent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

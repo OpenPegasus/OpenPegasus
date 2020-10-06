@@ -1,0 +1,93 @@
+
+    1.  The user that runs cimervermain is determined by the
+        PEGASUS_CIMSERVERMAIN_USER constant defined in
+        <Pegasus/Common/Constants.h>
+
+    2.  All files but the repository are owned by root. The cimservermain
+        process may read the root owned files, but it must ask the executor
+        to modify them.
+
+    3.  Cimservermain owns the local-domain socket file (/tmp/cimxml.socket).
+
+    4.  The executor now detects whether the CIM server is already running.
+
+    5.  For logging purposes, the executor uses "cimserver" as its syslog
+        identifier.
+
+    6.  Setting up PAM authentiction (non-standalone).
+
+        First compile with PEGASUS_PAM_AUTHENTICATION.
+
+        Next install the PAM configuration file.
+
+            % cd $PEGASUS_ROOT
+            % cp rpm/wbem /etc/pam.d
+            % chmod 0644 /etc/pam.d/wbem
+
+    7.  To build for standalone PAM authentication, compile with these:
+
+            PEGASUS_PAM_AUTHENTICATION
+            PEGASUS_USE_PAM_STANDALONE_PROC
+
+     8.  To run cimserver to use PAM, use these configuration parameters.
+
+            enableAuthentication=true
+
+     9. To build SSL support, compile with these.
+
+            OPENSSL_HOME=/usr
+            PEGASUS_HAS_SSL=true
+
+    10. To run cimerver to use SSL, use these configuration parameters.
+
+            enableHttpsConnection=true
+            enableAuthentication=true
+            sslClientVerificationMode=optional
+            sslTrustStoreUserName=root
+
+    11. To add a user to cimserver.passwd, use the following format (the given
+        user must be a real system user).
+
+            jsmith:AB5bZ.JX9fQzA
+
+        Use the following program to generate the password (at least on
+        Linux).
+
+            #define _XOPEN_SOURCE
+            #include <unistd.h>
+            #include <stdio.h>
+
+            int main()
+            {
+                printf("%s\n", crypt("changeme", "AB"));
+                return 0;
+            }
+
+        Compile and link the program as follows.
+
+            % gcc -o mkpasswd mkpasswd.cpp -lcrypt
+
+    12. The KerberosAuthenticationHandler.h and all Kerberos authentication
+        logic is not part of the Pegasus repository.
+
+    13. The following authentication schemes were rewritten and are now
+        part of the executor.
+
+            - PAM Basic Authentication
+            - PAM Basic Authentication, using cimservera program.
+            - Secure Local Authenticaiton
+            - Secure Basic (uses cimserver.passwd file).
+
+        The following authentication schemes still reside in cimservermain.
+
+            - SSL peer authentication
+            - Kerberos (source not available to Pegasus).
+
+    14. Note that using "secure basic" authentication and "SSL peer
+        authentication" togehter breaks the end-to-end tests (validate
+        user fails since the user is not in the cimserver.passwd file).
+
+    15. The install script is responsible for propertly setting ownership
+        of all files (including the Pegasus repository).
+
+

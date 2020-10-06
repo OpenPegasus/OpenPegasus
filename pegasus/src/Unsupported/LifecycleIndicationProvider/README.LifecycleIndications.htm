@@ -1,0 +1,199 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Lifecycle Indications readme</title>
+</head>
+<body>
+<h1>Lifecycle Indications in OpenPegasus Release 2.5<br>
+</h1>
+With the support provided by PEP 194 for embedded objects, providers
+now have the ability to create instances of the lifecycle indication
+classes
+(subclasses of CIM_InstIndication and CIM_ClassIndication). Note that
+"creating" instances of lifecycle indication classes is different from
+actually
+"generating" these indications, as described below.<br>
+<br>
+This readme describes
+the current state of lifecycle indication support in Pegasus, the
+restrictions and limitations, as well as providing a statement of
+intent for future enhancements.<br>
+<h2>What works</h2>
+Currently, it is possible to generate lifecycle indications from
+providers that have been specified
+with the type of ProviderType = { 4 } in the PG_ProviderCapabilities
+provider
+registration MOF, which is the indication support currently used by
+process indication
+providers. For this reason, when registering a provider that will be
+generating lifecycle indications, the ClassName property of
+PG_ProviderCapabilities must be set to the name of the lifecycle
+indication that will be generated, not to the
+name of the class representing the resource that changed. This leads to
+certain inefficiencies in the processing of lifecycle indications,
+as described below under the section "Limitations", and will be an area
+for future improvement.<br>
+<br>
+Only instance lifecycle indications (subclasses of CIM_InstIndication)
+for dynamic instances are enabled, and it is the responsibility of
+providers to
+generate these indications. The Pegasus CIM Server will not
+"automatically" generate
+lifecycle indications for all instances. (See PEP 158 for the "Polling
+support"
+discussion.)<br>
+<br>
+A sample lifecycle indication provider can be found in:<br>
+<div style="margin-left: 40px;">src/Unsupported/LifecycleIndicationProvider/<br>
+</div>
+The MOF to register this sample provider is in:<br>
+<div style="margin-left: 40px;">src/Unsupported/LifecycleIndicationProvider/Load/LifecycleIndicationProviderR.mof<br>
+</div>
+Testcases using this provider can be found in:<br>
+<div style="margin-left: 40px;">src/Unsupported/LifecycleIndicationProvider/testclient<br>
+</div>
+<br>
+This sample code has been put in
+the src/Unsupported directory to reflect that future changes
+to fully support all lifecycle indications in an efficient way may
+result in incompatibilities with the support described here.<br>
+<br>
+To build and run this sample provider and client:<br>
+<br>
+<div style="margin-left: 40px;">from
+src/Unsupported/LifecycleIndicationProvider &gt; make<br>
+from src/Unsupported/LifecycleIndicationProvider/testclient &gt; make<br>
+from src/Unsupported/LifecycleIndicationProvider/MOF &gt; make
+repository<br>
+<div style="margin-left: 40px;">NOTE: If&nbsp; the CIM Server is
+running, use 'make repositoryServer'.<br>
+NOTE: This depends on testrepository (or testrepositoryServer) in
+$PEGASUS_HOME/Makefile<br>
+</div>
+Start the CIM Server (if it isn't already running).<br>
+from src/Unsupported/LifecycleIndicationProvider/testclient &gt; make
+poststarttests<br>
+</div>
+<h2>CQL support for embedded objects</h2>
+The indication service in Pegasus 2.5 supports filtering properties on
+embedded objects of instances for CQL filters (remember that lifecycle
+indications have a copy of the resource that changed defined as an
+embedded object). The query writer has control over what embedded
+object properties are
+sent to the indication consumer.&nbsp; &nbsp;<br>
+<br>
+There are two cases to consider if the embedded object is missing a
+property:<br>
+<ol>
+  <li>If the property is in the SELECT list then an error is detected
+and the indication does not pass the filter. &nbsp;</li>
+  <li>If the property is in the WHERE clause then a missing property
+causes the WHERE clause to evaluate to false.</li>
+</ol>
+There are many examples of CQL filters and embedded objects in the CQL
+testcases in
+src/Pegasus/CQL/tests/Queries.<br>
+<h2>What does not work</h2>
+There is no support to generate lifecycle indications for classes. That
+is, indications that are a subclass of CIM_ClassIndication. There is
+also no support for instance lifecycle indications for static instances
+that are stored in the repository. Lifecycle indication support for
+classes
+and static instances will require changes to the repository to detect
+changes and generate the necessary indications.<br>
+<br>
+Filtering properties on embedded classes for CQL filters is not
+supported.<br>
+<br>
+Embedded objects are not evaluated by the object normalizer (see PEP
+211).<br>
+<h2>Limitations</h2>
+The current registration mechanism for indication providers only allows
+specifying the classname of the indication to be generated. But for
+lifecycle
+indications, one must also consider the class representing the
+resource. Without this second classname, a subscription for a query
+such as:<br>
+<br>
+SELECT SourceInstance.CIM_Door::Open FROM CIM_InstModification<br>
+<br>
+will call the createSubscription() method for each provider registered
+for the CIM_InstModification indication class. Ideally, it would only
+notify
+providers that are registered for the indication class (in this case,
+CIM_InstModification) and the specified resource (in this case,
+CIM_Door). In a future release, it is possible
+that a second property, similar to
+ClassName, will be added to PG_ProviderCapabilities to allow the
+specification of the class representing the changed resource.
+This might also be
+accompanied by a new ProviderType value for lifecycle indication
+providers, which could limit
+incompatibilities with existing providers resulting from this change.<br>
+<br>
+Additionally, the SupportedProperties and SupportedMethods properties
+of&nbsp; PG_ProviderCapabilities only refer to the ClassName indication
+at this
+time.<br>
+<br>
+Another limitation is that the createSubscription() interface to
+the
+indication provider only reports the required properties on the
+indication instance (ie. as
+specified by className, eg. CIM_InstModification). The provider can
+call CQL APIs to
+know what embedded object properties are required before they deliver
+the
+indication. If a provider doesn't want to do that then the safest thing
+is to fully populate the
+embedded object(s). Otherwise IndicationService will not deliver an
+indication that is missing a required embedded object property.<br>
+<br>
+In order for a provider to "know" that a particular subscription is
+relevant to that provider, it must use CQLSelectStatement to examine
+the query. An alternative is to
+subclass the particular lifecycle indication being generated by that
+provider for each resource that the indication is generated. Then each
+lifecycle indication provider can register for a derived lifecycle
+indication class that is unique to that resource. The drawback to this
+alternative is a large prolification of classes if many resources are
+having lifecycle indication generated for them.<br>
+<br>
+The point of this discussion on limitations is that the
+full design for lifecycle indications is not yet firm, and will
+most likely require changes to at least the provider registration MOF
+to
+take advantage of these improvements. It is, as always, our intent to
+retain upward
+compatibility for any code written in earlier releases.<br>
+<br>
+</body>
+</html>

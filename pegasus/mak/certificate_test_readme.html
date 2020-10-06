@@ -1,0 +1,2789 @@
+<html>
+<H1>Certificate-Based Authentication Testing</H1>
+
+<H2>OpenPegasus Test Certificate Definitions</H2>
+
+<P>The following certificate definitions are currently
+implemented in pegasus/mak/certificate_test.mak: 10, 40,
+50, 60, 70, 100, 110, 120, 240, 610, 620, 630,
+670, 680, and 690.</P>
+
+<B>Column Definitions</B>
+<UL>
+   <font color=black>
+   <LI><p><font color=blue>Type:&nbsp;</font>
+       1. authority (RA, IA): root/intermediate authority certificates.
+       Certificates of this type are added to the trusted certificate store.
+       The certuser is optional for authority certificates.  If no certuser is
+       specified, the certificate may not be used to authenticate a user.
+       2. authority issued end-entity (E): Certificates of this type are not
+       added to the trusted certificate store. The certuser is required for
+       authority issued end-entity certificates. 3. Self-signed identity
+       certificate (S): Certificates of this type are not added to the trusted
+       certificate store. The certuser is required for self-signed identity
+       certificates.</p>
+   </font>
+</UL>
+     <TABLE style="FONT-FAMILY: Arial" cellSpacing=1 borderColorDark=#6A5ACD
+               borderColorLight=#cccccc border=1 width=95%>
+       <TBODY>
+       <TR align="center">
+        <TH bgColor=#E0E8EF>ID</TH>
+        <TH bgColor=#E0E8EF>Name</TH>
+        <TH bgColor=#E0E8EF>Type</TH>
+        <TH bgColor=#E0E8EF>Parent Cert</TH>
+        <TH bgColor=#E0E8EF>Status</TH>
+        <TH bgColor=#E0E8EF>In Truststore?</TH>
+        <TH bgColor=#E0E8EF>User Name</TH>
+       </TR>
+       <TR align="center">
+        <TD>10</TD>
+        <TD align="left">testSCertNotInTrustStoreNoUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>20</TD>
+        <TD align="left">testSCertNotInTrustStoreValidUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>30</TD>
+        <TD align="left">testSCertNotInTrustStoreInvalidUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>40</TD>
+        <TD align="left">testSCertInTrustStoreNoUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>Yes</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>50</TD>
+        <TD align="left">testSCertInTrustStoreValidUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>60</TD>
+        <TD align="left">testSCertInTrustStoreInvalidUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>70</TD>
+        <TD align="left">testExpiredSCertNotInTrustStoreNoUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>No</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>80</TD>
+        <TD align="left">testExpiredSCertNotInTrustStoreValidUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>90</TD>
+        <TD align="left">testExpiredSCertNotInTrustStoreInvalidUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>100</TD>
+        <TD align="left">testExpiredSCertInTrustStoreNoUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>Yes</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>110</TD>
+        <TD align="left">testExpiredSCertInTrustStoreValidUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>120</TD>
+        <TD align="left">testExpiredSCertInTrustStoreInvalidUser</TD>
+        <TD>S</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>210</TD>
+        <TD align="left">testRACertNotInTrustStoreNoUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>220</TD>
+        <TD align="left">testRACertNotInTrustStoreValidUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>230</TD>
+        <TD align="left">testRACertNotInTrustStoreInvalidUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>240</TD>
+        <TD align="left">testRACertInTrustStoreNoUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>Yes</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>250</TD>
+        <TD align="left">testRACertInTrustStoreValidUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>260</TD>
+        <TD align="left">testRACertInTrustStoreInvalidUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Valid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>270</TD>
+        <TD align="left">testExpiredRACertNotInTrustStoreNoUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>No</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>280</TD>
+        <TD align="left">testExpiredRACertNotInTrustStoreValidUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>290</TD>
+        <TD align="left">testExpiredRACertNotInTrustStoreInvalidUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>300</TD>
+        <TD align="left">testExpiredRACertInTrustStoreNoUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>Yes</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>310</TD>
+        <TD align="left">testExpiredRACertInTrustStoreValidUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>320</TD>
+        <TD align="left">testExpiredRACertInTrustStoreInvalidUser</TD>
+        <TD>RA</TD>
+        <TD>N/A</TD>
+        <TD>Invalid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>410</TD>
+        <TD align="left">testIACertNotInTrustStoreNoUser</TD>
+        <TD>IA</TD>
+        <TD>&nbsp;</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>420</TD>
+        <TD align="left">testIACertNotInTrustStoreValidUser</TD>
+        <TD>IA</TD>
+        <TD>&nbsp;</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>430</TD>
+        <TD align="left">testIACertNotInTrustStoreInvalidUser</TD>
+        <TD>IA</TD>
+        <TD>&nbsp;</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID</TD>
+       </TR>
+       <TR align="center">
+        <TD>440</TD>
+        <TD align="left">testIACertInTrustStoreNoUser</TD>
+        <TD>IA</TD>
+        <TD>&nbsp;</TD>
+        <TD>Valid</TD>
+        <TD>Yes</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>450</TD>
+        <TD align="left">testIACertInTrustStoreValidUser</TD>
+        <TD>IA</TD>
+        <TD>&nbsp;</TD>
+        <TD>Valid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>460</TD>
+        <TD align="left">testIACertInTrustStoreInvalidUser</TD>
+        <TD>IA</TD>
+        <TD>&nbsp;</TD>
+        <TD>Valid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>500</TD>
+        <TD align="left">testExpiredIACertInTrustStoreNoUser</TD>
+        <TD>IA</TD>
+        <TD>&nbsp;</TD>
+        <TD>Invalid</TD>
+        <TD>Yes</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>510</TD>
+        <TD align="left">testExpiredIACertInTrustStoreValidUser</TD>
+        <TD>IA</TD>
+        <TD>&nbsp;</TD>
+        <TD>Invalid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>520</TD>
+        <TD align="left">testExpiredIACertInTrustStoreInvalidUser</TD>
+        <TD>IA</TD>
+        <TD>&nbsp;</TD>
+        <TD>Invalid</TD>
+        <TD>Yes</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>610</TD>
+        <TD align="left">testECertNotInTrustStoreNoUser_<BR>testRACertInTrustStoreNoUser</TD>
+        <TD>E</TD>
+        <TD>240</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>620</TD>
+        <TD align="left">testECertNotInTrustStoreValidUser_<BR>testRACertInTrustStoreValidUser</TD>
+        <TD>E</TD>
+        <TD>240</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>630</TD>
+        <TD align="left">testECertNotInTrustStoreInvalidUser_<BR>testRACertInTrustStoreInvalidUser</TD>
+        <TD>E</TD>
+        <TD>240</TD>
+        <TD>Valid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>670</TD>
+        <TD align="left">testExpiredECertNotInTrustStoreNoUser_<BR>testRACertInTrustStoreNoUser</TD>
+        <TD>E</TD>
+        <TD>240</TD>
+        <TD>Invalid</TD>
+        <TD>No</TD>
+        <TD align="left">None</TD>
+       </TR>
+       <TR align="center">
+        <TD>680</TD>
+        <TD align="left">testExpiredECertNotInTrustStoreValidUser_<BR>testRACertInTrustStoreNoUser</TD>
+        <TD>E</TD>
+        <TD>240</TD>
+        <TD>Invalid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD>690</TD>
+        <TD align="left">testExpiredECertNotInTrustStoreInvalidUser_<BR>testRACertInTrustStoreNoUser</TD>
+        <TD>E</TD>
+        <TD>240</TD>
+        <TD>Invalid</TD>
+        <TD>No</TD>
+        <TD align="left">$(PEGASUS_TEST_INVALID_USER_ID)</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       </TBODY>
+      </TABLE>
+
+<H2>Configuration 1</H2>
+<p>In this configuration, the CIM Server <font color=red>DOES NOT</font> request a
+Client Certificate from the CIM Client. The Username/Password is used by the CIM
+Server for authentication.</p>
+
+<H3>Test Setup</H3>
+     <TABLE style="FONT-FAMILY: Arial" cellSpacing=1 borderColorDark=#6A5ACD
+               borderColorLight=#cccccc border=1 width=60%>
+       <TBODY>
+       <TR align="center">
+        <TH bgColor=#E0E8EF>Option</TH>
+        <TH bgColor=#E0E8EF>Value</TH>
+       </TR>
+       <TR align="center">
+        <TD align="left">enableHttpsConnection</TD>
+        <TD>true</TD>
+       </TR>
+       <TR align="center">
+        <TD align="left">sslClientVerificationMode</TD>
+        <TD>disabled</TD>
+       </TR>
+       <TR align="center">
+        <TD align="left">PEGASUS_OVERRIDE_SSL_CERT_VERIFICATION_RESULT</TD>
+        <TD>NA</TD>
+       </TR>
+      </TBODY>
+     </TABLE>
+
+<H3>Expected Test Results</H3>
+<p>Note: A "Yes" in the "Certificate Send?" column indicates that the client
+will send the certificate if requested by the CIM Server.  With Configuration 1,
+we do not expect the CIM Server to request the certificate.</p>
+
+     <TABLE style="FONT-FAMILY: Arial" cellSpacing=1 borderColorDark=#6A5ACD
+               borderColorLight=#cccccc border=1 width=95%>
+       <TBODY>
+        <TR align="center">
+        <TH bgColor=#E0E8EF rowspan=2>ID</TH>
+        <TH bgColor=#E0E8EF colspan=6>Certificate</TH>
+        <TH bgColor=#E0E8EF colspan=2>Username/Password (U/P)</TH>
+        <TH bgColor=#E0E8EF colspan=2>Result</TH>
+       </TR>
+       <TR align="center">
+        <TH bgColor=#E0E8EF>CID</TH>
+        <TH bgColor=#E0E8EF>Type</TH>
+        <TH bgColor=#E0E8EF>Sent?</TH>
+        <TH bgColor=#E0E8EF>Valid?</TH>
+        <TH bgColor=#E0E8EF>In<BR>Truststore?</TH>
+        <TH bgColor=#E0E8EF>Certificate<BR>Username<BR>Valid?</TH>
+        <TH bgColor=#E0E8EF>Sent?</TH>
+        <TH bgColor=#E0E8EF>U/P Valid?</TH>
+        <TH bgColor=#E0E8EF>Authenticated?</TH>
+        <TH bgColor=#E0E8EF>Authenticated User<BR>or<BR>Generated Exception</TH>
+       </TR>
+       <TR align="center">
+        <TD>1</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>2</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>3</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>4</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>5</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>6</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>7</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>8</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>9</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>10</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>11</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>12</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>13</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>14</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>15</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>16</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>17</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>18</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>19</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>20</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>21</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>104</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>105</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>106</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>107</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>108</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>109</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>110</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>111</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>112</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>113</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>114</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>115</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>116</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>117</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>118</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>119</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>120</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>121</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+    </TBODY></TABLE>
+
+<H2>Configuration 2A</H2>
+<p>In this configuration, the CIM Server will request a Client Certificate from
+the CIM Client. If the CIM Client sends a certificate, the certificate will be
+used for authentication.  Otherwise, the Username/Password is used by the CIM
+Server for authentication.</p>
+
+<H3>Test Setup</H3>
+
+     <TABLE style="FONT-FAMILY: Arial" cellSpacing=1 borderColorDark=#6A5ACD
+               borderColorLight=#cccccc border=1 width=60%>
+       <TBODY>
+       <TR align="center">
+        <TH bgColor=#E0E8EF>Option</TH>
+        <TH bgColor=#E0E8EF>Value</TH>
+       </TR>
+       <TR align="center">
+        <TD align="left">enableHttpsConnection</TD>
+        <TD>true</TD>
+       </TR>
+       <TR align="center">
+        <TD align="left">sslClientVerificationMode</TD>
+        <TD>optional</TD>
+       </TR>
+       <TR align="center">
+        <TD align="left">PEGASUS_OVERRIDE_SSL_CERT_VERIFICATION_RESULT</TD>
+        <TD>NOT DEFINED</TD>
+       </TR>
+      </TBODY>
+     </TABLE>
+
+<H3>Expected Test Results</H3>
+
+<p>Note: A "Yes" in the "Certificate Send?" column indicates that the client will
+send the certificate if requested by the CIM Server.  With Configuration 2, we
+expect the CIM Server to request the certificate.</p>
+
+     <TABLE style="FONT-FAMILY: Arial" cellSpacing=1 borderColorDark=#6A5ACD
+               borderColorLight=#cccccc border=1 width=95%>
+       <TBODY>
+        <TR align="center">
+        <TH bgColor=#E0E8EF rowspan=2>ID</TH>
+        <TH bgColor=#E0E8EF colspan=6>Certificate</TH>
+        <TH bgColor=#E0E8EF colspan=2>Username/Password (U/P)</TH>
+        <TH bgColor=#E0E8EF colspan=2>Result</TH>
+       </TR>
+       <TR align="center">
+        <TH bgColor=#E0E8EF>CID</TH>
+        <TH bgColor=#E0E8EF>Type</TH>
+        <TH bgColor=#E0E8EF>Sent?</TH>
+        <TH bgColor=#E0E8EF>Valid?</TH>
+        <TH bgColor=#E0E8EF>In<BR>Truststore?</TH>
+        <TH bgColor=#E0E8EF>Certificate<BR>Username<BR>Valid?</TH>
+        <TH bgColor=#E0E8EF>Sent?</TH>
+        <TH bgColor=#E0E8EF>U/P Valid?</TH>
+        <TH bgColor=#E0E8EF>Authenticated?</TH>
+        <TH bgColor=#E0E8EF>Authenticated User<BR>or<BR>Generated Exception</TH>
+       </TR>
+       <TR align="center">
+        <TD>1</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>2</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>3</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>4</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>5</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>6</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>7</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>8</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>9</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>10</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>11</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>12</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>13</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>14</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>15</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>16</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>17</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>18</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>19</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>20</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>21</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>104</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>105</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>106</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>107</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>108</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>109</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>110</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>111</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>112</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>113</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>114</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>115</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>116</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>117</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>118</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>119</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>120</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>121</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+    </TBODY></TABLE>
+
+<H2>Configuration 2B</H2>
+
+<P><FONT color=red>NOTE:</FONT>
+This option requires the CIM Server to override the OpenSSL certification verification
+and, as a result, may have unexpected side-effects on how invalid certificates are handled.&nbsp;&nbsp;
+The PEGASUS_OVERRIDE_SSL_CERT_VERIFICATION_RESULT variable is undocumented and
+subject to change.</P>
+
+<H3>Test Setup</H3>
+     <TABLE style="FONT-FAMILY: Arial" cellSpacing=1 borderColorDark=#6A5ACD
+               borderColorLight=#cccccc border=1 width=60%>
+       <TBODY>
+       <TR align="center">
+        <TH bgColor=#E0E8EF>Option</TH>
+        <TH bgColor=#E0E8EF>Value</TH>
+       </TR>
+       <TR align="center">
+        <TD align="left">enableHttpsConnection</TD>
+        <TD>true</TD>
+       </TR>
+       <TR align="center">
+        <TD align="left">sslClientVerificationMode</TD>
+        <TD>optional</TD>
+       </TR>
+       <TR align="center">
+        <TD align="left">PEGASUS_OVERRIDE_SSL_CERT_VERIFICATION_RESULT</TD>
+        <TD>DEFINED</TD>
+       </TR>
+      </TBODY>
+     </TABLE>
+
+<H3>Expected Test Results</H3>
+
+<P>Note: A "Yes" in the "Certificate Send?" column indicates that the client will
+send the certificate if requested by the CIM Server.  With Configuration 2, we
+expect the CIM Server to request the certificate.</P>
+
+     <TABLE style="FONT-FAMILY: Arial" cellSpacing=1 borderColorDark=#6A5ACD
+               borderColorLight=#cccccc border=1 width=95%>
+       <TBODY>
+        <TR align="center">
+        <TH bgColor=#E0E8EF rowspan=2>ID</TH>
+        <TH bgColor=#E0E8EF colspan=6>Certificate</TH>
+        <TH bgColor=#E0E8EF colspan=2>Username/Password (U/P)</TH>
+        <TH bgColor=#E0E8EF colspan=2>Result</TH>
+       </TR>
+       <TR align="center">
+        <TH bgColor=#E0E8EF>CID</TH>
+        <TH bgColor=#E0E8EF>Type</TH>
+        <TH bgColor=#E0E8EF>Sent?</TH>
+        <TH bgColor=#E0E8EF>Valid?</TH>
+        <TH bgColor=#E0E8EF>In<BR>Truststore?</TH>
+        <TH bgColor=#E0E8EF>Certificate<BR>Username<BR>Valid?</TH>
+        <TH bgColor=#E0E8EF>Sent?</TH>
+        <TH bgColor=#E0E8EF>U/P Valid?</TH>
+        <TH bgColor=#E0E8EF>Authenticated?</TH>
+        <TH bgColor=#E0E8EF>Authenticated User<BR>or<BR>Generated Exception</TH>
+       </TR>
+       <TR align="center">
+        <TD>1</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>2</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>3</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>4</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>5</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>6</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>7</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>8</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>9</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>10</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>11</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>12</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>13</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>14</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>15</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>16</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>17</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>18</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>19</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>20</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>21</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>104</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>105</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>106</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>107</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>108</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>109</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>110</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>111</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>112</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>113</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>114</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>115</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>116</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>117</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>118</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+       <TR align="center">
+        <TD>119</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>120</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>121</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>U/P User</TD>
+       </TR>
+    </TBODY></TABLE>
+
+<H2>Configuration 3</H2>
+
+<H3>Test Setup</H3>
+     <TABLE style="FONT-FAMILY: Arial" cellSpacing=1 borderColorDark=#6A5ACD
+               borderColorLight=#cccccc border=1 width=60%>
+       <TBODY>
+       <TR align="center">
+        <TH bgColor=#E0E8EF>Option</TH>
+        <TH bgColor=#E0E8EF>Value</TH>
+       </TR>
+       <TR align="center">
+        <TD align="left">enableHttpsConnection</TD>
+        <TD>true</TD>
+       </TR>
+       <TR align="center">
+        <TD align="left">sslClientVerificationMode</TD>
+        <TD>required</TD>
+       </TR>
+       <TR align="center">
+        <TD align="left">PEGASUS_OVERRIDE_SSL_CERT_VERIFICATION_RESULT</TD>
+        <TD>NA</TD>
+       </TR>
+      </TBODY>
+     </TABLE>
+
+<H3>Expected Test Results</H3>
+
+<P>Note: A "Yes" in the "Certificate Send?" column indicates that the client
+will send the certificate if requested by the CIM Server.  With Configuration 3,
+we expect the CIM Server to request the certificate.</P>
+
+     <TABLE style="FONT-FAMILY: Arial" cellSpacing=1 borderColorDark=#6A5ACD
+               borderColorLight=#cccccc border=1 width=95%>
+       <TBODY>
+        <TR align="center">
+        <TH bgColor=#E0E8EF rowspan=2>ID</TH>
+        <TH bgColor=#E0E8EF colspan=6>Certificate</TH>
+        <TH bgColor=#E0E8EF colspan=2>Username/Password (U/P)</TH>
+        <TH bgColor=#E0E8EF colspan=2>Result</TH>
+       </TR>
+       <TR align="center">
+        <TH bgColor=#E0E8EF>CID</TH>
+        <TH bgColor=#E0E8EF>Type</TH>
+        <TH bgColor=#E0E8EF>Sent?</TH>
+        <TH bgColor=#E0E8EF>Valid?</TH>
+        <TH bgColor=#E0E8EF>In<BR>Truststore?</TH>
+        <TH bgColor=#E0E8EF>Certificate<BR>Username<BR>Valid?</TH>
+        <TH bgColor=#E0E8EF>Sent?</TH>
+        <TH bgColor=#E0E8EF>U/P Valid?</TH>
+        <TH bgColor=#E0E8EF>Authenticated?</TH>
+        <TH bgColor=#E0E8EF>Authenticated User<BR>or<BR>Generated Exception</TH>
+       </TR>
+       <TR align="center">
+        <TD>1</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>2</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>3</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>4</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>5</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>6</TD>
+        <TD>10</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>7</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>8</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>9</TD>
+        <TD>60</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>10</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>11</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>12</TD>
+        <TD>50</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>13</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>14</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>15</TD>
+        <TD>70</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>16</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>17</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>18</TD>
+        <TD>100</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>19</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>20</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>21</TD>
+        <TD>110</TD>
+        <TD>S</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+        <TD bgColor=#E0E8EF>&nbsp;</TD>
+       </TR>
+       <TR align="center">
+        <TD>104</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>105</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>106</TD>
+        <TD>610</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>107</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>108</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>109</TD>
+        <TD>630</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CIMClientHTTPErrorException(401)</TD>
+       </TR>
+       <TR align="center">
+        <TD>110</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>111</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>112</TD>
+        <TD>620</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Cert User</TD>
+       </TR>
+       <TR align="center">
+        <TD>113</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>114</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>115</TD>
+        <TD>670</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>NA</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>116</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>117</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>118</TD>
+        <TD>690</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>119</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>120</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+       <TR align="center">
+        <TD>121</TD>
+        <TD>680</TD>
+        <TD>E</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>No</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>Yes</TD>
+        <TD>No</TD>
+        <TD>CannotConnectException</TD>
+       </TR>
+    </TBODY></TABLE>
+</html>

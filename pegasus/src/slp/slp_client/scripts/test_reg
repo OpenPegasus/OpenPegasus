@@ -1,0 +1,97 @@
+#!/bin/bash
+
+#/*****************************************************************************
+# *  Description: scripting shell for slp_client - generates an SLP SRVREG
+# *
+# *  Originated: May 20, 2003
+# *	Original Author: Mike Day md@soft-hackle.net
+# *                       mdday@us.ibm.com
+# *
+# *  Copyright (c) 2003  IBM
+# *  Copyright (c) 2003 Michael Day
+# *
+# *  Permission is hereby granted, free of charge, to any person obtaining a
+# *  copy of this software and associated documentation files (the "Software"),
+# *  to deal in the Software without restriction, including without limitation
+# *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# *  and/or sell copies of the Software, and to permit persons to whom the
+# *  Software is furnished to do so, subject to the following conditions:
+# *
+# *  The above copyright notice and this permission notice shall be included in
+# *  all copies or substantial portions of the Software.
+# *
+# *
+# *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# *  DEALINGS IN THE SOFTWARE.
+# *
+# *****************************************************************************/
+
+
+###########################################################################
+# This script shows how to use the slp_srvreg command and tests the parameters
+# of a service registration. Use it to verify your parameters are correct. To
+# do an actual slp registration, omit the --test command line option from the
+# slp_srvreg command below.
+#
+# Usage:
+#
+# test_reg -t<type> -u<url> -a<attributes> [-s<scopes>]
+#
+#            type: a valid service type string. See
+#                  ftp://ftp.rfc-editor.org/in-notes/rfc2609.txt
+#
+#            url: a valid service url. See
+#                 ftp://ftp.rfc-editor.org/in-notes/rfc2609.txt
+#
+#            attribute: an SLP attriute string. See
+#                       ftp://ftp.rfc-editor.org/in-notes/rfc2608.txt
+#
+#            scopes: an optional SLP list string. It must be in the form
+#            "scope1[, scope2[, scope n] ]. e.g., "admin, eng, account"
+#
+###########################################################################
+
+TYPE=""
+URL=""
+ATTRS=""
+SCOPE=""
+
+while getopts ":t:u:a:s:" opt; do
+    case $opt in
+	t ) TYPE=$OPTARG ;;
+	u ) URL=$OPTARG ;;
+	a ) ATTRS=$OPTARG ;;
+	s ) SCOPE=$OPTARG ;;
+	\? ) echo 'test_reg -t<type> -u<url> -a<attributes> [-s<scopes>]'
+	     exit 1
+    esac
+done
+    shift $(($OPTIND - 1))
+
+echo "Testing a Service Registration: "
+echo "   Type: " "$TYPE"
+echo "   URL: " "$URL"
+echo "   Attributes: " "$ATTRS"
+echo "   Scopes: " "$SCOPE"
+
+slp_srvreg --type="$TYPE" --url="$URL" --attributes="$ATTRS" --scopes="$SCOPES" --test
+
+case $? in
+    0) echo "Service Registration is valid"
+       exit 0;;
+    1)  echo "Service Type string (and possibly other strings) is invalid"
+	exit 1;;
+    2)  echo "Url string (and possibly other strings) is invalid"
+	exit 1;;
+    3)  echo "Attribute string (and possibly the scope string) is invalid"
+	exit 1;;
+    4) echo "Scope string is invalid"
+	exit 1;;
+esac
+
+

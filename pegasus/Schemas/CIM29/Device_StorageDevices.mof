@@ -1,0 +1,561 @@
+// ===================================================================
+// Title: Device_StorageDevices
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_StorageDevices.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines
+//              the management of storage devices (floppies,
+//              CD-ROMs, hard drives, etc.).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final:
+// CR1233 - SysDev omnibus CR - minor MOF corrections
+// 
+// Change Log for v2.7 Final
+// CR970 - Removal of the Experimental qualifier
+// 
+// Change Log for v2.7
+// CR721 - Add DeviceErrorCountData that is part of the new statistics
+//         hierarchy
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// MediaAccessDevice
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A MediaAccessDevice represents the ability to access one or "
+       "more media and use this media to store and retrieve data.")]
+class CIM_MediaAccessDevice : CIM_LogicalDevice {
+
+      [Description (
+          "Capabilities of the MediaAccessDevice. For example, the "
+          "Device may support \"Random Access\", removeable media and "
+          "\"Automatic Cleaning\". In this case, the values 3, 7 and 9 "
+          "would be written to the array. \n"
+          "Several of the enumerated values require some explanation: "
+          "1) Value 11, Supports Dual Sided Media, distinguishes a "
+          "Device that can access both sides of dual sided Media, from "
+          "a Device that reads only a single side and requires the "
+          "Media to be flipped; and, 2) Value 12, Predismount Eject "
+          "Not Required, indicates that Media does not have to be "
+          "explicitly ejected from the Device before being accessed by "
+          "a PickerElement."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12" }, 
+       Values { "Unknown", "Other", "Sequential Access",
+          "Random Access", "Supports Writing", "Encryption",
+          "Compression", "Supports Removeable Media",
+          "Manual Cleaning", "Automatic Cleaning", 
+          // 10               
+          "SMART Notification", "Supports Dual Sided Media",
+          "Predismount Eject Not Required" }, 
+       MappingStrings { "MIF.DMTF|Storage Devices|001.9",
+          "MIF.DMTF|Storage Devices|001.11",
+          "MIF.DMTF|Storage Devices|001.12", "MIF.DMTF|Disks|003.7",
+          "MIF.DMTF|Host Disk|001.2", "MIF.DMTF|Host Disk|001.4" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_MediaAccessDevice.CapabilityDescriptions" }]
+   uint16 Capabilities[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the AccessDevice features indicated "
+          "in the Capabilities array. Note, each entry of this array "
+          "is related to the entry in the Capabilities array that is "
+          "located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_MediaAccessDevice.Capabilities" }]
+   string CapabilityDescriptions[];
+
+      [Description (
+          "ErrorMethodology is a free-form string describing the "
+          "type(s) of error detection and correction supported by this "
+          "Device.")]
+   string ErrorMethodology;
+
+      [Description (
+          "A free form string indicating the algorithm or tool used by "
+          "the device to support compression. If it is not possible or "
+          "not desired to describe the compression scheme (perhaps "
+          "because it is not known), recommend using the following "
+          "words: \"Unknown\" to represent that it is not known "
+          "whether the device supports compression capabilities or "
+          "not, \"Compressed\" to represent that the device supports "
+          "compression capabilities but either its compression scheme "
+          "is not known or not disclosed, and \"Not Compressed\" to "
+          "represent that the devices does not support compression "
+          "capabilities.")]
+   string CompressionMethod;
+
+      [Description (
+          "When the MediaAccessDevice supports multiple individual "
+          "Media, this property defines the maximum number which can "
+          "be supported or inserted.")]
+   uint32 NumberOfMediaSupported;
+
+      [Description (
+          "Maximum size, in KBytes, of media supported by this Device. "
+          "KBytes is interpreted as the number of bytes multiplied by "
+          "1000 (NOT the number of bytes multiplied by 1024)."), 
+       MappingStrings { "MIF.DMTF|Sequential Access Devices|001.2",
+          "MIF.DMTF|Host Disk|001.5" }]
+   uint64 MaxMediaSize;
+
+      [Description (
+          "Default block size, in bytes, for this Device."), 
+       Units ( "Bytes" )]
+   uint64 DefaultBlockSize;
+
+      [Description (
+          "Maximum block size, in bytes, for media accessed by this "
+          "Device."), 
+       Units ( "Bytes" )]
+   uint64 MaxBlockSize;
+
+      [Description (
+          "Minimum block size, in bytes, for media accessed by this "
+          "Device."), 
+       Units ( "Bytes" )]
+   uint64 MinBlockSize;
+
+      [Description (
+          "Boolean indicating that the MediaAccessDevice needs "
+          "cleaning. Whether manual or automatic cleaning is possible "
+          "is indicated in the Capabilities array property.")]
+   boolean NeedsCleaning;
+
+      [Description (
+          "True indicates that the media is locked in the Device and "
+          "can not be ejected. For non-removeable Devices, this value "
+          "should be true.")]
+   boolean MediaIsLocked;
+
+      [Description (
+          "An enumeration indicating the operational security defined "
+          "for the MediaAccessDevice. For example, information that "
+          "the Device is \"Read Only\" (value=4) or \"Boot Bypass\" "
+          "(value=6) can be described using this property."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Other", "Unknown", "None", "Read Only", "Locked Out",
+          "Boot Bypass", "Boot Bypass and Read Only" }, 
+       MappingStrings { "MIF.DMTF|Disks|003.22" }]
+   uint16 Security;
+
+      [Description (
+          "The date and time on which the Device was last cleaned.")]
+   datetime LastCleaned;
+
+      [Description (
+          "Time in milliseconds to move from the first location on the "
+          "Media to the location that is furthest with respect to "
+          "time. For a DiskDrive, this represents full seek + full "
+          "rotational delay. For TapeDrives, this represents a search "
+          "from the beginning of the tape to the most physically "
+          "distant point. (The end of a tape may be at its most "
+          "physically distant point, but this is not necessarily "
+          "true.)"), 
+       Units ( "MilliSeconds" )]
+   uint64 MaxAccessTime;
+
+      [Description (
+          "The sustained data transfer rate in KB/sec that the Device "
+          "can read from and write to a Media. This is a sustained, "
+          "raw data rate. Maximum rates or rates assuming compression "
+          "should not be reported in this property."), 
+       Units ( "KiloBytes per Second" )]
+   uint32 UncompressedDataRate;
+
+      [Description (
+          "Time in milliseconds from 'load' to being able to read or "
+          "write a Media. For example, for DiskDrives, this is the "
+          "interval between a disk not spinning to the disk reporting "
+          "that it is ready for read/write (ie, the disk spinning at "
+          "nominal speeds). For TapeDrives, this is the time from a "
+          "Media being injected to reporting that it is ready for an "
+          "application. This is usually at the tape's BOT area."), 
+       Units ( "MilliSeconds" )]
+   uint64 LoadTime;
+
+      [Description (
+          "Time in milliseconds from being able to read or write a "
+          "Media to its 'unload'. For example, for DiskDrives, this is "
+          "the interval between a disk spinning at nominal speeds and "
+          "a disk not spinning. For TapeDrives, this is the time for a "
+          "Media to go from its BOT to being fully ejected and "
+          "accessible to a PickerElement or human operator."), 
+       Units ( "MilliSeconds" )]
+   uint64 UnloadTime;
+
+      [Description (
+          "For a MediaAccessDevice that supports removable Media, the "
+          "number of times that Media have been mounted for data "
+          "transfer or to clean the Device. For Devices accessing "
+          "nonremovable Media, such as hard disks, this property is "
+          "not applicable and should be set to 0."), 
+       Counter]
+   uint64 MountCount;
+
+      [Description (
+          "For a MediaAccessDevice that supports removable Media, the "
+          "most recent date and time that Media was mounted on the "
+          "Device. For Devices accessing nonremovable Media, such as "
+          "hard disks, this property has no meaning and is not "
+          "applicable.")]
+   datetime TimeOfLastMount;
+
+      [Description (
+          "For a MediaAccessDevice that supports removable Media, the "
+          "total time (in seconds) that Media have been mounted for "
+          "data transfer or to clean the Device. For Devices accessing "
+          "nonremovable Media, such as hard disks, this property is "
+          "not applicable and should be set to 0.")]
+   uint64 TotalMountTime;
+
+      [Description (
+          "Defines 'Units' relative to its use in the property, "
+          "MaxUnitsBeforeCleaning. This describes the criteria used to "
+          "determine when the MediaAccessDevice should be cleaned."), 
+       ModelCorrespondence { 
+          "CIM_MediaAccessDevice.MaxUnitsBeforeCleaning",
+          "CIM_MediaAccessDevice.UnitsUsed" }]
+   string UnitsDescription;
+
+      [Description (
+          "An unsigned integer indicating the maximum 'units' that can "
+          "be used, with respect to the AccessDevice, before the "
+          "Device should be cleaned. The property, UnitsDescription, "
+          "defines how 'units' should be interpreted."), 
+       ModelCorrespondence { "CIM_MediaAccessDevice.UnitsDescription" }]
+   uint64 MaxUnitsBeforeCleaning;
+
+      [Description (
+          "An unsigned integer indicating the currently used 'units' "
+          "of the AccessDevice, helpful to describe when the Device "
+          "may require cleaning. The property, UnitsDescription, "
+          "defines how 'units' should be interpreted."), 
+       Gauge, 
+       ModelCorrespondence { "CIM_MediaAccessDevice.UnitsDescription",
+          "CIM_MediaAccessDevice.MaxUnitsBeforeCleaning" }]
+   uint64 UnitsUsed;
+
+      [Description (
+          "Method to lock and unlock the media in a removeable Access "
+          "Device. The method takes one parameter as input - a boolean "
+          "indicating whether to lock or unlock. TRUE indicates that "
+          "the media should be locked in the Device, FALSE indicates "
+          "that the media should be unlocked. The method returns 0 if "
+          "successful, 1 if not supported, and any other value if an "
+          "error occurred. The set of possible return codes should be "
+          "specified in a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' "
+          "should be specified as a Values array qualifier on the "
+          "method.")]
+   uint32 LockMedia ( 
+         [IN, Description (
+             "If TRUE, lock the media. If FALSE release the media.")]
+      boolean Lock); 
+};
+
+
+// ===================================================================
+// DiskDrive
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and managment of a DiskDrive, a subtype of "
+       "MediaAccessDevice.")]
+class CIM_DiskDrive : CIM_MediaAccessDevice {
+};
+
+
+// ===================================================================
+// DisketteDrive
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and managment of a DisketteDrive, a subtype of "
+       "MediaAccessDevice.")]
+class CIM_DisketteDrive : CIM_MediaAccessDevice {
+};
+
+
+// ===================================================================
+// CDROMDrive
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and managment of a CDROMDrive, a subtype of "
+       "MediaAccessDevice.")]
+class CIM_CDROMDrive : CIM_MediaAccessDevice {
+};
+
+
+// ===================================================================
+// DVDDrive
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of a DVDDrive, a subtype of "
+       "MediaAccessDevice.")]
+class CIM_DVDDrive : CIM_MediaAccessDevice {
+
+      [Description (
+          "The CD and DVD formats that are supported by this Device. "
+          "For example, the Drive may support \"CD-ROM\" and "
+          "\"DVD-RAM\". In this case, the values 16 and 24 would be "
+          "written to the array. This property's values align with "
+          "those defined in PhysicalMedia.MediaType."), 
+       ValueMap { "0", "1", "16", "17", "18", "19", "22", "23", "24",
+          "25", "26", "27", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42" }, 
+       Values { "Unknown", "Other", "CD-ROM", "CD-ROM/XA", "CD-I",
+          "CD Recordable", "DVD", "DVD-RW+", "DVD-RAM", "DVD-ROM",
+          "DVD-Video", "Divx", "CD-RW", "CD-DA", "CD+",
+          "DVD Recordable", "DVD-RW", "DVD-Audio", "DVD-5", "DVD-9",
+          "DVD-10", "DVD-18" }, 
+       ModelCorrespondence { "CIM_PhysicalMedia.MediaType" }]
+   uint16 FormatsSupported[];
+};
+
+
+// ===================================================================
+// WORMDrive
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and managment of a WORMDrive, a subtype of "
+       "MediaAccessDevice.")]
+class CIM_WORMDrive : CIM_MediaAccessDevice {
+};
+
+
+// ===================================================================
+// MagnetoOpticalDrive
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and managment of a MagnetoOpticalDrive, a subtype "
+       "of MediaAccessDevice.")]
+class CIM_MagnetoOpticalDrive : CIM_MediaAccessDevice {
+};
+
+
+// ===================================================================
+// TapeDrive
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and managment of a TapeDrive, a subtype of "
+       "MediaAccessDevice.")]
+class CIM_TapeDrive : CIM_MediaAccessDevice {
+
+      [Description (
+          "EOTWarningZoneSize indicates the size, in bytes, of the "
+          "area designated as 'end of tape'. Access in this area "
+          "generates an 'end of tape' warning."), 
+       Units ( "Bytes" )]
+   uint32 EOTWarningZoneSize;
+
+      [Description (
+          "Maximum partition count for the TapeDrive.")]
+   uint32 MaxPartitionCount;
+
+      [Description (
+          "Padding indicates the number of bytes inserted between "
+          "blocks on a tape Media."), 
+       Units ( "Bytes" )]
+   uint32 Padding;
+
+      [Description (
+          "Time in milliseconds to move from the most physically "
+          "distant point on the tape to the beginning."), 
+       Units ( "MilliSeconds" )]
+   uint64 MaxRewindTime;
+};
+
+
+// ===================================================================
+// MediaAccessStatInfo
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Statistics related to reading and writing at a specific "
+       "MediaAccessDevice, or for a specific StorageExtent. Although "
+       "the same class is used to represent this data, at the instance "
+       "level the object holds information for the MediaAccessDevice "
+       "(independent of the StorageExtent), OR for the Extent "
+       "(independent of its AccessDevice). Note that this class models "
+       "the same properties as MediaAccessStatData. The latter, "
+       "however, uses the simplified key mechanisms of the "
+       "StatisticalData class.")]
+class CIM_MediaAccessStatInfo : CIM_DeviceStatisticalInformation {
+
+      [Description (
+          "The number of attempted read operations."), 
+       Counter]
+   uint64 ReadOperations;
+
+      [Description (
+          "The number of unrecoverable read operations."), 
+       Counter]
+   uint64 UnrecoverableReadOperations;
+
+      [Description (
+          "The number of attempted write operations."), 
+       Counter]
+   uint64 WriteOperations;
+
+      [Description (
+          "The number of unrecoverable write operations."), 
+       Counter]
+   uint64 UnrecoverableWriteOperations;
+
+      [Description (
+          "The number of recovered read operations."), 
+       Counter]
+   uint64 RecoveredReadOperations;
+
+      [Description (
+          "The number of recovered write operations."), 
+       Counter]
+   uint64 RecoveredWriteOperations;
+
+      [Description (
+          "The number of recovered seek operations."), 
+       Counter]
+   uint64 RecoveredSeekOperations;
+
+      [Description (
+          "The number of unrecoverable seek operations."), 
+       Counter]
+   uint64 UnrecoverableSeekOperations;
+
+      [Description (
+          "Method to reset the statistical counters. The method takes "
+          "one parameter as input - an integer indicating which "
+          "counter to reset. For this input parameter, 0 indicates "
+          "all, 1-2 and 5 reset the 'read operation'-related counters, "
+          "3-4 and 6 reset the 'write operation'-related counters, and "
+          "7-8 reset the seek-related counters. The method returns 0 "
+          "if successful, 1 if not supported, and any other value if "
+          "an error occurred. A method is specified so that the "
+          "Device's instrumentation can also reset its internal "
+          "processing and counters. \n"
+          "In a subclass, the set of possible return codes should be "
+          "specified in a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' can "
+          "be specified as a Values array qualifier.")]
+   uint32 ResetCounter ( 
+         [IN, Description (
+             "The counter to reset."), 
+          ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+          Values { "All", "Read Operations",
+             "Unrecoverable Read Operations", "Write Operations",
+             "Unrecoverable Write Operations",
+             "Recovered Read Operations", "Recovered Write Operations",
+             "Recovered Seeks", "Unrecoverable Seeks" }]
+      uint16 SelectedCounter); 
+};
+
+
+// ===================================================================
+// MediaAccessStatData
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Statistics related to reading and writing at a specific "
+       "MediaAccessDevice, or for a specific StorageExtent. The same "
+       "class is used to represent this data - whether for the "
+       "MediaAccessDevice (independent of the StorageExtent), OR for "
+       "the Extent (independent of its AccessDevice). The element "
+       "whose statistics are described is associated using the "
+       "relationship, ElementStatisticalData. Note that this class "
+       "models the same properties as MediaAccessStatInfo. This class, "
+       "however, uses the simplified key mechanisms of its superclass, "
+       "StatisticalData.")]
+class CIM_MediaAccessStatData : CIM_StatisticalData {
+
+      [Description (
+          "The number of attempted read operations."), 
+       Counter]
+   uint64 ReadOperations;
+
+      [Description (
+          "The number of unrecoverable read operations."), 
+       Counter]
+   uint64 UnrecoverableReadOperations;
+
+      [Description (
+          "The number of attempted write operations."), 
+       Counter]
+   uint64 WriteOperations;
+
+      [Description (
+          "The number of unrecoverable write operations."), 
+       Counter]
+   uint64 UnrecoverableWriteOperations;
+
+      [Description (
+          "The number of recovered read operations."), 
+       Counter]
+   uint64 RecoveredReadOperations;
+
+      [Description (
+          "The number of recovered write operations."), 
+       Counter]
+   uint64 RecoveredWriteOperations;
+
+      [Description (
+          "The number of recovered seek operations."), 
+       Counter]
+   uint64 RecoveredSeekOperations;
+
+      [Description (
+          "The number of unrecoverable seek operations."), 
+       Counter]
+   uint64 UnrecoverableSeekOperations;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

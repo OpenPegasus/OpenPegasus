@@ -1,0 +1,1151 @@
+// ===================================================================
+// Title: Device_Sensors
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_Sensors.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file describes
+//              the management of sensors (including LEDs, Buzzers,
+//              WatchDog processors, etc.).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1036 - Sensor cleanup
+// CR1223 - SysDev Omnibus CR - minor MOF corrections.
+// 
+// Change Log for v2.7
+// CR621 - Promote subclassing of PackageTempSensor and PackageAlarm
+//         from Dependency to PackageDependency and deprecate them.
+// CR771 - Add the composition qualifer to CollectionOfSensors
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// Sensor
+// ===================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "A Sensor is a hardware device capable of measuring the "
+       "characteristics of some physical property - for example, the "
+       "temperature or voltage characteristics of a UnitaryComputer "
+       "System.")]
+class CIM_Sensor : CIM_LogicalDevice {
+
+      [Description (
+          "The Type of the Sensor, e.g. Voltage or Temperature Sensor. "
+          "If the type is set to \"Other\", then the OtherSensorType "
+          "Description can be used to further identify the type, or if "
+          "the Sensor has numeric readings, then the type of the "
+          "Sensor can be implicitly determined by the Units. A "
+          "description of the different Sensor types is as follows: A "
+          "Temperature Sensor measures the environmental temperature. "
+          "Voltage and Current Sensors measure electrical voltage and "
+          "current readings. A Tachometer measures speed/revolutions "
+          "of a Device. For example, a Fan Device can have an "
+          "associated Tachometer which measures its speed. A Counter "
+          "is a general purpose Sensor that measures some numerical "
+          "property of a Device. A Counter value can be cleared, but "
+          "it never decreases. A Switch Sensor has states like "
+          "Open/Close, On/Off, or Up/Down. A Lock has states of "
+          "Locked/Unlocked. Humidity, Smoke Detection and Air Flow "
+          "Sensors measure the equivalent environmental "
+          "characteristics. A Presence Sensor detects the presence of "
+          "a PhysicalElement."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12" }, 
+       Values { "Unknown", "Other", "Temperature", "Voltage",
+          "Current", "Tachometer", "Counter", "Switch", "Lock",
+          "Humidity", "Smoke Detection", "Presence", "Air Flow" }, 
+       ModelCorrespondence { "CIM_Sensor.OtherSensorTypeDescription" }]
+   uint16 SensorType;
+
+      [Description (
+          "A string describing the Sensor type - used when the "
+          "SensorType property is set to \"Other\"."), 
+       MaxLen ( 128 ), 
+       ModelCorrespondence { "CIM_Sensor.SensorType" }]
+   string OtherSensorTypeDescription;
+
+      [Description (
+          "PossibleStates enumerates the string outputs of the Sensor. "
+          "For example, a \"Switch\" Sensor may output the states "
+          "\"On\", or \"Off\". Another implementation of the Switch "
+          "may output the states \"Open\", and \"Close\". Another "
+          "example is a NumericSensor supporting thresholds. This "
+          "Sensor can report the states like \"Normal\", \"Upper "
+          "Fatal\", \"Lower Non-Critical\", etc. A NumericSensor that "
+          "does not publish readings and thresholds, but stores this "
+          "data internally, can still report its states."), 
+       MaxLen ( 128 )]
+   string PossibleStates[];
+
+      [Description (
+          "The current state indicated by the Sensor. This is always "
+          "one of the \"PossibleStates\"."), 
+       MaxLen ( 128 )]
+   string CurrentState;
+
+      [Description (
+          "The polling interval that the Sensor hardware or the "
+          "instrumentation uses to determine the current state of the "
+          "Sensor."), 
+       Units ( "NanoSeconds" )]
+   uint64 PollingInterval;
+};
+
+
+// ===================================================================
+// AssociatedSensor
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Many Devices include Sensors or have Sensors installed nearby, "
+       "in order to measure critical input and output properties. This "
+       "association indicates that relationship.")]
+class CIM_AssociatedSensor : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Sensor.")]
+   CIM_Sensor REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDevice for which information is measured by the "
+          "Sensor.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+
+// ===================================================================
+// BinarySensor
+// ===================================================================
+   [Deprecated { "CIM_Sensor" }, Version ( "2.8.0" ), Description (
+       "A BinarySensor provides a boolean output. The use of this "
+       "class is being deprecated in lieu of creating a Sensor with "
+       "two PossibleStates.")]
+class CIM_BinarySensor : CIM_Sensor {
+
+      [Deprecated { "CIM_Sensor.SensorType" }, Description (
+          "The current value indicated by the Sensor.")]
+   boolean CurrentReading;
+
+      [Deprecated { "CIM_Sensor.SensorType" }, Description (
+          "ExpectedReading indicates the 'normal' value for the "
+          "Sensor.")]
+   boolean ExpectedReading;
+
+      [Deprecated { "CIM_Sensor.PossibleStates" }, Description (
+          "InterpretationOfTrue is a string indicating what a 'True' "
+          "value from the BinarySensor means. This information could "
+          "be displayed to a user."), 
+       MaxLen ( 64 )]
+   string InterpretationOfTrue;
+
+      [Deprecated { "CIM_Sensor.PossibleStates" }, Description (
+          "InterpretationOfFalse is a string indicating what a 'False' "
+          "value from the BinarySensor means. This information could "
+          "be displayed to a user."), 
+       MaxLen ( 64 )]
+   string InterpretationOfFalse;
+};
+
+
+// ===================================================================
+// MultiStateSensor
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A Multi-StateSensor is a multi-member set of Sensors.")]
+class CIM_MultiStateSensor : CIM_Sensor {
+};
+
+
+// ===================================================================
+// CollectionOfSensors
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "The CollectionOfSensors association indicates the Sensors that "
+       "make up a MultiStateSensor.")]
+class CIM_CollectionOfSensors : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The MultiStateSensor.")]
+   CIM_MultiStateSensor REF GroupComponent;
+
+      [Override ( "PartComponent" ), Min ( 2 ), Description (
+          "A Sensor that is part of the MultiStateSensor.")]
+   CIM_Sensor REF PartComponent;
+};
+
+
+// ===================================================================
+// NumericSensor
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "A Numeric Sensor is capable of returning numeric readings and "
+       "optionally supports thresholds settings.")]
+class CIM_NumericSensor : CIM_Sensor {
+
+      [Description (
+          "The base unit of the values returned by this Sensor. All "
+          "the values returned by this Sensor are represented in the "
+          "units obtained by (BaseUnits * 10 raised to the power of "
+          "the UnitModifier). For example, if BaseUnits is Volts and "
+          "the UnitModifier is -6, then the units of the values "
+          "returned are MicroVolts. However, if the RateUnits property "
+          "is set to a value other than \"None\", then the units are "
+          "further qualified as rate units. In the above example, if "
+          "RateUnits is set to \"Per Second\", then the values "
+          "returned by the Sensor are in MicroVolts/Second. The units "
+          "apply to all numeric properties of the Sensor, unless "
+          "explicitly overridden by the Units qualifier."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+          "60", "61", "62", "63", "64", "65" }, 
+       Values { "Unknown", "Other", "Degrees C", "Degrees F",
+          "Degrees K", "Volts", "Amps", "Watts", "Joules", "Coulombs", 
+          //10 
+          "VA", "Nits", "Lumens", "Lux", "Candelas", "kPa", "PSI",
+          "Newtons", "CFM", "RPM", 
+          //20 
+          "Hertz", "Seconds", "Minutes", "Hours", "Days", "Weeks",
+          "Mils", "Inches", "Feet", "Cubic Inches", 
+          //30 
+          "Cubic Feet", "Meters", "Cubic Centimeters", "Cubic Meters",
+          "Liters", "Fluid Ounces", "Radians", "Steradians",
+          "Revolutions", "Cycles", 
+          //40 
+          "Gravities", "Ounces", "Pounds", "Foot-Pounds",
+          "Ounce-Inches", "Gauss", "Gilberts", "Henries", "Farads",
+          "Ohms", 
+          //50 
+          "Siemens", "Moles", "Becquerels", "PPM (parts/million)",
+          "Decibels", "DbA", "DbC", "Grays", "Sieverts",
+          "Color Temperature Degrees K", 
+          //60 
+          "Bits", "Bytes", "Words (data)", "DoubleWords", "QuadWords",
+          "Percentage" }, 
+       ModelCorrespondence { "CIM_NumericSensor.UnitModifier",
+          "CIM_NumericSensor.RateUnits" }]
+   uint16 BaseUnits;
+
+      [Description (
+          "The unit multiplier for the values returned by this Sensor. "
+          "All the values returned by this Sensor are represented in "
+          "the units obtained by (BaseUnits * 10 raised to the power "
+          "of the UnitModifier). For example, if BaseUnits is Volts "
+          "and the Unit Modifier is -6, then the units of the values "
+          "returned are MicroVolts. However, if the RateUnits property "
+          "is set to a value other than \"None\", then the units are "
+          "further qualified as rate units. In the above example, if "
+          "RateUnits is set to \"Per Second\", then the values "
+          "returned by the Sensor are in MicroVolts/Second. The units "
+          "apply to all numeric properties of the Sensor, unless "
+          "explicitly overridden by the Units qualifier."), 
+       ModelCorrespondence { "CIM_NumericSensor.BaseUnits",
+          "CIM_NumericSensor.RateUnits" }]
+   sint32 UnitModifier;
+
+      [Description (
+          "Specifies if the units returned by this Sensor are rate "
+          "units. All the values returned by this Sensor are "
+          "represented in the units obtained by (BaseUnits * 10 raised "
+          "to the power of the UnitModifier). This is true unless this "
+          "property (RateUnits) has a value different than \"None\". "
+          "For example, if BaseUnits is Volts and the UnitModifier is "
+          "-6, then the units of the values returned are MicroVolts. "
+          "But, if the RateUnits property is set to a value other than "
+          "\"None\", then the units are further qualified as rate "
+          "units. In the above example, if RateUnits is set to \"Per "
+          "Second\", then the values returned by the Sensor are in "
+          "MicroVolts/Second. The units apply to all numeric "
+          "properties of the Sensor, unless explicitly overridden by "
+          "the Units qualifier. Any implementation of CurrentReading "
+          "should be qualified with either a Counter or a Gauge "
+          "qualifier, depending on the characteristics of the sensor "
+          "being modeled."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "None", "Per MicroSecond", "Per MilliSecond",
+          "Per Second", "Per Minute", "Per Hour", "Per Day",
+          "Per Week", "Per Month", "Per Year" }, 
+       ModelCorrespondence { "CIM_NumericSensor.UnitModifier",
+          "CIM_NumericSensor.BaseUnits" }]
+   uint16 RateUnits;
+
+      [Description (
+          "The current value indicated by the Sensor."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.5",
+          "MIF.DMTF|Electrical Current Probe|001.5",
+          "MIF.DMTF|Voltage Probe|001.5" }]
+   sint32 CurrentReading;
+
+      [Description (
+          "NominalReading indicates the 'normal' or expected value for "
+          "the NumericSensor."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.6",
+          "MIF.DMTF|Electrical Current Probe|001.6",
+          "MIF.DMTF|Voltage Probe|001.6" }]
+   sint32 NominalReading;
+
+      [Description (
+          "NormalMax provides guidance for the user as to the normal "
+          "maximum range for the NumericSensor."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.7",
+          "MIF.DMTF|Electrical Current Probe|001.7",
+          "MIF.DMTF|Voltage Probe|001.7" }]
+   sint32 NormalMax;
+
+      [Description (
+          "NormalMin provides guidance for the user as to the normal "
+          "minimum range for the NumericSensor."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.8",
+          "MIF.DMTF|Electrical Current Probe|001.8",
+          "MIF.DMTF|Voltage Probe|001.8" }]
+   sint32 NormalMin;
+
+      [Description (
+          "MaxReadable indicates the largest value of the measured "
+          "property that can be read by the NumericSensor."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.9",
+          "MIF.DMTF|Electrical Current Probe|001.9",
+          "MIF.DMTF|Voltage Probe|001.9" }]
+   sint32 MaxReadable;
+
+      [Description (
+          "MinReadable indicates the smallest value of the measured "
+          "property that can be read by the NumericSensor."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.10",
+          "MIF.DMTF|Electrical Current Probe|001.10",
+          "MIF.DMTF|Voltage Probe|001.10" }]
+   sint32 MinReadable;
+
+      [Description (
+          "Resolution indicates the ability of the Sensor to resolve "
+          "differences in the measured property. The units for this "
+          "measurement are determined by "
+          "BaseUnit*UnitModifier/RateUnit."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.17",
+          "MIF.DMTF|Electrical Current Probe|001.17",
+          "MIF.DMTF|Voltage Probe|001.17" }]
+   uint32 Resolution;
+
+      [Deprecated { "CIM_NumericSensor.Resolution",
+          "CIM_NumericSensor.Accuracy" }, Description (
+          "This property is being deprecated in lieu of using the "
+          "Resolution and Accuracy properties. \n"
+          "Indicates the tolerance of the Sensor for the measured "
+          "property. Tolerance, along with Resolution and Accuracy, is "
+          "used to calculate the actual value of the measured physical "
+          "property. Tolerance may vary depending on whether the "
+          "Device is linear over its dynamic range.")]
+   sint32 Tolerance;
+
+      [Description (
+          "Indicates the accuracy of the Sensor for the measured "
+          "property. Its value is recorded as plus/minus hundredths of "
+          "a percent. Accuracy, along with Resolution, is used to "
+          "calculate the actual value of the measured physical "
+          "property. Accuracy may vary depending on whether the Device "
+          "is linear over its dynamic range."), 
+       Units ( "Hundredths of Percent" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.19",
+          "MIF.DMTF|Electrical Current Probe|001.19",
+          "MIF.DMTF|Voltage Probe|001.19" }]
+   sint32 Accuracy;
+
+      [Description (
+          "Indicates that the Sensor is linear over its dynamic range.")]
+   boolean IsLinear;
+
+      [Description (
+          "Indicates the margin built around the thresholds. This "
+          "margin prevents unnecessary state changes when the Sensor "
+          "reading may fluctuate very close to its thresholds. This "
+          "could be due to the Sensor's tolerance/accuracy/resolution "
+          "or due to environmental factors. Once a threshold is "
+          "crossed, the state of the Sensor should change. However, "
+          "the state should not fluctuate between the old and new "
+          "states unless the Sensor's change in the reading exceeds "
+          "the hysteresis value. The units for this measurement are "
+          "determined by BaseUnit*UnitModifier/RateUnit.")]
+   uint32 Hysteresis;
+
+      [Description (
+          "The Sensor's threshold values specify the ranges (min and "
+          "max values) for determining whether the Sensor is operating "
+          "under Normal, NonCritical, Critical or Fatal conditions. If "
+          "Current Reading is between LowerThresholdNonCritical and "
+          "Upper ThresholdNonCritical, then the Sensor is reporting a "
+          "normal value. If CurrentReading is between "
+          "LowerThresholdNonCritical and LowerThresholdCritical, then "
+          "the CurrentState is NonCritical."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.11",
+          "MIF.DMTF|Electrical Current Probe|001.11",
+          "MIF.DMTF|Voltage Probe|001.11" }]
+   sint32 LowerThresholdNonCritical;
+
+      [Description (
+          "The Sensor's threshold values specify the ranges (min and "
+          "max values) for determining whether the Sensor is operating "
+          "under Normal, NonCritical, Critical or Fatal conditions. If "
+          "the CurrentReading is between LowerThresholdNonCritical and "
+          "UpperThresholdNonCritical, then the Sensor is reporting a "
+          "normal value. If the CurrentReading is between "
+          "UpperThreshold NonCritical and UpperThresholdCritical, then "
+          "the CurrentState is NonCritical."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.12",
+          "MIF.DMTF|Electrical Current Probe|001.12",
+          "MIF.DMTF|Voltage Probe|001.12" }]
+   sint32 UpperThresholdNonCritical;
+
+      [Description (
+          "The Sensor's threshold values specify the ranges (min and "
+          "max values) for determining whether the Sensor is operating "
+          "under Normal, NonCritical, Critical or Fatal conditions. If "
+          "the CurrentReading is between LowerThresholdCritical and "
+          "Lower ThresholdFatal, then the CurrentState is Critical."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.13",
+          "MIF.DMTF|Electrical Current Probe|001.13",
+          "MIF.DMTF|Voltage Probe|001.13" }]
+   sint32 LowerThresholdCritical;
+
+      [Description (
+          "The Sensor's threshold values specify the ranges (min and "
+          "max values) for determining whether the Sensor is operating "
+          "under Normal, NonCritical, Critical or Fatal conditions. If "
+          "the CurrentReading is between UpperThresholdCritical and "
+          "Upper ThresholdFatal, then the CurrentState is Critical."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.14",
+          "MIF.DMTF|Electrical Current Probe|001.14",
+          "MIF.DMTF|Voltage Probe|001.14" }]
+   sint32 UpperThresholdCritical;
+
+      [Description (
+          "The Sensor's threshold values specify the ranges (min and "
+          "max values) for determining whether the Sensor is operating "
+          "under Normal, NonCritical, Critical or Fatal conditions. If "
+          "the CurrentReading is below LowerThresholdFatal, then the "
+          "Current State is Fatal."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.15",
+          "MIF.DMTF|Electrical Current Probe|001.15",
+          "MIF.DMTF|Voltage Probe|001.15" }]
+   sint32 LowerThresholdFatal;
+
+      [Description (
+          "The Sensor's threshold values specify the ranges (min and "
+          "max values) for determining whether the Sensor is operating "
+          "under Normal, NonCritical, Critical or Fatal conditions. If "
+          "the CurrentReading is above UpperThresholdFatal, then the "
+          "Current State is Fatal."), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.16",
+          "MIF.DMTF|Electrical Current Probe|001.16",
+          "MIF.DMTF|Voltage Probe|001.16" }]
+   sint32 UpperThresholdFatal;
+
+      [Description (
+          "An array representing the thresholds supported by this "
+          "Sensor."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "LowerThresholdNonCritical",
+          "UpperThresholdNonCritical", "LowerThresholdCritical",
+          "UpperThresholdCritical", "LowerThresholdFatal",
+          "UpperThresholdFatal" }]
+   uint16 SupportedThresholds[];
+
+      [Description (
+          "An array representing the thresholds that are currently "
+          "enabled for this Sensor."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "LowerThresholdNonCritical",
+          "UpperThresholdNonCritical", "LowerThresholdCritical",
+          "UpperThresholdCritical", "LowerThresholdFatal",
+          "UpperThresholdFatal" }]
+   uint16 EnabledThresholds[];
+
+      [Description (
+          "An array representing the writable thresholds supported by "
+          "Sensor."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "LowerThresholdNonCritical",
+          "UpperThresholdNonCritical", "LowerThresholdCritical",
+          "UpperThresholdCritical", "LowerThresholdFatal",
+          "UpperThresholdFatal" }]
+   uint16 SettableThresholds[];
+
+      [Description (
+          "This method resets the values of the thresholds to hardware "
+          "defaults. This method returns 0 if successful, 1 if "
+          "unsupported and any other value if an error occurred. In a "
+          "subclass, the set of possible return codes could be "
+          "specified, using a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' may "
+          "also be specified in the subclass as a Values array "
+          "qualifier.")]
+   uint32 RestoreDefaultThresholds(); 
+
+      [Deprecated { "No Value" }, Description (
+          "The use of this method is being deprecated, since Current "
+          "senor reading can be retrieved through the GetInstance "
+          "operation. \n"
+          "For a non-linear Sensor, the resolution, accuracy, "
+          "tolerance and hysteresis vary as the current reading moves. "
+          "This method can be used to get these factors for a given "
+          "reading. It returns 0 if successful, 1 if unsupported, and "
+          "any other value if an error occurred. In a subclass, the "
+          "set of possible return codes could be specified, using a "
+          "ValueMap qualifier on the method. The strings to which the "
+          "ValueMap contents are 'translated' may also be specified in "
+          "the subclass as a Values array qualifier.")]
+   uint32 GetNonLinearFactors( 
+         [IN, Description (
+             "The sensor reading to get information for.")]
+      sint32 SensorReading, 
+         [IN ( false ), OUT, Description (
+             "The accuracy of the reading.")]
+      sint32 Accuracy, 
+         [IN ( false ), OUT, Description (
+             "The resolution of the reading.")]
+      uint32 Resolution, 
+         [IN ( false ), OUT, Description (
+             "The tolerance of the reading.")]
+      sint32 Tolerance, 
+         [IN ( false ), OUT, Description (
+             "The Hysteresis of the reading.")]
+      uint32 Hysteresis); 
+};
+
+// ===================================================================
+// DiscreteSensor
+// ===================================================================
+   [Deprecated { "CIM_Sensor" }, Version ( "2.8.0" ), Description (
+       "A DiscreteSensor has a set of legal string values, that it can "
+       "report. These values are enumerated in the Sensor's "
+       "PossibleValues property. A DiscreteSensor will always have a "
+       "'current reading' that corresponds to one of the enumerated "
+       "values. \n"
+       "The use of this class is being deprecated in lieu of "
+       "CIM_Sensor. Information in the CurrentReading and "
+       "PossibleValues properties will typically have the same values "
+       "and semantics as for the CurrentState and PossibleStates "
+       "properties, inherited from Sensor.")]
+class CIM_DiscreteSensor : CIM_Sensor {
+
+      [Deprecated { "CIM_Sensor.CurrentState" }, Description (
+          "The current value indicated by the Sensor."), 
+       MaxLen ( 64 )]
+   string CurrentReading;
+
+      [Deprecated { "CIM_Sensor.PossibleStates" }, Description (
+          "PossibleValues enumerates the string outputs that can be "
+          "reported by the DiscreteSensor."), 
+       MaxLen ( 64 )]
+   string PossibleValues[];
+
+      [Deprecated { "No Value" }, Description (
+          "AcceptableValues details which of the PossibleValues "
+          "strings are considered 'acceptable' (ie, 'not an error')."), 
+       MaxLen ( 64 )]
+   string AcceptableValues[];
+};
+
+
+// ===================================================================
+// TemperatureSensor
+// ===================================================================
+   [Deprecated { "CIM_NumericSensor" }, Version ( "2.8.0" ), 
+    Description (
+       "The use of this class is being deprecated in lieu of the "
+       "additions to Sensor and Numeric Sensor. A TemperatureSensor "
+       "can be defined by setting the SensorType property, inherited "
+       "from Sensor, to 2 (\"Temperature\").")]
+class CIM_TemperatureSensor : CIM_NumericSensor {
+
+      [Deprecated { "No Value" }, Override ( "SensorType" )]
+   uint16 SensorType = 2;
+
+      [Deprecated { "No Value" }, Override ( "BaseUnits" )]
+   uint16 BaseUnits = 2;
+
+      [Deprecated { "No Value" }, Override ( "UnitModifier" )]
+   sint32 UnitModifier = -1;
+
+      [Deprecated { "No Value" }, Override ( "RateUnits" )]
+   uint16 RateUnits = 0;
+
+      [Deprecated { "No Value" }, Override ( "CurrentReading" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.5" }]
+   sint32 CurrentReading;
+
+      [Deprecated { "No Value" }, Override ( "NominalReading" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.6" }]
+   sint32 NominalReading;
+
+      [Deprecated { "No Value" }, Override ( "NormalMax" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.7" }]
+   sint32 NormalMax;
+
+      [Deprecated { "No Value" }, Override ( "NormalMin" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.8" }]
+   sint32 NormalMin;
+
+      [Deprecated { "No Value" }, Override ( "MaxReadable" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.9" }]
+   sint32 MaxReadable;
+
+      [Deprecated { "No Value" }, Override ( "MinReadable" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.10" }]
+   sint32 MinReadable;
+
+      [Deprecated { "No Value" }, Override ( "Resolution" ),
+          Units ( "Hundredths of Degrees C" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.17" }]
+   uint32 Resolution;
+
+      [Deprecated { "No Value" }, Override ( "Tolerance" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.18" }]
+   sint32 Tolerance;
+
+      [Deprecated { "No Value" }, Override ( "Accuracy" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.19" }]
+   sint32 Accuracy;
+
+      [Deprecated { "No Value" },
+          Override ( "LowerThresholdNonCritical" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.11" }]
+   sint32 LowerThresholdNonCritical;
+
+      [Deprecated { "No Value" },
+          Override ( "UpperThresholdNonCritical" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.12" }]
+   sint32 UpperThresholdNonCritical;
+
+      [Deprecated { "No Value" }, Override ( "LowerThresholdCritical" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.13" }]
+   sint32 LowerThresholdCritical;
+
+      [Deprecated { "No Value" }, Override ( "UpperThresholdCritical" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.14" }]
+   sint32 UpperThresholdCritical;
+
+      [Deprecated { "No Value" }, Override ( "LowerThresholdFatal" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.15" }]
+   sint32 LowerThresholdFatal;
+
+      [Deprecated { "No Value" }, Override ( "UpperThresholdFatal" ), 
+       MappingStrings { "MIF.DMTF|Temperature Probe|002.16" }]
+   sint32 UpperThresholdFatal;
+};
+
+// ===================================================================
+// CurrentSensor
+// ===================================================================
+   [Deprecated { "CIM_NumericSensor" }, Version ( "2.8.0" ), 
+    Description (
+       "The use of this class is being deprecated in lieu of the "
+       "additions to Sensor and NumericSensor. A CurrentSensor can be "
+       "defined by setting the SensorType property, inherited from "
+       "Sensor, to 4 (\"Current\").")]
+class CIM_CurrentSensor : CIM_NumericSensor {
+
+      [Deprecated { "No Value" }, Override ( "SensorType" )]
+   uint16 SensorType = 4;
+
+      [Deprecated { "No Value" }, Override ( "BaseUnits" )]
+   uint16 BaseUnits = 6;
+
+      [Deprecated { "No Value" }, Override ( "UnitModifier" )]
+   sint32 UnitModifier = -3;
+
+      [Deprecated { "No Value" }, Override ( "RateUnits" )]
+   uint16 RateUnits = 0;
+
+      [Deprecated { "No Value" }, Override ( "CurrentReading" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.5" }]
+   sint32 CurrentReading;
+
+      [Deprecated { "No Value" }, Override ( "NominalReading" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.6" }]
+   sint32 NominalReading;
+
+      [Deprecated { "No Value" }, Override ( "NormalMax" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.7" }]
+   sint32 NormalMax;
+
+      [Deprecated { "No Value" }, Override ( "NormalMin" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.8" }]
+   sint32 NormalMin;
+
+      [Deprecated { "No Value" }, Override ( "MaxReadable" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.9" }]
+   sint32 MaxReadable;
+
+      [Deprecated { "No Value" }, Override ( "MinReadable" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.10" }]
+   sint32 MinReadable;
+
+      [Deprecated { "No Value" }, Override ( "Resolution" ),
+          Units ( "Tenths of MilliAmps" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.17" }]
+   uint32 Resolution;
+
+      [Deprecated { "No Value" }, Override ( "Tolerance" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.18" }]
+   sint32 Tolerance;
+
+      [Deprecated { "No Value" }, Override ( "Accuracy" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.19" }]
+   sint32 Accuracy;
+
+      [Deprecated { "No Value" },
+          Override ( "LowerThresholdNonCritical" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.11" }]
+   sint32 LowerThresholdNonCritical;
+
+      [Deprecated { "No Value" },
+          Override ( "UpperThresholdNonCritical" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.12" }]
+   sint32 UpperThresholdNonCritical;
+
+      [Deprecated { "No Value" }, Override ( "LowerThresholdCritical" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.13" }]
+   sint32 LowerThresholdCritical;
+
+      [Deprecated { "No Value" }, Override ( "UpperThresholdCritical" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.14" }]
+   sint32 UpperThresholdCritical;
+
+      [Deprecated { "No Value" }, Override ( "LowerThresholdFatal" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.15" }]
+   sint32 LowerThresholdFatal;
+
+      [Deprecated { "No Value" }, Override ( "UpperThresholdFatal" ), 
+       MappingStrings { "MIF.DMTF|Electrical Current Probe|001.16" }]
+   sint32 UpperThresholdFatal;
+};
+
+// ===================================================================
+// VoltageSensor
+// ===================================================================
+   [Deprecated { "CIM_NumericSensor" }, Version ( "2.8.0" ), 
+    Description (
+       "The use of this class is being deprecated in lieu of the "
+       "additions to Sensor and NumericSensor. A VoltageSensor can be "
+       "defined by setting the SensorType property, inherited from "
+       "Sensor, to 3 (\"Voltage\").")]
+class CIM_VoltageSensor : CIM_NumericSensor {
+
+      [Deprecated { "No value" }, Override ( "SensorType" )]
+   uint16 SensorType = 3;
+
+      [Deprecated { "No value" }, Override ( "BaseUnits" )]
+   uint16 BaseUnits = 5;
+
+      [Deprecated { "No value" }, Override ( "UnitModifier" )]
+   sint32 UnitModifier = -3;
+
+      [Deprecated { "No value" }, Override ( "RateUnits" )]
+   uint16 RateUnits = 0;
+
+      [Deprecated { "No value" }, Override ( "CurrentReading" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.5" }]
+   sint32 CurrentReading;
+
+      [Deprecated { "No value" }, Override ( "NominalReading" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.6" }]
+   sint32 NominalReading;
+
+      [Deprecated { "No value" }, Override ( "NormalMax" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.7" }]
+   sint32 NormalMax;
+
+      [Deprecated { "No value" }, Override ( "NormalMin" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.8" }]
+   sint32 NormalMin;
+
+      [Deprecated { "No value" }, Override ( "MaxReadable" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.9" }]
+   sint32 MaxReadable;
+
+      [Deprecated { "No value" }, Override ( "MinReadable" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.10" }]
+   sint32 MinReadable;
+
+      [Deprecated { "No value" }, Override ( "Resolution" ),
+          Units ( "Tenths of MilliVolts" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.17" }]
+   uint32 Resolution;
+
+      [Deprecated { "No value" }, Override ( "Tolerance" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.18" }]
+   sint32 Tolerance;
+
+      [Deprecated { "No value" }, Override ( "Accuracy" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.19" }]
+   sint32 Accuracy;
+
+      [Deprecated { "No value" },
+          Override ( "LowerThresholdNonCritical" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.11" }]
+   sint32 LowerThresholdNonCritical;
+
+      [Deprecated { "No value" },
+          Override ( "UpperThresholdNonCritical" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.12" }]
+   sint32 UpperThresholdNonCritical;
+
+      [Deprecated { "No value" }, Override ( "LowerThresholdCritical" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.13" }]
+   sint32 LowerThresholdCritical;
+
+      [Deprecated { "No value" }, Override ( "UpperThresholdCritical" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.14" }]
+   sint32 UpperThresholdCritical;
+
+      [Deprecated { "No value" }, Override ( "LowerThresholdFatal" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.15" }]
+   sint32 LowerThresholdFatal;
+
+      [Deprecated { "No value" }, Override ( "UpperThresholdFatal" ), 
+       MappingStrings { "MIF.DMTF|Voltage Probe|001.16" }]
+   sint32 UpperThresholdFatal;
+};
+
+
+// ===================================================================
+// Tachometer
+// ===================================================================
+   [Deprecated { "CIM_NumericSensor" }, Version ( "2.8.0" ), 
+    Description (
+       "The use of this class is deprecated in lieu of the additions "
+       "to Sensor and NumericSensor. A Tachometer can be defined by "
+       "setting the SensorType property. inherited from Sensor, to 5 "
+       "(\"Tachometer\").")]
+class CIM_Tachometer : CIM_NumericSensor {
+
+      [Deprecated { "No value" }, Override ( "SensorType" )]
+   uint16 SensorType = 5;
+
+      [Deprecated { "No value" }, Override ( "BaseUnits" )]
+   uint16 BaseUnits = 38;
+
+      [Deprecated { "No value" }, Override ( "UnitModifier" )]
+   sint32 UnitModifier = 1;
+
+      [Deprecated { "No value" }, Override ( "RateUnits" )]
+   uint16 RateUnits = 4;
+
+      [Deprecated { "No value" }, Override ( "Resolution" ),
+          Units ( "Tenths of Revolutions per Minute" )]
+   uint32 Resolution;
+};
+
+// ===================================================================
+// AssociatedSupplyVoltageSensor
+// ===================================================================
+   [Association, Deprecated { "CIM_AssociatedSensor" },
+       Version ( "2.8.0" ), Description (
+       "The use of this association is being deprecated in lieu of "
+       "using AssociatedSensor, since the use of the referenced class "
+       "VoltageSensor is deprecated. \n"
+       "A PowerSupply may have an associated VoltageSensor, monitoring "
+       "its input voltage. This is described by this association.")]
+class CIM_AssociatedSupplyVoltageSensor : CIM_AssociatedSensor {
+
+      [Deprecated { "CIM_AssociatedSensor.Antecedent" },
+          Override ( "Antecedent" ), Description (
+          "The VoltageSensor.")]
+   CIM_VoltageSensor REF Antecedent;
+
+      [Deprecated { "CIM_AssociatedSensor.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The PowerSupply associated with the VoltageSensor.")]
+   CIM_PowerSupply REF Dependent;
+
+      [Deprecated { "No Value" }, Description (
+          "Indicates the PowerSupply's input voltage range measured by "
+          "the associated sensor. Range 1, 2 or both can be specified "
+          "using the values 2, 3 or 4, respectively."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Range 1", "Range 2",
+          "Both Range 1 and 2" }]
+   uint16 MonitoringRange;
+};
+
+// ===================================================================
+// AssociatedSupplyCurrentSensor
+// ===================================================================
+   [Association, Deprecated { "CIM_AssociatedSensor" },
+       Version ( "2.8.0" ), Description (
+       "The use of this association is being deprecated in lieu of "
+       "using AssociatedSensor, since the use of the referenced class "
+       "CurrentSensor is deprecated. \n"
+       "A PowerSupply may have an associated CurrentSensor, monitoring "
+       "its input frequency. This is described by this association.")]
+class CIM_AssociatedSupplyCurrentSensor : CIM_AssociatedSensor {
+
+      [Deprecated { "CIM_AssociatedSensor.Antecedent" },
+          Override ( "Antecedent" ), Description (
+          "The CurrentSensor.")]
+   CIM_CurrentSensor REF Antecedent;
+
+      [Deprecated { "CIM_AssociatedSensor.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The PowerSupply associated with the CurrentSensor.")]
+   CIM_PowerSupply REF Dependent;
+
+      [Deprecated { "No Value" }, Description (
+          "Indicates the PowerSupply's input frequency range measured "
+          "by the associated sensor. Range 1, 2 or both can be "
+          "specified using the values 2, 3 or 4, respectively."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Range 1", "Range 2",
+          "Both Range 1 and 2" }]
+   uint16 MonitoringRange;
+};
+
+// ==================================================================
+// PackageTempSensor
+// ==================================================================
+   [Association, Deprecated { "CIM_PackageDependency" },
+       Version ( "2.7.0" ), Description (
+       "Often, a TemperatureSensor is installed in a Package such as a "
+       "Chassis or a Rack, not to measure any particular Device, but "
+       "the Package's environment in general. The use of this "
+       "association has been deprecated. Instead, use "
+       "PackageDependency to describe this relationship.")]
+class CIM_PackageTempSensor : CIM_PackageDependency {
+
+      [Deprecated { "CIM_PackageDependency.Antecedent" },
+          Override ( "Antecedent" ), Description (
+          "The TemperatureSensor for the Package.")]
+   CIM_TemperatureSensor REF Antecedent;
+
+      [Deprecated { "CIM_PackageDependency.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The PhysicalPackage whose environment is monitored.")]
+   CIM_PhysicalPackage REF Dependent;
+};
+
+
+// ====================================================================
+// AlarmDevice
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "An AlarmDevice is a type of Device that emits audible or "
+       "visible indications related to a problem situation.")]
+class CIM_AlarmDevice : CIM_LogicalDevice {
+
+      [Description (
+          "Boolean indicating that the Alarm is audible.")]
+   boolean AudibleAlarm;
+
+      [Description (
+          "Boolean indicating that the Alarm is visible.")]
+   boolean VisibleAlarm;
+
+      [Description (
+          "Boolean indicating that the Alarm causes motion of the "
+          "Device.")]
+   boolean MotionAlarm;
+
+      [Description (
+          "Urgency is an enumerated value that indicates the relative "
+          "frequency at which the Alarm flashes, vibrates and/or emits "
+          "audible tones."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Other", "Not Supported", "Informational",
+          "Non-Critical", "Critical", "Unrecoverable" }]
+   uint16 Urgency;
+
+      [Description (
+          "The current state of the alarm."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Off", "Steady", "Alternating" }]
+   uint16 AlarmState;
+
+      [Description (
+          "True indicates that the audio of an AlarmState indicator "
+          "has been disabled (i.e. muted). A disabled state here does "
+          "not imply that the AlarmState is off.")]
+   boolean AudioIndicatorIsDisabled;
+
+      [Description (
+          "True indicates that the visual of an AlarmState indicator "
+          "has been disabled (i.e. dimmed). A disabled state here does "
+          "not imply that the AlarmState is off.")]
+   boolean VisualIndicatorIsDisabled;
+
+      [Description (
+          "True indicates that the motion of an AlarmState indicator "
+          "has been disabled (i.e. stopped). A disabled state here "
+          "does not imply that the AlarmState is off.")]
+   boolean MotionIndicatorIsDisabled;
+
+      [Description (
+          "SetAlarmState is a method for defining the current state of "
+          "the Alarm. Its input parameter, RequestedAlarmState, is "
+          "specified using the Values list of AlarmDevice's AlarmState "
+          "property. SetAlarmState returns 0 if the request is "
+          "successfully implemented, 1 if the specified RequestedAlarm "
+          "State is not supported, and some other value if any other "
+          "error occurred. In a subclass, the set of possible return "
+          "codes should be specified using a ValueMap qualifier on the "
+          "method. The strings to which the ValueMap contents are "
+          "'translated' should be specified as a Values array "
+          "qualifier.")]
+   uint32 SetAlarmState ( 
+         [IN, Description (
+             "The desired state for the alarm."), 
+          ValueMap { "0", "1", "2", "3" }, 
+          Values { "Unknown", "Off", "Steady", "Alternating" }]
+      uint16 RequestedAlarmState); 
+
+      [Description (
+          "SetAlarmIndicator is a method for enabling or disabling the "
+          "indicator of the AlarmState function, without changing the "
+          "current AlarmState. It has 3 input parameters, Audio "
+          "Indicator, VisualIndicator and MotionIndicator. For all of "
+          "the input parameters, a value of 0 indicates no change to "
+          "the AlarmState indicator, 1 indicates Disable, and 2 "
+          "indicates Enable. The method returns 0 if the request is "
+          "successfully implemented, 1 if the specified request is not "
+          "supported, and some other value if any other error "
+          "occurred. In a subclass, the set of possible return codes "
+          "should be specified using a ValueMap qualifier on the "
+          "method. The strings to which the ValueMap contents are "
+          "'translated' should be specified as a Values array "
+          "qualifier.")]
+   uint32 SetAlarmIndicator ( 
+         [IN, Description (
+             "The state for the audio indicator."), 
+          ValueMap { "0", "1", "2" }, 
+          Values { "No Change", "Disable", "Enable" }]
+      uint16 AudioIndicator, 
+         [IN, Description (
+             "The state for the visual indicator."), 
+          ValueMap { "0", "1", "2" }, 
+          Values { "No Change", "Disable", "Enable" }]
+      uint16 VisualIndicator, 
+         [IN, Description (
+             "The state for the motion indicator."), 
+          ValueMap { "0", "1", "2" }, 
+          Values { "No Change", "Disable", "Enable" }]
+      uint16 MotionIndicator); 
+
+      [Description (
+          "SetUrgency is a method for defining the desired urgency "
+          "level for the Alarm. Its input parameter, RequestedUrgency, "
+          "is specified using the Values list of AlarmDevice's Urgency "
+          "property. SetUrgency returns 0 if the request is "
+          "successfully implemented, 1 if the specified Urgency level "
+          "is not supported, and some other value if any other error "
+          "occurred. In a subclass, the set of possible return codes "
+          "should be specified using a ValueMap qualifier on the "
+          "method. The strings to which the ValueMap contents are "
+          "'translated' should be specified as a Values array "
+          "qualifier.")]
+   uint32 SetUrgency ( 
+         [IN, Description (
+             "Desired urgency for the alarm."), 
+          ValueMap { "1", "3", "4", "5", "6" }, 
+          Values { "Other", "Informational", "Non-Critical",
+             "Critical", "Unrecoverable" }]
+      uint16 RequestedUrgency); 
+};
+
+
+// ===================================================================
+// AssociatedAlarm
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "LogicalDevices may have one or more AlarmDevices associated "
+       "with them, in order to indicate problem situations. This "
+       "relationship is indicated by the AssociatedAlarm dependency.")]
+class CIM_AssociatedAlarm : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The AlarmDevice.")]
+   CIM_AlarmDevice REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDevice that is alarmed.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+
+// ==================================================================
+// PackageAlarm
+// ==================================================================
+   [Association, Deprecated { "CIM_PackageDependency" },
+       Version ( "2.7.0" ), Description (
+       "Often, an AlarmDevice is installed as part of a Package, not "
+       "to indicate issues with any particular LogicalDevice or "
+       "PhysicalComponent, but with the Package's environment in "
+       "general, its security state or its overall health. The use of "
+       "this association has been deprecated. Instead, use "
+       "PackageDependency to describe this relationship.")]
+class CIM_PackageAlarm : CIM_PackageDependency {
+
+      [Deprecated { "CIM_PackageDependency.Antecedent" },
+          Override ( "Antecedent" ), Description (
+          "The AlarmDevice for the Package.")]
+   CIM_AlarmDevice REF Antecedent;
+
+      [Deprecated { "CIM_PackageDependency.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The PhysicalPackage whose health, security, environment, "
+          "etc. is alarmed.")]
+   CIM_PhysicalPackage REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

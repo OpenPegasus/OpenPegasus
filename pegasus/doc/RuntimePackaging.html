@@ -1,0 +1,2487 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+
+
+
+
+
+
+
+
+
+  
+  <meta http-equiv="Content-Language" content="en-us">
+
+
+  
+  <meta name="GENERATOR" content="Microsoft FrontPage 6.0">
+
+
+  
+  <meta name="ProgId" content="FrontPage.Editor.Document">
+
+
+  
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+
+
+  
+  <title>PEP</title>
+
+
+  
+  <link rel="stylesheet" href="PEP351_RuntimePackaging2.10.0-Dateien/info1.htm">
+
+
+</head><body>
+
+<hr>
+
+<p align="center"><b><font size="4">OpenPegasus Packaging Definition for Selected Platforms</font></b></p><b>Table of Contents</b>
+
+
+
+
+<dl>
+
+
+<dd><a href="#SecAbstract">Abstract</a></dd>
+<dd><a href="#SecProblemDefinition">Definition of the Problem</a></dd>
+<dd><a href="#SecProposedSolution">Proposed Solution</a></dd>
+  <dl>
+  <dd><a href="#SecDirectoryStructure">OpenPegasus Directory Structure</a></dd>
+  <dd><a href="#SecPackagedFiles">OpenPegasus Packaged Files</a></dd>
+    <dl>
+    <dd><a href="#SecLibraries">Library Files</a></dd>
+      <dl>
+      <dd><a href="#SecLibraryVersioning">Library-level Versioning Strategy</a></dd>
+      <dd><a href="#SecSharedLibraries">OpenPegasus Libraries</a></dd>
+      <dd><a href="#SecProviderManagers">OpenPegasus Provider Managers</a></dd>
+      <dd><a href="#SecProviderLibraries">OpenPegasus Provider Libraries</a></dd>
+      </dl>
+     <dd><a href="#SecExecutables">Executables Files</a></dd>
+      <dl>
+      <dd><a href="#SecAdminCommands">OpenPegasus Administrative Commands</a></dd>
+      <dd><a href="#SecAdminScripts">OpenPegasus Administrative Scripts</a></dd>
+      <dd><a href="#SecUserCommands">OpenPegasus User Commands</a></dd>
+      </dl>
+     <dd><a href="#SecDocumentation">Documentation Files</a></dd>
+      <dl>      
+      <dd><a href="#SecManPages">Unix Style Man Pages</a></dd>
+      </dl>
+     <dd><a href="#SecDataFiles">Data Files</a></dd>
+      <dl>  
+      <dd><a href="#SecStaticDataFiles">Static Data Files</a></dd>    
+      <dd><a href="#SecVariableDataFiles">Variable Data Files</a></dd>
+      <dd><a href="#SecConfigFiles">OpenPegasus Configuration Files</a></dd>
+      <dd><a href="#SecPAMConfigFiles">PAM Configuration Files</a></dd>
+      </dl>
+     </dl>
+  <dd><a href="#SecBuild">OpenPegasus Build and Install Steps</a><dl>
+   <dd><a href="#SecMkDir">Step 1: Create OpenPegasus Directory Structure</a></dd>
+   <dd><a href="#SecCopyFiles">Step 2: Copy OpenPegasus Files</a></dd>
+   <dd><a href="#SecConfigure">Step 3: Create OpenPegasus Host-Specific Files</a></dd>
+   <dd><a href="#SecRepository">Step 4: Create OpenPegasus Repository</a></dd> 
+   <dd><a href="#SecRepository">Step 5: Update System Files</a></dd> 
+   </dl>
+   </dd>
+   </dl>
+
+<hr>
+<p><b><a name="SecAbstract"></a>Abstract:&nbsp;</b>This document defines 
+the recommended set of files for inclusion in this release of OpenPegasus.&nbsp; 
+In this version of the document, platform-specific options have been documented for 
+the following platforms: Linux, HP-UX and Open VMS.</p>
+<p><b>Note 1: </b>The recommendations defined in this document 
+are not intended to document the feature set included in any vendor's 
+OpenPegasus-based product.&nbsp; Rather, the purpose of this document is to provide 
+input to vendors when making product decisions.<br></p>
+<hr>The purpose of this document is to provide
+vendors with a recommended set of configuration files, libraries, programs and
+documentation files for inclusion in an OpenPegasus Release.&nbsp; Please refer 
+to
+<a href="http://www.openpegasus.org/pp/uploads/40/6930/PEP204_RPMBuildProcess.htm">
+PEP 204</a> for instructions on creating OpenPegasus Linux binary and source 
+RPMS.<h3><a name="SecEnvironmentVariables"></a>OpenPegasus Configure</h3>
+
+<p>Please consult the "Recommended OpenPegasus Build and Configuration
+Options for Selected Platforms" document, BuildAndReleaseOptions.html ,
+in the pegasus/doc directory in CVS for the recommended environment and
+configuration settings for&nbsp;building OpenPegasus.&nbsp; </p>
+
+
+
+<h3><a name="SecDirectoryStructure"></a>OpenPegasus&nbsp; Directory Structure</h3>
+
+<p>This section describes the recommended OpenPegasus runtime directory 
+structure.&nbsp; In addition, it describes the recommended directory 
+permissions.&nbsp; </p>
+
+<p>There are three classes of OpenPegasus runtime directories:</p>
+
+<ol>
+  <li><b>FIXED LOCATION. </b>Directory locations that are used by the CIM Server 
+	and fixed at build time.&nbsp; A rebuild is required to change a FIXED 
+	LOCATION directory.&nbsp; The runtime directory structure MUST be consistent 
+	with the build time definition of FIXED LOCATION directories.&nbsp; Refer to 
+	PEP 308 for recommended default values.</li>
+  <li><b>CONFIGURABLE LOCATION.</b> Directory locations that are used by the CIM Server 
+  and configurable using the cimconfig command.&nbsp; All CONFIGURABLE LOCATION 
+	directories are assigned a default value for the directory location. The 
+	runtime directory structure WILL assume the default value. Refer to PEP 308 for recommended default values.</li>
+  <li><b>INSTALLATION DEFINED LOCATION. </b>Directory locations that are  NOT used by the CIM Server but exist 
+  as part of the CIM Server runtime environment. A default location will be 
+  defined and used for the directory location.</li>
+</ol>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp; The following default installation directories will change if the PEGASUS_FLAVOR option is set. See <a href="http://www.openpegasus.org/pp/uploads/40/21277/PEP350_MultiCIMOM.htm">PEP#350</a>&nbsp; for more details. <br>
+</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="563" height="190">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="207" height="37">Document Designation</th>
+    <th bgcolor="#cae6ca" width="118" height="37">Type</th>
+    <th bgcolor="#cae6ca" width="239" height="37">Build Configuration Option</th>
+  </tr>
+  
+  <tr>
+    <td align="center" width="207" height="38">$(PEGASUS_PROD_DIR)</td>
+    <td align="center" width="118" height="38">INSTALLATION</td>
+    <td width="239" height="38">&nbsp;</td>
+  </tr>
+  <tr align="center">
+    <td width="207" height="29">$(PEGASUS_DEST_LIB_DIR)</td>
+    <td width="118" height="29">INSTALLATION</td>
+    <td width="239" height="29">
+    <p align="left">Link option (e.g., -Wl,+b/opt/wbem/lib:/usr/lib)</p></td>
+  </tr>
+  <tr>
+    <td align="center" width="207" height="27">$(PEGASUS_SBIN_DIR)</td>
+    <td align="center" width="118" height="27">INSTALLATION</td>
+    <td width="239" height="27">&nbsp;</td>
+  </tr>
+  <tr>
+    <td align="center" width="207" height="33">$(PEGASUS_BIN_DIR)</td>
+    <td align="center" width="118" height="33">INSTALLATION</td>
+    <td width="239" height="33">&nbsp;</td>
+  </tr>
+  <tr>
+    <td align="center" width="207" height="33">
+    <p align="center">$(PEGASUS_MAN_DIR)</p></td>
+    <td align="center" width="118" height="33">
+    INSTALLATION</td>
+    <td width="239" height="33">
+    <p align="left">
+    &nbsp;</p></td>
+  </tr>
+  <tr>
+    <td align="center" width="207" height="31">
+    $(PEGASUS_VARDATA_DIR)</td>
+    <td align="center" width="118" height="31">
+    INSTALLATION</td>
+    <td width="239" height="31">
+    &nbsp;</td>
+  </tr>
+  </tbody></table>
+</ul>
+  
+  
+<p>&nbsp;</p>
+
+  
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="995" height="411">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="274" height="37">Document
+    Designation<br>
+    Configuration Option</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="75" height="37">Operating System</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="275" height="37">Location</th>
+    <th colspan="3" bgcolor="#cae6ca" width="348" height="16">Directory</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="89" height="16">Owner<br>
+    Group</th>
+    <th bgcolor="#cae6ca" width="138" height="16">Permissions</th>
+    <th bgcolor="#cae6ca" width="111" height="16">Package<br>
+    Owner</th>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="41">$(PEGASUS_BIN_DIR)</td>
+    <td align="center" width="75" height="3">Linux</td>
+    <td align="left" width="275" height="3">/usr/bin</td>
+    <td align="center" width="89" height="3">root/root</td>
+    <td align="center" width="138" height="3">drwxr-xr-x</td>
+    <td align="center" width="111" height="3">System</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/opt/wbem/bin</td>
+    <td align="center" width="89" height="14">bin/bin</td>
+    <td align="center" width="138" height="14">dr-xr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">/opt/wbem/bin</td>
+    <td align="center" width="89" height="14">system</td>
+    <td align="center" width="138" height="14">S:wred,O:re,G:re,W:e</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="41">$(PEGASUS_CONFIG_DIR)</td>
+    <td align="center" width="75" height="3">Linux</td>
+    <td align="left" width="275" height="3">/etc/Pegasus</td>
+    <td align="center" width="89" height="3">root/pegasus</td>
+    <td align="center" width="138" height="3">drwxr-xr-x</td>
+    <td align="center" width="111" height="3">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/etc/opt/wbem</td>
+    <td align="center" width="89" height="14">bin/bin</td>
+    <td align="center" width="138" height="14">dr-xr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">/etc/opt/wbem</td>
+    <td align="center" width="89" height="14">system</td>
+    <td align="center" width="138" height="14">S:wred,O:re,G:re,W:e</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  
+  <tr align="center">
+    <td rowspan="3" align="left" width="274" height="50">$(PEGASUS_DEST_LIB_DIR)</td>
+    <td width="75" height="13">Linux</td>
+    <td align="left" width="275" height="14">/usr/%{_lib}</td>
+    <td width="89" height="13">root/root</td>
+    <td width="138" height="13">drwxr-xr-x</td>
+    <td width="111" height="13">System</td>
+  </tr>
+  <tr align="center">
+    <td width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/opt/wbem/lib</td>
+    <td width="89" height="14">bin/bin</td>
+    <td width="138" height="14">dr-xr-xr-x</td>
+    <td width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr align="center">
+    <td width="75" height="13">OpenVMS</td>
+    <td align="left" width="275" height="12">/opt/wbem/lib</td>
+    <td width="89" height="13">system</td>
+    <td width="138" height="13">S:wred,O:re,G:re,W:e</td>
+    <td width="111" height="13">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="50">$(PEGASUS_MAN_DIR)</td>
+    <td align="center" width="75" height="12">Linux</td>
+    <td align="left" width="275" height="12">/usr/share/man</td>
+    <td align="center" width="89" height="12">root/root</td>
+    <td align="center" width="138" height="12">drwxr-xr-x</td>
+    <td align="center" width="111" height="12">System</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/opt/wbem/share/man</td>
+    <td align="center" width="89" height="14">bin/bin</td>
+    <td align="center" width="138" height="14">dr-xr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">/opt/wbem/share/man</td>
+    <td align="center" width="89" height="14">system</td>
+    <td align="center" width="138" height="14">S:wred,O:re,G:re,W:e</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="39">$(PEGASUS_PEM_DIR)</td>
+    <td align="center" width="75" height="1">Linux</td>
+    <td align="left" width="275" height="1">/etc/Pegasus</td>
+    <td align="center" width="89" height="1">root/pegasus</td>
+    <td align="center" width="138" height="1">drwxr-xr-x</td>
+    <td align="center" width="111" height="1">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/etc/opt/hp/sslshare</td>
+    <td align="center" width="89" height="14">bin/bin</td>
+    <td align="center" width="138" height="14">dr-xr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="15">OpenVMS</td>
+    <td align="left" width="275" height="15">&nbsp;</td>
+    <td width="89" height="15">
+    <p align="center">system</p></td>
+    <td width="138" height="15">S:wred,O:re,G:re,W:e</td>
+    <td width="111" height="15"><br>
+</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="38">$(PEGASUS_PROD_DIR)</td>
+    <td align="center" width="75" height="1">Linux</td>
+    <td align="left" width="275" height="1">/usr</td>
+    <td align="center" width="89" height="1">root/root</td>
+    <td align="center" width="138" height="1">drwxr-xr-x</td>
+    <td align="center" width="111" height="1">System</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/opt/wbem</td>
+    <td align="center" width="89" height="14">bin/bin</td>
+    <td align="center" width="138" height="14">dr-xr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">/opt/wbem</td>
+    <td width="89" height="14">
+    <p align="center">system</p></td>
+    <td width="138" height="14">S:wred,O:re,G:re,W:e</td>
+    <td width="111" height="14">
+    <p align="center">OpenPegasus</p></td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="52">$(PEGASUS_PROVIDER_LIB_DIR)</td>
+    <td align="center" width="75" height="14">Linux</td>
+    <td align="left" width="275" height="14">/usr/%{_lib}/Pegasus/providers</td>
+    <td align="center" width="89" height="14">root/pegasus</td>
+    <td align="center" width="138" height="14">drwxr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/opt/wbem/providers/lib</td>
+    <td align="center" width="89" height="14">bin/bin</td>
+    <td align="center" width="138" height="14">dr-xr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="13">/opt/wbem/providers/lib</td>
+    <td align="center" width="89" height="14">system</td>
+    <td align="center" width="138" height="14">S:wred,O:re,G:re,W:e</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="52">$(PEGASUS_PROVIDER_MANAGER_LIB_DIR)</td>
+    <td align="center" width="75" height="14">Linux</td>
+    <td align="left" width="275" height="14">/usr/%{_lib}/Pegasus/providerManagers</td>
+    <td align="center" width="89" height="14">root/pegasus</td>
+    <td align="center" width="138" height="14">drwxr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">&nbsp;</td>
+    <td align="center" width="89" height="14">&nbsp;</td>
+    <td align="center" width="138" height="14">&nbsp;</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="13">&nbsp;</td>
+    <td align="center" width="89" height="14">&nbsp;</td>
+    <td align="center" width="138" height="14">&nbsp;</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+
+  <tr>
+    <td rowspan="3" align="left" width="274" height="52">
+    <p>$(PEGASUS_REPOSITORY_DIR)</p></td>
+    <td align="center" width="75" height="14">Linux</td>
+    <td align="left" width="275" height="14">/var/lib/Pegasus/repository<p>/var/lib/Pegasus/repository(PS)</p></td>
+    <td align="center" width="89" height="14">root/pegasus<p>cimsvr/cimsvr</p></td>
+    <td align="center" width="138" height="14">drwx------<p>drwx------</p></td>
+    <td align="center" width="111" height="14">OpenPegasus<br>
+	OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/var/opt/wbem/repository</td>
+    <td align="center" width="89" height="14">root/root</td>
+    <td align="center" width="138" height="14">dr-xr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">/var/opt/wbem/repository</td>
+    <td align="center" width="89" height="14">system</td>
+    <td align="center" width="138" height="14">S:wred,O:re,G:re,W:e</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="52">$(PEGASUS_SBIN_DIR)</td>
+    <td align="center" width="75" height="14">Linux</td>
+    <td align="left" width="275" height="14">/usr/sbin</td>
+    <td align="center" width="89" height="14">root/root</td>
+    <td align="center" width="138" height="14">drwxr-xr-x</td>
+    <td align="center" width="111" height="14">System</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/opt/wbem/sbin</td>
+    <td align="center" width="89" height="14">bin/bin</td>
+    <td align="center" width="138" height="14">dr-xr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">/opt/wbem/sbin</td>
+    <td align="center" width="89" height="14">system</td>
+    <td align="center" width="138" height="14">S:wred,O:re,G:re,W:e</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="52">$(PEGASUS_SCRIPTS_DIR)</td>
+    <td align="center" width="75" height="14">Linux</td>
+    <td align="left" width="275" height="14">/usr/share/Pegasus/scripts</td>
+    <td align="center" width="89" height="14">root/pegasus</td>
+    <td align="center" width="138" height="14">drwxr-xr-x </td>
+    <td align="center" width="111" height="14"> OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">&nbsp;</td>
+    <td align="center" width="89" height="14">&nbsp;</td>
+    <td align="center" width="138" height="14">&nbsp;</td>
+    <td align="center" width="111" height="14">&nbsp;</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">&nbsp;</td>
+    <td align="center" width="89" height="14">&nbsp;</td>
+    <td align="center" width="138" height="14">&nbsp;</td>
+    <td align="center" width="111" height="14">&nbsp;</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="52">$(PEGASUS_VARDATA_DIR)</td>
+    <td align="center" width="75" height="14">Linux</td>
+    <td align="left" width="275" height="14">/var/lib/Pegasus</td>
+    <td align="center" width="89" height="14">root/pegasus</td>
+    <td align="center" width="138" height="14">drwxr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/var/opt/wbem</td>
+    <td align="center" width="89" height="14">bin/bin</td>
+    <td align="center" width="138" height="14">dr-xr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">/var/opt/wbem</td>
+    <td align="center" width="89" height="14">system</td>
+    <td align="center" width="138" height="14">S:wred,O:re,G:re,W:e</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="52">$(PEGASUS_DOC_DIR)</td>
+    <td align="center" width="75" height="14">Linux</td>
+    <td align="left" width="275" height="14">/usr/share/doc/tog-pegasus-2.11</td>
+    <td align="center" width="89" height="14">root/pegasus</td>
+    <td align="center" width="138" height="14">drwxr-xr-x</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">/opt/wbem/doc</td>
+    <td align="center" width="89" height="14">&nbsp;</td>
+    <td align="center" width="138" height="14">&nbsp;</td>
+    <td align="center" width="111" height="14">OpenPegasus</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">&nbsp;</td>
+    <td align="center" width="89" height="14">&nbsp;</td>
+    <td align="center" width="138" height="14">&nbsp;</td>
+    <td align="center" width="111" height="14">&nbsp;</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="274" height="52">$(PAM_CONFIG_DIR)</td>
+    <td align="center" width="75" height="14">Linux</td>
+    <td align="left" width="275" height="14">/etc/pam.d</td>
+    <td align="center" width="89" height="14">root/root</td>
+    <td align="center" width="138" height="14">drwxr-xr-x</td>
+    <td align="center" width="111" height="14">System</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">HP-UX</td>
+    <td align="left" width="275" height="14">&nbsp;</td>
+    <td align="center" width="89" height="14">&nbsp;</td>
+    <td align="center" width="138" height="14">&nbsp;</td>
+    <td align="center" width="111" height="14">&nbsp;</td>
+  </tr>
+  <tr>
+    <td align="center" width="75" height="14">OpenVMS</td>
+    <td align="left" width="275" height="14">&nbsp;</td>
+    <td align="center" width="89" height="14">&nbsp;</td>
+    <td align="center" width="138" height="14">&nbsp;</td>
+    <td align="center" width="111" height="14">&nbsp;</td>
+  </tr>
+  </tbody></table>
+  
+</ul>
+
+
+<p>&nbsp;</p>
+
+
+<p>Although not included in this release, the following directories 
+are planned for future release.<br>
+&nbsp;</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="663" height="146">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="214" height="10">Document <br>
+    Designation</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="151" height="10">Operating System</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="696" height="10">Location</th>
+    <th colspan="2" bgcolor="#cae6ca" width="276" height="16">Directory</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="55" height="10">Owner<br>
+    Group</th>
+    <th bgcolor="#cae6ca" width="221" height="10">Permissions</th>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="214" height="26">$(PEGASUS_MSG_DIR)</td>
+    <td align="center" width="151" height="5">Linux</td>
+    <td align="left" width="559" height="5">/usr/share/locale</td>
+    <td align="center" width="93" height="5">root/root</td>
+    <td align="center" width="221" height="5">drwxr-xr-x</td>
+  </tr>
+  <tr>
+    <td align="center" width="151" height="10">HP-UX</td>
+    <td align="left" width="559" height="10">&nbsp;</td>
+    <td align="center" width="93" height="10">&nbsp;</td>
+    <td align="center" width="221" height="10">&nbsp;</td>
+  </tr>
+  <tr>
+    <td align="center" width="151" height="26">OpenVMS</td>
+    <td align="left" width="559" height="26">&nbsp;</td>
+    <td width="55" height="26">&nbsp;</td>
+    <td width="221" height="26">&nbsp;</td>
+  </tr>
+  </tbody></table>
+  
+</ul>
+
+<p>&nbsp;</p>
+
+
+<h3>&nbsp;<a name="SecPackagedFiles"></a>OpenPegasus&nbsp; Packaged Files</h3>
+
+<h4><a name="SecLibraries"></a>Library Files</h4>
+
+<h5><a name="SecLibraryVersioning"></a>Library-level Versioning Strategy</h5>
+
+<p>Support for forward-compatibility is a fundamental design principle
+for the OpenPegasus project. Our expectation is that well-behaved
+OpenPegasus Providers or Clients will continue to work with a minor
+version upgrade of OpenPegasus.&nbsp; However, in the future, we do
+anticipate that there will be a need to release changes that do not
+support forward-compatibility.&nbsp; This would happen in situations
+where the cost (i.e., development effort, performance, resource
+utilization) of supporting compatibility has become prohibitive. To
+minimize the impact of major version upgrades, OpenPegasus has been
+designed to allow multiple versions of a library to coexist in the same
+runtime environment. This way, new programs will be allowed to take
+advantage of the new features and old programs will continue to run.</p>
+
+<p>To allow multiple versions of a library,&nbsp;OpenPegasus recommends the use 
+of library-level versioning strategy.&nbsp; With this strategy, a library file is 
+created with a version suffix, $(VER_SUFFIX) (e.g., .1).&nbsp; This version 
+suffix is changed only when the new version of the library will not support CIM 
+Providers and/or CIM Clients developed using early versions of the library 
+(i.e., SDK).&nbsp; 
+It is important to note that the library version suffix is NOT the same as the 
+product version.&nbsp; </p>
+
+<p>In addition to the library file, a 
+symbolic link, that points to the latest version of the library, is created 
+using the standard  library suffix for the target operating system, $(LIB_SUFFIX) (e.g., .so).&nbsp;&nbsp; 
+CIM Client and Provider developers would use this link to ensure that they are&nbsp; linking with the 
+most recent version of the library.&nbsp; When building a CIM Client or CIM 
+Provider, developers should use include the appropriate link option (e.g., -h on Linux) 
+to ensure that the specific version of the library used to build the product 
+will be loaded during runtime.</p>
+
+<p>The following table describes the OpenPegasus library versions and 
+suffixes.</p>
+
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="436">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="168">Operating System</th>
+    <th bgcolor="#cae6ca" width="255">$(VER_SUFFIX)</th>
+    <th bgcolor="#cae6ca" width="255">$(LIB_SUFFIX)</th>
+  </tr>
+  <tr align="center">
+    <td width="168">Linux</td>
+    <td width="255">.1</td>
+    <td width="255">.so</td>
+  </tr>
+  <tr align="center">
+    <td width="168">HP-UX (PA)</td>
+    <td width="255">.1</td>
+    <td width="255">.sl</td>
+  </tr>
+  <tr align="center">
+    <td width="168">HP-UX (IA)</td>
+    <td width="255">.1</td>
+    <td width="255">.so</td>
+  </tr>
+  <tr align="center">
+    <td width="168">OpenVMS</td>
+    <td width="255">&nbsp;</td>
+    <td width="255">.olb</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<h5><a name="SecSharedLibraries"></a>OpenPegasus&nbsp; Libraries</h5>
+
+<p>This section documents the recommended set of library files to be included 
+with this release of OpenPegasus. Files in this section are 
+expected to be rooted in a single directory $(PEGASUS_DEST_LIB_DIR).</p>
+
+<p><b>Source Location:&nbsp;</b>$(PEGASUS_HOME)/lib</p>
+
+<p>The following table describes the permissions that should be assigned to the 
+files in the $(PEGASUS_DEST_LIB_DIR) directory.</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="438">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="203">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="393">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="194">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="199">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td width="203">Linux</td>
+    <td width="194">root/pegasus</td>
+    <td width="199">-rwxr-xr-x</td>
+  </tr>
+  <tr align="center">
+    <td width="203">HP-UX</td>
+    <td width="194">bin/bin</td>
+    <td width="199">-r-xr-xr-x</td>
+  </tr>
+  <tr align="center">
+    <td width="203">OpenVMS</td>
+    <td width="194">system</td>
+    <td width="199">S:wred,O:re,G:re,W:e</td>
+  </tr>
+  </tbody></table>
+  
+</ul>
+
+<p>&nbsp;</p>
+  
+<p>The following files should be included in the $(PEGASUS_DEST_LIB_DIR) directory.</p>
+  
+<ul>
+    <p>libCIMxmlIndicationHandler.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libFileListenerDestination.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegwebserver.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libcimrsserver.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libCertificateProvider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libConfigSettingProvider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libDefaultProviderManager.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libNamespaceProvider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libProviderRegistrationProvider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libUserAuthProvider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libcmpiCppImpl.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegauthentication.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegclient.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegcliutils.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegcommon.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegcompiler.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegconfig.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegexportclient.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegexportserver.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpeggeneral.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpeghandler.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+
+libpeggetoopt.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpeghandlerservice.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegindicationservice.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpeglistener.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegpmservice.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegprm.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegprovider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegprovidermanager.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegquerycommon.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegqueryexpression.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegrepository.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegserver.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegservice.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpeguser.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libpegwql.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libsnmpIndicationHandler.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+    </p>
+
+</ul>
+
+<p>In addition, the following links should be included in the $(PEGASUS_DEST_LIB_DIR) 
+directory.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+libCIMxmlIndicationHandler.$(LIB_SUFFIX)&nbsp;-&gt;&nbsp;libCIMxmlIndicationHandler.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+libDefaultProviderManager.$(LIB_SUFFIX)&nbsp;-&gt;&nbsp;libDefaultProviderManager.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+libpegclient.$(LIB_SUFFIX)&nbsp;-&gt;&nbsp;libpegclient.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+libpegcommon.$(LIB_SUFFIX)&nbsp;-&gt;&nbsp;libpegcommon.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+libpegprovider.$(LIB_SUFFIX)&nbsp;-&gt;&nbsp;libpegprovider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+libsnmpIndicationHandler.$(LIB_SUFFIX)&nbsp;-&gt;&nbsp;libsnmpIndicationHandler.$(LIB_SUFFIX).$(VER_SUFFIX)
+
+</p><p>&nbsp;</p><p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus libraries and links.</p>
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="565">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="168">&nbsp;</th>
+    <th bgcolor="#cae6ca" width="255">install</th>
+    <th bgcolor="#cae6ca" width="359">upgrade</th>
+    <th bgcolor="#cae6ca" width="280">remove</th>
+  </tr>
+  <tr align="center">
+    <td width="168">*.$(VER_SUFFIX)</td>
+    <td width="255">new libraries installed</td>
+    <td width="359">existing libraries replaced with new libraries</td>
+    <td width="280">existing libraries removed</td>
+  </tr>
+  <tr align="center">
+    <td width="168">*.$(LIB_SUFFIX)</td>
+    <td width="255">new links installed</td>
+    <td width="359">existing links replaced with new links</td>
+    <td width="280">existing links removed</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<h5><a name="SecProviderManagers"></a>OpenPegasus Provider Managers</h5>
+
+<p>This section documents the dynamically loaded provider managers
+packaged with OpenPegasus.&nbsp; Files in this section are expected to
+be rooted in a single directory $(PEGASUS_PROVIDER_MANAGER_LIB_DIR).</p>
+
+<p><b>Source Location:&nbsp;</b>$(PEGASUS_HOME)/lib</p>
+
+<p>The following table describes the permissions that should be assigned to the 
+files in the $(PEGASUS_PROVIDER_MANAGER_LIB_DIR) directory.</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" id="table1" border="1" cellspacing="1" width="438">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="203">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="393">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="194">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="199">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td width="203">Linux</td>
+    <td width="194">root/pegasus</td>
+    <td width="199">-rwxr-xr-x</td>
+  </tr>
+  <tr align="center">
+    <td width="203">HP-UX</td>
+    <td width="194">bin/bin</td>
+    <td width="199">-r-xr-xr-x</td>
+  </tr>
+  <tr align="center">
+    <td width="203">OpenVMS</td>
+    <td width="194">system</td>
+    <td width="199">S:wred,O:re,G:re,W:e</td>
+  </tr>
+  </tbody></table>
+  
+</ul>
+
+<p>&nbsp;</p>
+  
+<p>The following files should be included in the $(PEGASUS_PROVIDER_MANAGER_LIB_DIR) directory.</p>
+  
+<ul>
+<p>libCMPIProviderManager.$(LIB_SUFFIX).$(VER_SUFFIX)</p>
+</ul>
+
+<p>In addition, the following links should be included in the $(PEGASUS_DEST_LIB_DIR) 
+directory.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+libCMPIProviderManager.$(LIB_SUFFIX)&nbsp;-&gt;&nbsp;libCMPIProviderManager.$(LIB_SUFFIX).$(VER_SUFFIX)</p>
+
+  
+<h5><a name="SecProviderLibraries"></a>OpenPegasus Provider Libraries</h5>
+
+<p>This section documents the Providers packaged with OpenPegasus.
+Files in this section are expected to be rooted in a single 
+directory $(PEGASUS_PROVIDER_LIB_DIR).&nbsp; Note that the $(PEGASUS_PROVIDER_LIB_DIR) 
+directory MUST be included as one of the values of the <b>providerDir</b> 
+configuration parameter.&nbsp;&nbsp; Note that this directory may contain 
+symbolic links to the actual files, there is no requirement for the actual library file to be placed in 
+this directory.</p>
+
+<p><b>Packaged Providers</b></p>
+
+
+<dl>
+<dd>Operating System Provider<br>
+
+Computer System Provider</dd><dd>
+Process Provider</dd>
+    <dd>IP Provider<br>
+
+    </dd>
+</dl>
+</dl>
+
+<dl>
+
+  <dl>
+<dt>Additionally on HP-UX, following are the packaged Providers</dt>
+    
+    <dd>DNS Provider</dd>
+    <dd>NTP Provider</dd>
+    <dd>NIS Provider<br>
+
+    </dd>
+
+<dt>&nbsp;</dt>
+  </dl>
+
+
+<dd>The following table describes the permissions that should be assigned to the 
+links or files in the $(PEGASUS_PROVIDER_LIB_DIR) directory.<br><br>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="438">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="203">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="393">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="194">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="199">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td width="203">Linux</td>
+    <td width="194">root/pegasus</td>
+    <td width="199">-rwxr-xr-x</td>
+  </tr>
+  <tr align="center">
+    <td width="203">HP-UX</td>
+    <td width="194">bin/bin</td>
+    <td width="199">-r-xr-xr-x</td>
+  </tr>
+  <tr align="center">
+    <td width="203">OpenVMS</td>
+    <td width="194">system</td>
+    <td width="199">S:wred,O:re,G:re,W:e</td>
+  </tr>
+  </tbody></table>
+  
+</ul>
+
+
+<dl>
+<dt>&nbsp;</dt>
+</dl>
+
+<p>The following files should be included in the $(PEGASUS_PROVIDER_LIB_DIR) directory.</p><dl>
+<dd>&nbsp;</dd>
+<dd>libComputerSystemProvider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libOSProvider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+libProcessProvider.$(LIB_SUFFIX).(VER_SUFFIX)<p><b><br>
+&nbsp;</b>
+</p></dd></dl>
+
+<p><b>Provider Library Versioning</b></p>
+
+<p>The CIM Server will use the $(LIB_SUFFIX) when attempting to
+dynamically load a Provider.&nbsp; This allows Provider developers to
+use a resource-specific&nbsp; library versioning
+strategy.&nbsp;Providers are not required to use this same version
+suffix as the OpenPegasus libraries. </p>
+
+<p>The following links should be included in the $(PEGASUS_PROVIDER_LIB_DIR) 
+directory.</p>
+  
+<ul>
+  libComputerSystemProvider.$(LIB_SUFFIX) &nbsp;-&gt;&nbsp;&nbsp; <br>
+&nbsp;&nbsp;&nbsp; $(PEGASUS_PROVIDER_LIB_DIR)/libComputerSystemProvider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+  libOSProvider.$(LIB_SUFFIX) &nbsp;-&gt;&nbsp; 
+  <p>&nbsp;&nbsp;&nbsp; $(PEGASUS_PROVIDER_LIB_DIR)/libOSProvider.$(LIB_SUFFIX).$(VER_SUFFIX)<br>
+  libProcessProvider.$(LIB_SUFFIX) &nbsp;-&gt;&nbsp; <br>
+&nbsp;&nbsp;&nbsp; $(PEGASUS_PROVIDER_LIB_DIR)/libProcessProvider.$(LIB_SUFFIX).$(VER_SUFFIX)</p>
+</ul>
+  
+<p>The following table describes the recommended install, upgrade and remove 
+behavior for the packaged Provider libraries and links.</p>
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="565">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="168">&nbsp;</th>
+    <th bgcolor="#cae6ca" width="255">install</th>
+    <th bgcolor="#cae6ca" width="359">upgrade</th>
+    <th bgcolor="#cae6ca" width="280">remove</th>
+  </tr>
+  <tr align="center">
+    <td width="168">*.$(VER_SUFFIX)</td>
+    <td width="255">new libraries installed</td>
+    <td width="359">existing libraries replaced with new libraries</td>
+    <td width="280">existing libraries removed</td>
+  </tr>
+  <tr align="center">
+    <td width="168">*.$(LIB_SUFFIX)</td>
+    <td width="255">new links installed</td>
+    <td width="359">existing links replaced with new links</td>
+    <td width="280">existing links removed</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<h4><a name="SecExecutables"></a>Executable Files</h4>
+
+<p>The following table describes the OpenPegasus executable suffixes.</p>
+
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="322">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="168">Operating System</th>
+    <th bgcolor="#cae6ca" width="141">$(EXE_SUFFIX)</th>
+  </tr>
+  <tr align="center">
+    <td width="168">Linux</td>
+    <td width="141">NA</td>
+  </tr>
+  <tr align="center">
+    <td width="168">HP-UX (PA)</td>
+    <td width="141">NA</td>
+  </tr>
+  <tr align="center">
+    <td width="168">HP-UX (IA)</td>
+    <td width="141">NA</td>
+  </tr>
+  <tr align="center">
+    <td width="168">OpenVMS</td>
+    <td width="141">.exe</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<h5><a name="SecAdminCommands"></a>OpenPegasus Administrative Commands</h5>
+
+<p>This section documents <span class="normalfont">the maintenance or 
+administrative commands</span> included 
+with this release of OpenPegasus. Files in this section are 
+expected to be rooted in a single directory $(PEGASUS_SBIN_DIR).</p>
+
+<p><b>Source Location:&nbsp;</b>$(PEGASUS_HOME)/sbin</p>
+
+<p>The following table describes the permissions that should be assigned to the 
+files in the $(PEGASUS_SBIN_DIR) directory.</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="438">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="203">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="393">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="194">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="199">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td width="203">Linux</td>
+    <td width="194">root/pegasus</td>
+    <td width="199">-rwxr-xr-x</td>
+  </tr>
+  <tr align="center">
+    <td width="203">HP-UX</td>
+    <td width="194">bin/bin</td>
+    <td width="199">-r-xr--r--</td>
+  </tr>
+  <tr align="center">
+    <td width="203">OpenVMS</td>
+    <td width="194">system</td>
+    <td width="199">S:wred,O:re,G:re,W:e</td>
+  </tr>
+  </tbody></table>
+  
+</ul>
+
+<p>&nbsp;</p>
+  
+<p>The following files should be included in the $(PEGASUS_SBIN_DIR) directory.</p>
+  
+<ul>
+  cimauth<br>
+  cimconfig<br>
+  cimprovagt<p><font face="Helvetica,Arial" size="-1">cimreparchive</font><br>
+  cimserver<br>
+  cimservera<br>
+	cimservermain<br>
+	cimshutdown<br>
+	cimtrust<br>
+  repupgrade<br>
+  </p>
+</ul>
+  
+<p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus commands.</p>
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="565">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="255">install</th>
+    <th bgcolor="#cae6ca" width="359">upgrade</th>
+    <th bgcolor="#cae6ca" width="280">remove</th>
+  </tr>
+  <tr align="center">
+    <td width="255">new executables installed</td>
+    <td width="359">existing executables replaced with new executables</td>
+    <td width="280">existing executables removed</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<h5><a name="SecAdminScripts"></a>OpenPegasus Administrative Scripts</h5>
+
+<p>This section documents <span class="normalfont">the scripts</span> included 
+with this release of OpenPegasus. Files in this section are 
+expected to be rooted in a single directory $(PEGASUS_SCRIPTS_DIR).</p>
+
+<p><b>Source Location:&nbsp;</b>pegasus/rpm/tog-specfiles</p>
+
+<p>The following table describes the permissions that should be assigned to the 
+files in the $(PEGASUS_SCRIPTS_DIR) directory.</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="438">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="203">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="393">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="194">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="199">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td width="203">Linux</td>
+    <td width="194">root/pegasus</td>
+    <td width="199">-rwxr-x---</td>
+  </tr>
+  <tr align="center">
+    <td width="203">HP-UX</td>
+    <td width="194">&nbsp;</td>
+    <td width="199">&nbsp;</td>
+  </tr>
+  <tr align="center">
+    <td width="203">OpenVMS</td>
+    <td width="194">&nbsp;</td>
+    <td width="199">&nbsp;</td>
+  </tr>
+  </tbody></table>
+  
+</ul>
+
+<p>&nbsp;</p>
+  
+<p>The following files should be included in the $(PEGASUS_SCRIPTS_DIR) directory.</p>
+  
+<ul>
+  <p>genOpenPegasusSSLCerts<br>
+  </p>
+</ul>
+  
+<p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus commands.</p>
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="565">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="255">install</th>
+    <th bgcolor="#cae6ca" width="359">upgrade</th>
+    <th bgcolor="#cae6ca" width="280">remove</th>
+  </tr>
+  <tr align="center">
+    <td width="255">new scripts installed</td>
+    <td width="359">existing scripts replaced with new scripts</td>
+    <td width="280">existing scripts removed</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+
+<h5><a name="SecUserCommands"></a>OpenPegasus User Commands</h5>
+
+<p>This section documents <span class="normalfont">the user commands</span> included 
+with this release of OpenPegasus. Files in this section are 
+expected to be rooted in a single directory $(PEGASUS_BIN_DIR).</p>
+
+<p><b>Source Location:&nbsp;</b>$(PEGASUS_HOME)/bin</p>
+
+<p>The following table describes the permissions that should be assigned to the 
+files in the $(PEGASUS_BIN_DIR) directory.</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="438">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="203">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="393">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="194">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="199">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td width="203">Linux</td>
+    <td width="194">root/pegasus</td>
+    <td width="199">-rwxr-xr-x</td>
+  </tr>
+  <tr align="center">
+    <td width="203">HP-UX</td>
+    <td width="194">bin/bin</td>
+    <td width="199">-r-xr-xr-x</td>
+  </tr>
+  <tr align="center">
+    <td width="203">OpenVMS</td>
+    <td width="194">system</td>
+    <td width="199">S:wred,O:re,G:re,W:e</td>
+  </tr>
+  </tbody></table>
+  
+</ul>
+
+<p>&nbsp;</p>
+  
+<p>The following files should be included in the $(PEGASUS_BIN_DIR) directory.</p>
+  
+<ul>
+  <p>cimmof</p><p>cimmofl<br>
+  cimprovider<br>
+	cimsub<br>
+  osinfo<br>
+  wbemexec<br>
+</p></ul>
+
+  <p>&nbsp;</p><p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus commands.</p>
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="565">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="255">install</th>
+    <th bgcolor="#cae6ca" width="359">upgrade</th>
+    <th bgcolor="#cae6ca" width="280">remove</th>
+  </tr>
+  <tr align="center">
+    <td width="255">new executables installed</td>
+    <td width="359">existing executables replaced with new executables</td>
+    <td width="280">existing executables removed</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+  <p><br>
+
+
+</p><h4><a name="SecDocumentation"></a>Documentation Files</h4>
+
+<h5><a name="SecManPages"></a>Unix Style Man Pages</h5>
+
+<p>This section describes the packaging for Operating Systems that support Unix 
+style man pages. Files in this section are expected to be rooted in a single 
+directory $(PEGASUS_MAN_DIR).</p>
+
+<p><b>Source Location:&nbsp;</b>$(ROOT)/rpm/manLinux/man1.Z/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+$(ROOT)/rpm/manLinux/man8.Z</p>
+
+<p>The following table describes the permissions that should be assigned to the 
+files in the $(PEGASUS_MAN_DIR) subdirectories.</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="438">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="203">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="393">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="194">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="199">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td width="203">Linux</td>
+    <td width="194">root/pegasus</td>
+    <td width="199">-rw-r--r--</td>
+  </tr>
+  <tr align="center">
+    <td width="203">HP-UX</td>
+    <td width="194">bin/bin</td>
+    <td width="199">-r--r--r--</td>
+  </tr>
+  <tr align="center">
+    <td width="203">OpenVMS</td>
+    <td width="194">system</td>
+    <td width="199">S:wred,O:r,G:r,W:r</td>
+  </tr>
+  </tbody></table>
+</ul>
+  
+<p>&nbsp;</p>
+  
+<p>The following man pages should be included in the $(PEGASUS_MAN_DIR)/man1 directory.</p>
+  
+<ul>
+  cimmof.1(.gz)<br>
+  cimprovider.1(.gz)<br>
+	cimsub.1(.gz)<br>
+  osinfo.1(.gz)<br>
+  wbemexec.1(.gz)<br>
+</ul>
+
+
+<p>&nbsp;</p>
+  
+
+<p>The following man pages should be included in the $(PEGASUS_MAN_DIR)/man8 directory.</p>
+  
+
+<ul>
+  cimauth.8(.gz)<br>
+  cimconfig.8(.gz)<br>
+  <font face="Helvetica,Arial" size="-1">cimreparchive.8(.gz)</font><p>
+	<font face="Helvetica,Arial" size="-1">cimtrust.8(.gz)</font><br>
+  cimserver.8(.gz)</p>
+	<p>&nbsp;</p>
+</ul>
+
+<p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus man pages.</p>
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="506">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="255">install</th>
+    <th bgcolor="#cae6ca" width="307">upgrade</th>
+    <th bgcolor="#cae6ca" width="273">remove</th>
+  </tr>
+  <tr align="center">
+    <td width="255">new man pages installed</td>
+    <td width="307">existing man pages replaced with new man pages</td>
+    <td width="273">existing man pages removed</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<h5><a name="UserDocumentation"></a>User Documentation</h5>
+
+<p>Files in this section are expected to be rooted in a single directory $(PEGASUS_DOC_DIR).</p>
+
+<p>The following table describes the permissions that should be assigned to the 
+files in the $(PEGASUS_DOC_DIR) directory.</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="438">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="203">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="393">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="194">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="199">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td width="203">Linux</td>
+    <td width="194">root/pegasus</td>
+    <td width="199">-r--r--r--</td>
+  </tr>
+  <tr align="center">
+    <td width="203">HP-UX</td>
+    <td width="194">bin/bin</td>
+    <td width="199">&nbsp;</td>
+  </tr>
+  <tr align="center">
+    <td width="203">OpenVMS</td>
+    <td width="194">system</td>
+    <td width="199">&nbsp;</td>
+  </tr>
+  </tbody></table>
+  
+</ul>
+
+<p><br>
+<br>
+The following documents are included with OpenPegasus. </p>
+
+<p><b>Staging Location:&nbsp;</b>$(PEGASUS_HOME)/$(PEGASUS_STAGING_DIR)/$(PEGASUS_DOC_DIR)</p>
+
+<p><b>Target Location: </b>$(PEGASUS_DOC_DIR)</p>
+
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="476">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="282">File Name</th>
+    <th bgcolor="#cae6ca" width="181">Source Location</th>
+  </tr> 
+  <tr>
+    <td width="282">Admin_Guide_Release.pdf</td>
+    <td width="181">pegasus/doc</td>
+  </tr>
+  <tr>
+    <td width="282">PegasusSSLGuidelines.htm</td>
+    <td width="181">pegasus/doc</td>
+  </tr>
+  <tr>
+    <td width="282">license.txt</td>
+    <td width="181">pegasus/doc</td>
+  </tr>
+  <tr>
+    <td width="282">OpenPegasusNOTICE.txt</td>
+    <td width="181">pegasus</td>
+  </tr>
+  </tbody></table>
+</ul>
+  
+<br>
+
+<p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus documentation files.</p>
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="506">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="255">install</th>
+    <th bgcolor="#cae6ca" width="307">upgrade</th>
+    <th bgcolor="#cae6ca" width="273">remove</th>
+  </tr>
+  <tr align="center">
+    <td width="255">New documents installed.</td>
+    <td width="307">Existing documents removed and new documents installed.</td>
+    <td width="273">Existing documents removed.</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<p>
+<br>
+
+  
+
+</p>
+
+  
+
+<h4><a name="SecDataFiles"></a>Data Files</h4>
+
+<p>This section describes the OpenPegasus data files. </p>
+
+<p>There are three classes of OpenPegasus data files:</p>
+
+<ol>
+  <li><b>FIXED LOCATION. </b>Absolute names that are used by the CIM Server and 
+	fixed at build time.&nbsp; A rebuild is required to change the file name.&nbsp; 
+	The runtime file structure MUST be consistent with the build time definition 
+	of the FIXED LOCATION files. Refer to PEP 308 for recommended default values.</li>
+  <li><b>CONFIGURABLE LOCATION.</b> Absolute file names that are used by the CIM Server and  
+  configurable using the cimconfig command.&nbsp; All CONFIGURABLE LOCATION 
+	files are assigned a default value for the absolute file name. The runtime 
+	file structure WILL assume the default value. Refer to PEP 308 for recommended default values.</li>
+  <li><b>INSTALLATION DEFINED LOCATION. </b>Files that are NOT used by the CIM Server but exist as 
+  part of the CIM Server runtime environment. Default absolute file names 
+  will be defined for these directories.</li>
+</ol>
+
+<p>&nbsp;</p>
+
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="626" height="88">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="282" height="1">Document Designation</th>
+    <th bgcolor="#cae6ca" width="76" height="1">Type</th>
+    <th bgcolor="#cae6ca" width="264" height="1">Build Configuration Option</th>
+  </tr>
+  
+  <tr>
+    <td align="left" width="282" height="1">
+    <p align="left">$(PEGASUS_LOCAL_AUTH_DIR)</p></td>
+    <td align="center" width="76" height="1">FIXED</td>
+    <td width="264" height="1">
+    <p align="left">PEGASUS_LOCAL_AUTH_DIR</p></td>
+  </tr>
+  <tr>
+    <td align="left" width="282" height="1">
+    $(PEGASUS_MOF_DIR)</td>
+    <td align="center" width="76" height="1">INSTALL</td>
+    <td width="264" height="1">
+    <br>
+</td>
+  </tr>
+  <tr>
+    <td align="left" width="282" height="1">
+    <p align="left">$(PEGASUS_LOCAL_DOMAIN_SOCKET_DIR)</p></td>
+    <td align="center" width="76" height="1">FIXED</td>
+    <td width="264" height="1">
+    <p align="left">PEGASUS_LOCAL_DOMAIN_SOCKET_PATH</p></td>
+  </tr>
+  <tr>
+    <td align="left" width="282" height="1">
+    $(PEGASUS_CURRENT_CONFIG_FILE)</td>
+    <td align="center" width="76" height="1">FIXED</td>
+    <td width="264" height="1">
+    CURRENT_CONFIG_FILE []</td>
+  </tr>
+  <tr>
+    <td align="left" width="282" height="1">
+    $(PEGASUS_PLANNED_CONFIG_FILE)</td>
+    <td align="center" width="76" height="1">FIXED</td>
+    <td width="264" height="1">
+    PLANNED_CONFIG_FILE []</td>
+  </tr>
+  <tr>
+    <td align="left" width="282" height="1">
+    $(PEGASUS_PID_FILE)</td>
+    <td align="center" width="76" height="1">FIXED</td>
+    <td width="264" height="1">
+    CIMSERVER_START_FILE [] </td>
+  </tr>
+  <tr>
+    <td align="left" width="282" height="1">
+    $(PEGASUS_CIMSERVER_RANDOMFILE)</td>
+    <td align="center" width="76" height="1">FIXED</td>
+    <td width="264" height="1">
+    PEGASUS_SSLSERVER_RANDOMFILE</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+
+  
+<h5><a name="SecStaticDataFiles"></a>Static Data Files</h5>
+
+<p>This section describes OpenPegasus data files that do not change during 
+normal operation. </p>
+
+
+<h6>Schema Files</h6>
+
+
+<p>The following table describes the permissions that should be assigned to the $(PEGASUS_MOF_DIR) 
+directory.</p>
+
+
+
+<blockquote>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="634" height="155">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="153" height="1">Document
+    Designation<br>
+    Configuration Option</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="83" height="1">Operating System</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="153" height="1">Location</th>
+    <th colspan="2" bgcolor="#cae6ca" width="242" height="16">Directory</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="90" height="1">Owner<br>
+    Group</th>
+    <th bgcolor="#cae6ca" width="147" height="1">Permissions</th>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="153" height="13">$(PEGASUS_MOF_DIR)<br>
+    &nbsp;</td>
+    <td align="center" width="83" height="1">Linux</td>
+    <td align="left" width="153" height="1">/usr/share/Pegasus/mof</td>
+    <td align="center" width="90" height="1">root/pegasus</td>
+    <td align="center" width="147" height="1">drwxr-xr-x</td>
+  </tr>
+  <tr>
+    <td align="center" width="83" height="1">HP-UX</td>
+    <td align="left" width="153" height="1">/opt/wbem/mof</td>
+    <td align="center" width="90" height="1">bin/bin</td>
+    <td align="center" width="147" height="1">dr-xr-xr-x</td>
+  </tr>
+  <tr>
+    <td align="center" width="83" height="15">OpenVMS</td>
+    <td align="left" width="153" height="15">/opt/wbem/mof</td>
+    <td align="center" width="90" height="15">system</td>
+    <td align="center" width="147" height="15">S:wred,O:re,G:re,W:e</td>
+  </tr>
+  </tbody></table> 
+
+</blockquote>
+
+<p>The following table describes the permissions that should be assigned to the 
+files in the $(PEGASUS_MOF_DIR) subdirectories.</p>
+
+
+
+<dl>
+<dd>&nbsp;<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="541" height="89">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="104" height="1">Operating System</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="145" height="1">Packaged or Generated?</th>
+    <th colspan="2" bgcolor="#cae6ca" width="274" height="16">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="153" height="1">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="116" height="1">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td width="104" height="14">Linux</td>
+    <td width="145" height="14">Packaged</td>
+    <td width="153" height="3">root/pegasus</td>
+    <td width="116" height="3">-rw-r--r--</td>
+  </tr>
+  <tr>
+    <td align="center" width="104" height="17">HP-UX</td>
+    <td align="center" width="145" height="12">Packaged</td>
+    <td align="center" width="153" height="14">bin/bin</td>
+    <td align="center" width="116" height="14">-r--r--r--</td>
+  </tr>
+  <tr>
+    <td align="center" width="104" height="17">OpenVMS</td>
+    <td align="center" width="145" height="12">Packaged</td>
+    <td align="center" width="153" height="14">system</td>
+    <td align="center" width="116" height="14">S:wred,O:r,G:r,W:r</td>
+  </tr>
+  </tbody></table>
+
+</dd>
+</dl>
+
+<p>&nbsp;</p>
+
+<p>The following OpenPegasus specific mof files 
+are packaged in the directory $(PEGASUS_MOF_DIR)/Pegasus.&nbsp;
+<font color="#ff0000">Note: </font>The class definitions defined in the
+pegasus/Schemas/Pegasus/Internal/VER20 mof files are for internal use
+only and subject to change.&nbsp; Please consult the OpenPegasus
+External Interface Definition document, ExternalInterface.html, in the
+pegasus/doc directory in CVS for a list of the mof files included in
+the OpenPegasus external definition.</p>
+
+
+<dl>
+<dd><b>Source Location:&nbsp;</b>pegasus/Schemas/Pegasus/Internal/VER20<ul>
+PG_Authorization20.mof<br>
+PG_ConfigSetting20.mof<br>
+PG_InternalSchema20.mof<br>
+PG_ShutdownService20.mof<p>PG_SSLCertificate20.mof<br>
+PG_SSLCertificateRevocationList20.mof<br>
+PG_User20.mof<br>
+<br>
+</p>
+</ul>
+
+</dd>
+<dd><b>Source Location:&nbsp;</b>pegasus/Schemas/Pegasus/InterOp/VER20<ul>
+PG_Events20.mof<br>
+PG_InterOpSchema20.mof<br>
+PG_ProviderModule20.mof<p>
+<br>
+</p>
+</ul>
+
+
+</dd>
+<dd><b>Source Location:&nbsp;</b>pegasus/Schemas/Pegasus/ManagedSystem/VER20<ul>
+<p>PG_ComputerSystem20.mof<br>
+PG_ComputerSystem20R.mof<br>
+PG_ManagedSystemSchema20.mof<br>
+PG_ManagedSystemSchema20R.mof<br>
+PG_OperatingSystem20.mof<br>
+PG_OperatingSystem20R.mof<br>
+PG_UnixProcess20.mof<br>
+PG_UnixProcess20R.mof</p>
+</ul>
+</dd>
+</dl>
+
+<br>
+<br>
+
+<p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus mof files.</p>
+<ul>
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="685">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="182">install</th>
+    <th bgcolor="#cae6ca" width="285">upgrade</th>
+    <th bgcolor="#cae6ca" width="200">remove</th>
+  </tr>
+  <tr align="center">
+    <td align="left" width="182">New $(PEGASUS_MOF_DIR) containing packaged mof files&nbsp; 
+    created.</td>
+    <td align="left" width="285">Existing $(PEGASUS_MOF_DIR) removed and new $(PEGASUS_MOF_DIR) 
+    containing packaged mof files created.</td>
+    <td align="left" width="200">Existing $(PEGASUS_MOF_DIR) removed.</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<p>
+<br>
+
+
+
+</p>
+
+
+
+<h5><a name="SecVariableDataFiles"></a>Variable Data Files</h5>
+
+<p>This section describes OpenPegasus data files that change during normal operation. 
+Files in this section are expected to be rooted in a single directory $(PEGASUS_VARDATA_DIR).</p>
+
+<p>The following table describes the permissions that should be assigned to the 
+files in the $(PEGASUS_VARDATA_DIR) directory.</p>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="980" height="167">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="291" height="1">Document
+    Designation<br>
+    Configuration Option</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="75" height="1">Packaged or Generated?</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="131" height="1">Operating System</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="178" height="1">Location</th>
+    <th colspan="2" bgcolor="#cae6ca" width="285" height="16">Directory</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="132" height="1">Owner<br>
+    Group</th>
+    <th bgcolor="#cae6ca" width="150" height="1">Permissions</th>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="291" height="21">$(PEGASUS_CIMSERVER_START_LOCK_FILE)</td>
+    <td rowspan="3" align="left" width="75" height="21">Generated</td>
+    <td align="center" width="131" height="6">Linux</td>
+    <td align="left" width="178" height="5">/var/run/tog-pegasus/<br>
+    cimserver_start.lock</td>
+    <td align="center" width="132" height="6">root/root<p>&nbsp;cimsvr cimsvr 
+	(PS)</p></td>
+    <td align="center" width="150" height="6">-rw------- </td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="1">HP-UX</td>
+    <td align="left" width="178" height="2"><br>
+</td>
+    <td align="center" width="132" height="1"><br>
+</td>
+    <td align="center" width="150" height="1"><br>
+</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="11">OpenVMS</td>
+    <td align="left" width="178" height="11"><br>
+</td>
+    <td align="center" width="132" height="11"><br>
+</td>
+    <td align="center" width="150" height="11"><br>
+</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="291" height="21">$(PEGASUS_CURRENT<br>
+    _CONFIG_FILE)</td>
+    <td rowspan="3" align="left" width="75" height="21">Generated</td>
+    <td align="center" width="131" height="6">Linux</td>
+    <td align="left" width="178" height="5">$(PEGASUS_VARDATA_DIR)/<br>
+    cimserver_current.conf</td>
+    <td align="center" width="132" height="6">root/root</td>
+    <td align="center" width="150" height="6">-rw-r--r-- </td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="1">HP-UX</td>
+    <td align="left" width="178" height="2">/var/opt/wbem/pegasus/<br>
+    cimserver_current.conf</td>
+    <td align="center" width="132" height="1">root/root</td>
+    <td align="center" width="150" height="1">rw-r--r--</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="11">OpenVMS</td>
+    <td align="left" width="178" height="11">/var/opt/wbem/pegasus/<br>
+    cimserver_current.conf</td>
+    <td align="center" width="132" height="11">system</td>
+    <td align="center" width="150" height="11">S:wred,O:wr,G:r,W:r</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="291" height="21">$(PEGASUS_PLANNED<br>
+    _CONFIG_FILE)<br>
+    &nbsp;</td>
+    <td rowspan="3" align="left" width="75" height="21">Packaged</td>
+    <td align="center" width="131" height="6">Linux</td>
+    <td align="left" width="178" height="5">$(PEGASUS_VARDATA_DIR)/<p>
+    cimserver_planned.conf</p></td>
+    <td align="center" width="132" height="6">root/root</td>
+    <td align="center" width="150" height="6">-rw-r--r-- </td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="1">HP-UX</td>
+    <td align="left" width="178" height="2">/var/opt/wbem/<p>
+    cimserver_planned.conf</p>
+    </td>
+    <td align="center" width="132" height="1">root/root</td>
+    <td align="center" width="150" height="1">rw-r--r--</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="11">OpenVMS</td>
+    <td align="left" width="178" height="11">/var/opt/wbem/<p>
+    cimserver_planned.conf</p>
+    </td>
+    <td align="center" width="132" height="11">system</td>
+    <td align="center" width="150" height="11">S:wred,O:wr,G:r,W:r</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="291" height="19">$(PEGASUS_PID_FILE)</td>
+    <td rowspan="3" align="left" width="75" height="19">Generated</td>
+    <td align="center" width="131" height="6">Linux</td>
+    <td align="left" width="178" height="5">/var/run/tog-pegasus/cimserver.pid</td>
+    <td align="center" width="132" height="6">root/root<p>cimsvr/cimsvr (PS)</p></td>
+    <td align="center" width="150" height="6">-rw-------</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="1">HP-UX</td>
+    <td align="left" width="178" height="2">/etc/opt/wbem/<br>
+    cimserver_start.conf</td>
+    <td align="center" width="132" height="1">root/root</td>
+    <td align="center" width="150" height="1">rw-r--r--</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="9">OpenVMS</td>
+    <td align="left" width="178" height="9">/var/opt/wbem/<br>
+    cimserver_start.conf</td>
+    <td align="center" width="132" height="9">system</td>
+    <td align="center" width="150" height="9">S:wred,O:wr,G:r,W:r</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="291" height="21">$(PEGASUS_LOCAL_AUTH_DIR)</td>
+    <td rowspan="3" align="left" width="75" height="21">Generated</td>
+    <td align="center" width="131" height="1">Linux</td>
+    <td align="left" width="178" height="1">/$(PEGASUS_VARDATA_DIR)/cache/localauth</td>
+    <td align="center" width="132" height="1">root/pegasus</td>
+    <td align="center" width="150" height="1">drwxr-xr-x</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="1">HP-UX</td>
+    <td align="left" width="178" height="1">/var/opt/wbem/localauth</td>
+    <td align="center" width="132" height="1">bin/bin</td>
+    <td align="center" width="150" height="1">dr-xr-xr-x</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="20">OpenVMS</td>
+    <td align="left" width="178" height="20">/var/opt/wbem/localauth</td>
+    <td align="center" width="132" height="20">system</td>
+    <td align="center" width="150" height="20">S:wred,O:re,G:re,W:e</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="291" height="30">$(PEGASUS_LOCAL_DOMAIN<br>
+    _SOCKET_DIR)</td>
+    <td rowspan="3" align="left" width="75" height="30">Generated</td>
+    <td align="center" width="131" height="6">Linux</td>
+    <td align="left" width="178" height="5">/var/run/tog-pegasus/socket</td>
+    <td align="center" width="132" height="6">root/pegasus<p>cimsvr/cimsvr (PS)</p></td>
+    <td align="center" width="150" height="6">drwxr-xr-t</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="1">HP-UX</td>
+    <td align="left" width="178" height="2">/var/opt/wbem/socket/</td>
+    <td align="center" width="132" height="1">bin/bin</td>
+    <td align="center" width="150" height="1">dr-xr-xr-t</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="20">&nbsp;</td>
+    <td align="left" width="178" height="20">&nbsp;</td>
+    <td align="center" width="132" height="20">&nbsp;</td>
+    <td align="center" width="150" height="20">&nbsp;</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="291" height="21">$(PEGASUS_CIMSERVER<br>
+    _RANDOMFILE)<br>
+    <br>
+    Note: This file is only required on platforms that do not support /dev/(u)random.</td>
+    <td rowspan="3" align="left" width="75" height="21">Generated</td>
+    <td align="center" width="131" height="6">Linux</td>
+    <td align="left" width="178" height="5">N/A</td>
+    <td align="center" width="132" height="6">N/A</td>
+    <td align="center" width="150" height="6">N/A</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="1">HP-UX</td>
+    <td align="left" width="178" height="2">&nbsp;</td>
+    <td align="center" width="132" height="1">&nbsp;</td>
+    <td align="center" width="150" height="1">&nbsp;</td>
+  </tr>
+  <tr>
+    <td align="center" width="131" height="11">OpenVMS</td>
+    <td align="left" width="178" height="11">/var/opt/wbem/ssl.rnd</td>
+    <td align="center" width="132" height="11">system</td>
+    <td align="center" width="150" height="11">S:wred,O:r,G:r,W:</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="left" width="291" height="63">$(PEGASUS_TRACE_DIR)</td>
+    <td align="left" width="75" height="21">Generated</td>
+    <td align="center" width="131" height="6">Linux</td>
+    <td align="left" width="178" height="11">$(PEGASUS_VARDATA_DIR)/cache/trace</td>
+    <td align="center" width="132" height="6">root/pegasus</td>
+    <td align="center" width="150" height="6">drwxrwxrwt</td>
+  </tr>
+  <tr>
+    <td align="left" width="75" height="21">&nbsp;</td>
+    <td align="center" width="131" height="1">HP-UX</td>
+    <td align="left" width="178" height="11">/var/opt/wbem/trace<br>
+</td>
+    <td align="center" width="132" height="6">cimsrvr/cimsrvr<br>
+</td>
+    <td align="center" width="150" height="6">drwxrwxrwt<br>
+</td>
+  </tr>
+  <tr>
+    <td align="left" width="75" height="21">&nbsp;</td>
+    <td align="center" width="131" height="11">OpenVMS</td>
+    <td align="left" width="178" height="11">&nbsp;</td>
+    <td align="center" width="132" height="11">&nbsp;</td>
+    <td align="center" width="150" height="11"><br>
+</td>
+  </tr>
+   <tr>
+    <td rowspan="3" align="left" width="291" height="63">$(PEGASUS_CORE_DIR)</td>
+    <td align="left" width="75" height="21">Generated</td>
+    <td align="center" width="131" height="6">Linux</td>
+    <td align="left" width="178" height="11">$(PEGASUS_VARDATA_DIR)/cache/trace</td>
+    <td align="center" width="132" height="6">root/pegasus</td>
+    <td align="center" width="150" height="6">drwxrwxrwt</td>
+  </tr>
+  <tr>
+    <td align="left" width="75" height="21">&nbsp;</td>
+    <td align="center" width="131" height="1">HP-UX</td>
+    <td align="left" width="178" height="11"><br>
+</td>
+    <td align="center" width="132" height="6"><br>
+</td>
+    <td align="center" width="150" height="6"><br>
+</td>
+  </tr>
+  <tr>
+    <td align="left" width="75" height="21">&nbsp;</td>
+    <td align="center" width="131" height="11">OpenVMS</td>
+    <td align="left" width="178" height="11">&nbsp;</td>
+    <td align="center" width="132" height="11">&nbsp;</td>
+    <td align="center" width="150" height="11"><br>
+</td>
+  </tr>
+  </tbody></table> 
+
+<p>&nbsp;</p>
+
+<h5>$(PEGASUS_PLANNED_CONFIG_FILE)</h5>
+
+<p>The  $(PEGASUS_PLANNED_CONFIG_FILE) file is not intended to be user editable. The 
+cimconfig utility should be used to modify this file.&nbsp; Default settings for 
+configuration options are defined in the source and can vary by vendor, 
+Operating System and release.&nbsp;&nbsp; In order to differentiate between "customer-defined" 
+values and "default-settings", default-settings are not stored in this file.&nbsp; 
+With the exception of the following comment, initial version of the $(PEGASUS_PLANNED_CONFIG_FILE) 
+file is empty.
+</p><ul>
+<pre>########################################################################<br>##                                                                    ##<br>##                  CIM Server Configuration File                     ##<br>##                                                                    ##<br>########################################################################<br><br>########################################################################<br>#                                                                      #<br># This file contains CIM Server configuration data. The format of      #<br># this file is subject to change. It is strongly recommended that      #<br># users do not edit this file. Instead, the cimconfig command should   #<br># be used to view or to request changes to the CIM Server              #<br># configuration settings. Please refer to the cimconfig documentation  #<br># for additional details.                                              #<br>#                                                                      #<br>########################################################################</pre>
+
+</ul>
+  
+<p>The following table describes the upgrade strategy for the 
+PEGASUS_PLANNED_CONFIG_FILE.</p>
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="688" height="119">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="175">File Name</th>
+    <th bgcolor="#cae6ca" width="96">Operating System</th>
+    <th bgcolor="#cae6ca" width="261">Description</th>
+    <th bgcolor="#cae6ca" width="133">Install Option</th>
+  </tr>
+  <tr align="center">
+    <td rowspan="4" width="175">$(PEGASUS_PLANNED_CONFIG_FILE) </td>
+  </tr>
+  <tr align="center">
+    <td width="96">Linux</td>
+    <td width="261">
+    <p align="left"><b>Upgrade: </b>If the file has not been modified on disk, the rpm command will 
+    overwrite the file. If the file has been modified on disk, the rpm 
+    command will copy the new file with an extra file-name extension of .rpmnew.</p><p align="left">
+    <b>Erase:&nbsp; </b>If the file has not been modified on disk, the file will 
+    be removed. If the file has been modified, the rpm command will save the 
+    file with an extra file-name extension of .rpmsave.</p></td>
+    <td width="133">%config(noreplace)</td>
+  </tr>
+  <tr align="center">
+    <td width="96">HP-UX</td>
+    <td width="261">&nbsp;</td>
+    <td width="133">&nbsp;</td>
+  </tr>
+  <tr align="center">
+    <td width="96">OpenVMS</td>
+    <td width="261">&nbsp;</td>
+    <td width="133">&nbsp;</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<br>The following generated data files and directories are removed on upgrade 
+and erase: $(PEGASUS_PLANNED_CONFIG_FILE), $(PEGASUS_PID_FILE), $(PEGASUS_LOCAL_AUTH_DIR), $(PEGASUS_LOCAL_DOMAIN_SOCKET_DIR) 
+and $(PEGASUS_TRACE_DIR).<h5><a name="SecConfigFiles"></a>OpenPegasus Configuration Files</h5>
+
+<p>This section describes OpenPegasus configuration files. Files in this section 
+are expected to be rooted in a single directory $(PEGASUS_CONFIG_DIR).</p>
+
+
+<ul>
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="604" height="119">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="206" height="1">File Name</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="220" height="1">Packaged or 
+    Generated?</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="205" height="1">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="486" height="16">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="290" height="1">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="196" height="1">Permissions</th>
+  </tr>
+  <tr align="center">
+   <td rowspan="3" width="206" height="52">ssl.cnf</td>
+    <td rowspan="3" align="left" width="220" height="52">Generated</td>
+    <td width="205" height="14">Linux</td>
+    <td width="290" height="14">root/root</td>
+    <td width="196" height="14">-r--------</td>
+  </tr>
+  <tr>
+    <td align="center" width="205" height="14">HP-UX</td>
+    <td align="center" width="290" height="14">bin/bin</td>
+    <td align="center" width="196" height="14">-r--------</td>
+  </tr>
+  <tr align="center">
+    <td align="center" width="205" height="14">OpenVMS</td>
+    <td align="center" width="290" height="14">system</td>
+    <td align="center" width="196" height="14">S:wred,O:r,G:,W:</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+<br>
+  
+<p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus ssl.cnf file.</p>
+
+<ul>
+    <table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="470">
+    <tbody><tr>
+        <th bgcolor="#cae6ca" width="99">Install Type</th>
+        <th bgcolor="#cae6ca" width="358">Actions</th>
+    </tr>
+    <tr align="center">
+        <td width="99">Install</td>
+        <td align="left" width="358">
+           <li>The OpenPegasus ssl.cnf file is not created by default. The genOpenPegasusSSLCerts 
+           script can be used to a default ssl.cnf file.</li>
+        </td>
+    </tr>
+    <tr align="center">
+        <td width="99">Upgrade</td>
+        <td align="left" width="358">
+           <li>The ssl.cnf file is not updated.</li>
+        </td>
+    </tr>
+    <tr align="center">
+        <td width="99">Remove</td>
+        <td align="left" width="358">
+           <li>The ssl.cnf file is not removed.</li>
+        </td>
+    </tr>
+  </tbody></table>
+
+</ul>
+
+<h5><a name="SecPEMFiles"></a>OpenSSL PEM Files</h5>
+
+<p>This section describes the OpenSSL PEM files. 
+Files in this section are expected to be rooted in a single directory $(PEGASUS_PEM_DIR).</p>
+
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="711" height="302">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="208" height="37">File Name<p>see 
+	PEP 308</p></th>
+    <th rowspan="2" bgcolor="#cae6ca" width="105" height="37">Packaged or Generated?</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="73" height="37">File Name</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="81" height="37">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="215" height="16">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="91" height="16">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="120" height="16">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td rowspan="3" width="208" height="52">sslKeyFilePath<br>
+    $(PEGASUS_SSL_KEY_FILE)</td>
+    <td rowspan="3" align="left" width="105" height="52">
+    <p align="center">Generated</p></td>
+    <td width="73" height="14">file.pem</td>
+    <td width="81" height="14">Linux</td>
+    <td width="91" height="14">root/root</td>
+    <td width="120" height="14">-r--------</td>
+  </tr>
+  <tr>
+    <td align="center" width="73" height="14">&nbsp;</td>
+    <td align="center" width="81" height="14">HP-UX</td>
+    <td align="center" width="91" height="14">bin/bin</td>
+    <td align="center" width="120" height="14">-r--------</td>
+  </tr>
+  <tr align="center">
+    <td align="center" width="73" height="14">&nbsp;</td>
+    <td align="center" width="81" height="14">OpenVMS</td>
+    <td align="center" width="91" height="14">system</td>
+    <td align="center" width="120" height="14">S:wred,O:r,G:,W</td>
+  </tr>
+  <tr>
+    <td rowspan="3" align="center" width="208" height="65">sslTrustStore<br>
+    $(PEGASUS_SSL_TRUSTSTORE)</td>
+    <td rowspan="3" align="center" width="105" height="65">Empty File</td>
+    <td align="center" width="73" height="14">client.pem</td>
+    <td align="center" width="81" height="14">Linux</td>
+    <td align="center" width="91" height="14">root/root</td>
+    <td align="center" width="120" height="14">-r--r--r--</td>
+  </tr>
+  <tr>
+    <td align="center" width="73" height="14">&nbsp;</td>
+    <td align="center" width="81" height="14">HP-UX</td>
+    <td align="center" width="91" height="14">root/sys</td>
+    <td align="center" width="120" height="14">-r--------</td>
+  </tr>
+  <tr>
+    <td align="center" width="73" height="8">&nbsp;</td>
+    <td align="center" width="81" height="8">OpenVMS</td>
+    <td align="center" width="91" height="8">system</td>
+    <td align="center" width="120" height="8">S:wred,O:r,G:,W:</td>
+  </tr>
+  <tr>
+    <td rowspan="4" align="center" width="208" height="52">
+    sslCertificateFilePath<p>$(PEGASUS_SSL_CERT_FILE)</p></td>
+    <td rowspan="3" align="left" width="105" height="52">
+    <p align="center">Generated</p></td>
+    <td align="center" width="73" height="14">server.pem</td>
+    <td align="center" width="81" height="14">Linux</td>
+    <td align="center" width="91" height="14">root/root</td>
+    <td align="center" width="120" height="14">-r--r--r--</td>
+  </tr>
+  <tr>
+    <td align="center" width="73" height="14">&nbsp;</td>
+    <td align="center" width="81" height="14">HP-UX</td>
+    <td align="center" width="91" height="14">root/sys</td>
+    <td align="center" width="120" height="14">-r--------</td>
+  </tr>
+  <tr>
+    <td align="center" width="73" height="14">&nbsp;</td>
+    <td align="center" width="81" height="14">OpenVMS</td>
+    <td align="center" width="91" height="14">system</td>
+    <td align="center" width="120" height="14">S:wred,O:r,G:,W:</td>
+  </tr>
+  </tbody></table>
+  
+  <br>
+  
+<p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus *.pem files.</p>
+
+</dd>
+
+</dl>
+
+
+
+
+<ul>
+
+
+    <table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="470">
+    <tbody><tr>
+        <th bgcolor="#cae6ca" width="99">Install Type</th>
+        <th bgcolor="#cae6ca" width="358">Actions</th>
+    </tr>
+    <tr align="center">
+        <td width="99">Install</td>
+        <td align="left" width="358">
+           <li>The *.pem files are not created by default. The genOpenPegasusSSLCerts 
+           script can be used to create self-signed *.pem files.</li>
+        </td>
+    </tr>
+    <tr align="center">
+        <td width="99">Upgrade</td>
+        <td align="left" width="358">
+           <li>The *.pem files are not updated.</li>
+        </td>
+    </tr>
+    <tr align="center">
+        <td width="99">Remove</td>
+        <td align="left" width="358">
+           <li>The *.pem files are not removed.</li>
+        </td>
+    </tr>
+  </tbody></table>
+
+</ul>
+
+
+
+<h5><a name="SecPAMConfigFiles"></a>PAM Configuration Files</h5>
+
+
+
+<p>This section describes OpenPegasus configuration files. </p>
+
+
+
+<ul>
+
+
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="714" height="119">
+  <tbody><tr>
+    <th rowspan="2" bgcolor="#cae6ca" width="206" height="1">File Name</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="207" height="1">Packaged or 
+    Generated?</th>
+    <th rowspan="2" bgcolor="#cae6ca" width="112" height="1">Operating System</th>
+    <th colspan="2" bgcolor="#cae6ca" width="178" height="16">File</th>
+  </tr>
+  <tr>
+    <th bgcolor="#cae6ca" width="85" height="1">Owner/Group</th>
+    <th bgcolor="#cae6ca" width="99" height="1">Permissions</th>
+  </tr>
+  <tr align="center">
+    <td rowspan="4" width="206" height="52">$(PAM_CONFIG_DIR)/wbem</td>
+  </tr>
+  <tr align="center">
+    <td rowspan="3" width="207" height="52">
+    Packaged</td>
+    <td width="112" height="14">Linux</td>
+    <td width="85" height="14">root/pegasus</td>
+    <td width="99" height="14">-rw-------</td>
+  </tr>
+  <tr>
+    <td align="center" width="112" height="14">HP-UX</td>
+    <td align="center" width="85" height="14">&nbsp;</td>
+    <td align="center" width="99" height="14">&nbsp;</td>
+  </tr>
+  <tr align="center">
+    <td align="center" width="112" height="14">OpenVMS</td>
+    <td align="center" width="85" height="14">&nbsp;</td>
+    <td align="center" width="99" height="14">&nbsp;</td>
+  </tr>
+  <tr>
+    <td rowspan="4" align="center" width="206" height="52">$(PEGASUS_CONFIG_DIR)/access.conf</td>
+  </tr>
+    <tr align="center">
+    <td rowspan="3" width="207" height="52">
+    Packaged</td>
+    <td width="112" height="14">Linux</td>
+    <td width="85" height="14">root/pegasus</td>
+    <td width="99" height="14">-rw-------</td>
+  </tr>
+  <tr>
+    <td align="center" width="112" height="14">HP-UX</td>
+    <td align="center" width="85" height="14">&nbsp;</td>
+    <td align="center" width="99" height="14">&nbsp;</td>
+  </tr>
+  <tr align="center">
+    <td align="center" width="112" height="14">OpenVMS</td>
+    <td align="center" width="85" height="14">&nbsp;</td>
+    <td align="center" width="99" height="14">&nbsp;</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+
+
+<p>
+
+<br>
+  
+</p>
+
+
+  
+<p>The following table describes the upgrade strategy for the PAM configuration 
+files.</p>
+
+
+
+<ul>
+
+
+
+<table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="688" height="119">
+  <tbody><tr>
+    <th bgcolor="#cae6ca" width="175">File Name</th>
+    <th bgcolor="#cae6ca" width="96">Operating System</th>
+    <th bgcolor="#cae6ca" width="264">Description</th>
+    <th bgcolor="#cae6ca" width="130">Install Option</th>
+  </tr>
+  <tr align="center">
+    <td rowspan="4" width="175">$(PAM_CONFIG_DIR)/wbem</td>
+  </tr>
+  <tr align="center">
+    <td width="96">Linux</td>
+    <td width="264">
+    <p align="left"><b>Upgrade: </b>If the file has not been modified on disk, the rpm command will 
+    overwrite the file. If the file has been modified on disk, the rpm 
+    command will copy the new file with an extra file-name extension of .rpmnew.</p><p align="left">
+    <b>Erase:&nbsp; </b>If the file has not been modified on disk, the file will 
+    be removed. If the file has been modified, the rpm command will save the 
+    file with an extra file-name extension of .rpmsave.</p></td>
+    <td width="130">%config(noreplace)</td>
+  </tr>
+  <tr align="center">
+    <td width="96">HP-UX</td>
+    <td width="264">&nbsp;</td>
+    <td width="130">&nbsp;</td>
+  </tr>
+  <tr align="center">
+    <td width="96">OpenVMS</td>
+    <td width="264">&nbsp;</td>
+    <td width="130">&nbsp;</td>
+  </tr>
+  <tr>
+    <td rowspan="4" width="175">$(PEGASUS_CONFIG_DIR)/<br>
+    access.conf</td>
+  </tr>
+  <tr align="center">
+    <td width="96">Linux</td>
+    <td width="264">
+    <p align="left"><b>Upgrade: </b>If the file has not been modified on disk, the rpm command will 
+    overwrite the file. If the file has been modified on disk, the rpm 
+    command will copy the new file with an extra file-name extension of .rpmnew.</p><p align="left">
+    <b>Erase:&nbsp; </b>If the file has not been modified on disk, the file will 
+    be removed. If the file has been modified, the rpm command will save the 
+    file with an extra file-name extension of .rpmsave.</p></td>
+    <td width="130">%config(noreplace)</td>
+  </tr>
+  <tr align="center">
+    <td width="96">HP-UX</td>
+    <td width="264">&nbsp;</td>
+    <td width="130">&nbsp;</td>
+  </tr>
+  <tr align="center">
+    <td width="96">OpenVMS</td>
+    <td width="264">&nbsp;</td>
+    <td width="130">&nbsp;</td>
+  </tr>
+  </tbody></table>
+</ul>
+
+
+
+<h5><a name="SecRepositoryDataFiles"></a>Repository Data Files</h5>
+
+
+
+<p>This section describes the installation of the Repository Data Files. 
+Files in this section are expected to be rooted in a single 
+directory $(PEGASUS_REPOSITORY_DIR).</p>
+
+
+
+<p>The following table describes the recommended install, upgrade and remove 
+behavior for the OpenPegasus Repository data files.</p>
+
+
+
+<ul>
+
+
+    <table bordercolordark="#666666" bordercolorlight="#CCCCCC" style="font-family: Arial;" border="1" cellspacing="1" width="712">
+    <tbody><tr>
+        <th bgcolor="#cae6ca" width="99">Install Type</th>
+        <th bgcolor="#cae6ca" width="600">Actions</th>
+    </tr>
+    <tr align="center">
+        <td width="99">Install</td>
+        <td align="left" width="600">
+           <li>The packaged Repository data files are&nbsp; installed in $(PEGASUS_REPOSITORY_DIR).</li>
+        </td>
+    </tr>
+    <tr align="center">
+        <td width="99">Upgrade</td>
+        <td align="left" width="600">
+           <li>If $(PEGASUS_REPOSITORY_DIR) exists ... </li> 
+           <ul>
+               <li>$(PEGASUS_PREV_REPOSITORY_DIR) is saved as an archive file.</li>
+               <li>$(PEGASUS_REPOSITORY_DIR) renamed to $(PEGASUS_PREV_REPOSITORY_DIR).</li>
+           </ul>
+           <li>The packaged Repository data files are installed in $(PEGASUS_REPOSITORY_DIR).</li>
+           <li>If $(PEGASUS_PREV_REPOSITORY_DIR) exists, the repupgrade utility 
+           is used to merge changes from $(PEGASUS_PREV_REPOSITORY_DIR) to $(PEGASUS_REPOSITORY_DIR).&nbsp; 
+           Once the upgrade is complete, $(PEGASUS_PREV_REPOSITORY_DIR) is saved 
+           as an archive file.</li>
+        </td>
+    </tr>
+    <tr align="center">
+        <td width="99">Remove</td>
+        <td align="left" width="600">
+           <li>If it exists, $(PEGASUS_PREV_REPOSITORY_DIR) is saved as an 
+           archive file.</li>
+           <li>If it exists, $(PEGASUS_REPOSITORY_DIR) is saved as an archive.</li>
+        </td>
+    </tr>
+  </tbody></table>
+
+</ul>
+
+
+
+<h3><font color="#800080"><a name="SecBuild"></a></font>OpenPegasus&nbsp; Build 
+&amp; Installs Steps</h3>
+
+
+
+ 
+<p>For supported Operating Systems, pegasus/Makefile.Release can be used to perform the steps 
+necessary to build and place the necessary OpenPegasus release files in a 
+staging directory, PEGASUS_STAGING_DIR.&nbsp; </p>
+
+
+
+<ul>
+
+
+<p>$(MAKE) -f pegasus/Makefile.Release rebuild</p>
+</ul>
+
+
+
+<p>For successful operation, Makefile.Release is dependent on the existence of 
+an operating system dependent file&nbsp; that defines the setting of key 
+environment variables.&nbsp; Two sample files have been placed in the pegasus 
+directory: env_var_HPUX.status and env_var_Linux.status.</p>
+
+
+
+<p>Use of this utility has been tested on the following platforms.</p>
+
+
+
+<ul>
+
+
+  <li>Linux</li>
+  <li>HP-UX</li>
+</ul>
+
+
+
+<h2><font color="#000000">References</font></h2>
+
+
+<p>Note: Starting with the OpenPegasus 2.9.0 release, the OpenPegasus Build and 
+Configuration Options document is available in OpenPegasus CVS Repository, 
+pegasus/doc/BuildAndReleaseOptions.html.</p>
+
+
+<ol>
+
+
+  <li>
+  <a href="http://www.openpegasus.org/pp/uploads/40/6160/PEP174_RecommendedReleaseOptions.htm">
+       PEP#174 - Recommended OpenPegasus 2.4 Build and Configuration Options</a> 
+  </li>
+  <li> <a href="http://www.openpegasus.org/pp/uploads/40/8502/PEP200_RecommendedReleaseOptions.htm">
+       PEP#200 - Recommended OpenPegasus 2.5 Build and Configuration Options</a> 
+</li>
+  <li> 
+  <a href="http://www.openpegasus.org/pp/uploads/40/10083/PEP237_RecommendedReleaseOptions.htm">
+       PEP#237 - Recommended OpenPegasus 2.5.1 Build and Configuration Options</a></li>
+  <li> 
+  <a href="http://www.openpegasus.org/pp/protected/upreviews/20/2096/PEP277_RecommendedReleaseOptions.htm">
+       PEP#277 - Recommended OpenPegasus 2.6.0 Build and Configuration Options for 
+       Selected Platforms</a></li>
+  <li> 
+  <a href="http://www.openpegasus.org/pp/uploads/40/14873/PEP292_RecommendedReleaseOptions.htm">
+       PEP#292 - Recommended OpenPegasus 2.7.0 Build and Configuration Options for 
+       Selected Platforms</a></li>
+  <li>
+  <a href="http://www.openpegasus.org/pp/uploads/40/16781/PEP308_RecommendedReleaseOptions.htm">
+       PEP#308 - Recommended OpenPegasus 2.8.0 Build and Configuration Options for 
+       Selected Platforms</a></li>
+  
+</ol>
+
+
+
+
+
+ 
+<h2><font color="#000000">Rationale</font></h2>
+
+
+
+<h2><font color="#000000">Schedule</font></h2>
+
+
+
+<h2><font color="#000000">Discussion</font></h2>
+
+
+
+<hr>
+
+<p>Copyright (c) 2006 Hewlett-Packard Development Company, L.P.; IBM Corp.;<br>
+EMC Corporation; Symantec Corporation; The Open Group.<br>
+<br>
+Permission is hereby granted, free of charge, to any person obtaining a copy<br>
+of this software and associated documentation files (the "Software"), to<br>
+deal in the Software without restriction, including without limitation the<br>
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or<br>
+sell copies of the Software, and to permit persons to whom the Software is<br>
+furnished to do so, subject to the following conditions:<br>
+<br>
+THE ABOVE COPYRIGHT NOTICE AND THIS PERMISSION NOTICE SHALL BE INCLUDED IN<br>
+ALL COPIES OR SUBSTANTIAL PORTIONS OF THE SOFTWARE. THE SOFTWARE IS PROVIDED<br>
+"AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT<br>
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR<br>
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT<br>
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN<br>
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION<br>
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+
+
+<hr>
+<p>Template last modified: <b>March 26th 2006</b> by <b>Martin Kirk<br>
+</b>Template version: <b>1.11</b></p>
+
+
+
+</body></html>

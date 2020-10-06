@@ -1,0 +1,261 @@
+// ===================================================================
+// Title: User_AuthenticationReqmt
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: User_AuthenticationReqmt.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The User Model extends the management concepts that
+//              are related to users and security.
+//              This file defines the concepts and classes related to
+//              requirements for authentication.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ===================================================================
+// Change Log for v2.8 Final
+//  CR1218 - All deprecations promoted to Final
+//  CR1235 - Accepted the subclassing change for HostedAuthentication
+//           Requirement
+// 
+// Change Log for v2.8 Preliminary (Company Review)
+//  CR1107 - Deprecated:
+//            AuthenticationRequirement
+//            HostedAuthenticationRequirement
+//            AuthenticatedForUse
+//            RequireCredentialFrom
+//            AuthenticationTarget
+//  CR1128 - Changed subclassing of HostedAuthenticationRequirement
+//          from Dependency to HostedDependency.
+// 
+// Change Log for v2.8 Preliminary - None
+// 
+// Change Log for v2.7 - None
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// AuthenticationRequirement
+// ==================================================================
+   [Deprecated { "CIM_AuthenticationCondition",
+       "CIM_AuthenticationRule", "CIM_SecuritySensitivity" },
+       Version ( "2.8.0" ), Description (
+       "CIM_AuthenticationRequirement provides, through its "
+       "associations, the authentication requirements for access to "
+       "system resources. For a particular set of target resources, "
+       "the AuthenticationService may require that credentials be "
+       "issued by a specific CredentialManagementService. The "
+       "AuthenticationRequirement class is weak to the system (e.g., "
+       "ComputerSystem or Administrative Domain) for which the "
+       "requirements apply. \n"
+       "\n"
+       "Note that this class was defined before the Policy Model "
+       "existed, and is deprecated in lieu of authentication policy - "
+       "specifically, the AuthenticationCondition and "
+       "AuthenticationRule classes. In the updated design, "
+       "AuthenticationCondition describes the specific combinations of "
+       "credentials (or alternative credentials) that are required in "
+       "order to authenticate an Identity. This allows a more explicit "
+       "and flexible description of authentication requirements. Also, "
+       "the definition of 'security classification' as a property of "
+       "this class was problematic - since it could not be assigned to "
+       "an element in a straight forward fashion. To correct this "
+       "issue, the SecuritySensitivity class (and its association, "
+       "ElementSecuritySensitivity) are defined.")]
+class CIM_AuthenticationRequirement : CIM_LogicalElement {
+
+      [Deprecated { "CIM_AuthenticationRule.SystemCreationClassName" },
+       Key, Propagated ( "CIM_System.CreationClassName" ), 
+       Description (
+          "Hosting systemcreation class name."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Deprecated { "CIM_AuthenticationRule.SystemName" }, Key,
+       Propagated ( "CIM_System.Name" ), Description (
+          "Hosting system name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Deprecated { "CIM_AuthenticationRule.CreationClassName" }, Key, 
+       Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Deprecated { "CIM_AuthenticationRule.PolicyRuleName" }, Key,
+       Override ( "Name" ), Description (
+          "The Name property defines the unique label, in the context "
+          "of the hosting system, by which the "
+          "AuthenticationRequirement is known."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Deprecated { "CIM_SecuritySensitivity.SecurityLevel" }, 
+       Description (
+          "The SecurityClassification property specifies a named level "
+          "of security associated with the AuthenticationRequirement, "
+          "e.g., 'Confidential', 'Top Secret', etc.")]
+   string SecurityClassification;
+};
+
+
+// ==================================================================
+// HostedAuthenticationRequirement
+// ==================================================================
+   [Association, Deprecated { "CIM_PolicyRuleInSystem" },
+       Version ( "2.8.0" ), Description (
+       "CIM_HostedAuthenticationRequirement is an association used to "
+       "provide the namespace scoping of AuthenticationRequirement. "
+       "The hosted requirements may or may not apply to resources on "
+       "the hosting system. Since the AuthenticationRequirement class "
+       "is deprecated in lieu of explicit policy rules, this class is "
+       "similarly deprecated to its 'policy' equivalent.")]
+class CIM_HostedAuthenticationRequirement : CIM_HostedDependency {
+
+      [Deprecated { "CIM_PolicyRuleInSystem.Antecedent" },
+          Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The hosting system.")]
+   CIM_System REF Antecedent;
+
+      [Deprecated { "CIM_PolicyRuleInSystem.Dependent" },
+          Override ( "Dependent" ), Weak, Description (
+          "The hosted AuthenticationRequirement.")]
+   CIM_AuthenticationRequirement REF Dependent;
+};
+
+
+// ==================================================================
+// AuthenticateForUse
+// ==================================================================
+   [Association, Deprecated { "No value" }, Version ( "2.8.0" ), 
+    Description (
+       "CIM_AuthenticateForUse is an association used to provide an "
+       "AuthenticationService with the AuthenticationRequirement it "
+       "needs to do its job. This association is unnecessary and "
+       "therefore deprecated, since it is implied that an Identity "
+       "MUST be authenticated (its CurrentlyAuthenticatedBoolean set "
+       "to TRUE) in order to have any Privileges.")]
+class CIM_AuthenticateForUse : CIM_Dependency {
+
+      [Deprecated { "No value" }, Override ( "Antecedent" ), 
+       Description (
+          "AuthenticationRequirementfor use.")]
+   CIM_AuthenticationRequirement REF Antecedent;
+
+      [Deprecated { "No value" }, Override ( "Dependent" ), 
+       Description (
+          "AuthenticationServicethat uses the requirements.")]
+   CIM_AuthenticationService REF Dependent;
+};
+
+
+// ==================================================================
+// RequireCredentialsFrom
+// ==================================================================
+   [Association, Deprecated { "CIM_AuthenticationCondition",
+       "CIM_AuthenticationRule" }, Version ( "2.8.0" ), Description (
+       "CIM_RequireCredentialsFrom is an association used to require "
+       "that credentials are issued by particular CredentialManagement "
+       "Services in order to authenticate a user. This association is "
+       "deprecated in lieu of explicit declaration of the "
+       "AuthenticationConditions in an AuthenticationRule. Instances "
+       "of AuthenticationCondition describe the specific combinations "
+       "of credentials (or alternative credentials) that are required "
+       "to authenticate an Identity. This allows a more explicit and "
+       "flexible description of authentication requirements.")]
+class CIM_RequireCredentialsFrom : CIM_Dependency {
+
+      [Deprecated { "CIM_AuthenticationCondition" },
+          Override ( "Antecedent" ), Description (
+          "CredentialManagementService from which credentials are "
+          "accepted for the associated AuthenticationRequirement.")]
+   CIM_CredentialManagementService REF Antecedent;
+
+      [Deprecated { "CIM_AuthenticationRule" },
+       Override ( "Dependent" ), Description (
+          "AuthenticationRequirement that limits acceptable "
+          "credentials.")]
+   CIM_AuthenticationRequirement REF Dependent;
+};
+
+
+// ==================================================================
+// AuthenticationTarget
+// ==================================================================
+   [Association, Deprecated { "CIM_PolicySetAppliesToElement" },
+    Version ( "2.8.0" ), Description (
+       "CIM_AuthenticationTarget is an association used to apply "
+       "authentication requirements for access to specific resources. "
+       "For example, a shared secret may be sufficient for access to "
+       "unclassified resources, but for confidential resources, a "
+       "stronger authentication may be required. Since the "
+       "AuthenticationRequirement class is deprecated in lieu of "
+       "explicit policy rules, this association is similarly "
+       "deprecated to its 'policy' equivalent.")]
+class CIM_AuthenticationTarget : CIM_Dependency {
+
+      [Deprecated { "CIM_PolicySetAppliesToElement.PolicySet" },
+       Override ( "Antecedent" ), Description (
+          "AuthenticationRequirement that applies to specific "
+          "resources.")]
+   CIM_AuthenticationRequirement REF Antecedent;
+
+      [Deprecated { "CIM_PolicySetAppliesToElement.ManagedElement" },
+       Override ( "Dependent" ), Description (
+          "Target resources that may be in a Collection or an "
+          "individual ManagedElement. These resources are protected by "
+          "the AuthenticationRequirement.")]
+   CIM_ManagedElement REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

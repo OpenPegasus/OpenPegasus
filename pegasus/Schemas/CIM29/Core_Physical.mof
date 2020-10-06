@@ -1,0 +1,337 @@
+// ===================================================================
+// Title: Core_Physical
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Core_Physical.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Core Model defines basic management concepts.
+//              This file defines the concepts for PhysicalElements
+//              and their Locations.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1210 - Removal of experimental Qualifiers for core.
+
+// Change Log for v2.8 Preliminary
+// CR1019 - CIM Versioning for 2.8 Preliminary
+// CR1071 - Add the following properties of PhyscialElement
+//          VendorEquipmentType, UserTracking, CanBeFRUed.
+// 
+// Change Log for v2.7 Final
+// CR968 - Remove the Experimental qualifier
+//         Remove the following properties of PhyscialElement so
+//         they can remain experimental in 2.8
+//            VendorEquipmentType, UserTracking, CanBeFRUed.
+// 
+// Change Log for v2.7
+// CR774 - Add ContainedLocation
+// CR821 - Add PhysicalElement.VendorEquipmentType, PhysicalElement.
+//         UserTracking, and PhysicalElement.CanBeFRUed properties.
+//       - Add mapping string to indicate the support of the SNMP
+//         Entity MIB
+//       - Add the Write qualifier to PhysicalElement.Other
+//         IdentifyingInfo
+// CR822 - Add SystemPackaging
+// CR899 - Expand the MaxLen qualifier on 2 PhysicalElement .Model
+//         and .SerialNumber properties from 64 to 256.
+// CR902 - Create a general superclass ElementLocation of the
+//         PhysicalElementLocation association.
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// =================================================================
+// PhysicalElement
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "Subclasses of CIM_PhysicalElement define any component of a "
+       "System that has a distinct physical identity. Instances of "
+       "this class can be defined in terms of labels that can be "
+       "physically attached to the object. All Processes, Files, and "
+       "LogicalDevices are considered not to be Physical Elements. For "
+       "example, it is not possible to attach a label to a modem. It "
+       "is only possible to attach a label to the card that implements "
+       "the modem. The same card could also implement a LAN adapter. "
+       "These are tangible Managed SystemElements (usually actual "
+       "hardware items) that have a physical manifestation of some "
+       "sort. A ManagedSystem Element is not necessarily a discrete "
+       "component. For example, it is possible for a single Card "
+       "(which is a type of PhysicalElement) to host more than one "
+       "LogicalDevice. The card would be represented by a single "
+       "PhysicalElement associated with multiple Devices.")]
+class CIM_PhysicalElement : CIM_ManagedSystemElement {
+
+      [Key, Description (
+          "An arbitrary string that uniquely identifies the Physical "
+          "Element and serves as the Element's key. The Tag property "
+          "can contain information such as asset tag or serial number "
+          "data. The key for PhysicalElement is placed very high in "
+          "the object hierarchy in order to independently identify the "
+          "hardware/entity, regardless of physical placement in or on "
+          "Cabinets, Adapters, etc. For example, a hotswappable or "
+          "removeable component may be taken from its containing "
+          "(scoping) Package and be temporarily unused. The object "
+          "still continues to exist - and may even be inserted into a "
+          "different scoping container. Therefore, the key for "
+          "Physical Element is an arbitrary string and is defined "
+          "independently of any placement or location-oriented "
+          "hierarchy."), 
+       MaxLen ( 256 )]
+   string Tag;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Override ( "ElementName" ), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalName" }]
+   string ElementName;
+
+      [Description (
+          "The name of the organization responsible for producing the "
+          "PhysicalElement. This may be the entity from whom the "
+          "Element is purchased, but this is not necessarily true. The "
+          "latter information is contained in the Vendor property of "
+          "CIM_Product."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalMfgName" }]
+   string Manufacturer;
+
+      [Description (
+          "The name by which the PhysicalElement is generally known."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalDescr" }]
+   string Model;
+
+      [Description (
+          "The stock keeping unit number for this PhysicalElement."), 
+       MaxLen ( 64 )]
+   string SKU;
+
+      [Description (
+          "A manufacturer-allocated number used to identify the "
+          "Physical Element."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalSerialNum" }]
+   string SerialNumber;
+
+      [Description (
+          "A string indicating the version of the PhysicalElement."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalHardwareRev" }]
+   string Version;
+
+      [Description (
+          "The part number assigned by the organization responsible "
+          "for producing or manufacturing the PhysicalElement."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalModelName" }]
+   string PartNumber;
+
+      [Write, Description (
+          "OtherIdentifyingInfo captures additional data, beyond that "
+          "of Tag information, that could be used to identify a "
+          "Physical Element. One example is bar code data associated "
+          "with an Element that also has an asset tag. Note that if "
+          "only bar code data is available and is unique/able to be "
+          "used as an Element key, this property would be NULL and the "
+          "bar code data used as the class key, in the Tag property."), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalAlias" }]
+   string OtherIdentifyingInfo;
+
+      [Description (
+          "Boolean indicating that the PhysicalElement is powered on "
+          "(TRUE), or is currently off (FALSE).")]
+   boolean PoweredOn;
+
+      [Description (
+          "Date that this PhysicalElement was manufactured.")]
+   datetime ManufactureDate;
+
+      [Description (
+          "A vendor-specific hardware type for the PhysicalElement. It "
+          "describes the specific equipment type for the element, as "
+          "defined by the vendor/manufacturer."), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalVendorType" }]
+   string VendorEquipmentType;
+
+      [Write, Description (
+          "User-assigned and writeable asset tracking identifier for "
+          "the PhysicalElement."), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalAssetID" }]
+   string UserTracking;
+
+      [Description (
+          "Boolean indicating whether this PhysicalElement can be "
+          "FRUed (TRUE) or not (FALSE)."), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalIsFRU" }]
+   boolean CanBeFRUed;
+};
+
+
+// ===================================================================
+// Location
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The Location class specifies the position and address of a "
+       "PhysicalElement.")]
+class CIM_Location : CIM_ManagedElement {
+
+      [Key, Description (
+          "Name is a free-form string defining a label for the "
+          "Location. It is a part of the key for the object."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Key, Description (
+          "Position is a free-form string indicating the placement of "
+          "a PhysicalElement. It can specify slot information on a "
+          "HostingBoard, mounting site in a Cabinet, or latitude and "
+          "longitude information, for example, from a GPS. It is part "
+          "of the key of the Location object."), 
+       MaxLen ( 256 )]
+   string PhysicalPosition;
+
+      [Description (
+          "Address is a free-form string indicating a street, building "
+          "or other type of address for the PhysicalElement's "
+          "Location."), 
+       MaxLen ( 1024 )]
+   string Address;
+};
+
+
+// ==================================================================
+// ElementLocation
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "ElementLocation associates a ManagedElement with a Location "
+       "for positioning, inventory, maintenance and similar purposes. "
+       "PhysicalElements can certainly have Locations - this is "
+       "explicitly defined in a subclass, PhysicalElement Location. "
+       "However, other ManagedElements may also be associated with "
+       "Locations. For example, Organizations may be 'in' one or more "
+       "Locations, or Services may be restricted to a Location.")]
+class CIM_ElementLocation {
+
+      [Key, Description (
+          "The ManagedElement whose Location is specified.")]
+   CIM_ManagedElement REF Element;
+
+      [Key, Description (
+          "The element's Location.")]
+   CIM_Location REF PhysicalLocation;
+};
+
+
+// ==================================================================
+// PhysicalElementLocation
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "PhysicalElementLocation associates a PhysicalElement with a "
+       "Location object for inventory or replacement purposes.")]
+class CIM_PhysicalElementLocation : CIM_ElementLocation {
+
+      [Override ( "Element" ), Description (
+          "The PhysicalElement whose Location is specified.")]
+   CIM_PhysicalElement REF Element;
+
+      [Override ( "PhysicalLocation" ), Max ( 1 ), Description (
+          "The PhysicalElement's Location.")]
+   CIM_Location REF PhysicalLocation;
+};
+
+
+// ==================================================================
+// ContainedLocation
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "ContainedLocation defines one location in the context of "
+       "another. For example, a campus may 'contain' a building, which "
+       "in turn 'contains' a floor.")]
+class CIM_ContainedLocation : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The containing location.")]
+   CIM_Location REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The contained location.")]
+   CIM_Location REF PartComponent;
+};
+
+
+// ==================================================================
+// SystemPackaging
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "Similar to the way that LogicalDevices are 'Realized' by "
+       "PhysicalElements, Systems may be associated with specific "
+       "packaging/PhysicalElements. This association explicitly "
+       "defines the relationship between a System and its packaging.")]
+class CIM_SystemPackaging : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PhysicalElement(s) that provide the packaging of a "
+          "System.")]
+   CIM_PhysicalElement REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The System whose packaging is described.")]
+   CIM_System REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

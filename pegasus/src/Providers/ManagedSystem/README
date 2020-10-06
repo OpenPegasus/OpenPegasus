@@ -1,0 +1,88 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+This directory has various Managed System providers (the MOF files
+are located in pegasus/Schemas).
+
+The provider for class "foo" will typically consist of the
+following components:
+  * a file for the provider (e.g., foo.cpp) which will check Defines
+      and include the appropriate OS-specific provider file
+  * the OS-specific provider files (e.g., foo_HPUX.cpp, foo_Windows.cpp)
+      typically a foo_Stub file is provided to jump-start support of
+      additional OS-specific files.
+  * a general file with the supported operations, making calls out to
+	boolean methods in the various OS-specific files.  Return value
+	of true indicate the parameter property has been set, false
+	means no value is supplied (e.g., fooProvider.cpp)
+  * a general file to create the provider (e.g., fooProviderMain.cpp)
+
+There are subdirectories for each of the providers.  Within each
+subdirectory, there may be a "doc" directory with additional information
+(including an HTML document following the WBEMsource template for a
+Provider Data Sheet), and a "tests" directory with tests (invoked via
+recursion from the ManagedSystem Makefile).
+
+There is a common "tests" directory with several general tests that
+are not included in the automated test runs (those are in the tests
+directories within each provider directory, as mentioned above).
+
+For the OS provider, the following convention is used for test names
+on the .xml files:
+	PG_OperatingSystem* is a general test expected to pass
+	  (in general tests directory since no automated validation)
+ 	PG_OS_* is a test that needs to be modified based on
+		the test machine and is expected to pass
+	PG_OS_Fail*   is a test that is expected to get a CIM
+		error (e.g., an unsupported or ill-formed operation)
+	PG_OS_*rspgood.xml is an expected result of a test (a diff
+		of the CIMOM response and the good result should be empty)
+
+The testing strategy has various dimensions:
+	exercisers that run through various paths to the provider
+		(both supported and unsupported with varients)
+	validaters that check the content of responses
+	automated tests that can be run as part of a nightly build
+		(included in the tests subdirectory of each provider)
+
+Most of the tests are exercisers, some of which are automated (via
+inclusion in the Makefile).  Others are not automated.  Initially,
+the majority of the validation is done manually (moving to a generic
+client that performs appropriate native OS calls and compares the
+results against the CIM content returned).
+
+There is a common "doc" directory which contains the standard template
+for documenting ManagedSystem providers.  This template was developed
+by WBEMSource (http://www.wbemsource.org/wbem-doctemp); its usage is
+endorsed and encouraged for all WBEM providers, across all WBEM
+infrastructures.  The template should be copied and updated for each
+provider and placed in the "doc" directory under that particular provider
+(e.g. for the OS Provider it would be placed in the "OperatingSystem/doc"
+directory).
+

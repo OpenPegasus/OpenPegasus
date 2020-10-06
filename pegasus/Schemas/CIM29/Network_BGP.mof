@@ -1,0 +1,1330 @@
+// ===================================================================
+// Title: Network_BGP
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_BGP.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines the classes that model
+//              BGP (Border Gateway Protocol).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR792 - Add the Composition qualifer to BGPClustersInAS,
+//         ASBGPEndpoints, and Confederation
+// CR863 - Update the format of the MappingStrings qualifier when
+//         referencing IETF RFCs
+// CR866 - Fixes to the BGP Model
+// CR920 - BGPAttributes.AtomicAggregate is incorrectly defined with
+//         Values/ValueMap qualifiers when it is a boolean - these
+//         qualifiers must be removed and the Description updated
+// CR965 - Update Description for BGPIPRoute
+// CR982 - Removal of Experimental for preliminary to final
+// CR983 - v2.7 Deprecations promoted to final
+// Change Log for v2.8
+// CR1128 - Change subclassing from CIM_Dependency to
+//          CIM_HostedDependency for identified classes. This is
+//          needed as a result of the introduction of HostedDependency
+//          by SysDev
+// CR1232 - Updated reference
+//          Property CIM_BGPStatistics.InUpdateElapsedTime
+//          (CIM_BGPEndpointStatistics.InUpdateEstablishedTime
+//          Property CIM_BGPRouteMap.OtherMatchConditionType
+//          (CIM_RouteMap.MatchConditionType)
+//                      Property CIM_BGPRouteMap.MatchConditionType
+//                      (CIM_RouteMap.OtherMatchConditionType)
+// CR1238 - Fix model correspondece reference problems in final version
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// BGPService
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class is used to represent the basic operation of BGP. It "
+       "is derived from RouteCalculationService, the superclass of all "
+       "routing protocols.")]
+class CIM_BGPService : CIM_RouteCalculationService {
+
+      [Description (
+          "The BGPVersion property defines the version of BGP that "
+          "this router is using. This is part of the BGP peer "
+          "negotiation process)."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpVersion" }]
+   uint8 BGPVersion;
+
+      [Description (
+          "BGP sends errors using a NOTIFICATION message. This message "
+          "contains an error code, an error subcode, and error data. "
+          "The error code defines the type of the notification. The "
+          "'Cease' error is for all fatal errors that are not one of "
+          "the other five types of errors. For several of the errors, "
+          "subcode information is also enumerated in other properties "
+          "of this class."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "None", "Message Header Error", "OPEN Message Error",
+          "UPDATE Message Error", "Hold Timer Expired",
+          "Finite State Machine Error", "Cease" }]
+   uint16 LastErrorCode;
+
+      [Description (
+          "This defines the BGP error subcode for message header "
+          "errors (LastErrorCode = 1). If LastErrorCode is any other "
+          "value, then this property should be set to NULL."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "None", "Connection Not Synchronized",
+          "Bad Message Length", "Bad Message Type" }]
+   uint16 LastMessageErrorSubCode;
+
+      [Description (
+          "This defines the BGP error subcode for OPEN message errors "
+          "(LastErrorCode = 2). If LastErrorCode is any other value, "
+          "then this property should be set to NULL."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "None", "Unsupported Version Number", "Bad Peer AS",
+          "Bad BGP Identifier", "Unsupported Optional Parameter",
+          "Authentication Failure", "Unacceptable Hold Time" }]
+   uint16 LastOpenErrorSubCode;
+
+      [Description (
+          "This defines the BGP error subcode for UPDATE message "
+          "errors (LastErrorCode = 3). If LastErrorCode is any other "
+          "value, then this property should be set to NULL."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11" }, 
+       Values { "None", "Malformed Attribute List",
+          "Unrecognized Well-Known Attribute",
+          "Missing Well-Known Attribute", "Attribute Flags Error",
+          "Attribute Length Error", "Invalid Origin Attribute",
+          "AS Routing Loop", "Invalid NEXT_HOP Attribute",
+          "Optional Attribute Error", "Invalid Network Field",
+          "Malformed AS_path" }]
+   uint16 LastUpdateErrorSubCode;
+};
+
+
+// ==================================================================
+// BGPAdminDistance
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This is a specialization of the Dependency association, and "
+       "defines the relationship between a BGPService and the "
+       "AdministrativeDistances that it uses to control the (BGP) "
+       "routing decisions that it makes.")]
+class CIM_BGPAdminDistance : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The table of (global) administrative distances that are "
+          "used by the BGPService.")]
+   CIM_AdministrativeDistance REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The BGPService object that makes BGP routing decisions.")]
+   CIM_BGPService REF Dependent;
+};
+
+
+// ==================================================================
+// BGPCluster
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The BGP speakers in an AS are required to be fully meshed. "
+       "This can lead to a huge number of TCP connections per router. "
+       "One way to reduce the peering requirements is to use a route "
+       "reflector. This is based on specifying one or more routers to "
+       "act as focal points for IBGP sessions. \n"
+       "\n"
+       "The route reflector as a whole is called a cluster. It is "
+       "logically divided into three types of routers: reflectors, "
+       "clients of the route reflector(s), and non-clients of the "
+       "route reflector. There can be more than one route reflector in "
+       "a cluster, and there can be more than one cluster in an AS.")]
+class CIM_BGPCluster : CIM_CollectionOfMSEs {
+
+      [Key, Description (
+          "If a cluster has more than one route reflector, all of the "
+          "route reflectors in the cluster need to be configured with "
+          "a 4-byte cluster ID. This allows route reflectors to "
+          "recognize updates from other route reflectors in the same "
+          "cluster.")]
+   uint32 ClusterID;
+};
+
+
+// ==================================================================
+// RoutersInBGPCluster
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "This aggregation establishes the routers (ComputerSystems) in "
+       "a BGPCluster. At least three routers are required to form a "
+       "cluster - a reflector and two clients. The routers that form a "
+       "cluster share common configuration information.")]
+class CIM_RoutersInBGPCluster : CIM_CollectedMSEs {
+
+      [Aggregate, Override ( "Collection" ), Max ( 1 ), Description (
+          "The Cluster that aggregates the routers participating in "
+          "it.")]
+   CIM_BGPCluster REF Collection;
+
+      [Override ( "Member" ), Min ( 3 ), Description (
+          "The routers that form the Cluster.")]
+   CIM_ComputerSystem REF Member;
+};
+
+
+// ==================================================================
+// BGPClustersInAS
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "This aggregation establishes 'whole-part' relationships "
+       "between an AutonomousSystem and the BGPClusters that it "
+       "contains.")]
+class CIM_BGPClustersInAS {
+
+      [Key, Aggregate, Max ( 1 ), Description (
+          "The AutonomousSystem that aggregates the Clusters belonging "
+          "to it and administers them.")]
+   CIM_AutonomousSystem REF GroupAS;
+
+      [Key, Description (
+          "The Clusters that are contained in the AS.")]
+   CIM_BGPCluster REF PartAS;
+};
+
+
+// ==================================================================
+// Confederation
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "The BGP speakers in an AS are required to be fully meshed. "
+       "This can lead to a huge number of TCP connections per router. "
+       "One way to reduce the peering requirements is to use a "
+       "confederation. A confederation effectively partitions one AS "
+       "into a group of 'sub-ASs'. This enables all of the benefits of "
+       "IBGP to be applied inside the confederation, while enabling "
+       "EBGP to be run between each confederation. It also enables "
+       "certain BGP attribute values to be preserved between "
+       "confederations. However, to the outside world, the AS with its "
+       "confederations appear to be a single AS.")]
+class CIM_Confederation : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The AutonomousSystem that contains the confederations.")]
+   CIM_AutonomousSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The Confederation within the AutonomousSystem.")]
+   CIM_AutonomousSystem REF PartComponent;
+
+      [Description (
+          "A unique identifier of the AutonomousSystem that contains "
+          "the confederations.")]
+   uint32 ParentASNumber;
+
+      [Description (
+          "A unique identifier of the Confederation within the "
+          "AutonomousSystem.")]
+   uint32 ChildASNumber;
+};
+
+
+// ==================================================================
+// BGPIPRoute
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "BGPIPRoute describes a BGP routing entry that connects two "
+       "peer routers that are running BGP. The source and destination "
+       "addresses may be either specific IP endpoints or IP subnets. "
+       "Examining the BGPIPRoute class definition, note that its "
+       "superclass IPRoute is deprecated. Unfortunately, IPRoute "
+       "cannot be removed from the object hierarchy without a major "
+       "Schema release. When/if this occurs, the IPRoute superclass "
+       "will be removed, and BGPIPRoute will subclass from "
+       "CIM_NextHopRouting directly.")]
+class CIM_BGPIPRoute : CIM_IPRoute {
+
+      [Description (
+          "Usually, the administrative distance is used to determine "
+          "which route gets installed in the routing table. Using this "
+          "scheme, routes learned via EBGP will win over routes "
+          "learned via an IGP. If this is not desired, then this "
+          "assigns the administrative distance of this route to be "
+          "equal to that of a local route, which means that the same "
+          "route learned by an IGP will have a lower administrative "
+          "distance and be installed instead.")]
+   boolean IsBackDoorRoute;
+
+      [Description (
+          "Loopback interfaces are often used by IBGP peers, because "
+          "they eliminate a dependency that would otherwise occur if "
+          "the actual IP address of a physical interface was used to "
+          "configure BGP. The loopback interface instead instructs the "
+          "router to use any available interface.")]
+   boolean UsesLoopbackPeering;
+};
+
+
+// ==================================================================
+// RoutesBGP
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association defines a BGP route, and makes explicit the "
+       "dependency between a BGPIPRoute and a BGPProtocolEndpoint.")]
+class CIM_RoutesBGP : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 2 ), Description (
+          "The BGPProtocolEndpoints that represent the source and "
+          "destination (or at least the next hop) of the BGP route.")]
+   CIM_BGPProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The routing table entry that represents a BGP route.")]
+   CIM_BGPIPRoute REF Dependent;
+};
+
+
+// ==================================================================
+// EGPRouteCalcDependency
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This is a specialization of ServiceServiceDependency, and "
+       "captures the dependency that external gateway protocols (such "
+       "as BGP) have on interior gateway protocols (such as OSPF).")]
+class CIM_EGPRouteCalcDependency : CIM_ServiceServiceDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The independent RouteCalculationService that provides "
+          "routing information from the AS, for the EGP to use.")]
+   CIM_RouteCalculationService REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The dependent RouteCalculationService (e.g., the Route "
+          "CalculationService) that is functioning as an EGP.")]
+   CIM_RouteCalculationService REF Dependent;
+
+      [Description (
+          "Sometimes it is necessary to inject EGP information, such "
+          "as that from BGP, into IGPs. This attribute defines whether "
+          "this should be done for the two routing protocols that are "
+          "defined by this association. The values below mean that no, "
+          "partial, and full EGP information is injected into the IGP, "
+          "respectively."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "None", "Partial", "Full" }]
+   uint16 IGPInjection;
+};
+
+
+// ==================================================================
+// BGPPeerGroup
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A BGP Peer Group is a set of BGP neighbors that share the same "
+       "update policies. This enables an administrator to assign "
+       "policies to the peer group, instead of individually. This "
+       "enables the routers in the Peer Group to optimize UPDATE "
+       "messages. Consequently, Peer Groups have a set of restrictions "
+       "that must be followed in order to work correctly with external "
+       "BGP peers. Otherwise, loss of routing information could occur. "
+       "\n\n"
+       "A BGPPeerGroup is weak to the AutonomousSystem that contains "
+       "it. Therefore, the keys from System must be propagated to it.")]
+class CIM_BGPPeerGroup : CIM_CollectionOfMSEs {
+
+      [Key, Propagated ( "CIM_AutonomousSystem.CreationClassName" ), 
+       Description (
+          "The scoping AutonomousSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_AutonomousSystem.Name" ), Description (
+          "The scoping AutonomousSystem's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified.")]
+   string CreationClassName;
+
+      [Key, Description (
+          "This is the name of the BGP Peer Group."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "This defines the time interval, in seconds, for the "
+          "ConnectRetry timer for the endpoints of the routers in the "
+          "PeerGroup. The suggested value is 120 seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpConnectRetryInterval" }]
+   uint32 ConnectRetryInterval = 120;
+
+      [Description (
+          "This defines the time interval in seconds for the Hold "
+          "TimeConfigured property of the endpoints of the routers in "
+          "the PeerGroup. This value must not be less than three "
+          "seconds. The suggested value for this timer is 90 seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerHoldTimeConfigured" }]
+   uint16 HoldTimeConfigured = 90;
+
+      [Description (
+          "This defines the time interval in seconds for the "
+          "KeepAliveConfigured timer for the endpoints of the routers "
+          "in the PeerGroup. The suggested value for this property is "
+          "30 seconds. The maximum value of this property is 21845 "
+          "seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerKeepAliveConfigured" 
+          }]
+   uint16 KeepAliveConfigured = 30;
+
+      [Description (
+          "This defines the time interval in seconds for the "
+          "MinASOriginationInterval timer for the endpoints of the "
+          "routers in the PeerGroup. The suggested value for this "
+          "property is 15 seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { 
+          "MIB.IETF|BGP4-MIB.bgpPeerMinASOriginationInterval" }]
+   uint16 MinASOriginationInterval = 15;
+
+      [Description (
+          "This defines the time interval in seconds for the "
+          "MinRouteAdvertisementInterval timer for the endpoints of "
+          "the routers in the PeerGroup. The suggested value for this "
+          "property is 30 seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { 
+          "MIB.IETF|BGP4-MIB.bgpPeerMinRouteAdvertisementInterval" }]
+   uint16 MinRouteAdvertisementInterval = 30;
+};
+
+
+// ==================================================================
+// HostedBGPPeerGroup
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A BGPPeerGroup is weak to the AutonomousSystem that contains "
+       "it. This association formalizes that relationship.")]
+class CIM_HostedBGPPeerGroup : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The AutonomousSystem that scopes the BGP peer group.")]
+   CIM_AutonomousSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The BGP peer group defined in the context of the "
+          "AutonomousSystem.")]
+   CIM_BGPPeerGroup REF Dependent;
+};
+
+// ==================================================================
+// InBGPPeerGroup
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "This aggregation defines the specific routers (i.e., "
+       "ComputerSystems) that participate in a PeerGroup.")]
+class CIM_InBGPPeerGroup : CIM_CollectedMSEs {
+
+      [Aggregate, Override ( "Collection" ), Max ( 1 ), Description (
+          "The PeerGroup that aggregates the routers.")]
+   CIM_BGPPeerGroup REF Collection;
+
+      [Override ( "Member" ), Min ( 2 ), Description (
+          "The routers that comprise the PeerGroup.")]
+   CIM_ComputerSystem REF Member;
+};
+
+
+// ==================================================================
+// BGPPeerGroupService
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This defines the relationship between a BGPService and a "
+       "specific BGPPeerGroup in which it is executing.")]
+class CIM_BGPPeerGroupService : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The BGPPeerGroup in which the BGPService is executing.")]
+   CIM_BGPPeerGroup REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The BGPService that is executing in the BGPPeerGroup.")]
+   CIM_BGPService REF Dependent;
+};
+
+
+// ==================================================================
+// ReflectorService
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association will serve as the base class for defining and "
+       "distributing BGP routing information for the reflector of this "
+       "Cluster.")]
+class CIM_ReflectorService : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The Cluster for which this Service is being defined.")]
+   CIM_BGPCluster REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The BGPService which distributes routing information in the "
+          "Cluster.")]
+   CIM_BGPService REF Dependent;
+};
+
+
+// ==================================================================
+// ReflectorClientService
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association will serve as the base class for handling BGP "
+       "routing information for clients of the reflector of this "
+       "Cluster.")]
+class CIM_ReflectorClientService : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The Cluster for which this Service is being defined.")]
+   CIM_BGPCluster REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The BGPService to handles routing information as a client "
+          "in the Cluster.")]
+   CIM_BGPService REF Dependent;
+};
+
+
+// ==================================================================
+// ReflectorNonClientService
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association will serve as the base class for handling BGP "
+       "routing information for the non-clients of the reflector of "
+       "this Cluster.")]
+class CIM_ReflectorNonClientService : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The Cluster for which this Service is being defined.")]
+   CIM_BGPCluster REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The BGPService which handles routing information as a "
+          "non-client of the Cluster.")]
+   CIM_BGPService REF Dependent;
+};
+
+
+// ==================================================================
+// BGPRoutingPolicy
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This is a specialization of the Dependency association, and "
+       "defines the relationship between a BGPService and the "
+       "RoutingPolicy that control it.")]
+class CIM_BGPRoutingPolicy : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The BGP routing policy object.")]
+   CIM_RoutingPolicy REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The BGPService that operates according to the routing "
+          "policy.")]
+   CIM_BGPService REF Dependent;
+};
+
+
+// ==================================================================
+// BGPAttributes
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class defines the BGP Attributes, that can be used to "
+       "affect routing decisions. BGPAttributes are specific to a "
+       "given AutonomousSystem that contains it. Hence, the keys of "
+       "the AutonomousSystem are propagated to this class.")]
+class CIM_BGPAttributes : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_AutonomousSystem.CreationClassName" ), 
+       Description (
+          "The scoping AutonomousSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_AutonomousSystem.Name" ), Description (
+          "The scoping AutonomousSystem's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "This defines the version of the BGP protocol.")]
+   string Version;
+
+      [Description (
+          "This defines the priority, or preference, of a route, in "
+          "order to better compare it with other routes for the same "
+          "destination. Higher values indicate a higher preference for "
+          "a route."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrLocalPref" }]
+   uint16 LocalPreference;
+
+      [Description (
+          "This attribute is a sequences of the AS numbers through "
+          "which routing information carried in this UPDATE message "
+          "has passed. The components of this list can be AS_SETs or "
+          "AS_SEQUENCEs."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrASPath" }]
+   string ASPath;
+
+      [Description (
+          "This is the set of all elements contained in all specific "
+          "paths that are being summarized, so that those attributes "
+          "will remain available to the routing decision process.")]
+   string AsSet;
+
+      [Description (
+          "This attribute defines the IP address of the border router "
+          "that should be used as the next hop to the destinations "
+          "listed in the UPDATE message."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrNextHop" }]
+   string NextHop;
+
+      [Description (
+          "This defines the next hop to be the IP address of the "
+          "border IBGP neighbor.")]
+   string NextHopSelf;
+
+      [Description (
+          "This is used on external (e.g., inter-AS) links to indicate "
+          "which is the preferred entry point into an AS, when that AS "
+          "has multiple entry points. Lower MED values have "
+          "preference."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrMultiExitDisc" }]
+   uint32 MED;
+
+      [Description (
+          "This defines a group of destinations that share a similar "
+          "property. Communities are not restricted to a single AS, "
+          "and can span multiple ASs. This attribute is used to "
+          "simplify routing policies by basing policies on a logical "
+          "value, as opposed to an IP address or an AS number.")]
+   uint32 BGPCommunityValue;
+
+      [Description (
+          "This property is set to TRUE if there are overlapping "
+          "routes, and a less-specific route is selected instead of a "
+          "more specific one (e.g., a system propagates an aggregate "
+          "that causes loss of information). The value is set to FALSE "
+          "if a less-specific route is NOT selected."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrAtomicAggregate" 
+          }]
+   boolean AtomicAggregate;
+
+      [Description (
+          "This specifies the AS and IP address of the router that has "
+          "generated an aggregate."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrAggregatorAS" }]
+   string Aggregator;
+
+      [Description (
+          "This is generated by the AS that originates the routing "
+          "information. There are three types of origins - IGP, EGP, "
+          "and INCOMPLETE. These correspond to whether the information "
+          "was learned internally in the AS, externally via an EGP, or "
+          "by some other means."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "IGP", "EGP", "INCOMPLETE" }, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrOrigin" }]
+   uint16 Origin;
+
+      [Description (
+          "This is the router ID for the ORIGIN attribute.")]
+   string OriginatorID;
+};
+
+
+// ==================================================================
+// HostedBGPAttributes
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "The class BGPAttributes is weak to the AutonomousSystem that "
+       "contains it. This association formalizes that relationship.")]
+class CIM_HostedBGPAttributes : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The AutonomousSystem that scopes the BGP attributes.")]
+   CIM_AutonomousSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The BGP attributes defined in the context of the "
+          "AutonomousSystem.")]
+   CIM_BGPAttributes REF Dependent;
+};
+
+
+// ==================================================================
+// FilteredBGPAttributes
+// ==================================================================
+   [Association, Aggregation, Version ( "2.7.0" ), Description (
+       "This is a specialization of the Component aggregation, which "
+       "is used to define the set of BGP Attributes that are used by a "
+       "particular Routing Policy.")]
+class CIM_FilteredBGPAttributes : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The RoutingPolicy, which aggregates a set of BGP "
+          "attributes.")]
+   CIM_RoutingPolicy REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "A BGP attribute, which is part-of the RoutingPolicy.")]
+   CIM_BGPAttributes REF PartComponent;
+};
+
+
+// ==================================================================
+// BGPRouteMap
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A route map is used to control and modify routing information "
+       "as well as to define when a route is redistributed between "
+       "routing domains. Route maps are placed in router configuration "
+       "files, and several instances of the same route map may be used "
+       "to implement different actions. RouteMaps MAY use FilterLists "
+       "to identify the route. \n"
+       "\n"
+       "A BGPRouteMap is specific to a given AutonomousSystem that "
+       "contains it. Hence, the keys of the AutonomousSystem are "
+       "propagated to this class.")]
+class CIM_BGPRouteMap : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_AutonomousSystem.CreationClassName" ), 
+       Description (
+          "The scoping AutonomousSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_AutonomousSystem.Name" ), Description (
+          "The scoping AutonomousSystem's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified.")]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "This is the name of the RouteMap class."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "This defines whether this RouteMap is used for input, "
+          "output, or both input and output filtering."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Input", "Output", "Both" }]
+   uint16 Direction;
+
+      [Description (
+          "This defines whether the action should be to forward or "
+          "deny traffic meeting the match condition specified in this "
+          "RouteMap."), 
+       ValueMap { "1", "2" }, 
+       Values { "Permit", "Deny" }]
+   uint16 Action;
+
+      [Description (
+          "This specifies the criteria that must be matched in order "
+          "for the corresponding MatchAction to take effect. The "
+          "matching of the criteria may be specified by using a "
+          "FilterList. For example, the command 'match ip address foo' "
+          "uses the FilterList named 'foo' to do the matching of IP "
+          "addresses."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Other", "Source Address and Mask",
+          "Destination Address and Mask", "Source Port",
+          "Source Port Range", "Destination Port",
+          "Destination Port Range", "Protocol Type",
+          "Protocol Type and Option" }, 
+       ModelCorrespondence { "CIM_BGPRouteMap.OtherMatchConditionType" 
+          }]
+   uint16 MatchConditionType;
+
+      [Description (
+          "If the value of the MatchConditionType property in this "
+          "class is 1 (i.e., \"Other\"), then the specific type of "
+          "filtering is specified in this property."), 
+       ModelCorrespondence { "CIM_BGPRouteMap.MatchConditionType" }]
+   string OtherMatchConditionType;
+
+      [Description (
+          "This defines an additional action to take if the "
+          "MatchCondition is satisfied. This definition is "
+          "specifically limited to BGP filtering at this time. The "
+          "actual value of the metric is specified in the "
+          "SetMetricValue property."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Origin", "AS_Path", "NEXT_HOP", "Multi_Exit_Disc",
+          "Local_Pref", "Atomic_Aggregate", "Aggregator", "Community",
+          "Originator_ID" }, 
+       ModelCorrespondence { "CIM_BGPRouteMap.SetMetricValue" }]
+   uint16 SetMetricType;
+
+      [Description (
+          "This is the value of the metric that is being set for the "
+          "BGP attribute defined in the SetMetricType property.")]
+   string SetMetricValue;
+};
+
+
+// ==================================================================
+// HostedBGPRouteMap
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A BGPRouteMap is weak to the AutonomousSystem that contains "
+       "it. This association formalizes that relationship.")]
+class CIM_HostedBGPRouteMap : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The AutonomousSystem that scopes the BGPRouteMap.")]
+   CIM_AutonomousSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The BGPRouteMap defined in the context of the "
+          "AutonomousSystem.")]
+   CIM_BGPRouteMap REF Dependent;
+};
+
+
+// ==================================================================
+// BGPRouteMapsInRoutingPolicy
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "This aggregation defines the BGPRouteMaps that are used by a "
+       "particular RoutingPolicy object. Multiple instances of the "
+       "same RouteMap may be used in the same RoutingPolicy instance. "
+       "If this is desired, then the Sequence attribute of this "
+       "aggregation can be used to disambiguate them.")]
+class CIM_BGPRouteMapsInRoutingPolicy : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The RoutingPolicy that aggregates the RouteMaps.")]
+   CIM_RoutingPolicy REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The RouteMaps that are used by the RoutingPolicy.")]
+   CIM_BGPRouteMap REF PartComponent;
+
+      [Description (
+          "This defines the position of this RouteMap instance "
+          "relative to all other instances of the same RouteMap.")]
+   uint16 MapSequence;
+};
+
+
+// ==================================================================
+// BGPPeerUsesRouteMap
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "This association defines the RouteMaps that are aggregated and "
+       "used by a particular BGPPeerGroup object. Multiple instances "
+       "of the same RouteMap may be aggregated into the same "
+       "BGPPeerGroup. If this is desired, then the MapSequence "
+       "attribute of the association can be used to disambiguate them.")]
+class CIM_BGPPeerUsesRouteMap : CIM_CollectedMSEs {
+
+      [Aggregate, Override ( "Collection" ), Description (
+          "The BGPPeerGroup that aggregates the RouteMaps.")]
+   CIM_BGPPeerGroup REF Collection;
+
+      [Override ( "Member" ), Description (
+          "The RouteMaps that are used by the BGPPeerGroup.")]
+   CIM_BGPRouteMap REF Member;
+
+      [Description (
+          "This defines the position of this RouteMap instance "
+          "relative to all other instances of the same RouteMap.")]
+   uint16 MapSequence;
+};
+
+
+// ==================================================================
+// FilterListsInBGPRouteMap
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "RouteMaps do not have to use FilterLists, but if they do, this "
+       "association defines which FilterList is used by a particular "
+       "RouteMap.")]
+class CIM_FilterListsInBGPRouteMap : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The FilterList used by a RouteMap.")]
+   CIM_FilterList REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The RouteMap using the FilterList.")]
+   CIM_BGPRouteMap REF Dependent;
+};
+
+
+// ==================================================================
+// BGPPathAttributes
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class defines the per-path information used to process "
+       "specific BGP attribute information, as defined in the "
+       "bgp4PathAttrTable of RFC 1657.")]
+class CIM_BGPPathAttributes : CIM_LogicalElement {
+
+      [Key, Description (
+          "A comma-separated list of AS numbers, as would be stored in "
+          "the value portion of the path segment in the "
+          "PathAttrASPathSegment property. This list can be ordered or "
+          "unordered."), 
+       MaxLen ( 512 )]
+   string ASNumbers;
+
+      [Key, Description (
+          "This is the address of the border router that should be "
+          "used for the destination network."), 
+       MaxLen ( 32 ), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrNextHop" }]
+   string PathAttrNextHop;
+
+      [Description (
+          "This property and its description are taken directly from "
+          "RFC 1657. The property represents a sequence of AS path "
+          "segments. Each AS path segment is represented by the tuple: "
+          "\n<type, length, value> \n"
+          "The type is a 1-octet field which has two possible values: "
+          "\n1 = AS_SET \n"
+          "2 = AS_SEQUENCE \n"
+          "An AS_SET is an unordered set of ASs representing the path "
+          "that an UPDATE message has traversed, and an AS_SEQUENCE is "
+          "an ordered set of ASs representing the path that an UPDATE "
+          "message has traversed. \n"
+          "The length is a 1-octet field containing the number of ASs "
+          "in the value field. \n"
+          "The value field contains one or more AS numbers, each AS is "
+          "represented in the octet string as a pair of octets "
+          "according to the following algorithm: \n"
+          "first-byte-of-pair = ASNumber / 256; \n"
+          "second-byte-of-pair = ASNumber & 255; \n"
+          "This property is mapped from the bgp4PathAttrASPathSegment "
+          "MIB variable, which is an OctetString. Its length is "
+          "defined as a minimum of 2 and a maximum of 255 octets."), 
+       OctetString, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrASPathSegment" }]
+   uint8 PathAttrASPathSegment[];
+
+      [Description (
+          "This is an enumeration that defines the ultimate origin of "
+          "the path information. The value 'IGP' means that the origin "
+          "is interior; the value 'EGP' means that it was learned via "
+          "an EGP; the value 'INCOMPLETE' means that the origin is "
+          "undetermined."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "IGP", "EGP", "Incomplete" }, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrOrigin" }]
+   uint16 PathAttrOrigin;
+
+      [Description (
+          "This metric is used to discriminate between multiple "
+          "adjacent autonomous systems. A value of -1 indicates the "
+          "absence of this attribute. The range of this attribute is "
+          "defined to be -1 to 2147483647."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrMultiExitDisc" }]
+   sint32 PathAttrMultiExitDisc;
+
+      [Description (
+          "This is the originating BGP4 speaker's degree of preference "
+          "for an advertised route. A value of -1 indicates the "
+          "absence of this attribute. The range of this attribute is "
+          "defined to be -1 to 2147483647."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrLocalPref" }]
+   sint32 PathAttrLocalPref;
+
+      [Description (
+          "This is an enumeration that defines whether or not the "
+          "local system has selected a less specific route without "
+          "selecting a more specific route. There are two values, 1 "
+          "and 2, indicating that a less specific route has not and "
+          "has been selected, respectively. This is a 32-bit integer "
+          "to correspond to the IETF MIB."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "Less Specific Not Selected",
+          "Less Specific Selected" }, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrAtomicAggregate" 
+          }]
+   uint32 PathAttrAtomicAggregate;
+
+      [Description (
+          "This is the AS number of the last BGP speaker that "
+          "performed route aggregation. A value of 0 indicates the "
+          "absence of this attribute. The range of this attribute is "
+          "defined to be 0 to 65535."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrAggregatorAS" }]
+   uint16 PathAttrAggregatorAS;
+
+      [Description (
+          "This is the IP address of the last BGP speaker that "
+          "performed route aggregation. A value of 0.0.0.0 indicates "
+          "the absence of this attribute."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrAggregatorAddr" 
+          }]
+   string PathAttrAggregatorAddr;
+
+      [Description (
+          "This is the degree of preference calculated by the "
+          "receiving BGP speaker for an advertised route. A value of "
+          "-1 indicates the absence of this attribute. The range of "
+          "this attribute is defined to be -1 to 2147483647."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrCalcLocalPref" }]
+   sint16 PathAttrCalcLocalPref;
+
+      [Description (
+          "This is an indication of whether or not this route was "
+          "chosen as the best BGP route. There are three possible "
+          "values, 0 (Unknown), 1 (FALSE) and 2 (TRUE)."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "False", "True" }, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrBest" }]
+   uint16 PathAttrBest;
+
+      [Description (
+          "This contains one or more path atributes not understood by "
+          "this BGP speaker. It is a array of path attributes that are "
+          "not understood. The number of attributes is placed in a "
+          "separate property of this class, PathAttrUnknownNumber."), 
+       OctetString, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrUnknown" }, 
+       ModelCorrespondence { 
+          "CIM_BGPPathAttributes.PathAttrUnknownNumber" }]
+   string PathAttrUnknown[];
+
+      [Description (
+          "The number of unknown attributes in the array, "
+          "PathAttrUnknown."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrUnknown" }, 
+       ModelCorrespondence { "CIM_BGPPathAttributes.PathAttrUnknown" }]
+   uint16 PathAttrUnknownNumber;
+};
+
+
+// ==================================================================
+// BGPAttributesForRoute
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This defines the attributes that are transmitted between BGP "
+       "peers on a per-route basis.")]
+class CIM_BGPAttributesForRoute : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The BGPPathAttribute object that may be associated with a "
+          "BGPIPRoute.")]
+   CIM_BGPPathAttributes REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The BGPIPRoute that may have an associated set of per-peer "
+          "attributes.")]
+   CIM_BGPIPRoute REF Dependent;
+
+      [Description (
+          "This defines the IP address of the peer where the path "
+          "information was learned."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrPeer" }, 
+       ModelCorrespondence { 
+          "CIM_BGPAttributesForRoute.PathAttrIPAddrPrefixLen",
+          "CIM_BGPAttributesForRoute.PathAttrIPAddrPrefix" }]
+   string PathAttrPeer;
+
+      [Description (
+          "This defines the length in bits of the IP address prefix "
+          "for the property, PathAttrPeer. The range is 0 to 32."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrIpAddrPrefixLen" 
+          }, 
+       ModelCorrespondence { "CIM_BGPAttributesForRoute.PathAttrPeer" }]
+   uint8 PathAttrIPAddrPrefixLen;
+
+      [Description (
+          "The IP address prefix of the property, PathAttrPeer. Its "
+          "length is specified by the property, "
+          "PathAttrIpAddrPrefixLen."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgp4PathAttrIpAddrPrefix" }, 
+       ModelCorrespondence { "CIM_BGPAttributesForRoute.PathAttrPeer",
+          "CIM_BGPAttributesForRoute.PathAttrIPAddrPrefixLen" }]
+   string PathAttrIPAddrPrefix;
+};
+
+
+// ==================================================================
+// BGPServiceAttributes
+// ==================================================================
+   [Association, Deprecated { "No value" }, Aggregation,
+       Version ( "2.7.0" ), Description (
+       "This is a specialization of the Component aggregation. This "
+       "aggregation defines the set of BGPPathAttributes that are "
+       "transmitted in per-path UPDATE messages. The association is "
+       "deprecated since it is incorrectly defined as a Component "
+       "relationship, and since the properties of BGPPathAttribute are "
+       "path/endpoint-specific (not defined at the level of the "
+       "Service).")]
+class CIM_BGPServiceAttributes : CIM_Component {
+
+      [Deprecated { "No value" }, Aggregate,
+          Override ( "GroupComponent" ), Max ( 1 ), Description (
+          "The BGPService that aggregates BGPPathAttributes as part of "
+          "its routing information.")]
+   CIM_BGPService REF GroupComponent;
+
+      [Deprecated { "No value" }, Override ( "PartComponent" ),
+       Max ( 1 ), Description (
+          "The BGP attribute, which are part-of the BGP UPDATE "
+          "message.")]
+   CIM_BGPPathAttributes REF PartComponent;
+};
+
+
+// ==================================================================
+// BGPEndpointStatistics
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class contains statistical information for a connection "
+       "on a BGPProtocolEndpoint. It is defined as a subclass of "
+       "StatisticalData and associated with the Endpoint using the "
+       "relationship, ElementStatisticalData.")]
+class CIM_BGPEndpointStatistics : CIM_StatisticalData {
+
+      [Description (
+          "This is the number of BGP UPDATE messages received on this "
+          "router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerInUpdates" }]
+   uint32 InUpdates;
+
+      [Description (
+          "This is the number of BGP UPDATE messages transmitted on "
+          "this router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerOutUpdates" }]
+   uint32 OutUpdates;
+
+      [Description (
+          "This is the total number of BGP messages received on this "
+          "router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerInTotalMessages" }]
+   uint32 InTotalMessages;
+
+      [Description (
+          "This is the total number of BGP messages transmitted on "
+          "this router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerOutTotalMessages" }]
+   uint32 OutTotalMessages;
+
+      [Description (
+          "This contains the last error code and error subcode for "
+          "this router's BGP connection. If no error has occurred, "
+          "then each integer in the array is zero."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerLastError" }]
+   uint8 LastError [2];
+
+      [Description (
+          "This contains the total number of times that the BGP Finite "
+          "State Machine has transitioned into the established state "
+          "for this router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|BGP4-MIB.bgpPeerFsmEstablishedTransitions" }]
+   uint32 FsmEstablishedTransitions;
+
+      [Description (
+          "This indicates how long, in seconds, this peer has been in "
+          "the established state, or how long since this peer was last "
+          "in the established state. It is set to zero when a new peer "
+          "is configured or when the router is booted. This has the "
+          "semantics of a 32-bit gauge."), 
+       Units ( "Seconds" ), Gauge, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerFsmEstablishedTime" }]
+   uint32 FsmEstablishedTime;
+
+      [Description (
+          "This defines the time in seconds since the last BGP UPDATE "
+          "message was received from the peer. This has the semantics "
+          "of a 32-bit gauge."), 
+       Units ( "Seconds" ), Gauge, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerInUpdateElapsedTime" 
+          }]
+   uint32 InUpdateElapsedTime;
+};
+
+
+// ==================================================================
+// BGPStatistics
+// ==================================================================
+   [Deprecated { "CIM_BGPEndpointStatistics" }, Version ( "2.7.0" ), 
+    Description (
+       "This class contains statistical information for a Service's "
+       "sessions. It is deprecated since the statistics are defined in "
+       "the BGP4 MIB at the level of individual peers/ endpoints.")]
+class CIM_BGPStatistics : CIM_ServiceStatisticalInformation {
+
+      [Deprecated { "CIM_BGPEndpointStatistics.InUpdates" }, 
+       Description (
+          "This is the number of BGP UPDATE messages received on this "
+          "router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerInUpdates" }]
+   uint32 InUpdates;
+
+      [Deprecated { "CIM_BGPEndpointStatistics.OutUpdates" }, 
+       Description (
+          "This is the number of BGP UPDATE messages transmitted on "
+          "this router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerOutUpdates" }]
+   uint32 OutUpdates;
+
+      [Deprecated { "CIM_BGPEndpointStatistics.InTotalMessages" }, 
+       Description (
+          "This is the total number of BGP messages received on this "
+          "router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerInTotalMessages" }]
+   uint32 InTotalMessages;
+
+      [Deprecated { "CIM_BGPEndpointStatistics.OutTotalMessages" }, 
+       Description (
+          "This is the total number of BGP messages transmitted on "
+          "this router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerOutTotalMessages" }]
+   uint32 OutTotalMessages;
+
+      [Deprecated { "CIM_BGPEndpointStatistics.LastError" }, 
+       Description (
+          "This contains the last error code and error subcode for "
+          "this router's BGP connection. If no error has occurred, "
+          "then each integer in the array is zero."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerLastError" }]
+   uint8 LastError [2];
+
+      [Deprecated { 
+          "CIM_BGPEndpointStatistics.FsmEstablishedTransitions" }, 
+       Description (
+          "This contains the total number of times that the BGP Finite "
+          "State Machine has transitioned into the established state "
+          "for this router's BGP connection. This is a 32-bit counter."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|BGP4-MIB.bgpPeerFsmEstablishedTransitions" }]
+   uint32 FsmEstablishedTransitions;
+
+      [Deprecated { "CIM_BGPEndpointStatistics.FsmEstablishedTime" }, 
+       Description (
+          "This indicates how long, in seconds, this peer has been in "
+          "the established state, or how long since this peer was last "
+          "in the established state. It is set to zero when a new peer "
+          "is configured or when the router is booted. This has the "
+          "semantics of a 32-bit gauge."), 
+       Units ( "Seconds" ), Gauge, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerFsmEstablishedTime" }]
+   uint32 FsmEstablishedTime;
+
+      [Deprecated { "CIM_BGPEndpointStatistics.InUpdateElapsedTime" }, 
+       Description (
+          "This defines the time in seconds since the last BGP UPDATE "
+          "message was received from the peer. This has the semantics "
+          "of a 32-bit gauge."), 
+       Units ( "Seconds" ), Gauge, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerInUpdateElapsedTime" 
+          }]
+   uint32 InUpdateElapsedTime;
+};
+
+
+// ==================================================================
+// BGPServiceStatistics
+// ==================================================================
+   [Association, Deprecated { "CIM_ElementStatisticalData" },
+       Version ( "2.7.0" ), Description (
+       "This association defines statistics collected for a BGP "
+       "Service. The relationship is deprecated since the class "
+       "BGPStatistics is deprecated. It is incorrectly associated with "
+       "a BGPService, but should instead be associated with a "
+       "BGPProtocolEndpoint using the ElementStatisticalData "
+       "relationship.")]
+class CIM_BGPServiceStatistics : CIM_ServiceStatistics {
+
+      [Deprecated { "CIM_ElementStatisticalData.Stats" },
+          Override ( "Stats" ), Max ( 1 ), Description (
+          "The statistics object for the BGP session.")]
+   CIM_BGPStatistics REF Stats;
+
+      [Deprecated { "CIM_ElementStatisticalData.ManagedElement" },
+       Override ( "Element" ), Min ( 1 ), Max ( 1 ), Description (
+          "The BGPService for which statistics are being gathered.")]
+   CIM_BGPService REF Element;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

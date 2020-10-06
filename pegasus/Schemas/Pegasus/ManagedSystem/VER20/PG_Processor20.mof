@@ -1,0 +1,634 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+// ===================================================================
+// Title:       PG_Processor MOF
+// Filename:    PG_Processor20.mof
+// Version:     2.5
+// Release:     0
+// Date:        2002/06/17
+// ==================================================================
+// Clipped from:
+//
+//     - CIM_Core25.mof
+//		. CIM_ManagedElement
+//		. CIM_ManagedSystemElement
+//		. CIM_LogicalElement
+//
+// ==================================================================
+
+// ===================================================================
+// Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// ===================================================================
+
+// ==================================================================
+// ManagedElement
+// ================================================================== 
+   [Abstract, Description (
+     "ManagedElement is an abstract class that provides a common "  
+     "superclass (or top of the inheritance tree) for the "
+     "non-association classes in the CIM Schema.")]
+class CIM_ManagedElement {  
+      [MaxLen (64), Description (  
+        "The Caption property is a short textual description (one-"    
+        "line string) of the object.") ]   
+   string Caption;  
+      [Description (  
+        "The Description property provides a textual description of "
+        "the object.") ]   
+   string Description;    
+};
+     
+
+// ================================================================== 
+//    ManagedSystemElement
+// ==================================================================
+   [Abstract, Description (
+     "CIM_ManagedSystemElement is the base class for the System "
+     "Element hierarchy. Membership Criteria: Any distinguishable "
+     "component of a System is a candidate for inclusion in this "
+     "class. Examples: software components, such as files; and "
+     "devices, such as disk drives and controllers, and physical "
+     "components such as chips and cards.") ] 
+class CIM_ManagedSystemElement : CIM_ManagedElement {
+      [Description (
+        "A datetime value indicating when the object was installed. "
+        "A lack of a value does not indicate that the object is not "
+        "installed."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.5"} ] 
+   datetime InstallDate;
+      [MaxLen (256), Description (
+        "The Name property defines the label by which the object is "
+        "known. When subclassed, the Name property can be overridden "
+        "to be a Key property.") ] 
+   string Name;
+      [MaxLen (10), Description ( 
+        "  A string indicating the current status of the object. " 
+        "Various operational and non-operational statuses are " 
+        "defined. Operational statuses are \"OK\", \"Degraded\", " 
+        "\"Stressed\" and \"Pred Fail\". \"Stressed\" indicates that " 
+        "the Element is functioning, but needs attention. Examples " 
+        "of \"Stressed\" states are overload, overheated, etc. The " 
+        "condition \"Pred Fail\" (failure predicted) indicates that " 
+        "an Element is functioning properly but predicting a failure " 
+        "in the near future. An example is a SMART-enabled hard " 
+        "drive. \n" 
+        "  Non-operational statuses can also be specified. These " 
+        "are \"Error\", \"NonRecover\", \"Starting\", \"Stopping\", " 
+        " \"Stopped\", " 
+        "\"Service\", \"No Contact\" and \"Lost Comm\". \"NonRecover\" " 
+        "indicates that a non-recoverable error has occurred. " 
+        "\"Service\" describes an Element being configured, maintained, " 
+        "cleaned, or otherwise administered. This status could apply " 
+        "during mirror-resilvering of a disk, reload of a user " 
+        "permissions list, or other administrative task. Not all such " 
+        "work is on-line, yet the Element is neither \"OK\" nor in " 
+        "one of the other states. \"No Contact\" indicates that the " 
+        "current instance of the monitoring system has knowledge of " 
+        "this Element but has never been able to establish " 
+        "communications with it. \"Lost Comm\" indicates that " 
+        "the ManagedSystemElement is known to exist and has been " 
+        "contacted successfully in the past, but is currently unreachable." 
+        "\"Stopped\" indicates that the ManagedSystemElement is known " 
+        "to exist, it is not operational (i.e. it is unable to " 
+        "provide service to users), but it has not failed. It has purposely " 
+        "been made non-operational. The Element " 
+        "may have never been \"OK\", the Element may have initiated its " 
+        "own stop, or a management system may have initiated the stop."), 
+       ValueMap {"OK", "Error", "Degraded", "Unknown", "Pred Fail", 
+                 "Starting", "Stopping", "Service", "Stressed", 
+                 "NonRecover", "No Contact", "Lost Comm", "Stopped"} ] 
+   string Status; 
+};
+
+
+// ==================================================================
+//    LogicalElement
+// ==================================================================
+   [Abstract, Description (
+     "CIM_LogicalElement is a base class for all the components of "
+     "a System that represent abstract system components, such "
+     "as Files, Processes, or system capabilities in the form "
+     "of Logical Devices.") ] 
+class CIM_LogicalElement : CIM_ManagedSystemElement {
+};
+
+     
+// ===================================================================
+//    LogicalDevice
+// ===================================================================
+   [Abstract, Description (
+     "An abstraction or emulation of a hardware entity, that may "
+     "or may not be Realized in physical hardware. Any "
+     "characteristics of a LogicalDevice that are used to manage "
+     "its operation or configuration are contained in, or "
+     "associated with, the LogicalDevice object. Examples of the "
+     "operational properties of a Printer would be paper sizes "
+     "supported, or detected errors. Examples of the configuration "
+     "properties of a Sensor Device would be threshold settings. "
+     "Various configurations could exist for a LogicalDevice. "
+     "These configurations could be contained in Setting objects "
+     "and associated with the LogicalDevice.") ] 
+class CIM_LogicalDevice : CIM_LogicalElement {
+      [Propagated("CIM_System.CreationClassName"), 
+       Key, MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ]
+   string SystemCreationClassName;
+      [Propagated("CIM_System.Name"),
+       Key, MaxLen (256), Description (
+        "The scoping System's Name.") ]
+   string SystemName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or "
+        "the subclass used in the creation of an instance. When "
+        "used with the other key properties of this class, this "
+        "property allows all instances of this class and its "
+        "subclasses to be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen (64), Description (
+        "An address or other identifying information to uniquely "
+        "name the LogicalDevice.") ]
+   string DeviceID;
+      [Description (
+        "Boolean indicating that the Device can be power managed "
+        "- ie, put into a power save state. This boolean does not "
+        "indicate that power management features are currently "
+        "enabled, or if enabled, what features are supported. "
+        "Refer to the PowerManagementCapabilities array for this "
+        "information. If this boolean is false, the integer value "
+        "1, for the string, \"Not Supported\", should be the only "
+        "entry in the PowerManagementCapabilities array.") ]    
+   boolean PowerManagementSupported;
+      [Description(
+        "Indicates the specific power-related capabilities of a "
+        "LogicalDevice. The array values, 0=\"Unknown\", 1="
+        "\"Not Supported\" and 2=\"Disabled\" are self-explanatory. "
+        "The value, 3=\"Enabled\" indicates that the power management "
+        "features are currently enabled but the exact feature set "
+        "is unknown or the information is unavailable. "
+        "\"Power Saving Modes Entered Automatically\" (4) describes "
+        "that a Device can change its power state based on usage or "
+        "other criteria. \"Power State Settable\" (5) indicates that "
+        "the SetPowerState method is supported. \"Power Cycling "
+        "Supported\" (6) indicates that the SetPowerState method "
+        "can be invoked with the PowerState input variable set to 5 ("
+        "\"Power Cycle\"). \"Timed Power On Supported\" (7) indicates "
+        "that the SetPowerState method can be invoked with the Power"
+        "State input variable set to 5 (\"Power Cycle\") and the Time "
+        "parameter set to a specific date and time, or interval, "
+        "for power-on."),
+       Values {"Unknown", "Not Supported", "Disabled", 
+               "Enabled", "Power Saving Modes Entered Automatically",
+               "Power State Settable", "Power Cycling Supported",
+               "Timed Power On Supported"} ]
+   uint16 PowerManagementCapabilities[];
+      [Description (
+        "The primary availability and status of the Device. (Additional "
+        "status information can be specified using the AdditionalAvailability "
+        "array property.) For example, the Availability property indicates "
+        "that the Device is running and has full power (value=3), or is in "
+        "a warning (4), test (5), degraded (10) or power save state (values "
+        "13-15 and 17). Regarding the Power Save states, these are defined "
+        "as follows: Value 13 (\"Power Save - Unknown\") indicates "
+        "that the Device is known to be in a power save mode, but its "
+        "exact status in this mode is unknown; 14 (\"Power Save - Low "
+        "Power Mode\") indicates that the Device is in a power save "
+        "state but still functioning, and may exhibit degraded "
+        "performance; 15 (\"Power Save - Standby\") describes that "
+        "the Device is not functioning but could be brought to full "
+        "power 'quickly'; and value 17 (\"Power Save - Warning\") "
+        "indicates that the Device is in a warning state, though also "
+        "in a power save mode."), 
+       ValueMap {"1", "2", "3", "4", "5", "6", "7", "8", "9",
+                "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+                "20", "21"},
+       Values {"Other", "Unknown", "Running/Full Power", "Warning", 
+               "In Test", "Not Applicable", "Power Off", "Off Line", 
+               "Off Duty", "Degraded", "Not Installed", "Install Error",
+               "Power Save - Unknown", "Power Save - Low Power Mode", 
+               "Power Save - Standby", "Power Cycle","Power Save - Warning", 
+               "Paused", "Not Ready", "Not Configured", "Quiesced"}, 
+       MappingStrings {"MIF.DMTF|Operational State|006",
+        "MIB.IETF|HOST-RESOURCES-MIB.hrDeviceStatus", 
+        "MIF.DMTF|Host Device|001.5"},
+       ModelCorrespondence {"CIM_LogicalDevice.AdditionalAvailability"}]
+   uint16 Availability;
+      [Description (
+        "The StatusInfo property indicates whether the Logical"
+        "Device is in an enabled (value = 3), disabled (value = "
+        "4) or some other (1) or unknown (2) state. If this "
+        "property does not apply to the LogicalDevice, the value, "
+        "5 (\"Not Applicable\"), should be used.  "
+        "If a Device is (\"Enabled\")(value=3), it has been "
+        "powered up, and is configured and operational.  The Device "
+        "may or may not be functionally active, depending on whether "
+        "its Availability (or AdditionalAvailability) indicate that "
+        "it is (\"Running/Full Power\")(value=3) or (\"Off line\")"
+        "(value=8). In an enabled but offline mode, a Device may be "
+        "performing out-of-band requests, such as running Diagnostics.  "
+        "If (\"Disabled\") StatusInfo value=4), a Device can only be " 
+        "\"enabled\" or powered off.  In a personal computer environment, "
+        "(\"Disabled\") means that the Device's driver is not "
+        "available in the stack. In other environments, a Device can "
+        "be disabled by removing its configuration file. A disabled "
+        "device is physically present in a System and consuming "
+        "resources, but can not be communicated with until a load "
+        "of a driver, a load of a configuration file or some other "
+        "\"enabling\" activity has occurred."),
+       ValueMap {"1", "2", "3", "4", "5"},
+       Values {"Other", "Unknown", "Enabled",
+               "Disabled", "Not Applicable"},
+       MappingStrings {"MIF.DMTF|Operational State|006"} ]
+   uint16 StatusInfo;
+      [Description (
+        "LastErrorCode captures the last error code reported by " 
+        "the LogicalDevice.")]
+   uint32 LastErrorCode;
+      [Description (
+        "ErrorDescription is a free-form string supplying more " 
+        "information about the error recorded in LastErrorCode, and " 
+        "information on any corrective actions that may be taken.")]
+   string ErrorDescription;
+      [Description (
+        "ErrorCleared is a boolean property indicating that the " 
+        "error reported in LastErrorCode is now cleared.")]
+   boolean ErrorCleared;
+      [MaxLen (256), ArrayType ("Indexed"), Description (
+        "OtherIdentifyingInfo captures additional data, beyond "
+        "DeviceID information, that could be used to identify a "
+        "LogicalDevice. One example would be to hold the Operating"
+        "System's user friendly name for the Device in this "
+        "property."),
+       ModelCorrespondence {
+        "CIM_LogicalDevice.IdentifyingDescriptions"} ]
+   string OtherIdentifyingInfo[];
+      [Description (
+        "The number of consecutive hours that this Device has been "
+        "powered, since its last power cycle."),
+       Units ("Hours"), Counter ]
+   uint64 PowerOnHours;
+      [Description (
+        "The total number of hours that this Device has been "
+        "powered."),
+       Units ("Hours"), Counter ]
+   uint64 TotalPowerOnHours;
+      [ArrayType ("Indexed"), Description (
+        "An array of free-form strings providing explanations "
+        "and details behind the entries in the OtherIdentifyingInfo "
+        "array. Note, each entry of this array is related to the "
+        "entry in OtherIdentifyingInfo that is located at the same "
+        "index."),
+       ModelCorrespondence {"CIM_LogicalDevice.OtherIdentifyingInfo"} ]
+   string IdentifyingDescriptions[];
+      [Description (
+        "Additional availability and status of the Device, beyond that "
+        "specified in the Availability property. The Availability property "
+        "denotes the primary status and availability of the Device. In "
+        "some cases, this will not be sufficient to denote the complete "
+        "status of the Device.  In those cases, the AdditionalAvailability "
+        "property can be used to provide further information. For example, "
+        "a Device's primary Availability may be \"Off line\" (value=8), "
+        "but it may also be in a low power state (AdditonalAvailability "
+        "value=14), or the Device could be running Diagnostics (Additional"
+        "Availability value=5, \"In Test\")."),
+       ValueMap {"1", "2", "3", "4", "5", "6", "7", "8", "9",
+                 "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+                 "20", "21"},
+       Values {"Other", "Unknown", "Running/Full Power", "Warning", 
+               "In Test", "Not Applicable", "Power Off", "Off Line", 
+               "Off Duty", "Degraded", "Not Installed", "Install Error",
+               "Power Save - Unknown", "Power Save - Low Power Mode", 
+               "Power Save - Standby", "Power Cycle", 
+               "Power Save - Warning", "Paused", "Not Ready",
+               "Not Configured", "Quiesced"}, 
+       ModelCorrespondence {"CIM_LogicalDevice.Availability"}]
+   uint16 AdditionalAvailability[];
+      [Description (
+        "Maximum time in milliseconds, that a Device can run in "
+        "a \"Quiesced\" state. A Device's state is defined in its "
+        "Availability and AdditionalAvailability properties, where "
+        "\"Quiesced\" is conveyed by the value 21. What occurs at "
+        "the end of the time limit is device-specific. The Device "
+        "may unquiesce, may offline or take other action. A value of "
+        "0 indicates that a Device can remain quiesced indefinitely."), 
+       Units ("MilliSeconds")]
+   uint64 MaxQuiesceTime;
+      [Description(
+        "SetPowerState defines the desired power state for a "
+        "LogicalDevice and when a Device should be put into that "
+        "state. The desired power state is specified by setting "
+        "the PowerState parameter to one of the "
+        "following integer values: 1=\"Full Power\", 2=\"Power Save "
+        "- Low Power Mode\", 3=\"Power Save - Standby\", 4=\"Power "
+        "Save - Other\", 5=\"Power Cycle\" or 6=\"Power Off\". "
+        "The Time parameter (for all state changes but 5, "
+        "\"Power Cycle\") indicates when the power state should be "
+        "set, either as a regular date-time value or as an interval "
+        "value (where the interval begins when the method "
+        "invocation is received). When the PowerState parameter is "
+        "equal to 5, \"Power Cycle\", the Time parameter indicates "
+        "when the Device should power on again. Power off is "
+        "immediate. SetPowerState should return 0 if successful, 1 "
+        "if the specified PowerState and Time request is not "
+        "supported, and some other value if any other error "
+        "occurred. In a subclass, the set of possible return codes "
+        "could be specified, using a ValueMap qualifier on the method. "
+        "The strings to which the ValueMap contents are 'translated' "
+        "may also be specified in the subclass as a Values array "
+        "qualifier.") ]
+   uint32 SetPowerState(
+      [IN, ValueMap {"1", "2", "3", "4", "5", "6"},
+           Values {"Full Power", "Power Save - Low Power Mode", 
+                   "Power Save - Standby", "Power Save - Other", 
+                   "Power Cycle", "Power Off"}] 
+       uint16 PowerState, 
+      [IN] datetime Time);
+      [Description (
+        "Requests a reset of the LogicalDevice. The return value "
+        "should be 0 if the request was successfully executed, "
+        "1 if the request is not supported and some other value "
+        "if an error occurred. In a subclass, the set of possible "
+        "return codes could be specified, using a ValueMap qualifier "
+        "on the method. The strings to which the ValueMap contents "
+        "are 'translated' may also be specified in the subclass as a "
+        "Values array qualifier.") ]
+    uint32 Reset();
+      [Description (
+        "Requests that the LogicalDevice be enabled (\"Enabled\" "
+        "input parameter = TRUE) or disabled (= FALSE). If "
+        "successful, the Device's StatusInfo property should also "
+        "reflect the desired state (enabled/disabled). The return "
+        "code should be 0 if the request was successfully executed, "
+        "1 if the request is not supported and some other value if "
+        "an error occurred. In a subclass, the set of possible "
+        "return codes could be specified, using a ValueMap qualifier "
+        "on the method. The strings to which the ValueMap contents "
+        "are 'translated' may also be specified in the subclass as a "
+        "Values array qualifier.") ]
+    uint32 EnableDevice(
+      [IN] boolean Enabled);
+      [Description (
+        "Requests that the LogicalDevice be brought online (\"Online\" "
+        "input parameter = TRUE) or taken offline (= FALSE). "
+        "\"Online\" indicates that the Device is ready to accept "
+        "requests, and is operational and fully functioning. In this "
+        "case, the Device's Availability property would be set to "
+        "a value of 3 (\"Running/Full Power\"). \"Offline\" indicates "
+        "that a Device is powered up and operational, but not processing "
+        "functional requests. In an offline state, a Device may be capable "
+        "of running diagnostics or generating operational alerts. For "
+        "example, when the \"Offline\" button is pushed on a Printer, the "
+        "Device is no longer available to process print jobs, but "
+        "could be available for diagnostics or maintenance.\n"
+        "If this method is successful, the Device's Availability and "
+        "AdditionalAvailability properties should reflect the updated "
+        "status. If a failure occurs trying to bring the Device online "
+        "or offline, it should remain in its current state. IE, the "
+        "request, if unsuccessful, should not leave the Device in an "
+        "indeterminate state. When bringing a Device back \"Online\", "
+        "from an \"Offline\" mode, the Device should be restored to its "
+        "last \"Online\" state, if at all possible. Only a Device that "
+        "has a StatusInfo of \"Enabled\" (value=3) and has been "
+        "configured can be brought online or taken offline.\n"
+        "OnlineDevice should return 0 if successful, 1 if the request is not "
+        "supported at all, 2 if the request is not supported due to the "
+        "current state of the Device, and some other value if any other "
+        "error occurred. In a subclass, the set of possible return codes "
+        "could be specified, using a ValueMap qualifier on the method. "
+        "The strings to which the ValueMap contents are 'translated' may "
+        "also be specified in the subclass as a Values array qualifier.") ]
+   uint32 OnlineDevice(
+      [IN] boolean Online);
+      [Description (
+        "Requests that the LogicalDevice cleanly cease all current "
+        "activity (\"Quiesce\" input parameter = TRUE) or resume "
+        "activity (= FALSE). For this method to quiesce a Device, "
+        "that Device should have an Availability (or Additional"
+        "Availability) of \"Running/Full Power\" (value=3) and a "
+        "StatusInfo of \"Enabled\" (value=3). For example, if quiesced, "
+        "a Device may then be offlined for diagnostics, or disabled "
+        "for power off and hot swap.  For the method to \"unquiesce\" "
+        "a Device, that Device should have an Availability (or Additional"
+        "Availability) of \"Quiesced\" (value=21) and a StatusInfo of "
+        "\"Enabled\" (value=3). In this case, the Device would "
+        "be returned to an \"Enabled\" and \"Running/Full Power\" "
+        "status.\n"
+        "The method's return code should indicate the success or "
+        "failure of the quiesce. It should return 0 if successful, "
+        "1 if the request is not supported at all, 2 if the request "
+        "is not supported due to the current state of the Device, "
+        "and some other value if any other error occurred. In a subclass, "
+        "the set of possible return codes could be specified, using a "
+        "ValueMap qualifier on the method.  The strings to which the "
+        "ValueMap contents are 'translated' may also be specified in "
+        "the subclass as a Values array qualifier.") ]
+   uint32 QuiesceDevice(
+      [IN] boolean Quiesce);
+      [Description (
+        "Requests that the Device capture its current configuration, "
+        "setup and/or state information in a backing store. The goal "
+        "would be to use this information at a later time (via the "
+        "RestoreProperties method), to return a Device to its present "
+        "\"condition\". This method may not be supported by all Devices.  "
+        "The method should return 0 if successful, 1 if the request is "
+        "not supported, and some other value if any other error occurred. "
+        "In a subclass, the set of possible return codes could be "
+        "specified, using a ValueMap qualifier on the method. The strings "
+        "to which the ValueMap contents are 'translated' may also be "
+        "specified in the subclass as a Values array qualifier.") ]
+   uint32 SaveProperties();
+      [Description (
+        "Requests that the Device re-establish its configuration, "
+        "setup and/or state information from a backing store. The "
+        "intent is to capture this information at an earlier time "
+        "(via the SaveProperties method), and use it to return a "
+        "Device to this earlier \"condition\". This method may not "
+        "be supported by all Devices. The method should return 0 if "
+        "successful, 1 if the request is not supported, and some "
+        "other value if any other error occurred. In a subclass, "
+        "the set of possible return codes could be specified, using "
+        "a ValueMap qualifier on the method. The strings to which "
+        "the ValueMap contents are 'translated' may also be specified "
+        "in the subclass as a Values array qualifier.") ]
+   uint32 RestoreProperties();        
+};  
+
+   
+// ===================================================================
+// Processor
+// ===================================================================
+   [Description (
+     "Capabilities and management of the Processor LogicalDevice.") ] 
+class CIM_Processor : CIM_LogicalDevice {
+      [Description (
+        "A free form string describing the role of the Processor - "
+        "for example, \"Central Processor\" or \"Math Processor\".") ] 
+   string Role;
+      [Description (
+        "The Processor family type. For example, values include "
+        "\"Pentium(R) processor with MMX(TM) technology\" (14) "
+        "and \"68040\" (96)."), 
+       ValueMap {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+                 "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+                 "24", "25", "26", "27", "28", "29", "30", 
+                 "31", "32", "33", "34", "35", "36", "37", "38", "39", 
+                 "48", "49", "50", "51", "52", "53", "54", "55", 
+                 "64", "65", "66", "67", "68", "69", 
+                 "80", "81", "82", "83", "84", "85", "86", "87", "88", 
+                 "96", "97", "98", "99", "100", 
+                 "101", "112", "120", "121", "128", "130", 
+                 "144", "145", "146", "147", "148", "149", "150",
+                 "160", "176", "177", "180", "200", "201", "202", 
+                 "250", "251", "260", "261", "280", "281", 
+                 "300", "301", "302", "320", "350", "500"},
+       Values {"Other", "Unknown", "8086", "80286", "80386", "80486",
+               "8087", "80287", "80387", "80487", "Pentium(R) brand",
+               "Pentium(R) Pro", "Pentium(R) II", 
+               "Pentium(R) processor with MMX(TM) technology", 
+               "Celeron(TM)", "Pentium(R) II Xeon(TM)", 
+               "Pentium(R) III", "M1 Family", "M2 Family", "K5 Family", 
+               "K6 Family", "K6-2", "K6-3", 
+               "AMD Athlon(TM) Processor Family", 
+               "AMD(R) Duron(TM) Processor", "AMD29000 Family", 
+               "K6-2+", "Power PC Family", "Power PC 601", 
+               "Power PC 603", "Power PC 603+", "Power PC 604", 
+               "Power PC 620", "Power PC X704", "Power PC 750", 
+               "Alpha Family", "Alpha 21064", "Alpha 21066", 
+               "Alpha 21164", "Alpha 21164PC", "Alpha 21164a", 
+               "Alpha 21264", "Alpha 21364", "MIPS Family", 
+               "MIPS R4000", "MIPS R4200", "MIPS R4400", "MIPS R4600", 
+               "MIPS R10000", "SPARC Family", "SuperSPARC", 
+               "microSPARC II", "microSPARC IIep", "UltraSPARC", 
+               "UltraSPARC II", "UltraSPARC IIi", "UltraSPARC III", 
+               "UltraSPARC IIIi", "68040", "68xxx Family", "68000", 
+               "68010", "68020", "68030", "Hobbit Family", 
+               "Crusoe(TM) TM5000 Family", "Crusoe(TM) TM3000 Family",
+               "Weitek", "Itanium(TM) Processor", "PA-RISC Family", 
+               "PA-RISC 8500", "PA-RISC 8000", "PA-RISC 7300LC", 
+               "PA-RISC 7200", "PA-RISC 7100LC", "PA-RISC 7100", 
+               "V30 Family", "Pentium(R) III Xeon(TM)", 
+               "Pentium(R) III Processor with Intel(R) SpeedStep(TM) Technology",
+               "AS400 Family", "IBM390 Family", "G4", "G5", "i860", 
+               "i960", "SH-3", "SH-4", "ARM", "StrongARM", "6x86", 
+               "MediaGX", "MII", "WinChip", "DSP", "Video Processor"},
+       MappingStrings {"MIF.DMTF|Processor|013"},
+       ModelCorrespondence {"CIM_Processor.OtherFamilyDescription"} ]
+   uint16 Family;
+      [MaxLen (64), Description (
+        "A string describing the Processor Family type - used when "
+        "the Family property is set to 1 (\"Other\"). This string "
+        "should be set to NULL when the Family property is any "
+        "value other than 1."),
+       ModelCorrespondence {"CIM_Processor.Family"} ]
+   string OtherFamilyDescription;
+      [Description (
+        "CPU socket information including data on how this "
+        "Processor can be upgraded (if upgrades are supported). "
+        "This property is an integer enumeration."),
+       ValueMap {"1", "2", "3", "4", "5", "6", "7", "8", "9", 
+                 "10", "11", "12", "13", "14"}, 
+       Values {"Other", "Unknown", "Daughter Board", "ZIF Socket",
+               "Replacement/Piggy Back", "None", "LIF Socket", "Slot 1",
+               "Slot 2", "370 Pin Socket", "Slot A", "Slot M", 
+               "Socket 423", "Socket A (Socket 462)"}, 
+       MappingStrings {"MIF.DMTF|Processor|013"} ]
+   uint16 UpgradeMethod;
+      [Description ("The maximum speed (in MHz) of this Processor."),
+       Units ("MegaHertz"),
+       MappingStrings {"MIF.DMTF|Processor|013"} ]
+   uint32 MaxClockSpeed;
+      [Description ("The current speed (in MHz) of this Processor."),
+       Units ("MegaHertz"),
+       MappingStrings {"MIF.DMTF|Processor|013"} ]
+   uint32 CurrentClockSpeed;
+      [Description ("Processor data width in bits."),
+       Units ("Bits") ]
+   uint16 DataWidth; 
+      [Description ("Processor address width in bits."),
+       Units ("Bits") ]
+   uint16 AddressWidth;
+      [Gauge, Description (
+        "Loading of this Processor, averaged over the last minute, "
+        "in Percent."),
+       Units ("Percent"),
+       MappingStrings {"MIB.IETF|HOST-RESOURCES-MIB.hrProcessorLoad"} ]
+   uint16 LoadPercentage;
+      [Description (
+        "Stepping is a free-form string indicating the revision " 
+        "level of the Processor within the Processor.Family."), 
+       ModelCorrespondence {"CIM_Processor.Family"} ]
+   string Stepping;
+      [Description (
+        "A globally unique identifier for the Processor. This "
+        "identifier may only be unique within a Processor Family.") ]
+   string UniqueID;
+      [Description (
+        "The CPUStatus property indicates the current status of "
+        "the Processor. For example, it may be disabled by the user "
+        "via BIOS (value=2), or disabled due to a POST error (value="
+        "3). Information in this property can be obtained from SMBIOS, "
+        "the Type 4 structure, the Status attribute."), 
+       ValueMap {"0", "1", "2", "3", "4", "7"}, 
+       Values {"Unknown", "CPU Enabled", 
+               "CPU Disabled by User via BIOS Setup", 
+               "CPU Disabled By BIOS (POST Error)", "CPU Is Idle", "Other"} ]
+   uint16 CPUStatus;
+};
+
+// ==========================================================================
+// End of Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// ==========================================================================
+
+
+// ===================================================================
+// PG_Processor
+// ===================================================================
+   [Version ("2.2.0"), Description (
+     "Adds additional properties meaningful on HP-UX.") ] 
+class PG_Processor : CIM_Processor {
+      [Description (
+        "A free form string identifying the BIOS name and version.") ] 
+   string BiosID;
+      [Description (
+        "A free form string describing the firmware with respect "
+        "to the PA-RISC level it implements, such as 1.0, 1.1, 1.2, 2.0.") ]
+   string FirmwareID;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

@@ -1,0 +1,250 @@
+// ==================================================================
+// Title:       Core MOF Specification Additions 2.5
+// Filename:    CIM_CoreAdditions25.MOF
+// Version:     2.5
+// Date:        06/12/2001
+// Release:     0
+// Description: The object classes below are new to the version stated 
+//              above and are being evaluated in premliminary release 
+//              status.
+// ===================================================================
+// Author:      DMTF System and Devices Working Group
+// ==================================================================
+//  Date 12/01/2000 Version 2.5
+//      - CR538a Add MethodParameters class and associations.
+//      - CR555b Define the classes, SystemSetting and 
+//          SystemConfiguration, and appropriate associations
+//      - CR585 Company review Changes from Compaq
+//          2.) Add CIM_ to CIM_MethodParameters.ResetValues() input 
+//              parameter ManagedElement ref
+//  Date 05/24/2001 Version 2.5 Final
+//          Changed format of classes to be consistent.
+//
+// ================================================================== 
+
+// ==================================================================
+//
+//  Elements and Collections
+//
+// ==================================================================
+ 
+// ==================================================================
+//     CIM_SystemSetting
+// ==================================================================
+   [Abstract, Description (
+     "CIM_SystemSetting represents the general concept "
+     "of a CIM_Setting which is scoped by/weak to a System.")]
+class CIM_SystemSetting : CIM_Setting {
+      [Propagated ("CIM_System.CreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ] 
+   string SystemCreationClassName;
+      [Propagated ("CIM_System.Name"), Key, MaxLen (256),
+       Description ("The scoping System's Name.") ] 
+   string SystemName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Override ("SettingID"), Key, MaxLen (256)]
+   string SettingID;
+};
+
+
+// ==================================================================
+//     CIM_SettingForSystem
+// ==================================================================
+   [Association, Description (
+     "CIM_SettingForSystem defines a Setting in the context of the "
+     "System on which it resides.")]
+class CIM_SettingForSystem : CIM_Dependency {
+      [Override ("Antecedent"), Max (1), Min (1),
+       Description ("The hosting System.")] 
+   CIM_System REF Antecedent;
+      [Override ("Dependent"), Weak,
+       Description ("The Setting defined for the System.")] 
+    CIM_SystemSetting REF Dependent;
+};
+
+// ==================================================================
+//
+//  Products, FRUs, and Statistics
+//
+// ==================================================================
+
+// ==================================================================
+//
+//  Settings and Configuration
+//
+// ==================================================================
+
+// ================================================================== 
+// MethodParameters 
+// ================================================================== 
+   [Abstract, Description (
+     "CIM_MethodParameters represents a set of values to be used as "
+     "the parameters of a method  These parameters may be passed to "
+     "the method, diretly used by the method in its invocation, or "
+     "accessed by the method when it is called.  The properties of "
+     "a concrete subclass of MethodParameters are mapped to the "
+     "parameters of a method by the method itself or by the method "
+     "caller. This is an implementation detail independent of the "
+     "definition of the class.  For ease of use, property names "
+     "should match parameter names. \n\n" 
+     "Property values should be set before the method is invoked.  "  
+     "The ModelCorrespondence qualifier can be used to indicate if "
+     "the property value should come from another class's property.  "
+     "The instances that the property values should be gleaned from "
+     "should be associated with MethodParameters using the Parameter"
+     "ValueSources association.  If the property is declared as an "
+     "array, then the same property value (identified by the Model"
+     "Correspondence) will be retrieved from all appropriate Parameter"
+     "ValueSources instances and stored in the array. If the property "
+     "is declared as an array and the ModelCorrespondence is to an array " 
+     "property, then only one instance of the array will be copied from "
+     "one ParameterValueSource.  If the property is not declared as "
+     "an array and there are multiple instances of the class and "
+     "property associated with it through model correspondence where "
+     "the values are not all the same, then an error will occur and "
+     "the property's value will not be set.  Several MethodParameters "
+     "instances can be associated with any ManagedElement's methods.  "
+     "This allows the maintenance of 'canned' method invocation and "
+     "reduces the overhead of recreating all method parameters for "
+     "every method invocation.") ] 
+class CIM_MethodParameters : CIM_ManagedElement { 
+      [MaxLen (256) , Description ( 
+        "The identifier by which the MethodParameters object is known.") ] 
+   string MethodParametersId ; 
+      [Description ( 
+        "The resetValues method updates the values of the properties of " 
+        "MethodParameters which have ModelCorrespondence to the " 
+        "SourceME ManagedElement. This allows the association of " 
+        "several source candidates with the MethodParameters with " 
+        "one being chosen as the source for this set of values. " 
+        "If resetValues is invoked and sourceME is null, then all " 
+        "associated MEs in ParameterValueSources will be used " 
+        "to set the values of the MethodParameters properties. ")]
+   uint32 ResetValues(
+      [IN] CIM_ManagedElement ref SourceME ); 
+}; 
+
+
+// =================================================================== 
+//    ParameterValueSources 
+// =================================================================== 
+   [Association, Description ( 
+     "ParameterValueSources represents the association between " 
+     "a MethodParameters instance and the ManagedElement instances " 
+     "which contain properties to be used to create values " 
+     "for the MethodParameters properties. " ) ] 
+class CIM_ParameterValueSources {
+      [Key, Description ( 
+        "The MethodParameters instance whose property values are to "
+        "be set.") ] 
+   CIM_MethodParameters ref Parameters; 
+      [Key, Description (
+        "The ManagedElement which contains properties to be used to "
+        "populate the values of the properties of the MethodParameters "
+        "instance.") ] 
+   CIM_ManagedElement ref ValueSource; 
+}; 
+
+
+// =================================================================== 
+//    ParametersForMethod 
+// =================================================================== 
+   [Association, Description ( 
+     "ParametersForMethod represents the association between Method"
+     "Parameters class(es) and a ManagedElement which has a method "
+     "may use this MethodParameters instance during its invocation.  " 
+     "This association is optional, as the MethodParameters instance "
+     "may be passed as a parameter to a method or used to create a "
+     "method signature before the method is invoked.  This association "
+     "is useful for finding all the valid MethodParameters instances "
+     "for a particular method.  This may be particularly useful for "
+     "user oriented interfaces and automated or policy driven method "
+     "invocations.") ] 
+class CIM_ParametersForMethod {     
+      [Key, Description (
+        "The MethodParameters instance which may be used by the "
+        "ParametersForMethod's method invocation.") ]
+   CIM_MethodParameters ref Parameters;
+      [Key, Description (
+        "The ManagedElement which has a method that may use this "
+        "instance of MethodParameters.") ]
+   CIM_ManagedElement ref TheMethod;
+      [Key, MaxLen(64),Description (
+        "The name of the method that may use this instance of "
+        "MethodParameters during its invocation.") ]
+   string MethodName;
+}; 
+
+
+// ==================================================================
+//     CIM_SystemConfiguration
+// ==================================================================
+   [Description (
+     "CIM_SystemConfiguration represents the general concept of a "
+     "CIM_Configuration which is scoped by/weak to a System.  This "
+     "class is a peer of CIM_Configuration since the key structure "
+     "of Configuration is currently defined and cannot be modified "
+     "with additional properties.") ]
+class CIM_SystemConfiguration : CIM_ManagedElement {
+      [Propagated ("CIM_System.CreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ] 
+    string SystemCreationClassName;
+      [Propagated ("CIM_System.Name"), Key, MaxLen (256),
+       Description ("The scoping System's Name.") ] 
+    string SystemName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+    string CreationClassName;
+      [Key, MaxLen (256), Description (
+        "The label by which the Configuration object is known.") ]
+   string Name;
+};
+ 
+
+// ==================================================================
+//     CIM_ConfigurationForSystem
+// ==================================================================
+   [Association, Description (
+     "CIM_ConfigurationForSystem defines a Configuration "
+     "in the context of the System on which it resides.") ]
+class CIM_ConfigurationForSystem : CIM_Dependency {
+      [Override ("Antecedent"), Max (1), Min (1),
+       Description ("The hosting System.")] 
+   CIM_System REF Antecedent;
+      [Override ("Dependent"), Weak,
+       Description ("The Configuration defined for the System.")] 
+   CIM_SystemConfiguration REF Dependent;
+};
+
+
+// ==================================================================
+//     CIM_SystemSettingContext
+// ==================================================================
+   [Association, Aggregation, Description (
+     "This relationship associates System-specific Configuration "
+     "objects with System-specific Setting objects, similar to the "
+     "SettingContext association.")]
+class CIM_SystemSettingContext {
+      [Aggregate, Key, Description (
+        "The Configuration object that aggregates the Setting.") ]
+   CIM_SystemConfiguration REF Context;
+      [Key, Description ("An aggregated Setting.")]
+   CIM_SystemSetting REF Setting;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

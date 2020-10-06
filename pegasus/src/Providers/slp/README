@@ -1,0 +1,81 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+//
+// README Author: Mike Day (mdday@us.ibm.com)
+//
+//%/////////////////////////////////////////////////////////////////////////////
+
+BUILDING
+
+This provider only compiles on linux. It uses a uuid library for linux
+that is available on-line (see below).
+
+This provider is not build by defualt. You will need to manually take some
+additional steps:
+
+1) Obtain the uuid library - uuid.h and libuuid.a from:
+
+	http://e2fsprogs.sourceforge.net/
+
+	A man page for libuuid is available at:
+
+	http://www.die.net/doc/linux/man/man3/libuuid.3.html
+
+2) Install (or copy) libuuid.a into a directory that is on
+   your library load path.
+
+3) Rebuild Pegasus with PEGASUS_ENABLE_SLP defined in your environment
+
+4) From in this directory, type make <Enter>
+
+
+INSTALLING
+
+This provider has dependencies on the following components:
+
+1) The slp_client library in $PEGASUS_ROOT/src/Unsupportd/slp_client.
+	Read the build and installation instructions for that library.
+	Make sure that it is installed in a directory that you
+	can load shared libraries from.
+
+
+2) Rebuild the registry:
+	cd $(PEGASUS_ROOT)
+	make repository
+
+3) Install the Prerequisite Instances mof file:
+	
+    cd $(PEGASUS_ROOT)/Schemas/Pegasus/Internal/VER20
+    cimmofl PrerequisiteInstances.mof
+
+
+TEST PROGRAM
+
+There is a test program in this directory that does not have a Makefile.
+It is in TestSLPClient.cpp

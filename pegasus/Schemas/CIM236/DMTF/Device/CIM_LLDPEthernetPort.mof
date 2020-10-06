@@ -1,0 +1,627 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Version ( "2.34.0" ), 
+    UMLPackagePath ( "CIM::Device::Ports" ), 
+    Description ( 
+       "This class describes the current LLDP configuration of an LLDP "
+       "capable ethernet port." )]
+class CIM_LLDPEthernetPort : CIM_EthernetPort {
+
+      [Description ( 
+          "This flag determines whether the IEEE 802.1 "
+          "organizationally defined port VLAN TLV transmission is "
+          "allowed on this port." ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2Xdot1ConfigPortVlanTxEnable" }]
+   boolean ConfigPortVlanTxEnable;
+
+      [Description ( 
+          "This flag determines determines whether the IEEE 802.1 "
+          "organizationally defined Management VID TLV transmission "
+          "is allowed on this port." ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2Xdot1ConfigManVidTxEnable" }]
+   boolean ConfigManVidTxEnable;
+
+      [Description ( 
+          "The interval at which LLDP frames are transmitted on "
+          "behalf of this LLDP agent on this port." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 3600 ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2MessageTxInterval" }, 
+       PUnit ( "second" )]
+   uint16 MessageTxInterval = 30;
+
+      [Description ( 
+          "The value of this property is used, as a multiplier of "
+          "MessageTxInterval, to determine the value of txTTL that "
+          "is carried in LLDP frames transmitted by the LLDP agent "
+          "on this port." ), 
+       MinValue ( 2 ), 
+       MaxValue ( 100 ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2MessageTxHoldMultiplier" }, 
+       PUnit ( "second" )]
+   uint8 MessageTxHoldMultiplier = 4;
+
+      [Description ( 
+          "The value of this property indicates the amount of delay "
+          "from when adminStatus becomes disabled until "
+          "reinitialization is attempted on this port." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 10 ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2ReinitDelay" }, 
+       PUnit ( "second" )]
+   uint8 ReinitDelay = 2;
+
+      [Description ( 
+          "The value of this property indicates the interval "
+          "between transmission of LLDP notifications during normal "
+          "transmission periods on this port." ), 
+       MinValue ( 5 ), 
+       MaxValue ( 3600 ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2NotificationInterval" }, 
+       PUnit ( "second" )]
+   uint16 NotificationInterval = 30;
+
+      [Description ( 
+          "The maximum number of consecutive LLDPDUs that can be "
+          "transmitted at any time on this port." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 100 ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2TxCreditMax" }]
+   uint8 TxCreditMax = 5;
+
+      [Description ( 
+          "The interval at which LLDP frames are transmitted on "
+          "behalf of this LLDP agent during fast transmission "
+          "period (e.g. when a new neighbor is detected) on this "
+          "port." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 3600 ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2MessageFastTx" }, 
+       PUnit ( "second" )]
+   uint16 MessageFastTx = 1;
+
+      [Description ( 
+          "The initial value used to initialize the variable which "
+          "determines the number of transmissions that are made in "
+          "fast transmission mode on this port." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 8 ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2TxFastInit" }]
+   uint8 TxFastInit = 4;
+
+      [Description ( 
+          "This array identifies individual or group MAC addresses "
+          "that are in use by LLDP as destination MAC addresses on "
+          "this port. Each MAC address is formatted as twelve "
+          "hexadecimal digits (for example, \"010203040506\"), with "
+          "each pair representing one of the six octets of the MAC "
+          "address in \"canonical\" bit order. (Therefore, the "
+          "Group address bit is found in the low order bit of the "
+          "first character of the string.)" ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2DestMacAddress" }]
+   string DestMacAddress[];
+
+      [Description ( 
+          "The administratively desired status of the local LLDP "
+          "agent on this port.\n"
+          "\"txOnly\" indicates that the LLDP agent transmits "
+          "LLDPframes on this port and it does not store any "
+          "information about the remote systems connected.\n"
+          "\"rxOnly\" indicates that the LLDP agent receives, but "
+          "it does not transmit LLDP frames on this port.\n"
+          "\"txAndRx\" indicates the LLDP agent transmits and "
+          "receives LLDP frames on this port.\n"
+          "\"disabled\" indciates the LLDP agent does not transmit "
+          "or receive LLDP frames on this port. If there is remote "
+          "systems information which is received on this port and "
+          "stored in other tables, before the port\'s "
+          "PortConfigAdminStatus becomes disabled, then that "
+          "information is deleted." ), 
+       ValueMap { "1", "2", "3", "4", ".." }, 
+       Values { "txOnly", "rxOnly", "txAndRx", "disabled", 
+          "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2PortConfigAdminStatus" }, 
+       ModelCorrespondence { "CIM_LLDPEthernetPort.DestMacAddress" }]
+   uint8 PortConfigAdminStatus[];
+
+      [Description ( 
+          "These flags control, on a per agent basis, whether or "
+          "not notifications from the agent are enabled on this "
+          "port." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2PortConfigNotificationEnable" }, 
+       ModelCorrespondence { "CIM_LLDPEthernetPort.DestMacAddress", 
+          "CIM_LLDPEthernetPort.PortConfigAdminStatus" }]
+   boolean PortConfigNotificationEnable[];
+
+      [Description ( 
+          "These flags indicate that LLDP agents should transmit "
+          "\"Port Description TLV\" on this port." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2PortConfigTLVsTxEnable" }, 
+       ModelCorrespondence { "CIM_LLDPEthernetPort.DestMacAddress", 
+          "CIM_LLDPEthernetPort.PortConfigAdminStatus", 
+          "CIM_LLDPEthernetPort.PortConfigNotificationEnable" }]
+   boolean PortConfigPortDescriptionTLVTxEnable[];
+
+      [Description ( 
+          "These flags indicate that LLDP agents should transmit "
+          "\"System Name TLV\" on this port." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2PortConfigTLVsTxEnable" }, 
+       ModelCorrespondence { "CIM_LLDPEthernetPort.DestMacAddress", 
+          "CIM_LLDPEthernetPort.PortConfigAdminStatus", 
+          "CIM_LLDPEthernetPort.PortConfigNotificationEnable", 
+          "CIM_LLDPEthernetPort.PortConfigPortDescriptionTLVTxEnable" }]
+   boolean PortConfigSystemNameTLVTxEnable[];
+
+      [Description ( 
+          "These flags indicate that LLDP agents should transmit "
+          "\"System Description TLV\" on this port." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2PortConfigTLVsTxEnable" }, 
+       ModelCorrespondence { "CIM_LLDPEthernetPort.DestMacAddress", 
+          "CIM_LLDPEthernetPort.PortConfigAdminStatus", 
+          "CIM_LLDPEthernetPort.PortConfigNotificationEnable", 
+          "CIM_LLDPEthernetPort.PortConfigPortDescriptionTLVTxEnable", 
+          "CIM_LLDPEthernetPort.PortConfigSystemNameTLVTxEnable" }]
+   boolean PortConfigSystemDescriptionTLVTxEnable[];
+
+      [Description ( 
+          "These flags indicate that LLDP agents should transmit "
+          "\"System Capabilities TLV\" on this port." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2PortConfigTLVsTxEnable" }, 
+       ModelCorrespondence { "CIM_LLDPEthernetPort.DestMacAddress", 
+          "CIM_LLDPEthernetPort.PortConfigAdminStatus", 
+          "CIM_LLDPEthernetPort.PortConfigNotificationEnable", 
+          "CIM_LLDPEthernetPort.PortConfigPortDescriptionTLVTxEnable", 
+          "CIM_LLDPEthernetPort.PortConfigSystemNameTLVTxEnable", 
+          "CIM_LLDPEthernetPort.PortConfigSystemDescriptionTLVTxEnable" }]
+   boolean PortConfigSystemCapabilitiesTLVTxEnable[];
+
+      [Description ( 
+          "The destination MAC address associated with ManAddrConfigTxEnable."
+           ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2ManAddrConfigDestAddressIndex" }]
+   string ManAddrConfigDestAddress[];
+
+      [Description ( 
+          "This property represents the type of managment address "
+          "identifiers encoding used to represent management "
+          "addresses. \"3 (MAC address)\" value indicates that this "
+          "string identifies a particular unicast MAC address "
+          "(encoded in network byte order and IEEE 802.3 canonical "
+          "bit order). \"4 (Network address)\" value identifies a "
+          "network address. The first octet contains the IANA "
+          "AddressFamilyNumbers enumeration value for the specific "
+          "address type, and octets 2 through N contain the "
+          "networkAddress address value in network byte order." ), 
+       ValueMap { "3", "4", ".." }, 
+       Values { "MAC address", "Network address", "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2ManAddrConfigLocManAddrSubtype" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.ManAddrConfigDestAddress" }]
+   uint16 ManAddrConfigLocManAddrSubtype[];
+
+      [Description ( 
+          "The string values used to identify the management "
+          "addresses for which notifications from the agent are "
+          "enabled on this port." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2ManAddrConfigLocManAddr" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.ManAddrConfigDestAddress", 
+          "CIM_LLDPEthernetPort.ManAddrConfigLocManAddrSubtype" }]
+   string ManAddrConfigLocManAddr[];
+
+      [Description ( 
+          "Flags for controlling the transmission of system "
+          "management address instances for this port, destination, "
+          "subtype and management address. If set to false, no "
+          "transmission occurs. If set to true, the appropriate "
+          "information is transmitted on this port." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2ManAddrConfigTxEnable" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.ManAddrConfigDestAddress", 
+          "CIM_LLDPEthernetPort.ManAddrConfigLocManAddrSubtype", 
+          "CIM_LLDPEthernetPort.ManAddrConfigLocManAddr" }]
+   boolean ManAddrConfigTxEnable[];
+
+      [Description ( 
+          "The type of encoding used to identify the chassis "
+          "associated with the local system." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", ".." }, 
+       Values { "Chassis component", "Interface alias", 
+          "Port component", "MAC address", "Network address", 
+          "Interface name", "Locally assigned", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocChassisIdSubtype" }]
+   uint8 LocChassisIdSubtype;
+
+      [Description ( 
+          "The string value used to identify the chassis component "
+          "associated with the local system." ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocChassisId" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.LocChassisIdSubtype" }]
+   string LocChassisId;
+
+      [Description ( 
+          "The string value used to identify the system name of the "
+          "local system." ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocSysName" }]
+   string LocSysName;
+
+      [Description ( 
+          "The string value used to identify the system description "
+          "of the local system." ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocSysDesc" }]
+   string LocSysDesc;
+
+      [Description ( 
+          "This property identifies which system capabilities are "
+          "supported on the local system." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", ".." }, 
+       Values { "Repeater", "MAC Bridge", "WLAN Access Point", 
+          "Router", "Telephone", "DOCSIS cable device", 
+          "Station Only", "C-VLAN Component of a VLAN Bridge", 
+          "S-VLAN Component of a VLAN Bridge", 
+          "Two-port MAC Relay (TPMR)", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocSysCapSupported" }, 
+       ModelCorrespondence { "CIM_LLDPEthernetPort.LocSysCapEnabled" }]
+   uint8 LocSysCapSupported[];
+
+      [Description ( 
+          "These flags are used to identify which system "
+          "capabilities are enabled on the local system." ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocSysCapEnabled" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.LocSysCapSupported" }]
+   boolean LocSysCapEnabled[];
+
+      [Description ( 
+          "The type of port identifier encoding used in identifying "
+          "the port component associated with the local system." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", ".." }, 
+       Values { "Interface alias", "Port component", "MAC address", 
+          "Network address", "Interface name", "Agent circuit ID", 
+          "Locally assigned", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocPortIdSubtype" }]
+   uint8 LocPortIdSubtype;
+
+      [Description ( 
+          "The string value used to identify the port component "
+          "associated with a given port in the local system." ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocPortId" }, 
+       ModelCorrespondence { "CIM_LLDPEthernetPort.LocPortIdSubtype" }]
+   string LocPortID;
+
+      [Description ( 
+          "The string value used to identify this port\'s "
+          "description associated with the local system." ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocPortDesc" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.LocPortIdSubtype", 
+          "CIM_LLDPEthernetPort.LocPortId" }]
+   string LocPortDesc;
+
+      [Description ( 
+          "Integer that indicates the value of Tw_sys_tx that the "
+          "local system can support on this port. This value is updated\n"
+          "by the EEE DLL Transmitter state diagram. Tw_Sys_tx "
+          "value is used in a timer that counts the time since the "
+          "de-assertion of Low Poer Idle (LPI)." )]
+   uint16 LocTxSystemValue;
+
+      [Description ( 
+          "Integer that indicates the value Transmit Tw_sys_tx "
+          "echoed back by the remote system." )]
+   uint16 RemTxSystemValueEcho;
+
+      [Description ( 
+          "Integer that indicates the value of Tw_sys_tx that the "
+          "local system requests from the remote system. This value "
+          "is updated by the EEE Receiver L2 state diagram." )]
+   uint16 LocRxSystemValue;
+
+      [Description ( 
+          "Integer that indicates the value of Receive Tw_sys_tx "
+          "echoed back by the remote system." )]
+   uint16 RemRxSystemValueEcho;
+
+      [Description ( 
+          "Integer that indicates the value of fallback Tw_sys_tx "
+          "that the local system requests from the remote system. "
+          "This value is updated by the local system software." )]
+   uint16 LocFbSystemValue;
+
+      [Description ( 
+          "Integer that indicates the value of Tw_sys_tx that the "
+          "remote system can support." )]
+   uint16 RemTxSystemValue;
+
+      [Description ( 
+          "Integer that indicates the remote system\'s Transmit "
+          "Tw_sys_tx that was used by the local system to compute "
+          "the Tw_sys_tx that it wants to request from the remote "
+          "system." )]
+   uint16 LocTxSystemValueEcho;
+
+      [Description ( 
+          "Integer that indicates the value of Tw_sys_tx that the "
+          "remote system requests from the local system." )]
+   uint16 RemRxSystemValue;
+
+      [Description ( 
+          "Integer that indicates the remote systems Receive "
+          "Tw_sys_tx that was used by the local system to compute "
+          "the Tw_sys_tx that it can support." )]
+   uint16 LocRxSystemValueEcho;
+
+      [Description ( 
+          "Integer that indicates the current Tw_sys_tx supported "
+          "by the local system." )]
+   uint16 LocResolvedTxSystemValue;
+
+      [Description ( 
+          "Integer that indicates the current Tw_sys_tx supported "
+          "by the remote system." )]
+   uint16 LocResolvedRxSystemValue;
+
+      [Description ( 
+          "This flag indicates whether or not the transmission of "
+          "Maximum frame size TLV is enabled on this port." )]
+   boolean MaximumFrameSizeTLVEnabled;
+
+      [Description ( 
+          "The type of management address identifier encodings used "
+          "for the management addresses represented by LocManAddr." ), 
+       ValueMap { "3", "4", ".." }, 
+       Values { "MAC address", "Network address", "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocManAddrSubtype" }]
+   uint16 LocManAddrSubType[];
+
+      [Description ( 
+          "The string values are used to identify the management "
+          "addresses on the local system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocManAddr" }, 
+       ModelCorrespondence { "CIM_LLDPEthernetPort.LocManAddrSubtype" }]
+   string LocManAddr[];
+
+      [Description ( 
+          "The enumeration value that identifies the interface "
+          "numbering method used for defining the interface number\n"
+          "(lldpV2LocManAddrIfId), associated with the local "
+          "system." ), 
+       ValueMap { "2", "3", ".." }, 
+       Values { "ifIndex", "systemPortNumber", "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocManAddrIfSubtype" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.LocManAddrSubtype", 
+          "CIM_LLDPEthernetPort.LocManAddr" }]
+   uint16 LocManAddrIfSubtype[];
+
+      [Description ( 
+          "The integer value used to identify the interface number\n"
+          "regarding the management address on the local system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2LocManAddrIfId" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.LocManAddrSubtype", 
+          "CIM_LLDPEthernetPort.LocManAddr", 
+          "CIM_LLDPEthernetPort.LocManAddrIfSubtype" }]
+   uint32 LocManAddrIfId[];
+
+      [Description ( 
+          "The destination MAC addresses used on the remote system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2Xdot1RemLocalDestMacAddress" }]
+   string RemLocalDestMacAddress[];
+
+      [Description ( 
+          "The type of management address identifier encodings used "
+          "for the management addresses represented by RemManAddr." ), 
+       ValueMap { "3", "4", ".." }, 
+       Values { "MAC address", "Network address", "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemManAddrSubtype" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress" }]
+   uint16 RemManAddrSubType[];
+
+      [Description ( 
+          "The string values are used to identify the management "
+          "addresses on the remote system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemManAddr" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress", 
+          "CIM_LLDPEthernetPort.RemManAddrSubtype" }]
+   string RemManAddr[];
+
+      [Description ( 
+          "The enumeration value that identifies the interface "
+          "numbering method used for defining the interface number\n"
+          "(lldpV2LocManAddrIfId), associated with the remote "
+          "system." ), 
+       ValueMap { "2", "3", ".." }, 
+       Values { "ifIndex", "systemPortNumber", "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemManAddrIfSubtype" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress", 
+          "CIM_LLDPEthernetPort.RemManAddrSubtype", 
+          "CIM_LLDPEthernetPort.RemManAddr" }]
+   uint16 RemManAddrIfSubtype[];
+
+      [Description ( 
+          "The integer value used to identify the interface number\n"
+          "regarding the management address on the remote system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemManAddrIfId" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress", 
+          "CIM_LLDPEthernetPort.RemManAddrSubtype", 
+          "CIM_LLDPEthernetPort.RemManAddr", 
+          "CIM_LLDPEthernetPort.RemManAddrIfSubtype" }]
+   uint32 RemManAddrIfId[];
+
+      [Description ( 
+          "The type of encoding used to identify the chassis "
+          "associated with the remote system." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", ".." }, 
+       Values { "Chassis component", "Interface alias", 
+          "Port component", "MAC address", "Network address", 
+          "Interface name", "Locally assigned", "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemChassisIdSubtype" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress" }]
+   uint8 RemChassisIdSubtype[];
+
+      [Description ( 
+          "The string value used to identify the chassis component "
+          "associated with the remote system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemChassisId" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress", 
+          "CIM_LLDPEthernetPort.LocChassisIdSubtype" }]
+   string RemChassisId[];
+
+      [Description ( 
+          "The string value used to identify the system name of the "
+          "remote system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemSysName" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress" }]
+   string RemSysName[];
+
+      [Description ( 
+          "The string value used to identify the system description "
+          "of the remote system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemSysDesc" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress" }]
+   string RemSysDesc[];
+
+      [Description ( 
+          "This property identifies which system capabilities are "
+          "supported on the remote system." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", ".." }, 
+       Values { "Repeater", "MAC Bridge", "WLAN Access Point", 
+          "Router", "Telephone", "DOCSIS cable device", 
+          "Station Only", "C-VLAN Component of a VLAN Bridge", 
+          "S-VLAN Component of a VLAN Bridge", 
+          "Two-port MAC Relay (TPMR)", "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemSysCapSupported" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress", 
+          "CIM_LLDPEthernetPort.RemSysCapEnabled" }]
+   uint8 RemSysCapSupported[];
+
+      [Description ( 
+          "These flags are used to identify which system "
+          "capabilities are enabled on the remote system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemSysCapEnabled" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress", 
+          "CIM_LLDPEthernetPort.RemSysCapSupported" }]
+   boolean RemSysCapEnabled[];
+
+      [Description ( 
+          "The type of port identifier encoding used in identifying "
+          "the port component associated with the remote system." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", ".." }, 
+       Values { "Interface alias", "Port component", "MAC address", 
+          "Network address", "Interface name", "Agent circuit ID", 
+          "Locally assigned", "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemPortIdSubtype" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress" }]
+   uint8 RemPortIdSubtype[];
+
+      [Description ( 
+          "The string value used to identify the port component "
+          "associated with a given port in the remote system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemPortId" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress", 
+          "CIM_LLDPEthernetPort.RemPortIdSubtype" }]
+   string RemPortID[];
+
+      [Description ( 
+          "The string value used to identify this port\'s "
+          "description associated with the remote system." ), 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { 
+          "MIB.IEEE|LLDP-EXT-DOT1-V2-MIB.lldpV2RemPortDesc" }, 
+       ModelCorrespondence { 
+          "CIM_LLDPEthernetPort.RemLocalDestMacAddress", 
+          "CIM_LLDPEthernetPort.RemPortIdSubtype", 
+          "CIM_LLDPEthernetPort.RemPortId" }]
+   string RemPortDesc[];
+
+
+};

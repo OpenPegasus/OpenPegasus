@@ -1,0 +1,2223 @@
+// ===================================================================
+// Title: Network_QoS
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_QoS.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines classes to manage
+//              DiffServ/IntServ quality of service.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR662 - Modify Description of QoSService to indicate that
+//         NetworkService has been deprecated
+// CR794 - Updates to PacketSchedulingService:
+//       - Update description
+//       - Change subclassing from ForwardingService to
+//         ConditioningService
+//       (ERRATA) - Change the enumeration for SchedulerType
+//       - Update description for OtherSchedulerType
+//       - Add NextScheduler Association
+//       - Add NonWorkConservingSchedulingService and FailNextScheduler
+//       (ERRATA) - Remove PrioritySchedulingService,
+//         PriorityBandwidthSchedulingService,
+//         BandwidthSchedulingService,
+//         RoundRobinPacketSchedulingService and
+//         WeightedRoundRobinPacketSchedulingService
+//       - Deprecate SchedulerUsed
+// CR795 - Updates to DropperService:
+//       - Update description
+//       (ERRATA) - Change the enumeration for DropperType
+//       - Deprecate AlwaysDrop property
+//       - Add DropFrom property
+//       - Changes to REDDropperService to update description, update
+//         description of MinQueueThreshold and MaxQueueThreshold
+//         properties, and add ThresholdUnits property
+//       (ERRATA) - In REDDropperService, change the datatype of the
+//         StartProbability and StopProbability properties
+//       - Add HeadTrailDropper
+//       - Deprecate WeightedREDDropperService
+// CR795 (Continued) - Updates to QueuingService:
+//       - Update description
+//       - Add CurrentQueueDepth and DepthUnits properties
+//       (ERRATA) - Remove the SmoothingWeight, TimeInterval, and
+//         GiveExcessCapacity properties
+//       - Add DropThresholdCalculationService
+//       - Add QueueAllocation.AllocationPercentage
+//       - Deprecate QueueHierarchy
+//       - Add CalculationServiceForDropper, CalculationBasedOnQueue
+//         and HeadTailDropQueueBinding
+// CR796 - Updates to MarkerService:
+//       - Update description
+//       - Remove the CanRemark, RemarkType, OtherRemarkType,
+//         and RemarkValue properties
+//       - Add PreambleMarkerService, ToSMarkerService,
+//         DSCPMarkerService and 8021QMarkerService
+// CR797 - Update description for MeterService and expand the
+//         abbreviations for MeterType
+//       - Update description for AverageRateMeterService
+//       (ERRATA) - Change the datatype for AverageRateMeterService.
+//         AverageRate from real32 to uint32 and change the
+//         units for AverageRateMeterService.DeltaInterval
+//       - Update the description for EWMAMeterService
+//       (ERRATA) - Change the datatype for EWMAMeterService
+//         .AverageRate and.Gain from real32 to uint32
+//       (ERRATA) - Change the Units of EWMAMeterService.DeltaIntervals
+//       - Update the description for TokenBucketMeterService
+//       - Change the datatype for TokenBucketMeterService
+//         .AverageRate, .PeakRate, .BurstSize, and
+//         .ExcessBurstSize from real32 to uint32
+//       (ERRATA) - Fix subclassing of NextServiceAfterMeter, fix
+//         misspelled property name, and update the enum values for
+//         MeterResult
+// CR798 - Updates to ClassifierService:
+//       - Update description
+//       - Remove ClassifierType, OtherClassifierType, and
+//         HaveClassifiedPacket properties
+//       - Add ClassifierElement, ClassifierElementInClassifierService,
+//         ClassifierElementUsesFilterList, and
+//         NextServiceAfterClassifierElement
+//       - Deprecate ClassifierFilterSet
+// CR799 - Updates to QoSService:
+//       - Update the description
+//       (ERRATA) - Change the subclassing
+//       - Add Composition qualifier to QoSSubService
+//       - Update description for QoSConditioningSubService and
+//         remove the Max (1) from the "Group" ref
+//       - Update the description for DiffServService
+//       - Deprecate DiffServService.DSCP
+//       - Add DiffServService.PHBID
+//       - Update the description for AFService and its ClassNumber
+//         and DropperNumber properties
+//       - Add FlowService
+//       - Deprecate PrecedenceService, Hdr8021PService and EFService
+// CR800 - Updates to ConditioningService:
+//       - Update the class description
+//       - Deprecate the Enabled property
+//       (ERRATA) - Change the subclassing
+//       - Deprecate ConditioningServiceOnEndpoint
+//       - Add IngressConditioningServiceOnEndpoint and
+//         EgressConditioningServiceOnEndpoint
+// CR800 (Continued) - Updates for NextService:
+//       - Update the class description
+//       (ERRATA) - Remove the TrafficClass property
+//       - Fix spelling of reference (Preceeding, should be Preceding)
+// CR849 - Define InstanceID as the Key of SchedulingElement
+// CR914 - Change inheritance of the deprecated association,
+//         ConditioningServiceOnEndpoint (from ForwardsAmong to its
+//         superclass, Dependency). Remove the ValueMap qualifier
+//         from the properties, WRRSchedulingElement.WorkConserving,
+//         PrioritySchedulingElement.WorkConserving, and
+//         BoundedPrioritySchedulingElement.WorkConserving
+// CR920 - Remove the Key qualifier from NextScheduler.FollowingService
+//         since its superclass defines the key; Add missing parenthesis
+//         to the Description of AFService
+// CR961 - Update the reference to EnabledLogicalElement.EnabledState
+// CR982 - Removal of Experimental for preliminary to final
+// CR983 - v2.7 Deprecations promoted to final
+// CR994 - Update the InstanceID property Description
+// Change Log for v2.8
+// CR1217 - Add to the Description for WRRSchedulingElement.Priority
+// CR1226 - Change all references to CIM_8021QMarkerService to
+// CIM_Priority8021QMarkerService.
+// Change all references to CIM_8021PService to CIM_Hdr8021PService.
+// CR1228 - Remove confusing double quotes in description for
+//          AlwaysDrop property
+// CR1232 - Update incorrect references
+//   From CIM_8021PService.PriorityValue
+//     ToCIM_Hdr8021Filter.HdrPriorityValue8021
+//     in Hdr8021PService.PriorityValue
+// 
+//   From CIM_DropperService.TypeOfDropper (=4, Absolute ...
+//     To CIM_DropperService.DropperType
+//     in property CIM_DropperService.AlwaysDrop
+// 
+//   From CIM_DropperThresholdCalculationService.SmoothingWeight
+//     To CIM_DropThresholdCalculationService.SmoothingWeight
+//     in CIM_WeightedREDDropperService.Weight
+// 
+// CR1238 - Fix model correspondence reference problems in final
+//          version
+// 
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ===================================================================
+// QoSService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This is a concrete class that represents the ability to "
+       "conceptualize a QoS service as a set of coordinated "
+       "sub-services. This enables the network administrator to map "
+       "business rules to the network, and the network designer to "
+       "engineer the network such that it can provide different "
+       "functions for different traffic streams. \n"
+       "\n"
+       "This class has two main purposes. First, it serves as a common "
+       "base class for defining various sub-services that are needed "
+       "to build higher-level QoS services. Second, it serves as a way "
+       "to consolidate relationships between different types of QoS "
+       "services and different types of ConditioningServices. \n"
+       "\n"
+       "For example, Gold Service may be defined as a QoSService which "
+       "aggregates two other QoSServices together. Each of these "
+       "'other' QoSServices could be DiffServServices - one "
+       "representing the servicing of very high demand packets "
+       "(instantiated as a DiffServService directly), and one "
+       "representing the service given to most of the packets "
+       "(instantiated as an AFService). The high demand "
+       "DiffServService instance would use QoSConditioning SubService "
+       "to aggregate together the necessary classifiers to indicate "
+       "which traffic it applies to, the appropriate meters for "
+       "contract limits, the marker to mark the EF PHB in the packets, "
+       "and the queuing-related services. The AFService instance would "
+       "similarly use QoSConditioning SubService to aggregate its "
+       "classifiers, meters, the several markers used to mark the "
+       "different AF PHBs in the packets, and the queuing-related "
+       "services needed to deliver the packet treatment.")]
+class CIM_QoSService : CIM_Service {
+};
+
+
+// ==================================================================
+// QoSSubService
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "The associations - QoSSubService and QoSConditioningSub "
+       "Service - operate in conjunction. High level QoS definitions, "
+       "such as 'John gets Gold Service', map to lower level, more "
+       "concrete QoSServices (the subclasses of QoSService). This is "
+       "described by the QoSSubService association. In turn, each of "
+       "the SubServices may require their own conditioning. This is "
+       "modeled using the QoSConditioningSubService aggregation. \n"
+       "\n"
+       "Note that a more concrete QoSService may only be aggregated "
+       "into one higher level Service, using this association. The "
+       "cardinality on the GroupComponent reference is Max (1).")]
+class CIM_QoSSubService : CIM_ServiceComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The higher level QoSService that is constructed by "
+          "aggregating one or more lower-level QoSServices.")]
+   CIM_QoSService REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The more concrete QoSService that is used to provide the "
+          "higher level Service.")]
+   CIM_QoSService REF PartComponent;
+};
+
+
+// ===================================================================
+// PrecedenceService
+// ===================================================================
+   [Deprecated { "CIM_QoSService" }, Version ( "2.7.0" ), Description (
+       "This class represents a specialization of the general concept "
+       "of forwarding network traffic by adding specific semantics "
+       "that define how traffic is forwarded based on the value of the "
+       "ToS byte of a packet. \n"
+       "\n"
+       "This class is used to enable DiffServ devices and non- "
+       "DiffServ devices to exchange traffic. This is done by defining "
+       "a sibling class, DiffServService, to represent devices that "
+       "forward traffic based on the DiffServ code point. This enables "
+       "the administrator to define mappings between devices that do "
+       "not support DiffServ (and instead use IP Precedence) and those "
+       "that do support DiffServ. \n"
+       "\n"
+       "PrecedenceService is deprecated since forwarding based on the "
+       "value of the ToS byte is specified using a FilterList, which "
+       "is associated with a ClassifierElement. If there is a need to "
+       "distinguish a higher-level set of coordinated QoS services, "
+       "the QoSService class can be instantiated directly.")]
+class CIM_PrecedenceService : CIM_QoSService {
+
+      [Deprecated { "CIM_IPHeadersFilter.HdrDSCP" }, Description (
+          "This property is an 8-bit unsigned integer that defines the "
+          "notion of precedence for different types of traffic.")]
+   uint8 PrecedenceValue;
+};
+
+
+// ===================================================================
+// DiffServService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "DiffServService represents the use of standard or custom "
+       "DiffServ services (associated with particular Per Hop "
+       "Behaviors, PHBs) to implement a (higher-level) QoSService. "
+       "Note that the DiffServService may be just one of a set of "
+       "coordinated QoSSubServices that together implement a "
+       "higher-level QoSService. The relationship between the "
+       "QoSServices is described using the association, QoSSubService.")]
+class CIM_DiffServService : CIM_QoSService {
+
+      [Deprecated { "CIM_DiffServService.PHBID" }, Description (
+          "This property is an unsigned 8-bit integer, and defines the "
+          "Differentiated Services Code Point (DSCP) that this link "
+          "uses to represent various types of differentiated services "
+          "through device-specific configuration commands. It is "
+          "deprecated since this information is conveyed via filter "
+          "lists, associated with ClassifierElements. The "
+          "DiffServService is better represented as a Per Hop "
+          "Behavior.")]
+   uint8 DSCP;
+
+      [Description (
+          "A 16-bit unsigned integer which identifies a particular per "
+          "hop behavior, or family of per hop behaviors. The value is "
+          "a Per Hop Behavior Identification Code, as defined in "
+          "[R3140]. Note that as defined, these identification codes "
+          "use the default, recommended, code points for PHBs as part "
+          "of their structure. These values may well be different from "
+          "the actual value used in the marker, as the marked value is "
+          "domain-dependent. The ability to indicate the PHB "
+          "Identification Code associated with a DiffServService is "
+          "helpful when tying the QoSService to reference documents, "
+          "and for inter-domain coordination and operation.")]
+   uint16 PHBID;
+};
+
+
+// ===================================================================
+// Hdr8021PService
+// ===================================================================
+   [Deprecated { "CIM_QoSService" }, Version ( "2.7.0" ), Description (
+       "This class represents a specialization of the general concept "
+       "of forwarding network traffic by adding specific semantics "
+       "that define how traffic is forwarded based on the value of the "
+       "Priority field in the 802.1P header. \n"
+       "\n"
+       "This class is used to enable DiffServ domains and domains that "
+       "support 802.1P only to exchange traffic. It represents the "
+       "mapping between implementations that only support 802.1P "
+       "priority marking to be mapped to implementations that support "
+       "DiffServ, which use DSCPs. \n"
+       "\n"
+       "Hdr8021PService is deprecated since forwarding based on the "
+       "value of the Priority field in the 802.1P header is specified "
+       "using a FilterList, which is associated with a "
+       "ClassifierElement. If there is a need to distinguish a "
+       "higher-level set of coordinated QoS services, the QoSService "
+       "class can be instantiated directly.")]
+class CIM_Hdr8021PService : CIM_QoSService {
+
+      [Deprecated { "CIM_Hdr8021Filter.HdrPriorityValue8021" }, 
+       Description (
+          "This property is an 8-bit unsigned integer that defines the "
+          "notion of priority as specified in 802.1P implementations.")]
+   uint8 PriorityValue;
+};
+
+
+// ===================================================================
+// AFService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class represents a specialization to the general concept "
+       "of forwarding network traffic by adding specific semantics "
+       "that characterize the operation of the Assured Forwarding (AF) "
+       "Service (RFC2597). This RFC defines four different AF classes "
+       "to represent four different treatments of traffic (e.g., a "
+       "different amount of forwarding resources, such as buffer space "
+       "and bandwidth, are allocated). Within each AF class, IP "
+       "packets are marked with one of three possible drop precedence "
+       "values. The drop precedence of a packet determines the "
+       "relative importance of that packet compared to other packets "
+       "within the same AF class if congestion occurs. A congested "
+       "interface will try to avoid dropping packets with a lower drop "
+       "precedence value by instead discarding packets with a higher "
+       "drop precedence value. \n"
+       "\n"
+       "Note that [R2597] defines 12 DSCPs that together represent the "
+       "AF Per Hop Behavior (PHB) group. Implementations are free to "
+       "extend this (e.g., add more classes and/or drop precedences). "
+       "\n\n"
+       "The AFService class is modeled as a specialization of "
+       "DiffServService, which is in turn a specialization of "
+       "QoSService. This enables it to be related to higher-level "
+       "QoSServices, as well as to lower-level conditioning "
+       "sub-services (e.g., classification, metering, dropping, "
+       "queuing, and others).")]
+class CIM_AFService : CIM_DiffServService {
+
+      [Description (
+          "This property is an 8-bit unsigned integer that indicates "
+          "the number of AF classes that this AF implementation uses. "
+          "Among the instances aggregated into AFService (using "
+          "QoSConditioningSubService), one SHOULD find markers with as "
+          "many distinct values as is indicated by ClassNumber.")]
+   uint8 ClassNumber;
+
+      [Description (
+          "This property is an 8-bit unsigned integer that indicates "
+          "the number of drop precedence values that this AF "
+          "implementation uses. The number of drop precedence values "
+          "is the number PER AF CLASS. The corresponding droppers are "
+          "found in the collection of ConditioningServices aggregated "
+          "by QoSConditioningSubService.")]
+   uint8 DropperNumber;
+};
+
+
+// ===================================================================
+// FlowService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class represents a service that supports a particular "
+       "microflow. The microflow is identified by the string-valued "
+       "property FlowID. In some implementations, an instance of this "
+       "class corresponds to an entry in the implementation's flow "
+       "table.")]
+class CIM_FlowService : CIM_QoSService {
+
+      [Description (
+          "This property is a string containing an identifier for a "
+          "microflow.")]
+   string FlowID;
+};
+
+
+// ===================================================================
+// EFService
+// ===================================================================
+   [Deprecated { "CIM_DiffServService" }, Version ( "2.7.0" ), 
+    Description (
+       "This class represents a specialization of the general concept "
+       "of forwarding network traffic by adding specific semantics "
+       "that characterize the operation of the Expedited Forwarding "
+       "(EF) Service (defined in RFC 2598). \n"
+       "\n"
+       "The EF PHB can be used to build a low loss, low latency, low "
+       "jitter, assured bandwidth, end-to-end service through DiffServ "
+       "domains. Such a service appears to the endpoints like a "
+       "point-to-point connection or a virtual leased line. This "
+       "service has also been described as Premium service in the IETF "
+       "literature. \n"
+       "\n"
+       "RFC 2598 defines one DSCP for the EF service. Thus, there is "
+       "no need to define any attributes in this class, since an "
+       "instance of the EFService class, by definition, means that "
+       "this particular DSCP is used. \n"
+       "\n"
+       "EFService is deprecated since forwarding based on the value of "
+       "the DiffServ Code Point is specified using a FilterList, which "
+       "is associated with a ClassifierElement. If there is a need to "
+       "distinguish a higher-level set of coordinated QoS services, "
+       "the DiffServService class can be instantiated directly.")]
+class CIM_EFService : CIM_DiffServService {
+};
+
+
+// ==================================================================
+// AFRelatedServices
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The IETF's RFC2597 describes a Differentiated Services "
+       "Per-Hop-Behavior (PHB) Group called Assured Forwarding (AF). "
+       "Quoting from the RFC, 'The AF PHB group provides delivery of "
+       "IP packets in four independently forwarded AF classes. Within "
+       "each AF class, an IP packet can be assigned one of three "
+       "different levels of drop precedence.' The AFRelatedServices "
+       "association describes the precedence of the individual AF "
+       "drop-related Services within an AF IP packet-forwarding class.")]
+class CIM_AFRelatedServices {
+
+      [Key, Max ( 1 ), Description (
+          "The AFService with a lower drop precedence (ie, lower "
+          "probability of dropping packets).")]
+   CIM_AFService REF AFLowerDropPrecedence;
+
+      [Key, Description (
+          "An AFService at the same IP packet-forwarding class level, "
+          "but at a higher drop precedence.")]
+   CIM_AFService REF AFHigherDropPrecedence;
+};
+
+
+// ===================================================================
+// ConditioningService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "ConditioningService represents the ability to define how "
+       "traffic is conditioned in the data-forwarding path of a "
+       "device. The subclasses of ConditioningService define the "
+       "particular types of conditioning that are done. These are the "
+       "services performed by a classifier, a meter, a marker, a "
+       "dropper, a queue, and a scheduler. Other, more sophisticated "
+       "types of conditioning may be defined in the future. \n"
+       "\n"
+       "ConditioningService is a concrete class because its superclass "
+       "(ForwardingService) is concrete. While this class can be "
+       "instantiated, an instance of it does not accomplish anything, "
+       "because the nature of the conditioning, and the parameters "
+       "that control it, are specified only in the subclasses of "
+       "ConditioningService. \n"
+       "\n"
+       "Two associations in which ConditioningService participates are "
+       "critical to its usage in QoS - QoSConditioningSubService and "
+       "NextService. QoSConditioningSubService aggregates "
+       "ConditioningServices into a particular QoS service (such as "
+       "AF), to describe the specific conditioning functionality that "
+       "underlies that QoSService in a particular device. NextService "
+       "indicates the subsequent conditioning service(s) for different "
+       "traffic streams.")]
+class CIM_ConditioningService : CIM_Service {
+
+      [Deprecated { "CIM_EnabledLogicalElement.EnabledState" }, 
+       Description (
+          "This property is a boolean that, if TRUE, signifies that "
+          "one or more conditioning functions can be performed on "
+          "traffic encountered by this ConditioningService. This "
+          "allows one or more ConditioningServices to be enabled or "
+          "disabled to provide different types of conditioning for "
+          "traffic. Enabled is deprecated in lieu of a similar (but "
+          "more generally and completely defined) property which is "
+          "inherited.")]
+   boolean Enabled;
+};
+
+
+// ==================================================================
+// QoSConditioningSubService
+// ==================================================================
+   [Association, Aggregation, Version ( "2.7.0" ), Description (
+       "A QoSService utilizes underlying ConditioningServices as part "
+       "of its overall functionality. This is modeled using the "
+       "QoSConditioningSubService association. Note that a "
+       "ConditioningService may only be part of a single QoSService - "
+       "the cardinality on the QoSService reference is Max (1).")]
+class CIM_QoSConditioningSubService : CIM_ServiceComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "This aggregation identifies the set of ConditioningServices "
+          "that together condition traffic for a particular "
+          "QoSService.")]
+   CIM_QoSService REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The ConditioningService.")]
+   CIM_ConditioningService REF PartComponent;
+};
+
+
+// ==================================================================
+// ConditioningServiceOnEndpoint
+// ==================================================================
+   [Association,
+       Deprecated { "CIM_IngressConditioningServiceOnEndpoint",
+       "CIM_EgressConditioningServiceOnEndpoint" }, Version ( "2.7.0" ), 
+    Description (
+       "The QoS Model describes the traffic conditioning functions in "
+       "place for a network device. In order to 'be conditioned', a "
+       "packet is received at a ProtocolEndpoint. After "
+       "'conditioning', a packet is dropped or leaves the device via a "
+       "ProtocolEndpoint. This dependency on ProtocolEndpoints is "
+       "defined by the ConditioningServiceOn Endpoint association. A "
+       "property of the association, ServiceType, indicates whether "
+       "the ConditioningService handles incoming (\"Ingress\") or "
+       "out-going (\"Egress\") packets. This association is deprecated "
+       "since different cardinalities are needed on the ingress and "
+       "egress classes. This cannot be done using a single "
+       "association.")]
+class CIM_ConditioningServiceOnEndpoint : CIM_Dependency {
+
+      [Deprecated { 
+          "CIM_IngressConditioningServiceOnEndpoint.Antecedent",
+          "CIM_EgressConditioningServiceOnEndpoint.Antecedent " },
+       Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The ProtocolEndpoint through which traffic arrives at or "
+          "leaves from a network device.")]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Deprecated { 
+          "CIM_IngressConditioningServiceOnEndpoint.Dependent",
+          "CIM_EgressConditioningServiceOnEndpoint.Dependent" },
+       Override ( "Dependent" ), Description (
+          "The ConditioningService which begins or ends the traffic "
+          "conditioning processing within a network device.")]
+   CIM_ConditioningService REF Dependent;
+
+      [Deprecated { "CIM_IngressConditioningServiceOnEndpoint",
+          "CIM_EgressConditioningServiceOnEndpoint" }, Description (
+          "Indicates whether a packet is incoming (value = 1, "
+          "\"Ingress\") or out-going (value = 2, \"Egress\") at the "
+          "ProtocolEndpoint, relative to the ConditioningService."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "Ingress", "Egress" }]
+   uint16 ServiceType;
+};
+
+
+// ==================================================================
+// IngressConditioningServiceOnEndpoint
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association represents the binding, in the ingress "
+       "direction, between a ProtocolEndpoint and the first "
+       "ConditioningService that processes packets received via that "
+       "Endpoint. Since there can only be one 'first' "
+       "ConditioningService for a ProtocolEndpoint, the cardinality "
+       "for the Dependent object reference is narrowed from 0..n to "
+       "0..1. On the other hand, a single ConditioningService can be "
+       "the first to process packets received via multiple "
+       "ProtocolEndpoints. So, the cardinality of the Antecedent "
+       "object reference remains 0..n.")]
+class CIM_IngressConditioningServiceOnEndpoint : CIM_ServiceSAPDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The ProtocolEndpoint through which traffic arrives at a "
+          "network device.")]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The ConditioningService which begins the traffic "
+          "conditioning processing within a network device.")]
+   CIM_ConditioningService REF Dependent;
+};
+
+
+// ==================================================================
+// EgressConditioningServiceOnEndpoint
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association represents the binding, in the egress "
+       "direction, between a ProtocolEndpoint and the last "
+       "ConditioningService that processes packets before they leave a "
+       "network device (via that ProtocolEndpoint). This 'last' "
+       "ConditioningService is ordinarily a scheduler, but it does not "
+       "have to be. There can be multiple 'last' ConditioningServices "
+       "for an Endpoint (for example, in the case of a fallback "
+       "scheduler). Therefore, the cardinality for the Dependent "
+       "object reference remains 0..n. On the other hand, a single "
+       "ConditioningService cannot be the last one to process packets "
+       "for multiple Endpoints. So, the cardinality of the Antecedent "
+       "object reference is narrowed from 0..n to 0..1.")]
+class CIM_EgressConditioningServiceOnEndpoint : CIM_ServiceSAPDependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The ProtocolEndpoint through which traffic leaves a network "
+          "device.")]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The ConditioningService which ends the traffic conditioning "
+          "processing within a network device.")]
+   CIM_ConditioningService REF Dependent;
+};
+
+
+// ==================================================================
+// NextService
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "NextService establishes a predecessor-successor relationship "
+       "between two ConditioningService objects. This association is "
+       "used to indicate the sequence of ConditioningServices required "
+       "to process a particular type of traffic. \n"
+       "\n"
+       "Instances describe the various relationships between different "
+       "ConditioningServices (such as classifiers, meters, droppers, "
+       "etc.) that are used collectively to condition traffic. Both "
+       "one-to-one and more complicated fan-in and/or fan-out "
+       "relationships can be described. The Conditioning Services may "
+       "feed one another directly, or they may be mapped to multiple "
+       "'next' Services based on the characteristics of the packet.")]
+class CIM_NextService {
+
+      [Key, Description (
+          "The preceding ConditioningService, 'earlier' in the "
+          "processing sequence for a packet.")]
+   CIM_ConditioningService REF PrecedingService;
+
+      [Key, Description (
+          "The 'next' or following ConditioningService.")]
+   CIM_ConditioningService REF FollowingService;
+};
+
+
+// ===================================================================
+// ClassifierService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "ClassifierService represents a logical entity associated with "
+       "an ingress or egress interface of a device, that takes a "
+       "single input stream, and sorts it into one or more output "
+       "streams. The sorting is done by a set of filters that select "
+       "packets based on the packet contents, or possibly based on "
+       "other attributes associated with the packet. Each output "
+       "stream is the result of matching a particular filter. \n"
+       "\n"
+       "Rather than being linked directly to its filters (instantiated "
+       "as FilterLists), a classifier is modeled as an aggregation of "
+       "ClassifierElements. Each of these ClassifierElements is linked "
+       "to a single FilterList, by the association "
+       "ClassifierElementUsesFilterList. Note that ClassifierServices "
+       "are designed to allow hierarchical classification. When "
+       "hierarchical classification is used, a ClassifierElement may "
+       "point to another ClassifierService (via the association, "
+       "NextServiceAfterClassifierElement). When this is true, the "
+       "ClassifierElement MUST NOT use the ClassifierElementUses "
+       "FilterList association. \n"
+       "\n"
+       "A classifier is modeled as a ConditioningService so that it "
+       "can be aggregated into a QoSService (using the "
+       "QoSConditioningSubService aggregation), and can use the "
+       "NextService association to identify the subsequent "
+       "ConditioningServices for different traffic streams.")]
+class CIM_ClassifierService : CIM_ConditioningService {
+};
+
+
+// ===================================================================
+// ClassifierElement
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "ClassifierElement represents the linkage, within a single "
+       "ClassifierService, between a FilterList (that defines the "
+       "criteria to select packets from the stream of packets coming "
+       "into the Service) and the next ConditioningService (to which "
+       "the selected packets go after they leave the "
+       "ClassifierService). ClassifierElement has no properties of its "
+       "own. It is present to serve as an aggregated entity into "
+       "ClassifierService (using the ClassifierElementIn "
+       "ClassifierService association), and for associations with its "
+       "FilterList (ClassifierElementUsesFilterList) and its next "
+       "ConditioningService (NextServiceAfterClassifierElement). \n"
+       "\n"
+       "Note that a ClassifierElement may be associated with a "
+       "ClassifierService through the NextServiceAfterClassifier "
+       "Element association. This will occur when implementing "
+       "hierarchical classification. In this case, the "
+       "ClassifierElement MUST NOT instantiate the ClassifierElement "
+       "UsesFilterList association. Further, when a ClassifierElement "
+       "is associated with a ClassifierService as described above, the "
+       "order of processing of the associated ClassifierService is a "
+       "function of the ClassifierOrder property of the "
+       "ClassifierElementInClassifierService aggregation.")]
+class CIM_ClassifierElement : CIM_ClassifierService {
+};
+
+
+// ===================================================================
+// ClassifierElementInClassifierService
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "This aggregation represents the relationship between a "
+       "ClassifierService and the ClassifierElements that provide its "
+       "fan-out function. ClassifierElements represent the traffic "
+       "selectors for the Service. A ClassifierService typically "
+       "aggregates multiple ClassifierElements. An individual Element, "
+       "however, is aggregated only by a single ClassifierService.")]
+class CIM_ClassifierElementInClassifierService : CIM_ServiceComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The ClassifierService which aggregates ClassifierElements.")]
+   CIM_ClassifierService REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The aggregated ClassifierElement, defined in the context of "
+          "one ClassifierService.")]
+   CIM_ClassifierElement REF PartComponent;
+
+      [Description (
+          "Because the filters for a classifier can overlap, it is "
+          "necessary to specify the order in which the "
+          "ClassifierElements are aggregated by a ClassifierService. "
+          "This then dictates the order in which packets coming into "
+          "the classifier are presented. Values are represented in "
+          "ascending order: first '1', then '2', and so on. Different "
+          "values MUST be assigned for each of the ClassifierElements "
+          "aggregated by a given ClassifierService.")]
+   uint32 ClassifierOrder;
+};
+
+
+// ===================================================================
+// ClassifierElementUsesFilterList
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association relates one or more ClassifierElements with a "
+       "FilterList that defines the criteria to select packets for the "
+       "classifier to process. Note that a classifier is always "
+       "modeled as a ClassifierService that aggregates a set of "
+       "ClassifierElements. Each of these ClassifierElements is EITHER "
+       "associated with a single FilterList OR associated to another "
+       "ClassifierService (via NextServiceAfterClassifier Element to "
+       "describe hierarchical classification).")]
+class CIM_ClassifierElementUsesFilterList : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The FilterList that specifies the traffic criteria for a "
+          "ClassifierElement.")]
+   CIM_FilterList REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The ClassifierElement that depends on the FilterList for "
+          "its traffic criteria.")]
+   CIM_ClassifierElement REF Dependent;
+};
+
+
+// ===================================================================
+// NextServiceAfterClassifierElement
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "An association used to establish a predecessor-successor "
+       "relationship between a single ClassifierElement (within a "
+       "ClassifierService) and the next ConditioningService object "
+       "that further processes the selected traffic. Note that the "
+       "cardinalities indicate that a FollowingService MUST be "
+       "defined, after the ClassifierElement. This is because there is "
+       "no reason to classify traffic unless further processing will "
+       "be done.")]
+class CIM_NextServiceAfterClassifierElement : CIM_NextService {
+
+      [Override ( "PrecedingService" ), Description (
+          "The ClassifierElement that selects traffic to be passed to "
+          "the FollowingService.")]
+   CIM_ClassifierElement REF PrecedingService;
+
+      [Override ( "FollowingService" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The ConditioningService that follows the ClassifierElement.")]
+   CIM_ConditioningService REF FollowingService;
+};
+
+
+// ==================================================================
+// ClassifierFilterSet
+// ==================================================================
+   [Association, Deprecated { "CIM_ClassifierElementUsesFilterList",
+       "CIM_ClassifierElementInClassifierService" },
+    Version ( "2.7.0" ), Description (
+       "In order for a ClassifierService to correctly identify and "
+       "process network traffic, that traffic must be described by "
+       "FilterEntries, which are aggregated into FilterLists. This "
+       "association defines the Dependency of the ClassifierService on "
+       "FilterLists (and therefore, their FilterEntries). The "
+       "cardinality of the association requires that the Classifier "
+       "Service operate against at least one FilterList. \n"
+       "\n"
+       "The association is deprecated in lieu of associating Filter "
+       "Lists to ClassifierElements, and ClassifierElements into "
+       "ClassifierServices. The latter approach is very flexible "
+       "regarding the implementations that can be modeled, and removes "
+       "the need to track individual traffic streams using an "
+       "artificial model property, TrafficClass. Using "
+       "ClassifierElements, each stream is processed beginning with a "
+       "single FilterList and progressing through various "
+       "ConditioningServices, associated via instances of NextService.")]
+class CIM_ClassifierFilterSet : CIM_Dependency {
+
+      [Deprecated { "CIM_ClassifierElementUsesFilterList.Antecedent" },
+       Override ( "Antecedent" ), Description (
+          "The FilterList aggregating FilterEntries, these in turn "
+          "describe how traffic is identified and processed by the "
+          "ClassifierService.")]
+   CIM_FilterList REF Antecedent;
+
+      [Deprecated { "CIM_ClassifierElementUsesFilterList.Dependent" },
+       Override ( "Dependent" ), Description (
+          "The ClassifierService which uses the FilterList and its "
+          "aggregated FilterEntries.")]
+   CIM_ClassifierService REF Dependent;
+
+      [Deprecated { 
+          "CIM_ClassifierElementInClassifierService.ClassifierOrder" }, 
+       Description (
+          "The ordering of the FilterLists used in the classification "
+          "and forwarding functions of the ClassifierService.")]
+   uint16 FilterListPosition;
+};
+
+
+// ===================================================================
+// MeterService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class represents the metering of network traffic. "
+       "Metering is the function of monitoring the arrival times of "
+       "packets of a traffic stream and determining the level of "
+       "conformance of each packet with respect to a pre- established "
+       "traffic profile. A meter has the ability to invoke different "
+       "ConditioningServices for conforming and non-conforming "
+       "traffic. Traffic leaving a meter may be further conditioned "
+       "(e.g., dropped or queued) by routing the packet to another "
+       "conditioning element. \n"
+       "\n"
+       "This class is modeled as a ConditioningService so that it can "
+       "be aggregated into a QoSService (using the "
+       "QoSConditioningSubService association), to indicate that its "
+       "functionality underlies that QoS service. MeterService also "
+       "participates in a subclass of the NextService association, to "
+       "identify the subsequent ConditioningServices for conforming "
+       "and non-conforming traffic.")]
+class CIM_MeterService : CIM_ConditioningService {
+
+      [Description (
+          "This property is an enumerated 16-bit unsigned integer that "
+          "is used to specify the particular type of meter. Defined "
+          "values of the enumeration are: \n"
+          "\n"
+          "1: Other \n"
+          "2: Average Rate Meter \n"
+          "3: Exponentially Weighted Moving Average Meter \n"
+          "4: Token Bucket Meter \n"
+          "\n"
+          "Note: The MeterType property and the MeterService "
+          "subclasses provide similar information. This property is "
+          "defined for query purposes and for future expansion. It is "
+          "assumed that not all MeterServices will require a subclass "
+          "to define them. Therefore, MeterService will be "
+          "instantiated directly and the Type property is needed."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Average Rate Meter",
+          "Exponentially Weighted Moving Average Meter",
+          "Token Bucket Meter" }, 
+       ModelCorrespondence { "CIM_MeterService.OtherMeterType" }]
+   uint16 MeterType;
+
+      [Description (
+          "This property is a string used in conjunction with the "
+          "MeterType property. When the value of MeterType is 1 (i.e., "
+          "\"Other\"), then the name of the conformance level for this "
+          "meter is defined in this property."), 
+       ModelCorrespondence { "CIM_MeterService.MeterType" }]
+   string OtherMeterType;
+
+      [Description (
+          "An unsigned integer indicating the number of conformance "
+          "levels supported by the Meter. For example, when only "
+          "'in-profile' or 'out of profile' metering is supported. "
+          "ConformanceLevels is set to 2.")]
+   uint16 ConformanceLevels;
+};
+
+
+// ===================================================================
+// AverageRateMeterService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This is a concrete subclass of MeterService that represents a "
+       "simple meter, called an Average Rate Meter. This type of meter "
+       "measures the average rate at which packets are submitted to it "
+       "over a specified time. Packets are defined as conformant if "
+       "their average arrival rate does not exceed the specified "
+       "measuring rate of the meter. Any packet that causes the "
+       "specified measuring rate to be exceeded is defined to be "
+       "non-conforming.")]
+class CIM_AverageRateMeterService : CIM_MeterService {
+
+      [Description (
+          "This property is a 32-bit unsigned integer that defines the "
+          "rate used to determine whether admitted packets are in "
+          "conformance or not. The value is specified in kilobits per "
+          "second."), 
+       Units ( "KiloBits per Second" )]
+   uint32 AverageRate;
+
+      [Description (
+          "This property is a 64-bit unsigned integer that defines the "
+          "time period over which the average measurement should be "
+          "taken. The value is specified in microseconds."), 
+       Units ( "MicroSeconds" )]
+   uint64 DeltaInterval;
+};
+
+
+// ===================================================================
+// EWMAMeterService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This is a concrete subclass of the MeterService class that "
+       "represents an exponentially weighted moving average meter. "
+       "This meter is a simple low-pass filter that measures the rate "
+       "of incoming packets over a small, fixed sampling interval. Any "
+       "admitted packet that pushes the average rate over a "
+       "pre-defined limit is defined to be non-conforming.")]
+class CIM_EWMAMeterService : CIM_MeterService {
+
+      [Description (
+          "This property is a 32-bit unsigned integer that defines the "
+          "average rate against which the sampled arrival rate of "
+          "packets should be measured. Any packet that causes the "
+          "sampled rate to exceed this rate is deemed non-conforming. "
+          "The value is specified in kilobits per second."), 
+       Units ( "KiloBits Per Second" )]
+   uint32 AverageRate;
+
+      [Description (
+          "This property is a 64-bit unsigned integer that defines the "
+          "sampling interval used to measure the arrival rate. The "
+          "calculated rate is averaged over this interval and checked "
+          "against the AverageRate property. All packets whose "
+          "computed average arrival rate is less than the AverageRate "
+          "are deemed conforming. The value is specified in "
+          "microseconds."), 
+       Units ( "MicroSeconds" )]
+   uint64 DeltaInterval;
+
+      [Description (
+          "This property is a 32-bit unsigned integer representing the "
+          "reciprocal of the time constant (e.g., frequency response) "
+          "of what is essentially a simple low-pass filter. For "
+          "example, the value 64 for this property represents a time "
+          "constant value of 1/64.")]
+   uint32 Gain;
+};
+
+
+// ===================================================================
+// TokenBucketMeterService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This is a concrete subclass of the MeterService class that "
+       "represents the metering of network traffic using a token "
+       "bucket meter. Two types of token bucket meters are defined "
+       "using this class - a simple, two-parameter bucket meter, and a "
+       "multi-stage meter. \n"
+       "\n"
+       "A simple token bucket usually has two parameters, an average "
+       "token rate and a burst size, and has two conformance levels: "
+       "'conforming' and 'non-conforming'. This class also defines an "
+       "excess burst size, which enables the meter to have three "
+       "conformance levels ('conforming', 'partially conforming', and "
+       "'non-conforming'). In this case, packets that exceed the "
+       "excess burst size are deemed non-conforming, while packets "
+       "that exceed the smaller burst size but are less than the "
+       "excess burst size are deemed partially conforming.")]
+class CIM_TokenBucketMeterService : CIM_MeterService {
+
+      [Description (
+          "This property is a 32-bit unsigned integer that is used to "
+          "define the committed rate of the meter. The value is "
+          "expressed in kilobits per second."), 
+       Units ( "KiloBits per Second" )]
+   uint32 AverageRate;
+
+      [Description (
+          "This attribute is a 32-bit unsigned integer that is used to "
+          "define the peak rate of the meter. The value is expressed "
+          "in kilobits per second."), 
+       Units ( "KiloBits per Second" )]
+   uint32 PeakRate;
+
+      [Description (
+          "This property is a 32-bit unsigned integer that is used to "
+          "define the maximum number of tokens available for the "
+          "committed rate (specified by the AverageRate property). The "
+          "value is specified in kilobytes."), 
+       Units ( "KiloBytes" )]
+   uint32 BurstSize;
+
+      [Description (
+          "This property is a 32-bit unsigned integer that is used to "
+          "define the maximum number of tokens available for the peak "
+          "rate (specified by the PeakRate property). The value is "
+          "specified in kilobytes."), 
+       Units ( "KiloBytes" )]
+   uint32 ExcessBurstSize;
+};
+
+
+// ==================================================================
+// NextServiceAfterMeter
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association describes a predecessor-successor "
+       "relationship between a MeterService and one or more "
+       "ConditioningService objects that process traffic from the "
+       "meter. For example, for devices that implement preamble "
+       "marking, the FollowingService reference (after the meter) is a "
+       "PreambleMarkerService - to record the results of the metering "
+       "in the preamble. \n"
+       "\n"
+       "It might be expected that the NextServiceAfterMeter "
+       "association would subclass from NextService. However, meters "
+       "are 1:n fan-out elements, and require a mechanism to "
+       "distinguish between the different results/outputs of the "
+       "meter. Therefore, this association defines a new key property, "
+       "MeterResult, which is used to record the result and identify "
+       "the output through which this traffic left the meter.")]
+class CIM_NextServiceAfterMeter {
+
+      [Key, Description (
+          "The preceding MeterService, 'earlier' in the processing "
+          "sequence for a packet.")]
+   CIM_MeterService REF PrecedingService;
+
+      [Key, Description (
+          "The 'next' or following ConditioningService.")]
+   CIM_ConditioningService REF FollowingService;
+
+      [Key, Description (
+          "Information on the result of the metering. Traffic is "
+          "distinguished as being conforming, non-conforming, or "
+          "partially conforming. More complicated metering can be "
+          "built either by extending the enumeration or by cascading "
+          "meters."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Conforming", "Partially Conforming",
+          "Non-Conforming" }]
+   uint16 MeterResult;
+};
+
+
+// ===================================================================
+// MarkerService
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "MarkerService represents the general process of marking a "
+       "selected field in a network packet with a specified value. "
+       "Packets are marked in order to control the conditioning that "
+       "they will subsequently receive. Subclasses of MarkerService "
+       "identify the specific fields to be marked, and introduce "
+       "properties to represent the values used in marking these "
+       "fields. Markers are usually invoked as a result of a preceding "
+       "classifier match. \n"
+       "\n"
+       "MarkerService is a concrete class because its superclass "
+       "(ConditioningService) is concrete. While this class can be "
+       "instantiated, an instance of it does not accomplish anything, "
+       "because both the field to be marked and the value used to mark "
+       "it are defined in subclasses. \n"
+       "\n"
+       "MarkerService is modeled as a ConditioningService so that it "
+       "can be aggregated into a QoSService (using the "
+       "QoSConditioningSubService association). This association "
+       "indicates that the MarkerService's functionality underlies the "
+       "QoSService. MarkerService also participates in the NextService "
+       "association to identify the subsequent ConditioningService(s) "
+       "that act on packets after they have been marked.")]
+class CIM_MarkerService : CIM_ConditioningService {
+};
+
+
+// ===================================================================
+// PreambleMarkerService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "PreambleMarkerService models the storing of traffic- "
+       "conditioning results in a packet preamble. An instance appends "
+       "a two-part string of the form '<type>,<value>' to the packet "
+       "preamble. The concept of 'type's is discussed more fully in "
+       "the Description of the class' FilterItemList property.")]
+class CIM_PreambleMarkerService : CIM_MarkerService {
+
+      [Description (
+          "To foster interoperability, the basic format of the "
+          "information captured by a PreambleMarker is specified. That "
+          "information is contained in the FilterItemList property (an "
+          "ordered, string array). Each entry in the array takes the "
+          "form 'type,value'. When entries are added, they are "
+          "appended to the end of the list. \n"
+          "\n"
+          "A limited set of standardized 'type's exist. They are: \n"
+          "- ConformingFromMeter, NonConformingFromMeter and "
+          "PartConformingFromMeter to convey metering results (where "
+          "the 'value' is the name of the meter) \n"
+          "- VlanId to describe the traffic's VLAN information (where "
+          "the 'value' is the VLAN ID). \n"
+          "An implementation is free to define and use other preamble "
+          "'types'. \n"
+          "Note that a wildcard value of \"any\" is allowed to "
+          "indicate that the preamble entry matches for any 'value' of "
+          "the specified 'type'. For example, using the wildcard, an "
+          "administrator can define a filter to select all packets "
+          "that were found to be conforming ('type' = "
+          "\"ConformingFromMeter\") without having to name each meter "
+          "individually."), 
+       ArrayType ( "Ordered" )]
+   string FilterItemList[];
+};
+
+
+// ===================================================================
+// ToSMarkerService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "ToSMarkerService marks the ToS (type of service) field in the "
+       "IPv4 packet header [R791] with a specific value. Packets are "
+       "marked in order to control the conditioning that they will "
+       "subsequently receive. Following common practice, the value to "
+       "be written into the ToS field is represented as an unsigned "
+       "8-bit integer.")]
+class CIM_ToSMarkerService : CIM_MarkerService {
+
+      [Description (
+          "This property is an unsigned 8-bit integer, representing a "
+          "value to be used for marking the type of service (ToS) "
+          "field in the IPv4 packet header. The ToS field is defined "
+          "to be a complete octet, so the range for this property is "
+          "0..255. Some implementations, however, require that the "
+          "lowest-order bit in the field is always 0. Such an "
+          "implementation cannot support an odd TosValue.")]
+   uint8 ToSValue;
+};
+
+
+// ===================================================================
+// DSCPMarkerService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "DSCPMarkerService marks the differentiated services codepoint "
+       "(DSCP) within the DS field in the IPv4 and IPv6 packet "
+       "headers, as defined in [R2474]. It is marked with the specific "
+       "value defined in the property, DSCPValue. Following common "
+       "practice, the value to be written into the field is "
+       "represented as an unsigned 8-bit integer.")]
+class CIM_DSCPMarkerService : CIM_MarkerService {
+
+      [Description (
+          "This property is an unsigned 8-bit integer, representing a "
+          "value to be used for marking the DSCP field in an IPv4 or "
+          "Ipv6 packet header. Since the DSCP consists of 6 bits, the "
+          "values for this property are limited to the range 0..63. "
+          "When the DSCP is marked, the remaining two bits in the DS "
+          "field are left unchanged."), 
+       MinValue ( 0 ), MaxValue ( 63 )]
+   uint8 DSCPValue;
+};
+
+
+// ===================================================================
+// Priority8021QMarkerService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Priority8021QMarkerService marks the Priority field in an "
+       "802.1Q- compliant frame, with a specified value. Frames are "
+       "marked in order to control the conditioning that they will "
+       "subsequently receive. Following common practice, the value to "
+       "be written into the field is represented as an unsigned 8-bit "
+       "integer.")]
+class CIM_Priority8021QMarkerService : CIM_MarkerService {
+
+      [Description (
+          "This property is an unsigned 8-bit integer, representing a "
+          "value to be used for marking the Priority field in the "
+          "802.1Q header. Since the Priority field consists of 3 bits, "
+          "the values for this property are limited to the range 0..7. "
+          "When the Priority field is marked, the remaining two bits "
+          "in the octet are left unchanged."), 
+       MinValue ( 0 ), MaxValue ( 7 )]
+   uint8 PriorityValue;
+};
+
+
+// ===================================================================
+// DropperService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "DropperService represents the ability to selectively drop "
+       "network traffic, and/or to invoke another ConditioningService "
+       "(indicated using the NextService association) for further "
+       "processing of traffic that is not dropped. It is the base "
+       "class for different types of droppers. Droppers are "
+       "distinguished by the algorithm that they use to drop traffic. "
+       "\n\n"
+       "The NextService association has special semantics for "
+       "droppers, in addition to conveying the general information of "
+       "'what happens next' (that apply to all Conditioning Services). "
+       "The queue(s) from which a particular dropper drops packets are "
+       "identified by following chain(s) of NextService associations "
+       "'rightwards' from the dropper, until they reach a queue.")]
+class CIM_DropperService : CIM_ConditioningService {
+
+      [Description (
+          "This property is an enumerated 16-bit unsigned integer that "
+          "defines the type of dropper. Its Values are: \n"
+          "1: Other \n"
+          "2: Random \n"
+          "3: HeadTail \n"
+          "4: Absolute Dropper \n"
+          "\n"
+          "Note: The DropperType property and the DropperService "
+          "subclasses provide similar information. This property is "
+          "defined for query purposes and to not require a subclass "
+          "for all types of DropperServices (for example, to describe "
+          "an Absolute Dropper in today's model). Therefore, "
+          "DropperService can be instantiated directly and the Type "
+          "property is needed."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Random", "HeadTail", "Absolute Dropper" }, 
+       ModelCorrespondence { "CIM_DropperService.OtherDropperType" }]
+   uint16 DropperType;
+
+      [Description (
+          "This property contains a vendor-specific value for the type "
+          "of dropping that is done. It is used when the value of the "
+          "DropperType property is 1 (Other)."), 
+       ModelCorrespondence { "CIM_DropperService.DropperType" }]
+   string OtherDropperType;
+
+      [Deprecated { "CIM_DropperService.DropperType" }, Description (
+          "This property indicates whether the Dropper will always "
+          "drop incoming packets (value=1) regardless of their type. "
+          "It is deprecated since its information is conveyed by the "
+          "DropperType property (value=4, 'Absolute Dropper')."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "Always Drop", "Do Not Always Drop" }]
+   uint16 AlwaysDrop;
+
+      [Description (
+          "This enumeration indicates the point in the associated "
+          "queue (associated via the NextService relationship) from "
+          "which packets should be dropped. If the value is 0 "
+          "\"Unknown\", then packets MAY be dropped from any location "
+          "in the queue."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "Head", "Tail" }]
+   uint16 DropFrom;
+
+      [Description (
+          "This property is an enumerated unsigned 16-bit integer that "
+          "defines the metric used to trigger the start of dropping "
+          "packets. This does NOT mean that all packets will be "
+          "dropped; it does mean that SOME packets will start to be "
+          "dropped. The number and type of packets dropped is a "
+          "function of the type of algorithm used by this Dropper. "
+          "Values are: \n"
+          "\n"
+          "1: Other \n"
+          "2: Queue Threshold \n"
+          "3: Arrival Rate"), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Other", "Queue Threshold", "Arrival Rate" }]
+   uint16 DropStartMetric;
+
+      [Description (
+          "This property is an enumerated unsigned 16-bit integer that "
+          "defines the metric used to determine when ALL packets will "
+          "be dropped REGARDLESS of the type of algorithm used by this "
+          "Dropper. Values are: \n"
+          "\n"
+          "1: Other \n"
+          "2: Queue Threshold \n"
+          "3: Arrival Rate"), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Other", "Queue Threshold", "Arrival Rate" }]
+   uint16 DropMaintainMetric;
+};
+
+
+// ===================================================================
+// REDDropperService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "REDDropperService represents the ability to drop network "
+       "traffic using a Random Early Detection (RED) algorithm. The "
+       "purpose of a RED algorithm is to avoid congestion (as opposed "
+       "to managing congestion). Instead of waiting for the queues to "
+       "fill up, and then dropping large numbers of packets, RED works "
+       "by monitoring average queue depth. When the queue depth "
+       "exceeds a minimum threshold, packets are randomly discarded. "
+       "These discards cause TCP to slow its transmission rate for "
+       "those connections that experienced the packet discards. Other "
+       "connections are not affected by these discards. \n"
+       "\n"
+       "A RED dropper always drops packets from a single queue, which "
+       "is related to the dropper as the following Service in the "
+       "NextService association. The queue(s) examined by the drop "
+       "algorithm are found by following the "
+       "CalculationServiceForDropper association(s) to determine the "
+       "dropper's DropThresholdCalculationService(s), and then "
+       "following the CalculationBasedOnQueue association to find the "
+       "queue being watched by each CalculationService.")]
+class CIM_REDDropperService : CIM_DropperService {
+
+      [Description (
+          "This is an unsigned 32-bit integer that defines the minimum "
+          "average queue depth at which packets are subject to being "
+          "dropped. (See the ThresholdUnits property to determine the "
+          "units of the threshold.) The slope of the drop probability "
+          "function is described by the Start/StopProbability "
+          "properties."), 
+       ModelCorrespondence { "CIM_REDDropperService.ThresholdUnits" }]
+   uint32 MinQueueThreshold;
+
+      [Description (
+          "This is an unsigned 32-bit integer that defines the maximum "
+          "average queue length at which packets are subject to always "
+          "being dropped, regardless of the dropping algorithm and "
+          "probabilities being used. (See the ThresholdUnits property "
+          "to determine the units of the threshold.)"), 
+       MinValue ( 0 ), MaxValue ( 1000 ), 
+       ModelCorrespondence { "CIM_REDDropperService.ThresholdUnits" }]
+   uint32 MaxQueueThreshold;
+
+      [Description (
+          "This is an unsigned 32-bit integer, used in conjunction "
+          "with the StopDropProbability property. The start and stop "
+          "probabilities define the slope of the drop probability "
+          "function. This function governs the rate at which packets "
+          "are subject to being dropped, as a function of the queue "
+          "length. \n"
+          "\n"
+          "This property expresses a drop probability in drops per "
+          "thousand packets. For example, the value 100 indicates a "
+          "drop probability of 100 per 1000 packets, that is, 10%. Min "
+          "and max values are 0 to 1000."), 
+       Units ( "Per Thousand Packets" ), 
+       ModelCorrespondence { "CIM_REDDropperService.StopProbability" }]
+   uint32 StartProbability;
+
+      [Description (
+          "This is an unsigned 32-bit integer, used in conjunction "
+          "with the StartDropProbability property. The start and stop "
+          "probabilities define the slope of the drop probability "
+          "function. This function governs the rate at which packets "
+          "are subject to being dropped, as a function of the queue "
+          "length. \n"
+          "\n"
+          "This property expresses a drop probability in drops per "
+          "thousand packets. For example, the value 100 indicates a "
+          "drop probability of 100 per 1000 packets, that is, 10%. Min "
+          "and max values are 0 to 1000."), 
+       Units ( "Per Thousand Packets" ), MinValue ( 0 ),
+       MaxValue ( 1000 ), 
+       ModelCorrespondence { "CIM_REDDropperService.StartProbability" }]
+   uint32 StopProbability;
+
+      [Description (
+          "ThresholdUnits is an enumerated integer that identifies the "
+          "units for the Min and MaxQueueThreshold properties. The "
+          "values are either bytes (1) or packets (2)."), 
+       ValueMap { "1", "2" }, 
+       Values { "Bytes", "Packets" }]
+   uint16 ThresholdUnits;
+};
+
+
+// ===================================================================
+// WeightedREDDropperService
+// ===================================================================
+   [Deprecated { "No value" }, Version ( "2.7.0" ), Description (
+       "This class represents a logical entity that resides in the "
+       "data forwarding path of a network device. It describes the "
+       "ability to drop network traffic using a Weighted Random Early "
+       "Detection (WRED) algorithm. Like RED, the purpose of WRED is "
+       "to avoid congestion (as opposed to managing congestion). This "
+       "modification of the basic RED algorithm enables packets "
+       "belonging to different traffic classes to be dropped at "
+       "different queue depths. This algorithm also enables discard to "
+       "be done based on different information contained in the packet "
+       "header, such as IP Precedence, RSVP session parameters, or "
+       "even on other factors not directly encoded in the packet "
+       "header, such as the queue depth. \n"
+       "\n"
+       "Implementation of this class has shown that weighting should "
+       "not be a property of the class (but on an association to it), "
+       "and that there is insufficient data to process the drop "
+       "metric. The class is deprecated pending further definition by "
+       "the DMTF.")]
+class CIM_WeightedREDDropperService : CIM_DropperService {
+
+      [Deprecated { "No value" }, Description (
+          "This property is an enumerated 16-bit unsigned integer, and "
+          "defines the type of metric that is used to drop traffic. "
+          "Values are: \n"
+          "\n"
+          "1: Other \n"
+          "2: IP Precedence \n"
+          "3: DSCP Value \n"
+          "4: 802.1P Priority Value \n"
+          "5: RSVP Session \n"
+          "6: Queue Depth \n"
+          "7: Packet Arrival Rate"), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Other", "IP Precedence", "DSCP Value",
+          "802.1P Priority Value", "RSVP Session", "Queue Depth",
+          "Packet Arrival Rate" }, 
+       ModelCorrespondence { 
+          "CIM_WeightedREDDropperService.OtherDropMetric" }]
+   uint16 DropMetric;
+
+      [Deprecated { "No value" }, Description (
+          "This string property is used in conjunction with the "
+          "DropMetric property. When the value of DropMetric is 1 "
+          "(i.e., \"Other\"), then the type of metric to be used is "
+          "defined in this property."), 
+       ModelCorrespondence { "CIM_WeightedREDDropperService.DropMetric" 
+          }]
+   string OtherDropMetric;
+
+      [Deprecated { 
+          "CIM_DropThresholdCalculationService.SmoothingWeight" }, 
+       Description (
+          "This is a 32-bit real number that represents the weighting "
+          "factor used to determine which queues get more service."), 
+       MinValue ( 0 ), MaxValue ( 100 )]
+   real32 Weight;
+};
+
+
+// ===================================================================
+// HeadTailDropper
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "HeadTailDropper describes the threshold information of a head "
+       "or tail dropper. The inherited property DropFrom indicates "
+       "whether a particular instance of this class is a head dropper "
+       "or a tail dropper. \n"
+       "\n"
+       "A head dropper always examines the same queue from which it "
+       "drops packets, and this queue is always related to the dropper "
+       "as the following service in the NextService association.")]
+class CIM_HeadTailDropper : CIM_DropperService {
+
+      [Description (
+          "This is an unsigned 32-bit integer that indicates the queue "
+          "depth (in bytes) at which traffic is dropped. For a tail "
+          "dropper, all newly arriving traffic is dropped. For a head "
+          "dropper, packets at the front of the queue are dropped to "
+          "make room for new packets, which are added at the end."), 
+       Units ( "Bytes" )]
+   uint32 QueueThreshold;
+};
+
+
+// ===================================================================
+// QueuingService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "QueuingService represents the ability to queue network "
+       "traffic, and to specify the characteristics for determining "
+       "long-term congestion. It is modeled as a ConditioningService "
+       "so that it can be aggregated into a QoSService (using the "
+       "QoSConditioningSubService association). This indicates that "
+       "its functionality underlies the QoSService.")]
+class CIM_QueuingService : CIM_ConditioningService {
+
+      [Description (
+          "Indicates the current depth of this queue in units "
+          "specified by DepthUnits. This value may be important in "
+          "diagnosing unexpected behavior."), 
+       Gauge, 
+       ModelCorrespondence { "CIM_QueuingService.DepthUnits" }]
+   uint32 CurrentQueueDepth;
+
+      [Description (
+          "DepthUnits is an enumerated integer that identifies the "
+          "units for the CurrentQueueDepth property. The values are "
+          "either bytes (1) or packets (2)."), 
+       ValueMap { "1", "2" }, 
+       Values { "Bytes", "Packets" }]
+   uint16 DepthUnits;
+};
+
+
+// ===================================================================
+// DropThresholdCalculationService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class calculates an average depth for a queue, based on a "
+       "smoothing weight and a sampling time interval. The latter are "
+       "properties of this Service, describing how it operates and its "
+       "necessary parameters. The Service does the calculation on "
+       "behalf of a RED dropper (as indicated by the association, "
+       "CalculationServiceForDroppper). A "
+       "DropThresholdCalculationService is always associated to the "
+       "single queue that it examines via the Calculation BasedOnQueue "
+       "relationship.")]
+class CIM_DropThresholdCalculationService : CIM_Service {
+
+      [Description (
+          "This property is a 32-bit unsigned integer, ranging between "
+          "0 and 100,000 - specified in thousandths. It defines the "
+          "weighting of past history in affecting the calculation of "
+          "the current average queue depth. The current queue depth "
+          "calculation uses the inverse of this value as its factor, "
+          "and one minus that inverse as the factor for the historical "
+          "average. The calculation takes the form: \n"
+          "average = (old_average*(1-inverse of SmoothingWeight)) \n"
+          "+ (current_queue_depth*inverse of SmoothingWeight) \n"
+          "Implementations may choose to limit the acceptable set of "
+          "values to a specified set, such as powers of 2."), 
+       Units ( "Thousandths" ), MinValue ( 0 ), MaxValue ( 100000 )]
+   uint32 SmoothingWeight;
+
+      [Description (
+          "This property is a 32-bit unsigned integer, and defines the "
+          "number of nanoseconds between each calculation of "
+          "average/smoothed queue depth. When this property is not "
+          "specified, the CalculationService may determine an "
+          "appropriate interval."), 
+       Units ( "NanoSeconds" )]
+   uint32 TimeInterval;
+};
+
+
+// ==================================================================
+// QueueHierarchy
+// ==================================================================
+   [Association, Deprecated { "No value" }, Version ( "2.7.0" ), 
+    Description (
+       "Describes the reliance of a QueuingService on other, "
+       "supporting queues and their QueuingServices. A given Service "
+       "can only act in support of one QueuingService; but a higher "
+       "level queue may be supported by many lower level "
+       "QueuingServices. \n"
+       "\n"
+       "The class is deprecated since a queue only stores network "
+       "traffic. It does not support other queues, or manipulate their "
+       "entries. This type of processing is described using "
+       "NextService associations 'rightwards' from the QueuingService. "
+       "These associations reference 'other' ConditioningServices that "
+       "may send traffic to 'other' queues).")]
+class CIM_QueueHierarchy : CIM_ServiceServiceDependency {
+
+      [Deprecated { "No value" }, Override ( "Antecedent" ), 
+       Description (
+          "The supporting queue(s) and its QueuingService. This "
+          "Service can only support at most one, higher level "
+          "QueuingService.")]
+   CIM_QueuingService REF Antecedent;
+
+      [Deprecated { "No value" }, Override ( "Dependent" ), Max ( 1 ), 
+       Description (
+          "The QueuingService dependent on other, supporting Queuing "
+          "Services.")]
+   CIM_QueuingService REF Dependent;
+};
+
+
+// ==================================================================
+// CalculationServiceForDropper
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association is a subclass of ServiceServiceDependency, "
+       "and represents the reliance of a REDDropperService on one or "
+       "more DropThresholdCalculationServices. The latter calculate "
+       "average queue depth, based on the observed depths of a queue. "
+       "The specific queue examined by each CalculationService is "
+       "defined using the CalculationBasedOnQueue association.")]
+class CIM_CalculationServiceForDropper : CIM_ServiceServiceDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "A calculation service for the dropper.")]
+   CIM_DropThresholdCalculationService REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The RED dropper which is dependent on average queue depth "
+          "calculations by the Antecedent Service.")]
+   CIM_REDDropperService REF Dependent;
+};
+
+
+// ==================================================================
+// CalculationBasedOnQueue
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association establishes a dependency relationship between "
+       "a QueuingService and an instance of the "
+       "DropThresholdCalculationService class. The queue's current "
+       "depth is used by the CalculationService in calculating an "
+       "average/smoothed queue depth.")]
+class CIM_CalculationBasedOnQueue : CIM_ServiceServiceDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The queue examined by the CalculationService.")]
+   CIM_QueuingService REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The CalculationService that provides an average queue "
+          "depth.")]
+   CIM_DropThresholdCalculationService REF Dependent;
+};
+
+
+// ==================================================================
+// HeadTailDropQueueBinding
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association describes the relationship between a head or "
+       "tail dropper and the queue that it monitors to determine when "
+       "to drop traffic. The referenced queue's depth is compared "
+       "against the Dropper's threshold property. Although the dropper "
+       "drops from only one queue, the drop decision may be influenced "
+       "by the state of several queues. The rule for combining the "
+       "multiple inputs is simple addition: if the sum of the lengths "
+       "of the monitored queues exceeds the dropper's QueueThreshold "
+       "value, then packets are dropped. Note that this rule for "
+       "combining inputs may be overridden.")]
+class CIM_HeadTailDropQueueBinding : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "A QueuingService examined by the CalculationService.")]
+   CIM_QueuingService REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The CalculationService that provides an average queue "
+          "depth.")]
+   CIM_HeadTailDropper REF Dependent;
+};
+
+
+// ==================================================================
+// QueueAllocation
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Describes the reliance of a QueuingService on the availability "
+       "of space in a BufferPool.")]
+class CIM_QueueAllocation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The BufferPool supporting packet storage for a "
+          "QueuingService.")]
+   CIM_BufferPool REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The QueuingService dependent on the BufferPool for storage "
+          "space.")]
+   CIM_QueuingService REF Dependent;
+
+      [Description (
+          "This property is an 8-bit unsigned integer representing a "
+          "percentage from 0 to 100. It defines the percentage of the "
+          "BufferPool that should be allocated to the referenced "
+          "QueuingService. If absolute sizes are desired, this is "
+          "accomplished by defining individual BufferPools of the "
+          "specified sizes, with QueueAllocation.AllocationPercentages "
+          "set to 100."), 
+       Units ( "Percent" ), MinValue ( 0 ), MaxValue ( 100 )]
+   uint8 AllocationPercentage;
+};
+
+
+// ===================================================================
+// PacketSchedulingService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class represents the scheduling service, which is a "
+       "process that determines whether a queued packet should be "
+       "removed from a queue and sent to an output interface. Note "
+       "that output interfaces can be physical network interfaces or "
+       "interfaces to components internal to systems, such as "
+       "crossbars or backplanes. In either case, if multiple queues "
+       "are involved, schedulers are used to provide access to the "
+       "interface. Each instance of a PacketSchedulingService "
+       "describes a scheduler from the perspective of the queues that "
+       "the scheduler is servicing. One can describe that different "
+       "schedulers support different queues, or that a scheduler "
+       "supports several queues. \n"
+       "\n"
+       "PacketSchedulingService is modeled as a ConditioningService so "
+       "that it can be aggregated into a QoSService (using the "
+       "QoSConditioningSubService association) to indicate that its "
+       "functionality underlies that QoS service. It participates in "
+       "the NextService association to identify a subsequent "
+       "ConditioningService, if any, that acts on traffic after it has "
+       "been processed by the scheduler.")]
+class CIM_PacketSchedulingService : CIM_ConditioningService {
+
+      [Description (
+          "This property is an enumerated 16-bit unsigned integer, and "
+          "defines the type of scheduler. Values are: \n"
+          "1: Other \n"
+          "2: FIFO \n"
+          "3: Priority \n"
+          "4: Allocation \n"
+          "5: Bounded Priority \n"
+          "6: Weighted Round Robin Packet \n"
+          "If no value is specified, 2 (\"FIFO\") should be assumed."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "FIFO", "Priority", "Allocation",
+          "Bounded Priority", "Weighted Round Robin Packet" }, 
+       ModelCorrespondence { 
+          "CIM_PacketSchedulingService.OtherSchedulerType" }]
+   uint16 SchedulerType;
+
+      [Description (
+          "This string property is used in conjunction with the "
+          "SchedulerType property. When the value of SchedulerType is "
+          "1 (i.e., \"Other\"), then the type of scheduler to be used "
+          "is defined in this attribute."), 
+       ModelCorrespondence { 
+          "CIM_PacketSchedulingService.SchedulerType" }]
+   string OtherSchedulerType;
+};
+
+
+// ==================================================================
+// NextScheduler
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association is a subclass of NextService, and defines a "
+       "predecessor-successor relationship between Packet "
+       "SchedulingServices. In a hierarchical queuing configuration "
+       "(where a second scheduler treats the output of a first "
+       "scheduler as a single, aggregated input), the two schedulers "
+       "are related via the NextScheduler association.")]
+class CIM_NextScheduler : CIM_NextService {
+
+      [Override ( "PrecedingService" ), Description (
+          "The PacketSchedulingService whose output is treated as a "
+          "single, aggregated input by the FollowingService scheduler. "
+          "The [0..n] cardinality indicates that a single "
+          "FollowingService scheduler may bring together the "
+          "aggregated outputs of multiple prior schedulers.")]
+   CIM_PacketSchedulingService REF PrecedingService;
+
+      [Override ( "FollowingService" ), Max ( 1 ), Description (
+          "A scheduler that includes among its inputs the aggregated "
+          "outputs of one or more PrecedingService schedulers.")]
+   CIM_PacketSchedulingService REF FollowingService;
+};
+
+
+// ==================================================================
+// SchedulerUsed
+// ==================================================================
+   [Association, Deprecated { "CIM_QueueToSchedule",
+       "CIM_SchedulingServiceToSchedule" }, Version ( "2.7.0" ), 
+    Description (
+       "In order to remove queued packets, a process or Service "
+       "(identified as a PacketSchedulingService) runs. This "
+       "association describes the Dependency of the queue and its "
+       "QueuingService on a SchedulingService, which empties it. \n"
+       "\n"
+       "The association is deprecated in lieu of associating Queuing "
+       "Services to SchedulingElements, and SchedulingElements into "
+       "SchedulingServices. The latter approach is very flexible "
+       "regarding the implementations that can be modeled, and removes "
+       "the need to track individual traffic streams using an "
+       "artificial model property, TrafficClass.")]
+class CIM_SchedulerUsed : CIM_ServiceServiceDependency {
+
+      [Deprecated { "CIM_QueueToSchedule.Queue" },
+          Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The PacketSchedulingService which empties the Queuing "
+          "Service's queue.")]
+   CIM_PacketSchedulingService REF Antecedent;
+
+      [Deprecated { "CIM_QueueToSchedule.SchedElement" },
+          Override ( "Dependent" ), Description (
+          "The queue and its QueuingService from which packets are "
+          "emptied.")]
+   CIM_QueuingService REF Dependent;
+};
+
+
+// ==================================================================
+// NonWorkConservingSchedulingService
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A type of packet scheduler, that is capable of operating in a "
+       "non-work conserving manner. This class does not add any "
+       "properties beyond those it inherits from "
+       "PacketSchedulingService. It does, however, participate in one "
+       "additional association, FailNextScheduler.")]
+class CIM_NonWorkConservingSchedulingService : CIM_PacketSchedulingService {
+};
+
+
+// ==================================================================
+// FailNextScheduler
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association is a subclass of NextScheduler, and defines a "
+       "predecessor-successor relationship between a NonWork "
+       "ConservingSchedulingService and another PacketScheduling "
+       "Service. It indicates that the NonWorkConserving scheduler may "
+       "pass up a scheduling opportunity (thereby behaving in a "
+       "non-work conserving manner), and make the resulting bandwidth "
+       "available to the FollowingService scheduler.")]
+class CIM_FailNextScheduler : CIM_NextScheduler {
+
+      [Override ( "PrecedingService" ), Description (
+          "The NonWorkConservingSchedulingService whose excess "
+          "bandwidth is made available to the scheduler identified by "
+          "the FollowingService reference. The [0..n] cardinality "
+          "indicates that a single FollowingService scheduler may have "
+          "the opportunity to use the unused bandwidth of multiple "
+          "prior non-work-conserving schedulers.")]
+   CIM_NonWorkConservingSchedulingService REF PrecedingService;
+
+      [Override ( "FollowingService" ), Max ( 1 ), Description (
+          "A scheduler that may use the bandwidth available from the "
+          "non-work conserving scheduler.")]
+   CIM_PacketSchedulingService REF FollowingService;
+};
+
+
+// ==================================================================
+// SchedulingElement
+// ==================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "SchedulingElement represents the configuration information "
+       "that a PacketSchedulingService has for one of the elements "
+       "that it is scheduling. The scheduled element is either a "
+       "QueuingService or another Packet SchedulingService. \n"
+       "\n"
+       "Among the subclasses of this class, some are defined in such a "
+       "way that all of their instances are work conserving. Other "
+       "subclasses, however, have instances that either are or are not "
+       "work conserving. In this class, the boolean property "
+       "WorkConserving indicates whether an instance is or is not work "
+       "conserving. Note that WorkConserving is restricted to TRUE in "
+       "the subclasses that are inherently work conserving, since "
+       "instances of these classes cannot be anything else.")]
+class CIM_SchedulingElement : CIM_ManagedElement {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority. (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "InstanceID is not re-used across any InstanceIDs produced "
+          "by this or other providers for this instance's NameSpace. \n"
+          "For DMTF defined instances, the 'preferred' algorithm MUST "
+          "be used with the <OrgID> set to 'CIM'.")]
+   string InstanceID;
+
+      [Write, Description (
+          "A boolean property indicating whether the "
+          "PacketSchedulingService tied to this instance (by the "
+          "ElementInSchedulingService aggregation) is treating the "
+          "queue/input tied to this instance, in a work-conserving "
+          "manner. The queue/input is indicated by either the "
+          "QueueToSchedule or SchedulingServiceToSchedule association. "
+          "Note that this property is writeable, indicating that an "
+          "administrator can change the behavior of the "
+          "SchedulingElement - but only for those elements that can "
+          "operate in a non-work conserving mode.")]
+   boolean WorkConserving;
+};
+
+
+// ==================================================================
+// AllocationSchedulingElement
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class is a subclass of the abstract class "
+       "SchedulingElement. It introduces five new properties to "
+       "support bandwidth-based scheduling. As is the case with all "
+       "subclasses of SchedulingElement, the input associated with an "
+       "instance of AllocationSchedulingElement is of one of two "
+       "types: either a queue, or another scheduler.")]
+class CIM_AllocationSchedulingElement : CIM_SchedulingElement {
+
+      [Description (
+          "A 16-bit unsigned integer enumeration that identifies the "
+          "units in which the BandwidthAllocation and BurstAllocation "
+          "properties are expressed. The following values are defined: "
+          "\n- Bytes(1) \n"
+          "- Packets(2) \n"
+          "- Cells(3) (fixed-size, for example, ATM) \n"
+          "If no value is specified, 1 (\"Bytes\") should be assumed."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Bytes", "Packets", "Cells" }]
+   uint16 AllocationUnits;
+
+      [Description (
+          "A 32-bit bit unsigned integer defining the number of "
+          "'units' per second that should be allocated to the "
+          "associated input. 'Units' are identified by the "
+          "AllocationUnits property."), 
+       ModelCorrespondence { 
+          "CIM_AllocationSchedulingElement.AllocationUnits" }]
+   uint32 BandwidthAllocation;
+
+      [Description (
+          "A 32-bit bit unsigned integer specifying the amount of "
+          "temporary or short-term bandwidth (in 'units' per second) "
+          "that can be allocated to an input, beyond the amount of "
+          "bandwidth allocated through the BandwidthAllocation "
+          "property. If the maximum actual bandwidth allocation for "
+          "the input were to be measured, it would be the sum of the "
+          "BurstAllocation and the BandwidthAllocation properties. "
+          "'Units' are identified by the AllocationUnits property."), 
+       ModelCorrespondence { 
+          "CIM_AllocationSchedulingElement.AllocationUnits" }]
+   uint32 BurstAllocation;
+
+      [Description (
+          "A boolean property that, if TRUE, enables unused bandwidth "
+          "from the associated input to be allocated to other inputs "
+          "serviced by the Scheduler.")]
+   boolean CanShare;
+
+      [Description (
+          "A boolean property that, if TRUE, indicates that the "
+          "behavior of the scheduler relative to this input can be "
+          "altered by changing the value of the inherited property, "
+          "WorkConserving.")]
+   boolean WorkFlexible;
+};
+
+
+// ==================================================================
+// WRRSchedulingElement
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class is a subclass of the abstract class "
+       "SchedulingElement. It introduces a new property, "
+       "WeightingFactor, to give some inputs a higher probability of "
+       "being serviced than other inputs. It also introduces a "
+       "Priority property, to serve as a tiebreaker to be used when "
+       "inputs have equal weighting factors. As is the case with all "
+       "subclasses of SchedulingElement, the input associated with an "
+       "instance of WRRSchedulingElement is of one of two types: "
+       "either a queue, or another scheduler. Because scheduling of "
+       "this type is always work conserving, the inherited boolean "
+       "property, WorkConserving, is restricted to TRUE in this class.")]
+class CIM_WRRSchedulingElement : CIM_SchedulingElement {
+
+      [Override ( "WorkConserving" )]
+   boolean WorkConserving = TRUE;
+
+      [Description (
+          "A 32-bit bit unsigned integer defining the weighting factor "
+          "that offers some inputs a higher probability of being "
+          "serviced than other inputs. The property's minimum value is "
+          "0, its maximum value is 100000, and its Units are "
+          "thousandths."), 
+       Units ( "Thousandths" ), MinValue ( 0 ), MaxValue ( 100000 )]
+   uint32 WeightingFactor;
+
+      [Description (
+          "A 16-bit bit unsigned integer which serves as a tiebreaker, "
+          "in the event that two or more inputs have equal weights. A "
+          "larger value represents a higher priority. While this "
+          "condition may not occur in some implementations of a "
+          "weighted round robin scheduler, many implementations "
+          "require a priority to resolve an equal-weight condition. In "
+          "the instances where this behavior is not necessary or is "
+          "undesirable, the property may be left unspecified. \n"
+          "\n"
+          "If this property is specified for any of the "
+          "WRRSchedulingElements associated with a "
+          "PacketSchedulingService, then it MUST be specified for all "
+          "WRRSchedulingElements for that PacketSchedulingService, and "
+          "the property values for these WRRSchedulingElements MUST "
+          "all be different.")]
+   uint16 Priority;
+};
+
+
+// ==================================================================
+// PrioritySchedulingElement
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class is a subclass of the abstract class "
+       "SchedulingElement. It indicates that a scheduler is taking "
+       "packets from a set of inputs using the priority scheduling "
+       "discipline. As is the case with all subclasses of "
+       "SchedulingElement, the input associated with an instance of "
+       "PrioritySchedulingElement is of one of two types: either a "
+       "queue, or another scheduler. The Priority property represents "
+       "the priority for an input, relative to the priorities of all "
+       "the other inputs to which the scheduler (that aggregates this "
+       "PrioritySchedulingElement) is associated. Inputs to which the "
+       "scheduler is related via other scheduling disciplines do not "
+       "figure in this prioritization. Because scheduling of this type "
+       "is always work conserving, the inherited boolean property, "
+       "WorkConserving, is restricted to TRUE in this class.")]
+class CIM_PrioritySchedulingElement : CIM_SchedulingElement {
+
+      [Override ( "WorkConserving" )]
+   boolean WorkConserving = TRUE;
+
+      [Description (
+          "A 16-bit unsigned integer indicating the priority level of "
+          "this SchedulingElement's input, relative to the other "
+          "inputs serviced by the SchedulingElement's aggregating "
+          "PacketSchedulingService. A larger value represents a higher "
+          "priority.")]
+   uint16 Priority;
+};
+
+
+// ==================================================================
+// BoundedPrioritySchedulingElement
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class is a subclass of the class PriorityScheduling "
+       "Element, which is itself derived from the abstract class "
+       "SchedulingElement. As is the case with all subclasses of "
+       "SchedulingElement, the input associated with an instance of "
+       "BoundedPrioritySchedulingElement is of one of two types: "
+       "either a queue, or another scheduler. BoundedPriority "
+       "SchedulingElement adds an upper bound (BandwidthBound in "
+       "kilobits per second) on how much traffic can be handled from "
+       "an input. This data is specific to that one input. It is "
+       "needed when bounded strict priority scheduling is performed. "
+       "Note that this class inherits from its superclass the "
+       "restriction of the inherited boolean property WorkConserving "
+       "to TRUE.")]
+class CIM_BoundedPrioritySchedulingElement : CIM_PrioritySchedulingElement {
+
+      [Override ( "WorkConserving" )]
+   boolean WorkConserving = TRUE;
+
+      [Description (
+          "A 32-bit unsigned integer that defines the upper limit on "
+          "the amount of traffic that can be handled from the input "
+          "(through this SchedulingElement). This is not a shaped "
+          "upper bound, since bursts can occur. It is a strict bound, "
+          "limiting the impact of the input. Units are kilobits per "
+          "second."), 
+       Units ( "KiloBits per Second" )]
+   uint32 BandwidthBound;
+};
+
+
+// ==================================================================
+// QueueToSchedule
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This is a top-level association, representing the relationship "
+       "between a queue (QueuingService) and a SchedulingElement. The "
+       "SchedulingElement, in turn, represents the information in a "
+       "packet scheduling service that is specific to this queue, such "
+       "as relative priority or allocated bandwidth. \n"
+       "\n"
+       "Although it cannot be expressed formally with the association "
+       "cardinalities, there is an additional constraint on "
+       "participation in this association. A particular instance of (a "
+       "subclass of) SchedulingElement always participates either in "
+       "exactly one instance of this association, or in exactly one "
+       "instance of the association SchedulingServiceToSchedule.")]
+class CIM_QueueToSchedule {
+
+      [Key, Max ( 1 ), Description (
+          "The queue and its QueuingService from which packets are "
+          "emptied.")]
+   CIM_QueuingService REF Queue;
+
+      [Key, Description (
+          "The SchedulingElement for the input queue.")]
+   CIM_SchedulingElement REF SchedElement;
+};
+
+
+// ==================================================================
+// SchedulingServiceToSchedule
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This is a top-level association, representing the relationship "
+       "between a scheduler (PacketSchedulingService) and a "
+       "SchedulingElement, in a configuration involving cascaded "
+       "schedulers. The SchedulingElement, in turn, represents the "
+       "information in a packet scheduling service that is specific to "
+       "this scheduler, such as relative priority or allocated "
+       "bandwidth. \n"
+       "\n"
+       "Although it cannot be expressed formally with the association "
+       "cardinalities, there is an additional constraint on "
+       "participation in this association. A particular instance of (a "
+       "subclass of) SchedulingElement always participates either in "
+       "exactly one instance of this association, or in exactly one "
+       "instance of the association QueueToSchedule.")]
+class CIM_SchedulingServiceToSchedule {
+
+      [Key, Max ( 1 ), Description (
+          "The scheduler being cascaded.")]
+   CIM_PacketSchedulingService REF SchedService;
+
+      [Key, Description (
+          "A SchedulingElement in the subsequent scheduler.")]
+   CIM_SchedulingElement REF SchedElement;
+};
+
+
+// ==================================================================
+// ElementInSchedulingService
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "This association represents the relationship between a "
+       "PacketSchedulingService and the set of SchedulingElements that "
+       "tie it to its inputs (either QueuingServices or other "
+       "PacketSchedulingServices).")]
+class CIM_ElementInSchedulingService : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The scheduler aggregating the SchedulingElement. A "
+          "SchedulingElement can be associated with at most one "
+          "SchedulingService.")]
+   CIM_PacketSchedulingService REF GroupComponent;
+
+      [Override ( "PartComponent" ), Min ( 1 ), Description (
+          "A SchedulingElement that ties either a queue or another "
+          "scheduler to the referenced PacketSchedulingService. Every "
+          "PacketSchedulingService MUST have at least one Scheduling "
+          "Element/input.")]
+   CIM_SchedulingElement REF PartComponent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================
+
+

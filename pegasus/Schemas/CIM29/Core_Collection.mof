@@ -1,0 +1,344 @@
+// ===================================================================
+// Title: Core_Collection
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Core_Collection.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Core Model defines basic management concepts.
+//              This file defines the concepts and classes in support
+//              of Collections.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1210 - Removal of experimental qualifiers for core.
+// 
+// Change Log for v2.8 Preliminary
+// 1136 - Add ConcreteCollection
+// 
+// Change Log for v2.7
+// CR968 - Remove the Experimental qualifier
+//       - Keep RedundancySet, SparedSet, IsSpare, StorageRedundancySet,
+//         and ExtraCapacitySet experimental for 2.8
+// CR994 - Update description for InstanceID
+// CR1019 - CIM Versioning for 2.8 Preliminary
+// CR1128  - Addition of HostedDependency
+// 
+// Change Log for v2.7
+// CR684 - Add SystemSpecificCollection and HostedCollection
+// CR760 - Add OrderedMemberOfCollection
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// Collection
+// ==================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "Collection is an abstract class that provides a common "
+       "superclass for data elements that represent collections of "
+       "ManagedElements and its subclasses.")]
+class CIM_Collection : CIM_ManagedElement {
+};
+
+
+// ==================================================================
+// MemberOfCollection
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "CIM_MemberOfCollection is an aggregation used to establish "
+       "membership of ManagedElements in a Collection.")]
+class CIM_MemberOfCollection {
+
+      [Key, Aggregate, Description (
+          "The Collection that aggregates members.")]
+   CIM_Collection REF Collection;
+
+      [Key, Description (
+          "The aggregated member of the Collection.")]
+   CIM_ManagedElement REF Member;
+};
+
+
+// ==============================================================
+// OrderedMemberOfCollection
+// ==============================================================
+   [Association, Aggregation, Version ( "2.7.0" ), Description (
+       "CIM_OrderedMemberOfCollection is an aggregation used to "
+       "establish an ordered membership of ManagedElements in a "
+       "Collection.")]
+class CIM_OrderedMemberOfCollection : CIM_MemberOfCollection {
+
+      [Description (
+          "AssignedSequence is an unsigned integer 'n' that indicates "
+          "the relative position of members within a Collection. When "
+          "'n' is a positive integer, it indicates a place in the "
+          "sequence of members, with smaller integers indicating "
+          "earlier positions in the sequence. The special value '0' "
+          "indicates 'don't care'. If two or more members have the "
+          "same non-zero sequence number, then the ordering between "
+          "those members is irrelavent, but they must all be ordered "
+          "at the appropriate place in the overall sequence. \n"
+          "\n"
+          "A series of examples will make ordering of members clearer: "
+          "\nIf all members have the same sequence number, \n"
+          "regardless of whether it is '0' or non-zero, any \n"
+          "order is acceptable. \n"
+          "o The values: \n"
+          "1:MEMBER A \n"
+          "2:MEMBER B \n"
+          "1:MEMBER C \n"
+          "3:MEMBER D \n"
+          "indicate two acceptable orders: A,C,B,D or C,A,B,D, \n"
+          "since A and C can be ordered in either sequence, but \n"
+          "only at the '1' position. \n"
+          "\n"
+          "Note that the non-zero sequence numbers need not start with "
+          "'1', and they need not be consecutive. All that matters is "
+          "their relative magnitude.")]
+   uint64 AssignedSequence;
+};
+
+
+// ==================================================================
+// SystemSpecificCollection
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "SystemSpecificCollection represents the general concept of a "
+       "collection which is scoped (or contained) by a System. It "
+       "represents a Collection that only has meaning in the context "
+       "of a System, and/or whose elements are restricted by the "
+       "definition of the System. This is explicitly described by the "
+       "(required) association, HostedCollection. \n"
+       "An example of a SystemSpecificCollection is a Fibre Channel "
+       "zone that collects network ports, port groupings and aliases "
+       "(as required by a customer) in the context of an AdminDomain. "
+       "The Collection is not a part of the domain, but merely an "
+       "arbitrary grouping of the devices and other Collections in the "
+       "domain. In other words, the context of the Collection is "
+       "restricted to the domain, and its members are also limited by "
+       "the domain.")]
+class CIM_SystemSpecificCollection : CIM_Collection {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "InstanceID is not re-used across any InstanceIDs produced "
+          "by this or other providers for this instance's NameSpace. \n"
+          "For DMTF defined instances, the 'preferred' algorithm MUST "
+          "be used with the <OrgID> set to 'CIM'.")]
+   string InstanceID;
+};
+
+
+// ===================================================================
+// ConcreteCollection
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "A concrete version of Collection. This class represents a "
+       "generic and instantiable collection, such as a group of "
+       "ComputerSystems (e.g., a pool of hosts available for executing "
+       "Jobs). It is defined as a concrete subclass of the abstract "
+       "CIM_Collection class, to be used in place of many specific "
+       "subclasses that add no semantics. Note that when defining "
+       "additional semantics for Collection that this class MUST NOT "
+       "be subclassed. Specific semantics continue to be defined as "
+       "subclasses of the abstract CIM_Collection. ConcreteCollection "
+       "is limited in its use as a concrete form of a general "
+       "collection or bag. It was deemed more prudent to create this "
+       "concrete subclass than to change Collection from an abstract "
+       "to a concrete class.")]
+class CIM_ConcreteCollection : CIM_Collection {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority. (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "\n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "InstanceID is not re-used across any InstanceIDs produced "
+          "by this or other providers for this instance's NameSpace.")]
+   string InstanceID;
+};
+
+
+// ==================================================================
+// HostedCollection
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "HostedCollection defines a SystemSpecificCollection in the "
+       "context of a scoping System. It represents a Collection that "
+       "only has meaning in the context of a System, and/or whose "
+       "elements are restricted by the definition of the System.")]
+class CIM_HostedCollection : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The scoping system.")]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The collection defined in the context of a system.")]
+   CIM_SystemSpecificCollection REF Dependent;
+};
+
+
+// ===================================================================
+// CollectionOfMSEs
+// ===================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "The CollectionOfMSEs object allows the grouping of Managed "
+       "SystemElements for various identification purposes and to "
+       "reduce the complexity of associating Settings and "
+       "Configurations. It is abstract to require further definition "
+       "and semantic refinement in subclasses. The CollectionOfMSEs "
+       "object does not carry any state or status information, but "
+       "only represents a grouping or 'bag' of Elements. For this "
+       "reason, it is incorrect to subclass groups that have state/ "
+       "status from CollectionOfMSEs - an example is CIM_Redundancy "
+       "Group (which is subclassed from LogicalElement). \n"
+       "Collections typically aggregate 'like'objects, but are not "
+       "required to do so. They simply identify 'bags' and may "
+       "represent an optimization. This is especially true with "
+       "respect to their association to Settings and Configurations. "
+       "Without Collections, one is forced to define individual "
+       "ElementSetting andElementConfiguration associations, to tie "
+       "Settings and Configuration objects to individual "
+       "ManagedSystemElements. There may be much duplication in "
+       "assigning the same Setting to multiple objects. In addition, "
+       "using the Collection object allows the determination that the "
+       "Setting and Configuration associations are indeed the same for "
+       "the Collection's members. This information would otherwise be "
+       "obtained by defining the Collection in a proprietary manner, "
+       "and then querying the ElementSetting and ElementConfiguration "
+       "associations to determine ifthe Collection set is completely "
+       "covered.")]
+class CIM_CollectionOfMSEs : CIM_Collection {
+
+      [Description (
+          "The identification of the Collection object. When "
+          "subclassed, the CollectionID property can be overridden to "
+          "be a Key property."), 
+       MaxLen ( 256 )]
+   string CollectionID;
+};
+
+
+// ==================================================================
+// CollectedCollections
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "CIM_CollectedCollections is an aggregation association "
+       "representing that a CollectionOfMSEs may itself be contained "
+       "in a CollectionOfMSEs.")]
+class CIM_CollectedCollections {
+
+      [Key, Aggregate, Description (
+          "The 'higher level' or parent element in the aggregation.")]
+   CIM_CollectionOfMSEs REF Collection;
+
+      [Key, Description (
+          "The 'collected' Collection.")]
+   CIM_CollectionOfMSEs REF CollectionInCollection;
+};
+
+
+// ==================================================================
+// CollectedMSEs
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "CIM_CollectedMSEs is a generic association used to establish "
+       "the members of the grouping object, CollectionOf MSEs.")]
+class CIM_CollectedMSEs : CIM_MemberOfCollection {
+
+      [Aggregate, Override ( "Collection" ), Description (
+          "The grouping or 'bag' object that represents the "
+          "Collection.")]
+   CIM_CollectionOfMSEs REF Collection;
+
+      [Override ( "Member" ), Description (
+          "The members of the Collection.")]
+   CIM_ManagedSystemElement REF Member;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

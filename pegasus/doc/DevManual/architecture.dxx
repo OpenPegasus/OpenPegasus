@@ -1,0 +1,219 @@
+/*
+*/
+
+/** @name Pegasus Architecture
+
+This section defines the overall architecture of the Pegasus implementation.
+
+*/
+//@{
+/** @name Design Goals
+
+The Pegasus design team set some basic design goals early in the development of Pegasus as follows:
+<UL>
+<LI>C++ as the core development language. We selected C++ because it represented a compromise between the ability to work with objects and a language that would be acceptable for high avaailablity platforms.
+<LI>Modular Architecture - We wanted to be able to create the architecture based on well understand standardized modules that have clean well defined interfaces between the modules.
+<LI>Open to a wide range of specialization and customization.
+<LI>Minimize the functionality of the basic core CIMOM. We wanted to create an environment where the majority of customization could be created by working with attached modules that would both extend and modify the functionality of the broker.
+<LI>Use only open source components in the pegasus environment
+<LI>Design for maximum portability. The initial targets would be Linux, Unix, and NT but the product should be usable in a wide variety of platforms and platform sizes.
+<LI>The APIs and interfaces should be clear, given that they are in C++
+<LI>
+</UL>
+*/
+
+  
+/** @name The Broker
+
+The Common Information Model Object Broker (often known as the CIM Information
+manager or CIMOM) brokers CIM objects between a number of sources and
+destinations. A CIM object should be a representation, or model, of
+a managed resource, such as a printer, disk drive, or central processing unit
+(CPU). In the Pegasus implementation, CIM objects are represented
+internally as C++ classes. The CIMOM transfers information
+between WBEM clients, the CIM Object Manager Repository, and managed
+resources.
+
+*/
+
+/** @name Pegasus Providers.
+ATTN: Define in more detail
+
+*/
+
+/** @name Extension Services
+ATTN: Document this as an architectural component
+*/
+
+
+/** @name Pegasus Clients.
+ATTN: define in more detail
+
+*/
+
+/** @name Functional Flow
+
+The Common Information Model Object Broker (often known as the CIM Information
+manager or CIMOM) brokers CIM objects between a number of sources and
+destinations. A CIM object should be a representation, or model, of
+a managed resource, such as a printer, disk drive, or central processing unit
+(CPU). In the Pegasus implementation, CIM objects are represented
+internally as C++ classes. The CIMOM transfers information
+between WBEM clients, the CIM Object Manager Repository, and managed
+resources.
+
+NOTE: We are very careful in the use of CIM and WBEM.  These are terms defined
+and controled by the DMTF and they have specific meanings both technically and
+legally. Thus, the objects are CIM objects.  However, the client is a WBEM
+client because it uses the DMTF XML/HTTP specificaitons to transfer
+information and that specification and CIM form WBEM.
+
+When a WBEM client application accesses information about a managed
+resource, the CIM Object Manager contacts either the appropriate provider
+for the CIM object that represents that managed resource or the CIM Object
+Manager Repository. Providers are classes that communicate with managed
+objects to retrieve data. If the requested data is not available from the CIM
+Object manager Repository, the CIM Object Manager forwards the request to
+the provider for that managed resource.
+
+Using the Repository.
+
+The provider dynamically retrieves the requested information, which is sent back to the requester. The CIM Object Manager Repository only contains static data. Classes that are handled by a provider must have a Provider qualifier that identifies the provider to contact for the class. When the CIM Object Manager receives a request for a class that has a Provider qualifier, it should route the request to the specified provider. If no provider is specified, it should route the request to the CIM Object Manager Repository.
+
+When a WBEM client connects to a CIM Object Manager, it will get a handle to the CIM Object Manager. The client can then perform WBEM operations.using this reference. At startup, the CIM Object Manager should perform the following functions: Listen for RMI connections on RMI port 5987 and for XML/HTTP connections on HTTP.
+
+NOTE: The current version of the CIMOM does not incorporate events.  Therefore, this description is written around a CIMOM without events functionality.
+
+Note - The listener for connections may not be the Object Manager; it could
+be another entity that is performing the operation for the Object Manager.
+This could be a servlet in a Web server. Conformant object managers are
+required to support XML over HTTP - Pegasus is conformant.
+
+The CIMOM accepts requests called WBEM Operations from the WBEM client. These operations are explicitly defined in the WBEM specification. They represent the operations possible on CIM objects (ex. create/modify/delete class/instance, etc.) During normal operations, the CIMOM performs the following for each operation request received:
+<UL>
+<LI>Security checks to authenticate user login and authorization to
+access the CIMOM information.
+<LI>Syntactic and semantic checks of the CIM data operations to
+ensure that they comply with the current version of the CIM
+specification.
+<LI>Route requests to the appropriate provider orthe Repository.
+The CIMOM iteself does not serve as a Repository for CIM class definitions and instance data. Persistence is provided by the Repository; however, the contact point is the CIMOM. Thus, the Repository could be considered as an option except that the CIMIM is required to keep class information for all semantic and syntatic confirmation and therefore the class repository is a requirement of a working CIMOM, not an option.
+<LI>Deliver data from providers and from the CIM Object Manager
+Repository to the originating WBEM client application.
+</UL>
+The CIMOM should be a process that accepts requests for CIM
+operations, as defined by the DMTF, and carries out these operations.  The
+Pegasus CIMOM runs as a daemon process that waits for requests.
+
+<B>Authentication</B>
+
+Before any requests can be made to the CIM Object Manager, an
+authenticated session must be established.  
+
+NOTE:The current version of Pegasus does not
+have any authentication.  However, it is planned for version 1.1.
+
+An identifier for the user and optionally a role will be associated with the authenticated session. A role is a principal identity associated with the current session, in addition to the user identity. Systems that do not support roles can ignore them as described in the Security Interface. These can be maintained in an internal Hash map.
+
+<B>Request Reception</B>
+
+The CIMOM receives requests through CIM operations over HTTP. Each request will be associated with a session that is set up as part of the initial authentication exchange. Since the session has an associated user, each request automatically has a user associated with it. This should be useful for authorization checking for a given request. Once the request has been received, the appropriate components for handling the specific request will be invoked. The Pegasus implementation has methods for each of the major CIM operations over HTTP. Once the request is received, the appropriate method will be called..
+
+<B>Authorization</B>
+
+The default implementation is Access Control List (ACL) based. Access
+control lists can be maintained per namespace or on a per namespace/user
+basis. These lists will be maintained in the root/security namespace. The CIM
+Object Manager will grant read or write permissions within a namespace
+based on the access control list. Since CIM operations are done within the
+context of a namespace, these ACLs will enforce rules on whether an
+operation should be allowed. For operations that will ultimately be handled by
+a provider, the appropriate provider can replace the authorization scheme.
+This will allow providers to enforce finer grained control if desired. A
+provider
+can replace the default authorization checking scheme by implementing the
+Authorizable interface. If implemented, no calls are made to the CIM Object
+Manager.
+
+<B>Provider</B>
+
+<B>Provider RegistrationB/B>
+
+The Pegasus CIMOM enables developers to write providers, which serve dynamic information to the CIMOM (see Providers).  Providers register themselves by specifying their location in a Provider qualifier. Providers can be set up on a class, property, or method basis. Providers can have one or more of the different provider types. The DMTF CIM specification allows the Provider qualifier to have an implementation specific interpretation. For Pegasus, the Provider qualifier constitutes the executable name of a provider executable implementing the provider functions for the class. 
+
+
+There are a number of conceptual interfaces that can be implemented by providers:
+<UL>
+<LI>InstanceProvider
+<LI>MethodProvider
+<LI>PropertyProvider
+<LI>AssociatorProvider
+</UL>
+.
+Each conceptual interface provides a subset of the WBEM Operations as follows:
+
+NOTE: ATTN: Table defining the types vs. operations
+
+However
+
+Providers should be loaded "on
+demand" by the CIMOM. Classes and properties marked by the
+provider qualifier will be an indication to the object manager that the
+associated information is dynamic and must be obtained from the providers
+rather than the repository. When the object manager determines that a
+specific request needs dynamic data, provider should be
+loaded and instantiated. Additionally, the "initialize" method of the Provider
+will be invoked. There should be only a single instance of the provider.
+
+ATTN: Review the following:  In the reference implementation, the ProviderChecker maintains a hash map of all the providers. This will enable the CIM Object Manager to load a provider only if it has not been loaded previously. There should be no specified time when a provider can be "unloaded", however providers have a "cleanup" method that can be invoked if, and when, this behavior is specified for the object manager.
+
+The CIM Object Manager will not act as as a provider for
+classes. However, there are instances where classes must interact with the CIMOM itself. These might include authentication classes, authorization classes, namespace classes, and classes that provide information on the CIMOM iteslf.
+
+These classes will be handled by providers but these will be specialized providers that have access back to the CIMOM itself.  All of this is being defined as part of a services extension interface to PEGASUS.  This interface will be discussed in a future version of this document:
+
+ATTN: add the services interfaces.
+
+
+
+
+ATTN: Dealing with multiple providers per class.
+
+
+<B>Request Routing</B>
+
+One of the main functions of the CIMOM is operation request routing.
+Depending on the request, the request may need to be authorized and passed to
+semantic checkers, providers, and the repository.
+
+Requests may be for static information such as schema
+definitions or static instances. In this case, the CIMOM should
+route the request to the proper repository.
+
+The more complex routing will involve operations that can traverse multiple
+classes and their instances. An example of such an operation is association
+traversal. In order to determine the associated instances of a given input
+instance, the CIMOM should first determine the associations
+that the given instance class participates in. It will obtain this from the
+associations that have been compiled and stored in the repository. Once
+these associations are determined, the CIM Object Manager should find
+those instances of the associations in which the given input instance plays a
+role. These associations may, or may not be, dynamic. Depending on
+whether the associations are dynamic or not, the CIM Object Manager may
+route the requests to providers or the repository. Once the results are
+returned, they should be concatenated together and returned because of the
+request. The CIM Object Manager will use schema information to determine
+which providers to contact. As can be seen, a given request can result in
+multiple sub-requests to the providers or the repository.
+A similar situation will occur when a deep enumeration is performed on
+instances of a class.
+
+<B>Semantic Checking</B>
+
+The CIMOM performs semantic checks before classes or
+instances can be set or createdusing internal class,
+property, instance, method, and qualifier checkers and the rules ov validation defined by the CIM specification. These verifiers ensure that the CIM rules are enforced. This includes type verification,type conversions, verification of proper key usage, and other checks.,
+
+*/
+//@}
+

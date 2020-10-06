@@ -1,0 +1,141 @@
+// ===================================================================
+// Title: Device_DiskGroup
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_DiskGroup.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines the
+//              classes that model disk groups.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change log for 2.8 - None
+// 
+// Change Log for v2.7 - None
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==============================================================
+// DiskGroup
+// ==============================================================
+   [Version ( "2.6.0" ), Description (
+       "A DiskGroup is a named collection of DiskDrives and the "
+       "StorageExtent(s) accessed via those Drives. The collection is "
+       "used to limit the BasedOn relationships of the Extents in the "
+       "DiskGroup. Extents in the Group can NOT be BasedOn storage "
+       "accessed from Drives outside of the Group. For example, a "
+       "SoftwareVolume created 'within the DiskGroup' is restricted to "
+       "be completely accessed using Drives in the Group. Actions such "
+       "as 'replicate' or 'migrate' on an Extent must operate within "
+       "the scope of the Extents present in the DiskGroup.")]
+class CIM_DiskGroup : CIM_CollectionOfMSEs {
+
+      [Key, Override ( "CollectionID" )]
+   string CollectionID;
+};
+
+
+// ===================================================================
+// DriveInDiskGroup
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "CIM_DriveInDiskGroup defines the DiskDrive(s) that participate "
+       "in the Group.")]
+class CIM_DriveInDiskGroup : CIM_CollectedMSEs {
+
+      [Aggregate, Override ( "Collection" ), Max ( 1 ), Description (
+          "The DiskGroup. A Drive is a member of at most one "
+          "DiskGroup.")]
+   CIM_DiskGroup REF Collection;
+
+      [Override ( "Member" ), Description (
+          "The DiskDrive in the Group.")]
+   CIM_DiskDrive REF Member;
+};
+
+
+// ===================================================================
+// ExtentInDiskGroup
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "CIM_ExtentInDiskGroup defines the StorageExtent(s) that are "
+       "located within and restricted by the Group.")]
+class CIM_ExtentInDiskGroup : CIM_CollectedMSEs {
+
+      [Aggregate, Override ( "Collection" ), Max ( 1 ), Description (
+          "The DiskGroup. An Extent is defined within at most one "
+          "DiskGroup.")]
+   CIM_DiskGroup REF Collection;
+
+      [Override ( "Member" ), Description (
+          "The StorageExtent restricted by and participating in the "
+          "Group.")]
+   CIM_StorageExtent REF Member;
+};
+
+
+// ===================================================================
+// GroupInDiskGroup
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "CIM_GroupInDiskGroup describes that a DiskGroup may be divided "
+       "into smaller named Collections.")]
+class CIM_GroupInDiskGroup : CIM_CollectedCollections {
+
+      [Aggregate, Override ( "Collection" ), Max ( 1 ), Description (
+          "The DiskGroup that is subsetted into smaller Collections.")]
+   CIM_DiskGroup REF Collection;
+
+      [Override ( "CollectionInCollection" ), Description (
+          "The DiskGroup that is a subset of the larger Group.")]
+   CIM_DiskGroup REF CollectionInCollection;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

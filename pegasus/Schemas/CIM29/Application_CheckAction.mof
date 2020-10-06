@@ -1,0 +1,1241 @@
+// ===================================================================
+// Title: Application_CheckAction
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Application_CheckAction.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: These object classes define the DMTF Application Model
+//              and include classes to represent Checks and Actions to
+//              deploy software elements.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+//    11/29/00 - Version 2.5
+//             - CR527 Add to CIM_ArchitectureCheck.ArchitectureType
+//                     24 = AMD(R) Duron(TM)  Processor
+//             - CR530 Correct enumerations in CIM_ArchitectureCheck.
+//                     ArchitectureType number 19 & 24
+//             - CR531 Add to CIM_ArchitectureCheck.ArchitectureType
+//                     120 = "Crusoe(TM) TM5000 Family"
+//                     121 = "Crusoe(TM) TM3000 Family"
+//             - CR533b Add Windows(R) Me to *.TargetOperatingSystem*
+//             - CR542 Add "Not Applicable" to the
+//             *TargetOperatingSystem
+//                     property
+//             - CR558 subclass Action and Check from ManagedElement
+// 
+//    03/09/2002 CIM 2.6 Final release
+//             - CR658 Add Key Qualifier to association references
+//                      in Appl and SysDev MOFs. This changed
+//                      CIM_SoftwareElementChecks,
+//                      CIM_DirectorySpecificationFile,
+//                      CIM_ActionSequence,
+//                      CIM_SoftwareElementActions,
+//                      CIM_ToDirectorySpecification,
+//                      CIM_FromDirectorySpecification,
+//                      CIM_ToDirectoryAction,
+//                      CIM_FromDirectoryAction
+//             - CR746 Add Version qualifier (Version 2.6.0) to
+//                     all classes and associations.
+//             - CR823 Cleanup all Descriptions and other textual issues
+//             - CR824 Add InvokeOnSystem methods to Check and Action
+//             - CR828 Fix inconsistencies between Device, Appl and
+//                     System Models wrt processor and OS type enums
+//             - CR829 Fix MaxLen on FileSpecification.MD5Checksum
+// 
+//    06/06/2002 CIM 2.7 Preliminary Release
+//             - CR 618 - Add ]Pentium 4 Processor
+//             - CR 686 - Add Xeon Processor
+//             - CR 770 - Add WinXP to OSTypes
+//             - CR 772 - Add new AMD Processor types
+//             - CR 839 - Add other Processor Types
+//             - Define Application MOF structure
+// 
+//    09/22/2002 CIM 2.7 Public Preliminary Release
+//            -  CR 876 - Rename the "Digital Unix" operating system
+//                        type to "Tru64 UNIX".
+//            -  CR 893 - Add Intel(R) Pentium(R) 4 processor with
+//                        HT Technology
+// 
+//    10/21/2002 CIM 2.7.1 - Preliminary
+//            -  CR 914 - Remove Pentium 4 with HT from the
+//                        CIM_ArchitectureCheck.ArchitectureType enum
+//                        (It was added by CR893)
+// 
+//    03/20/2003 CIM 2.7.0 Public Final Release
+//            -  CR 935 - Add z/OS entry and rename VM/ESA to VM in
+//                        TargetOperatingSystem and
+//                        TargetOperatingSystemDesired
+// 
+//    05/29/2003 CIM 2.8 Preliminary Release
+//            -  CR 951 - Add to the enumeration in
+//            CIM_ArchitectureCheck
+//                        (185 - Intel Pentium M processor)
+// 
+//    08/04/2003 CIM 2.8 Preliminary Release (Company Review)
+//            -  CR 1144 - Fix Processor enumerations in
+//                         CIM_ArchitectureCheck to match
+//                         CIM_Processor.Family.
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// Check
+// ==================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "A CIM_Check is a condition or characteristic that is expected "
+       "to be true in an environment defined or scoped by an instance "
+       "of a CIM_ComputerSystem. The Checks associated with a "
+       "particular SoftwareElement are organized into one of two "
+       "groups using the Phase property of the "
+       "CIM_SoftwareElementChecks association. Conditions that are "
+       "expected to be true when a SoftwareElement is in a particular "
+       "state and environment are known as 'in-state' conditions. "
+       "Conditions that need to be satisfied in order to transition "
+       "the SoftwareElement to its next state are known as "
+       "'next-state' conditions. \n"
+       "A CIM_ComputerSystem object represents the environment in "
+       "which CIM_SoftwareElements are already deployed/installed or "
+       "into which the elements will be deployed/installed. For the "
+       "case in which an element is already installed, the "
+       "CIM_InstalledSoftwareElement association identifies the "
+       "CIM_ComputerSystem object that represents the \"environment\". "
+       "When a SoftwareElement is being deployed for installation on a "
+       "ComputerSystem, that system is the target of the Check and is "
+       "identified using the TargetSystem reference of the "
+       "InvokeOnSystem method.")]
+class CIM_Check : CIM_ManagedElement {
+
+      [Key, Propagated ( "CIM_SoftwareElement.Name" ), Description (
+          "The name used to identify the SoftwareElement that is being "
+          "checked."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Key, Propagated ( "CIM_SoftwareElement.Version" ), Description (
+          "The version of the SoftwareElement being checked."), 
+       MaxLen ( 64 )]
+   string Version;
+
+      [Key, Propagated ( "CIM_SoftwareElement.SoftwareElementState" ), 
+       Description (
+          "The SoftwareElementState of the SoftwareElement being "
+          "checked."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Deployable", "Installable", "Executable", "Running" }]
+   uint16 SoftwareElementState;
+
+      [Key, Propagated ( "CIM_SoftwareElement.SoftwareElementID" ), 
+       Description (
+          "This is an identifier for the SoftwareElement being "
+          "checked."), 
+       MaxLen ( 256 )]
+   string SoftwareElementID;
+
+      [Key, Propagated ( "CIM_SoftwareElement.TargetOperatingSystem" ), 
+       Description (
+          "The Target Operating System of the SoftwareElement being "
+          "checked."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+          "60", "61", "62", "63", "64", "65", "66", "67", "68" }, 
+       Values { "Unknown", "Other", "MACOS", "ATTUNIX", "DGUX",
+          "DECNT", "Tru64 UNIX", "OpenVMS", "HPUX", "AIX", 
+          //10 
+          "MVS", "OS400", "OS/2", "JavaVM", "MSDOS", "WIN3x", "WIN95",
+          "WIN98", "WINNT", "WINCE", 
+          //20 
+          "NCR3000", "NetWare", "OSF", "DC/OS", "Reliant UNIX",
+          "SCO UnixWare", "SCO OpenServer", "Sequent", "IRIX",
+          "Solaris", 
+          //30 
+          "SunOS", "U6000", "ASERIES", "TandemNSK", "TandemNT",
+          "BS2000", "LINUX", "Lynx", "XENIX", "VM", 
+          //40 
+          "Interactive UNIX", "BSDUNIX", "FreeBSD", "NetBSD",
+          "GNU Hurd", "OS9", "MACH Kernel", "Inferno", "QNX", "EPOC", 
+          //50 
+          "IxWorks", "VxWorks", "MiNT", "BeOS", "HP MPE", "NextStep",
+          "PalmPilot", "Rhapsody", "Windows 2000", "Dedicated", 
+          //60 
+          "OS/390", "VSE", "TPF","Windows (R) Me", "Caldera Open UNIX",
+          "OpenBSD", "Not Applicable", "Windows XP", "z/OS" }]
+   uint16 TargetOperatingSystem;
+
+      [Key, Description (
+          "An identifier used in conjunction with other keys to "
+          "uniquely identify the Check."), 
+       MaxLen ( 256 )]
+   string CheckID;
+
+      [Description (
+          "The CheckMode property is used to indicate whether the "
+          "condition is expected to exist or not exist in the "
+          "environment. When the value is True, the condition is "
+          "expected to exist (e.g., a file is expected to be on a "
+          "system), so the Invoke methods are expected to return True. "
+          "When the value is False, the condition is not expected to "
+          "exist (e.g., a file is not to be on a system), so the "
+          "Invoke methods are expected to return False.")]
+   boolean CheckMode;
+
+      [Description (
+          "The Invoke method evaluates this Check. The details of the "
+          "evaluation are described by the specific subclasses of "
+          "CIM_Check. When the SoftwareElement being checked is "
+          "already installed, the CIM_InstalledSoftwareElement "
+          "association identifies the CIM_ComputerSystem in whose "
+          "context the Invoke is executed. If this association is not "
+          "in place, then the InvokeOnSystem method should be used - "
+          "since it identifies the TargetSystem as an input parameter "
+          "of the method. \n"
+          "The results of the Invoke method are based on the return "
+          "value. A zero is returned if the condition is satisfied. A "
+          "one is returned if the method is not supported. Any other "
+          "value indicates the condition is not satisfied.")]
+   uint32 Invoke(); 
+
+      [Description (
+          "The InvokeOnSystem method evaluates this Check. The details "
+          "of the evaluation are described by the specific subclasses "
+          "of CIM_Check. The method's TargetSystem input parameter "
+          "specifies the ComputerSystem in whose context the method is "
+          "invoked. \n"
+          "The results of the InvokeOnSystem method are based on the "
+          "return value. A zero is returned if the condition is "
+          "satisfied. A one is returned if the method is not "
+          "supported. Any other value indicates the condition is not "
+          "satisfied.")]
+   uint32 InvokeOnSystem([IN, Description ( "Reference to ComputerSystem in whose context the method is to " "be invoked." ) ] CIM_ComputerSystem ref TargetSystem); 
+};
+
+
+// ==================================================================
+// DirectorySpecification
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The CIM_DirectorySpecification class captures the major "
+       "directory structure of a SoftwareElement. This class is used "
+       "to organize the files of a SoftwareElement into manageable "
+       "units that can be relocated on a computer system.")]
+class CIM_DirectorySpecification : CIM_Check {
+
+      [Description (
+          "The DirectoryType property characterizes the type of "
+          "directory being described."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17" }, 
+       Values { "Product base directory",
+          "Product executable directory", "Product library directory",
+          "Product configuration directory",
+          "Product include directory", "Product working directory",
+          "Product log directory", "Shared base directory",
+          "Shared executable directory", "Shared library directory",
+          "Shared include directory", "System base directory",
+          "System executable directory", "System library directory",
+          "System configuration directory", "System include directory",
+          "System log directory", "Other" }, 
+       MappingStrings { "MIF.DMTF|Location|001.2" }]
+   uint16 DirectoryType;
+
+      [Description (
+          "The DirectoryPath property is used to capture the name of a "
+          "directory. The value supplied by an application provider is "
+          "actually a default or recommended path name. The value can "
+          "be changed for a particular environment."), 
+       MaxLen ( 1024 )]
+   string DirectoryPath;
+};
+
+
+// ==================================================================
+// ArchitectureCheck
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "ArchitectureCheck specifies the hardware platform on which a "
+       "SoftwareElement can run. The details of this Check are "
+       "compared with the information found in the CIM_Processor "
+       "object, related to the CIM_ComputerSystem instance that "
+       "describes the environment (related by the association, "
+       "CIM_ComputerSystemProcessor). There should be at least one "
+       "CIM_Processor that satisfies the details of the Check. In "
+       "other words, all the processors on the relevant computer "
+       "system do not need to satisfy the Check.")]
+class CIM_ArchitectureCheck : CIM_Check {
+
+      [Description (
+          "The ArchitectureType property identifies a particular type "
+          "of architecture or architectural family that is required to "
+          "properly execute a particular SoftwareElement. The intent "
+          "is to capture the details about the machine instructions "
+          "exploited by the executables of the SoftwareElement."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          // 11        
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          // 24        
+          "24", "25", "26", "27", "28", "29", "30", "31", "32", "33",
+          "34", "35", "36", "37", "38", "39", 
+          // 48        
+          "48", "49", "50", "51", "52", "53", "54", "55", 
+          // 64        
+          "64", "65", "66", "67", "68", "69", 
+          // 80        
+          "80", "81", "82", "83", "84", "85", "86", "87", "88", 
+          // 96           
+          "96", "97", "98", "99", "100", "101", 
+          // 112        
+          "112", "120", "121", "128", "130", "131", "132", 
+          // 144           
+          "144", "145", "146", "147", "148", "149", "150", 
+          // 160           
+          "160", "176", "177", "178", "179", "180", "181", "182",
+          "183", "184", "185", 
+          // 190        
+          "190", 
+          // 200        
+          "200", "201", "202", "203", "204", 
+          // 250        
+          "250", "251", "260", "261", "280", "281", 
+          // 300        
+          "300", "301", "302", "320", "350", "500" }, 
+       Values { "Other", "Unknown", "8086", "80286", "80386", "80486",
+          "8087", "80287", "80387", "80487", 
+          // 11          
+          "Pentium(R) brand", "Pentium(R) Pro", "Pentium(R) II",
+          "Pentium(R) processor with MMX(TM) technology",
+          "Celeron(TM)", "Pentium(R) II Xeon(TM)", "Pentium(R) III",
+          "M1 Family", "M2 Family", 
+          // 24         
+          "K5 Family", "K6 Family", "K6-2", "K6-3",
+          "AMD Athlon(TM) Processor Family",
+          "AMD(R) Duron(TM) Processor", "AMD29000 Family", 
+          // 31         
+          "K6-2+", "Power PC Family", "Power PC 601", "Power PC 603",
+          "Power PC 603+", "Power PC 604", "Power PC 620",
+          "Power PC X704", "Power PC 750", 
+          // 48          
+          "Alpha Family", "Alpha 21064", "Alpha 21066", "Alpha 21164",
+          "Alpha 21164PC", "Alpha 21164a", "Alpha 21264",
+          "Alpha 21364", 
+          // 64          
+          "MIPS Family", "MIPS R4000", "MIPS R4200", "MIPS R4400",
+          "MIPS R4600", "MIPS R10000", 
+          // 80          
+          "SPARC Family", "SuperSPARC","microSPARC II",
+          "microSPARC IIep", "UltraSPARC", "UltraSPARC II",
+          "UltraSPARC IIi", "UltraSPARC III", "UltraSPARC IIIi", 
+          // 96          
+          "68040", "68xxx Family", "68000", "68010", "68020", "68030", 
+          // 112          
+          "Hobbit Family", "Crusoe(TM) TM5000 Family",
+          "Crusoe(TM) TM3000 Family", "Weitek",
+          "Itanium(TM) Processor",
+          "AMD Athlon(TM) 64 Processor Family",
+          "AMD Opteron(TM) Processor Family", 
+          // 144          
+          "PA-RISC Family", "PA-RISC 8500", "PA-RISC 8000",
+          "PA-RISC 7300LC", "PA-RISC 7200", "PA-RISC 7100LC",
+          "PA-RISC 7100", 
+          // 160          
+          "V30 Family", "Pentium(R) III Xeon(TM)",
+          "Pentium(R) III Processor with Intel(R) SpeedStep(TM) " 
+          "Technology", "Pentium(R) 4", "Intel(R) Xeon(TM)", 
+          // 180          
+          "AS400 Family", "Intel(R) Xeon(TM) processor MP",
+          "AMD Athlon(TM) XP Family", "AMD Athlon(TM) MP Family",
+          "Intel(R) Itanium(R) 2", "Intel(R) Pentium(R) M processor", 
+          // 190          
+          "K7", 
+          // 200          
+          "S/390 and zSeries Family", "ESA/390 G4", "ESA/390 G5",
+          "ESA/390 G6", "z/Architectur base", 
+          // 250          
+          "i860", "i960", "SH-3", "SH-4", "ARM", "StrongARM", 
+          // 300          
+          "6x86", "MediaGX", "MII", "WinChip", "DSP",
+       "Video Processor" }, 
+       MappingStrings { "MIF.DMTF|Processor|017.3" }, 
+       ModelCorrespondence { "CIM_Processor.Family" }]
+   uint16 ArchitectureType;
+};
+
+
+// ==================================================================
+// MemoryCheck
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "MemoryCheck specifies a condition for the minimum amount of "
+       "memory that needs to be available on a system. The amount is "
+       "specified in the MemorySize property. The details of this "
+       "Check are compared with the value of the CIM_OperatingSystem. "
+       "FreePhysicalMemory property - where the CIM_OperatingSystem "
+       "object is related (using InstalledOS) to the CIM_Computer "
+       "System instance that describes the environment. When the value "
+       "of the FreePhysicalMemory property is greater than or equal to "
+       "the value specified in MemorySize, the Check is satisfied.")]
+class CIM_MemoryCheck : CIM_Check {
+
+      [Description (
+          "The amount of memory that needs to exist on a computer "
+          "system for a SoftwareElement to execute properly."), 
+       Units ( "KiloBytes" ), 
+       ModelCorrespondence { "CIM_OperatingSystem.FreePhysicalMemory" }]
+   uint64 MemorySize;
+};
+
+
+// ==================================================================
+// DiskSpaceCheck
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "DiskSpaceCheck describes the amount of disk space that needs "
+       "to be available on the computer system. The amount is "
+       "specified in the AvailableDiskSpace property. The details of "
+       "this Check are compared with the value of the CIM_FileSystem. "
+       "AvailableSpace property - where the CIM_FileSystem object is "
+       "related (using HostedFileSystem) to the CIM_Computer System "
+       "instance that describes the environment. When the value of the "
+       "AvailableSpace property is greater than or equal to the value "
+       "specified in AvailableDiskSpace, the Check is satisfied.")]
+class CIM_DiskSpaceCheck : CIM_Check {
+
+      [Description (
+          "The AvailableDiskSpace property specifies the minimum "
+          "amount of disk space that needs to be available on the "
+          "target system."), 
+       Units ( "KiloBytes" ), 
+       ModelCorrespondence { "CIM_FileSystem.AvailableSpace" }]
+   uint64 AvailableDiskSpace;
+};
+
+
+// ==================================================================
+// SwapSpaceCheck
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "SwapSpaceCheck specifies the amount of swap space that needs "
+       "to be available on the computer system. The amount is "
+       "specified in the SwapSpaceSize property. The details of this "
+       "Check are compared with the value of the CIM_OperatingSystem. "
+       "TotalSwapSpaceSize property - where the CIM_OperatingSystem "
+       "object is related (using RunningOS) to the CIM_Computer System "
+       "instance that describes the environment. When the value of "
+       "TotalSwapSpaceSize property is greater than or equal to the "
+       "value specified in SwapSpaceSize, the Check is satisfied.")]
+class CIM_SwapSpaceCheck : CIM_Check {
+
+      [Description (
+          "The SwapSpaceSize property specifies the minimum number of "
+          "KiloBytes of swap space that needs to be available on the "
+          "target system."), 
+       Units ( "KiloBytes" ), 
+       ModelCorrespondence { "CIM_OperatingSystem.TotalSwapSpaceSize" }]
+   uint64 SwapSpaceSize;
+};
+
+
+// ==================================================================
+// OSVersionCheck
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The OSVersionCheck class specifies the versions of the "
+       "operating system that can support/execute this Software "
+       "Element. The operating system itself (whose version should be "
+       "validated) is defined in the TargetOperatingSystem property of "
+       "the Check's scoping SoftwareElement. \n"
+       "This Check can be for a specific, minimum, maximum or a range "
+       "of releases of an OS. To identify a specific version of the "
+       "OS, the minimum and maximum versions must be the same. To "
+       "specify a minimum, only the minimum version needs to be "
+       "defined. To specify a maximum version, only the maximum "
+       "version needs to be defined. To specify a range, both minimum "
+       "and maximum versions need to be defined. \n"
+       "The data gathered from the Check and SoftwareElement objects "
+       "are compared with the corresponding details found in the "
+       "CIM_OperatingSystem object (referenced by the InstalledOS "
+       "association), for the CIM_ComputerSystem object that defines "
+       "the environment. The OSType property of CIM_OperatingSystem "
+       "must match the value of CIM_SoftwareElement.TargetOperating "
+       "System. Also, the OS' version information should be within the "
+       "range of CIM_OSVersionCheck.Minimum/MaximumValue properties. "
+       "Note that all the operating systems on the relevant computer "
+       "do not need to satisfy the Check.")]
+class CIM_OSVersionCheck : CIM_Check {
+
+      [Description (
+          "Minimum version of the required operating system. The value "
+          "is encoded as <major>.<minor>.<revision> or "
+          "<major>.<minor><letter revision>."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_OperatingSystem.Version" }]
+   string MinimumVersion;
+
+      [Description (
+          "Maximum version of the required operating system. The value "
+          "is encoded as <major>.<minor>.<revision> or "
+          "<major>.<minor><letter revision>."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_OperatingSystem.Version" }]
+   string MaximumVersion;
+};
+
+
+// ==================================================================
+// SoftwareElementVersionCheck
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "SoftwareElementVersionCheck specifies the release of a "
+       "SoftwareElement that must exist in the environment. This Check "
+       "can be for a specific, minimum, maximum or a range of "
+       "versions. To specify a specific version, the lower and upper "
+       "versions must be the same. To specify a minimum, only the "
+       "lower version needs to be defined. To specify a maximum "
+       "version, only the upper version needs to be defined. To "
+       "specify a range, both upper and lower versions need to be "
+       "defined. The details of this Check are compared with the "
+       "corresponding details found in a CIM_SoftwareElement object, "
+       "associated to the CIM_ComputerSystem instance that describes "
+       "the environment (related by the association, "
+       "CIM_InstalledSoftwareElement). There should be at least one "
+       "CIM_SoftwareElement that satisfies the details of the Check. "
+       "In other words, all the SoftwareElements on the relevant "
+       "computer system do not need to satisfy the Check.")]
+class CIM_SoftwareElementVersionCheck : CIM_Check {
+
+      [Description (
+          "The name of the SoftwareElement being checked."), 
+       MaxLen ( 256 ), 
+       ModelCorrespondence { "CIM_SoftwareElement.Name" }]
+   string SoftwareElementName;
+
+      [Description (
+          "The minimum version of the SoftwareElement being checked."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_SoftwareElement.Version" }]
+   string LowerSoftwareElementVersion;
+
+      [Description (
+          "The maximum version of the SoftwareElement being checked."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_SoftwareElement.Version" }]
+   string UpperSoftwareElementVersion;
+
+      [Description (
+          "The state of the SoftwareElement being checked."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Deployable", "Installable", "Executable", "Running" }, 
+       ModelCorrespondence { "CIM_SoftwareElement.SoftwareElementState" 
+          }]
+   uint16 SoftwareElementStateDesired;
+
+      [Description (
+          "The target operating system of the SoftwareElement being "
+          "checked."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+          "60", "61", "62", "63", "64", "65", "66", "67", "68" }, 
+       Values { "Unknown", "Other", "MACOS", "ATTUNIX", "DGUX",
+          "DECNT", "Tru64 UNIX", "OpenVMS", "HPUX", "AIX", 
+          //10 
+          "MVS", "OS400", "OS/2", "JavaVM", "MSDOS", "WIN3x", "WIN95",
+          "WIN98", "WINNT", "WINCE", 
+          //20 
+          "NCR3000", "NetWare", "OSF", "DC/OS", "Reliant UNIX",
+          "SCO UnixWare", "SCO OpenServer", "Sequent", "IRIX",
+          "Solaris", 
+          //30 
+          "SunOS", "U6000", "ASERIES", "TandemNSK", "TandemNT",
+          "BS2000", "LINUX", "Lynx", "XENIX", "VM", 
+          //40 
+          "Interactive UNIX", "BSDUNIX", "FreeBSD", "NetBSD",
+          "GNU Hurd", "OS9", "MACH Kernel", "Inferno", "QNX", "EPOC", 
+          //50 
+          "IxWorks", "VxWorks", "MiNT", "BeOS", "HP MPE", "NextStep",
+          "PalmPilot", "Rhapsody", "Windows 2000", "Dedicated", 
+          //60 
+          "OS/390", "VSE", "TPF","Windows (R) Me", "Caldera Open UNIX",
+          "OpenBSD", "Not Applicable", "Windows XP", "z/OS" }, 
+       ModelCorrespondence { 
+          "CIM_SoftwareElement.TargetOperatingSystem" }]
+   uint16 TargetOperatingSystemDesired;
+};
+
+
+// ==================================================================
+// FileSpecification
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "FileSpecification identifies a file that is either to be on or "
+       "off the system. The file is to be located in the directory "
+       "identified in FileName, or by the CIM_Directory "
+       "SpecificationFile association. When the Invoke methods are "
+       "executed, it is expected that they will use a combination of "
+       "information to check for file existence. Therefore, any of the "
+       "properties with a NULL value are not checked. So, if only the "
+       "FileName and MD5Checksum properties have values, they are the "
+       "only ones considered by the Invoke methods.")]
+class CIM_FileSpecification : CIM_Check {
+
+      [Description (
+          "Either the name of the file or the name of the file with a "
+          "directory prefix."), 
+       MaxLen ( 1024 )]
+   string FileName;
+
+      [Description (
+          "The creation date and time of the file.")]
+   datetime CreateTimeStamp;
+
+      [Description (
+          "The size of the file in Kilobytes."), 
+       Units ( "KiloBytes" )]
+   uint64 FileSize ;
+
+      [Description (
+          "A checksum calculated as the 16-bit sum of the first 32 "
+          "bytes of the file."), 
+       MappingStrings { "MIF.DMTF|Software Signature|002.4" }]
+   uint32 CheckSum;
+
+      [Description (
+          "The CRC1 property is the CRC value calculated using the "
+          "middle 512K bytes of the file."), 
+       MappingStrings { "MIF.DMTF|Software Signature|002.5" }]
+   uint32 CRC1;
+
+      [Description (
+          "The CRC2 property is the CRC value for the middle 512K "
+          "bytes of the file, modulo 3."), 
+       MappingStrings { "MIF.DMTF|Software Signature|002.6" }]
+   uint32 CRC2;
+
+      [Description (
+          "The MD5 algorithm is a well-known algorithm for computing a "
+          "128-bit checksum for any file or object. For purposes of "
+          "MOF specification of the MD5Checksum property, the MD5 "
+          "algorithm always generates a 32 character string. For "
+          "example: The string abcdefghijklmnopqrstuvwxyz generates "
+          "the string c3fcd3d76192e4007dfb496cca67e13b. See http: "
+          "//www.ietf.org - RFC1321 for details on the // "
+          "implementation of the MD5 algorithm."), 
+       MaxLen ( 32 )]
+   string MD5Checksum;
+};
+
+// ==================================================================
+// VersionCompatibilityCheck
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The VersionCompatibilityCheck class specifies whether it is "
+       "permissible to create the next state of a SoftwareElement.")]
+class CIM_VersionCompatibilityCheck : CIM_Check {
+
+      [Description (
+          "The AllowDownVersion property indicates that this Software "
+          "Element can transition to its next state even if a higher "
+          "or later version of the element already exists in the "
+          "environment.")]
+   boolean AllowDownVersion;
+
+      [Description (
+          "The AllowMultipleVersions option controls the ability to "
+          "configure multiple versions of a SoftwareElement on a "
+          "system.")]
+   boolean AllowMultipleVersions;
+
+      [Description (
+          "The Reinstall property indicates that this SoftwareElement "
+          "can transition to its next state even if an element of the "
+          "same version already exists in the environment.")]
+   boolean Reinstall;
+};
+
+
+// ==================================================================
+// SettingCheck
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "This class specifies information needed to verify a particular "
+       "'setting' file, for a specific entry in the file. The file "
+       "entry is checked whether it contains or matches the value "
+       "defined in EntryValue. All compares are assumed to be case "
+       "insensitive.")]
+class CIM_SettingCheck : CIM_Check {
+
+      [Description (
+          "Key or label for the section of the file containing the "
+          "settings to be checked."), 
+       MaxLen ( 256 )]
+   string SectionKey;
+
+      [Description (
+          "Name of the setting entry to be checked."), 
+       MaxLen ( 256 )]
+   string EntryName;
+
+      [Description (
+          "Value to be compared for the named entry.")]
+   string EntryValue;
+
+      [Description (
+          "CheckType specifies how the setting value should be "
+          "compared."), 
+       ValueMap { "0", "1" }, 
+       Values { "Matches", "Contains" }]
+   uint16 CheckType;
+
+      [Description (
+          "File name of the 'setting' file to be checked."), 
+       MaxLen ( 1024 )]
+   string FileName;
+};
+
+
+// ==================================================================
+// SoftwareElementChecks
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "This association ties a SoftwareElement to a specific Check to "
+       "validate its state or its movement to the next state. Note "
+       "that SoftwareElements in a running state cannot transition to "
+       "another state. Therefore, the value of the Phase property is "
+       "restricted to 0 (\"In-State\") for SoftwareElements in the "
+       "running state.")]
+class CIM_SoftwareElementChecks {
+
+      [Key, Aggregate, Min ( 1 ), Max ( 1 ), Description (
+          "The SoftwareElement being checked.")]
+   CIM_SoftwareElement REF Element;
+
+      [Key, Weak, Description (
+          "The Check for the element.")]
+   CIM_Check REF Check;
+
+      [Description (
+          "The Phase property indicates whether the referenced Check "
+          "is an in-state or a next-state Check."), 
+       ValueMap { "0", "1" }, 
+       Values { "In-State", "Next-State" }]
+   uint16 Phase;
+};
+
+
+// ==================================================================
+// DirectorySpecificationFile
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The CIM_DirectorySpecificationFile association identifies the "
+       "directory that contains the file being checked in the CIM_ "
+       "FileSpecification class.")]
+class CIM_DirectorySpecificationFile {
+
+      [Key, Max ( 1 ), Description (
+          "The directory to be checked.")]
+   CIM_DirectorySpecification REF DirectorySpecification;
+
+      [Key, Description (
+          "The file to be checked.")]
+   CIM_FileSpecification REF FileSpecification;
+};
+
+
+// ==================================================================
+// Action
+// ==================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "A CIM_Action is an operation that is part of a process to "
+       "either create a SoftwareElement in its next state or to "
+       "eliminate the SoftwareElement in its current state. A "
+       "CIM_ComputerSystem object represents the environment in which "
+       "CIM_SoftwareElements are already deployed/installed or into "
+       "which the elements will be deployed/installed. For the case in "
+       "which an element is already installed, the "
+       "CIM_InstalledSoftwareElement association identifies the "
+       "CIM_ComputerSystem object that represents the \"environment\". "
+       "When a SoftwareElement is being deployed for installation on a "
+       "ComputerSystem, that system is the target of the Action and is "
+       "identified using the TargetSystem reference of the "
+       "InvokeOnSystem method.")]
+class CIM_Action : CIM_ManagedElement {
+
+      [Key, Propagated ( "CIM_SoftwareElement.Name" ), Description (
+          "The name used to identify the SoftwareElement that is being "
+          "acted upon."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Key, Propagated ( "CIM_SoftwareElement.Version" ), Description (
+          "The version of the SoftwareElement being acted upon."), 
+       MaxLen ( 64 )]
+   string Version;
+
+      [Key, Propagated ( "CIM_SoftwareElement.SoftwareElementState" ), 
+       Description (
+          "The SoftwareElementState of the SoftwareElement being acted "
+          "upon."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Deployable", "Installable", "Executable", "Running" }]
+   uint16 SoftwareElementState;
+
+      [Key, Propagated ( "CIM_SoftwareElement.SoftwareElementID" ), 
+       Description (
+          "This is an identifier for the SoftwareElement being acted "
+          "upon."), 
+       MaxLen ( 256 )]
+   string SoftwareElementID;
+
+      [Key, Propagated ( "CIM_SoftwareElement.TargetOperatingSystem" ), 
+       Description (
+          "The Target Operating System of the SoftwareElement being "
+          "acted upon."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+          "60", "61", "62", "63", "64", "65", "66", "67", "68" }, 
+       Values { "Unknown", "Other", "MACOS", "ATTUNIX", "DGUX",
+          "DECNT", "Tru64 UNIX", "OpenVMS", "HPUX", "AIX", 
+          //10 
+          "MVS", "OS400", "OS/2", "JavaVM", "MSDOS", "WIN3x", "WIN95",
+          "WIN98", "WINNT", "WINCE", 
+          //20 
+          "NCR3000", "NetWare", "OSF", "DC/OS", "Reliant UNIX",
+          "SCO UnixWare", "SCO OpenServer", "Sequent", "IRIX",
+          "Solaris", 
+          //30 
+          "SunOS", "U6000", "ASERIES", "TandemNSK", "TandemNT",
+          "BS2000", "LINUX", "Lynx", "XENIX", "VM", 
+          //40 
+          "Interactive UNIX", "BSDUNIX", "FreeBSD", "NetBSD",
+          "GNU Hurd", "OS9", "MACH Kernel", "Inferno", "QNX", "EPOC", 
+          //50 
+          "IxWorks", "VxWorks", "MiNT", "BeOS", "HP MPE", "NextStep",
+          "PalmPilot", "Rhapsody", "Windows 2000", "Dedicated", 
+          //60 
+          "OS/390", "VSE", "TPF","Windows (R) Me", "Caldera Open UNIX",
+          "OpenBSD", "Not Applicable", "Windows XP", "z/OS" }]
+   uint16 TargetOperatingSystem;
+
+      [Key, Description (
+          "The ActionID property is a unique identifier assigned to a "
+          "particular Action for a SoftwareElement."), 
+       MaxLen ( 256 )]
+   string ActionID;
+
+      [Description (
+          "The Direction property is used to indicate whether this "
+          "Action is part of a sequence to transition the "
+          "SoftwareElement to its next state (\"Install\") or to "
+          "remove the element (\"Uninstall\")."), 
+       ValueMap { "0", "1" }, 
+       Values { "Install", "Uninstall" }]
+   uint16 Direction;
+
+      [Description (
+          "The Invoke method takes this Action. The details of how the "
+          "Action is implemented are described by specific subclasses "
+          "of CIM_Action. When the SoftwareElement being transitioned "
+          "or eliminated is already installed, the "
+          "CIM_InstalledSoftwareElement association identifies the "
+          "CIM_ComputerSystem in whose context the Invoke is executed. "
+          "If this association is not in place, then the "
+          "InvokeOnSystem method should be used - since it identifies "
+          "the TargetSystem as a parameter of the method. \n"
+          "The results of the Invoke method are based on the return "
+          "value. A zero is returned if the Action is satisfied. A one "
+          "is returned if the method is not supported. Any other value "
+          "indicates the Action is not satisfied.")]
+   uint32 Invoke(); 
+
+      [Description (
+          "The InvokeOnSystem method takes this Action. The details of "
+          "how the Action is implemented are described by specific "
+          "subclasses of CIM_Action. The method's TargetSystem input "
+          "parameter specifies the ComputerSystem in whose context the "
+          "method is invoked. \n"
+          "The results of the InvokeOnSystem method are based on the "
+          "return value. A zero is returned if the Action is "
+          "satisfied. A one is returned if the method is not "
+          "supported. Any other value indicates the Action is not "
+          "satisfied.")]
+   uint32 InvokeOnSystem([IN, Description ( "Reference to target system in whose context the method is to be invoked.") ] CIM_ComputerSystem ref TargetSystem); 
+};
+
+
+// ==================================================================
+// DirectoryAction
+// ==================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "DirectoryAction is an abstract class used to manage "
+       "directories. The creation of directories is handled by "
+       "CreateDirectoryAction and removal is handled by "
+       "RemoveDirectoryAction.")]
+class CIM_DirectoryAction : CIM_Action {
+
+      [Description (
+          "The name of the directory being managed."), 
+       MaxLen ( 1024 )]
+   string DirectoryName;
+};
+
+
+// ==================================================================
+// CreateDirectoryAction
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "CreateDirectoryAction creates empty directories for "
+       "SoftwareElements to be installed locally.")]
+class CIM_CreateDirectoryAction : CIM_DirectoryAction {
+};
+
+
+// ==================================================================
+// RemoveDirectoryAction
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "RemoveDirectoryAction removes directories from the computer "
+       "system that defines the Action's environment.")]
+class CIM_RemoveDirectoryAction : CIM_DirectoryAction {
+
+      [Description (
+          "Boolean property indicating that the directory must be "
+          "empty in order to be removed. If this condition is not "
+          "satisfied, then the Invoke methods return an error.")]
+   boolean MustBeEmpty;
+};
+
+
+// ==================================================================
+// FileAction
+// ==================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "FileAction locates files that already exist on the CIM_ "
+       "ComputerSystem that defines the Action's environment. These "
+       "files are removed or moved/copied to a new location.")]
+class CIM_FileAction : CIM_Action {
+};
+
+
+// ==================================================================
+// CopyFileAction
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "CopyFileAction specifies the files to be moved or copied to a "
+       "new location. The to/from information for the copy is "
+       "specified using either the ToDirectorySpecification/ "
+       "FromDirectorySpecification or the ToDirectoryAction/ "
+       "FromDirectoryAction associations. The first set is used when "
+       "the source and/or the target are to exist before any Actions "
+       "are taken. The second set is used when the source and/or "
+       "target are created as a part of a previous Action (specified "
+       "using the association, ActionSequence).")]
+class CIM_CopyFileAction : CIM_FileAction {
+
+      [Description (
+          "The source directory."), 
+       MaxLen ( 1024 )]
+   string Source;
+
+      [Description (
+          "The destination directory."), 
+       MaxLen ( 1024 )]
+   string Destination;
+
+      [Description (
+          "Boolean indicating that the file should be deleted after "
+          "being copied.")]
+   boolean DeleteAfterCopy;
+};
+
+
+// ==================================================================
+// RemoveFileAction
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The RemoveFileAction uninstalls files.")]
+class CIM_RemoveFileAction : CIM_FileAction {
+
+      [Description (
+          "The file to be removed."), 
+       MaxLen ( 1024 )]
+   string File;
+};
+
+
+// ==================================================================
+// RebootAction
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "RebootAction causes a reboot of the computer system that "
+       "defines the Action's environment.")]
+class CIM_RebootAction : CIM_Action {
+};
+
+
+// ==================================================================
+// ExecuteProgram
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "ExecuteProgram causes programs to be executed on the computer "
+       "system that defines the Action's environment.")]
+class CIM_ExecuteProgram : CIM_Action {
+
+      [Description (
+          "The location or 'path' where the program is found."), 
+       MaxLen ( 1024 )]
+   string ProgramPath;
+
+      [Description (
+          "A string that can be executed and invokes program(s), from "
+          "a system's command line.")]
+   string CommandLine;
+};
+
+
+// ==================================================================
+// ModifySettingAction
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "This class specifies the information used to modify a "
+       "'setting' file, for a specific entry in the file. The new "
+       "'setting' value is created as a new entry or appends to, "
+       "replaces, removes from, or deletes the specified entry. All "
+       "additions are assumed to be case sensitive. Removes are "
+       "assumed to be case insensitive.")]
+class CIM_ModifySettingAction : CIM_Action {
+
+      [Description (
+          "This is the key or label of the section of the file to be "
+          "modified."), 
+       MaxLen ( 256 )]
+   string SectionKey;
+
+      [Description (
+          "Name of setting entry to be modified."), 
+       MaxLen ( 256 )]
+   string EntryName;
+
+      [Description (
+          "This is the value to add, append, or replace the specified "
+          "setting.")]
+   string EntryValue;
+
+      [Description (
+          "File name of the 'setting' file."), 
+       MaxLen ( 1024 )]
+   string FileName;
+
+      [Description (
+          "Type of Action to be performed on the specified setting "
+          "entry. \n"
+          "0=Create - Creates the specified entry. \n"
+          "1=Delete - Deletes the specified entry. \n"
+          "2=Append - Appends to the end of the specified entry. \n"
+          "3=Remove - Removes the value from the specified entry."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Create", "Delete", "Append", "Remove" }]
+   uint16 ActionType;
+};
+
+
+// ==================================================================
+// ActionSequence
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The CIM_ActionSequence association defines a series of "
+       "operations that either transition a SoftwareElement, "
+       "referenced by the CIM_SoftwareElementActions association, to "
+       "the next state or removes the element from its current state. "
+       "The Action classes participating in this association must have "
+       "the same value for the Action.Direction property - since they "
+       "are either part of a sequence to transition a SoftwareElement "
+       "into its next state or to uninstall it. The next-state and "
+       "uninstall Actions associated with a particular SoftwareElement "
+       "must be a continuous sequence. \n"
+       "ActionSequence is an association that loops on the Action "
+       "classes with roles for the 'prior' and 'next' Actions in the "
+       "sequence. The need for a continuous sequence imples: (1)Within "
+       "the set of next-state or uninstall Actions, there is one and "
+       "only one Action that does not have an instance of "
+       "ActionSequence referencing it in the 'next' role. This is the "
+       "first Action in the sequence. (2) Within the set of next-state "
+       "or uninstall Actions, there is one and only one Action that "
+       "does not have an instance of ActionSequence referencing it in "
+       "the 'prior' role. This is the last Action in the sequence. (3) "
+       "All other Actions within the set of next-state and uninstall "
+       "Actions must participate in two instances of ActionSequence, "
+       "one in a 'prior' role and the other in the 'next' role.")]
+class CIM_ActionSequence {
+
+      [Key, Max ( 1 ), Description (
+          "The next Action in the sequence.")]
+   CIM_Action REF Next;
+
+      [Key, Max ( 1 ), Description (
+          "The previous Action in the sequence.")]
+   CIM_Action REF Prior;
+};
+
+
+// ==================================================================
+// SoftwareElementActions
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "This association identifies the Actions for a Software "
+       "Element.")]
+class CIM_SoftwareElementActions {
+
+      [Key, Aggregate, Min ( 1 ), Max ( 1 ), Description (
+          "The element that scopes the Action.")]
+   CIM_SoftwareElement REF Element;
+
+      [Key, Weak, Description (
+          "The software Action to move or uninstall a SoftwareElement.")]
+   CIM_Action REF Action;
+};
+
+
+// ==================================================================
+// ToDirectorySpecification
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The ToDirectorySpecification association identifies the target "
+       "directory for a FileAction. When this association is used, the "
+       "assumption is that the target directory already exists. This "
+       "association cannot co-exist with a ToDirectoryAction "
+       "association, since a FileAction can only involve a single "
+       "target directory.")]
+class CIM_ToDirectorySpecification {
+
+      [Key, Max ( 1 ), Description (
+          "The destination directory of the Action.")]
+   CIM_DirectorySpecification REF DestinationDirectory;
+
+      [Key, Description (
+          "The Action against the directory.")]
+   CIM_CopyFileAction REF FileName;
+};
+
+
+// ==================================================================
+// FromDirectorySpecification
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The FromDirectorySpecification association identifies the "
+       "source directory for a FileAction. When this association is "
+       "used, the assumption is that the source directory already "
+       "exists. This association cannot co-exist with a "
+       "FromDirectoryAction association, since a FileAction can only "
+       "involve a single source directory.")]
+class CIM_FromDirectorySpecification {
+
+      [Key, Max ( 1 ), Description (
+          "The source directory of the Action.")]
+   CIM_DirectorySpecification REF SourceDirectory;
+
+      [Key, Description (
+          "The Action against the directory.")]
+   CIM_FileAction REF FileName;
+};
+
+
+// ==================================================================
+// ToDirectoryAction
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The ToDirectoryAction association identifies the target "
+       "directory for a FileAction. When this association is used, the "
+       "assumption is that the target directory was created by a "
+       "previous Action. This association cannot co-exist with a "
+       "ToDirectorySpecification association, since a FileAction can "
+       "only involve a single target directory.")]
+class CIM_ToDirectoryAction {
+
+      [Key, Max ( 1 ), Description (
+          "The destination directory of the Action.")]
+   CIM_DirectoryAction REF DestinationDirectory;
+
+      [Key, Description (
+          "The Action against the directory.")]
+   CIM_CopyFileAction REF FileName;
+};
+
+
+// ==================================================================
+// FromDirectoryAction
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The FromDirectoryAction association identifies the source "
+       "directory for a FileAction. When this association is used, the "
+       "assumption is that the source directory was created by a "
+       "previous Action. This association cannot co-exist with a "
+       "FromDirectorySpecification association, since a FileAction can "
+       "only involve a single source directory.")]
+class CIM_FromDirectoryAction {
+
+      [Key, Max ( 1 ), Description (
+          "The source directory of the Action.")]
+   CIM_DirectoryAction REF SourceDirectory;
+
+      [Key, Description (
+          "The Action against the directory.")]
+   CIM_FileAction REF FileName;
+};
+
+
+// ==================================================================
+// end of file
+// ==================================================================

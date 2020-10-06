@@ -1,0 +1,166 @@
+#!/bin/bash
+##
+##  Create the tarball and zip files for OpenPegasus source from cvs
+##  Create tar and zip distribution in a tmp directory (EXPORTDIR)
+##  Developer functions. Designed for us with *nix OS
+##  Exports pegasus to tmp dir, creates zip and tarball in that directory
+##  from pegasus exported to subdir pegasus-<version>.
+##  Then deletes this directory.
+##
+##  TODO:
+##  1. Add option to get from branches rather than just the head.
+##  2. Add option to allow more name info on the created tar files.
+
+## Must be run from the pegasus directory after a checkout
+## that is only to confirm status and existence of the revision number
+
+usage()
+{
+cat << EOF
+Usage: $(basename $0) - create the release TAR and ZIP files for
+   OpenPegasus release.
+
+    createZipAndTARFiles [options] MAJOR_VERSION MINOR_VERSION REVISION
+
+    WHERE: the MAJOR_VERSION is the first integer of the pegasus version
+           MINOR_VERSION is the second integer
+           REVISION is the third integer
+           2.14.0   Major.Minor.Revision
+           ex createZipAndTarFiles 2 14 0
+
+    OPTIONS
+
+    -t dir     Temp directory name (default /tmp)
+    -v         Verbose display. Displays options and more
+               run information. Primarily script diagnostic (default false)
+    -f         Create the tar file even though appropriate CVS tag does not
+               exist. Current CVS HEAD is then exported. The resulting package
+               is useful only for testing, not for release!
+
+    Built to create zip and tar files from the pegasus release tag.  If the
+    tag does not exist, the script will terminate, unless '-f' is used.
+EOF
+}
+################################################################
+##  Scan input options
+##
+################################################################
+##  Scan input options
+##
+EXPORTDIR=/tmp
+VERBOSE=0
+FORCE=0
+
+while getopts "hvt:f" OPTION
+do 
+     case $OPTION in
+         h) usage
+            exit 1
+            ;;
+         t) EXPORTDIR=$OPTARG
+            if [ ! -e $EXPORTDIR ]; then
+                echo Dir $EXPORTDIR does not exist
+                exit 1
+            fi
+            ;;
+         v) VERBOSE=1
+            ;;
+         f) FORCE=1
+            ;;
+         ?) usage
+            exit
+            ;;
+         *) usage
+            exit 1
+            ;;
+     esac
+done
+
+##
+## Test for the 3 required parameters.
+##
+shift $((OPTIND-1))
+
+if [ $# -ne 3 ]; then
+    echo "Incomplete pegasus version info. Requires 3 input parameters:"
+    echo "    Major version (for 2.14.0 this is 2)"
+    echo "    Minor version (for 2.14.0 this is 14)"
+    echo "    Revision (for 2.14.0 this is 0)"
+    exit 1
+fi
+
+if [[ -n $PEGASUS_ROOT ]]; then
+    cd $PEGASUS_ROOT
+else
+    echo ERROR: PEGASUS_ROOT does not exist.
+    exit 1
+fi
+
+if [[ ! -e TestMakefile ]]; then
+    echo Error. The file TestMakefile must exist to prove you are in the pegasus directory.
+    exit 1
+fi
+
+PEGASUS_MAJOR_VERSION=$1
+PEGASUS_MINOR_VERSION=$2
+PEGASUS_REVISION=$3
+
+CVS_TAG=RELEASE_${PEGASUS_MAJOR_VERSION}_${PEGASUS_MINOR_VERSION}_$PEGASUS_REVISION
+PEGASUS_VERSION=$PEGASUS_MAJOR_VERSION.$PEGASUS_MINOR_VERSION.$PEGASUS_REVISION
+
+DISTROOT=pegasus-$PEGASUS_VERSION
+TARDIST=$DISTROOT.tar.gz
+ZIPDIST=$DISTROOT.zip
+CVSROOT=:pserver:anon@cvs.opengroup.org:/cvs/MSB
+
+if [[ $VERBOSE -eq 1 ]]; then
+  echo CVS_TAG = $CVS_TAG
+  echo PEGASUS_VERSION $PEGASUS_VERSION
+  echo TARDIST = $TARDIST
+  echo ZIPDIST = $ZIPDIST
+fi
+
+rm -f $EXPORTDIR/$TARDIST
+rm -f $EXPORTDIR/$TARDIST
+rm -rf $EXPORTDIR/$DISTROOT
+##
+##  Test to be sure tag is in repository
+
+cvs status -v Makefile | grep "$CVS_TAG " > /dev/null
+
+if [[ $? -eq 0 ]]; then
+    echo Tag $CVS_TAG exists.
+else
+    echo Tag $CVS_TAG does not exist.
+    if [ "$FORCE" -eq 0 ]; then
+        echo exiting in error
+        exit 1
+    else
+        echo Warning: exporting CVS HEAD. This is not an official release.
+        CVS_TAG="HEAD"
+    fi
+fi
+
+cd $EXPORTDIR
+echo creating Distribution directory $EXPORTDIR/$DISTROOT
+mkdir $DISTROOT
+cd $DISTROOT
+
+echo "Exporting Pegasus to Dir $EXPORTDIR"
+cvs -d "$CVSROOT" export -r $CVS_TAG pegasus  > /dev/null
+
+if [[ $? -ne 0 ]]; then
+    echo cvs export failed
+    exit 1
+else
+    echo exit $CVS_TAG finished
+fi
+
+echo "Creating $EXPORTDIR/$TARDIST..."
+tar zcf ../$TARDIST pegasus
+
+echo "Creating $EXPORTDIR/$ZIPDIST..."
+zip -q -r ../$ZIPDIST pegasus
+rm -rf $EXPORTDIR/$DISTROOT
+
+echo The tar and zip files are in the directory $EXPORTDIR

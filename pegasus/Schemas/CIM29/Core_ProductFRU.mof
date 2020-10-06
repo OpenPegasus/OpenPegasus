@@ -1,0 +1,568 @@
+// ===================================================================
+// Title: Core_ProductFRU
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Core_ProductFRU.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Core Model defines basic management concepts.
+//              This file defines the concepts for Products and
+//              FRUs (field replaceable units).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 - None
+// 
+// Change Log for v2.7
+// CR968 - Remove the Experimental qualifier
+// 
+// Change Log for v2.7
+// CR753 - Update description for Product and add ModelCorrespondence
+//         to the CIM Support Schema
+//       - Add ProductComponent, ProductPhysicalComponent,
+//         ProductSoftwareComponent and ProductServiceComponent
+//       - Deprecate ProductPhysicalElementsComponent
+// CR761 - Add the Composition qualifier to ProductParentChild,
+//         ProductPhysicalElements, FRUPhysicalElements, and
+//         FRUIncludesProduct
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// Product
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "CIM_Product is a concrete class that aggregates "
+       "PhysicalElements, software (SoftwareIdentity and "
+       "SoftwareFeatures), Services and/or other Products, and is "
+       "acquired as a unit. Acquisition implies an agreement between "
+       "supplier and consumer which may have implications to Product "
+       "licensing, support and warranty. Non-commercial (e.g., "
+       "in-house developed Products) should also be identified as an "
+       "instance of CIM_Product. \n"
+       "Note that software is handled a bit differently in the list of "
+       "aggregated entities, above. This is because software can be "
+       "viewed as a tangible asset (similar to PhysicalElements) AND/ "
+       "OR as a set of features that make up a Product and are "
+       "deployed. These are two different concepts, usually managed by "
+       "different units in a business' organization. When software "
+       "'features' are described, the CIM_SoftwareFeature class from "
+       "the Application Model is instantiated (where Features are Weak "
+       "to/scoped by a Product). When a specific piece of software is "
+       "acquired and perhaps warrantied as part of a Product, this is "
+       "addressed by the class, SoftwareIdentity.")]
+class CIM_Product : CIM_ManagedElement {
+
+      [Key, Description (
+          "Commonly used Product name."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIF.DMTF|ComponentID|001.2" }, 
+       ModelCorrespondence { "PRS_Product.ProductName" }]
+   string Name;
+
+      [Key, Description (
+          "Product identification such as a serial number on software, "
+          "a die number on a hardware chip, or (for non-commercial "
+          "Products) a project number."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|ComponentID|001.4" }]
+   string IdentifyingNumber;
+
+      [Key, Description (
+          "The name of the Product's supplier, or entity selling the "
+          "Product (the manufacturer, reseller, OEM, etc.). "
+          "Corresponds to the Vendor property in the Product object in "
+          "the DMTF Solution Exchange Standard."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIF.DMTF|ComponentID|001.1" }, 
+       ModelCorrespondence { "PRS_Product.Vendor" }]
+   string Vendor;
+
+      [Key, Description (
+          "Product version information."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|ComponentID|001.3" }, 
+       ModelCorrespondence { "PRS_Product.Version" }]
+   string Version;
+
+      [Description (
+          "Product SKU (stock keeping unit) information."), 
+       MaxLen ( 64 )]
+   string SKUNumber;
+
+      [Description (
+          "If this Product is under warranty, the start date of the "
+          "warranty."), 
+       MappingStrings { "MIF.DMTF|FRU|002.9" }, 
+       ModelCorrespondence { "CIM_Product.WarrantyDuration" }]
+   datetime WarrantyStartDate;
+
+      [Description (
+          "If this Product is under warranty, the duration of the "
+          "warranty in days."), 
+       Units ( "Days" ), 
+       MappingStrings { "MIF.DMTF|FRU|002.10" }, 
+       ModelCorrespondence { "CIM_Product.WarrantyStartDate" }]
+   uint32 WarrantyDuration;
+};
+
+
+// ==================================================================
+// ProductComponent
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "The CIM_ProductComponent association defines a containment and "
+       "component relationship among Products. For example, a Product "
+       "may come bundled with other Products. \n"
+       "Note that this association duplicates ProductParentChild. The "
+       "latter association is maintained for legacy reasons. This "
+       "association, ProductComponent, is added for ease of query and "
+       "modeling consistency. Using ProductComponent, an application "
+       "can query for all Component relationships for a Product, "
+       "versus querying the various Component relationships AND "
+       "ProductParentChild.")]
+class CIM_ProductComponent : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The Product which contains another Product as a component. "
+          "The cardinality of this reference takes the default values "
+          "(no minimum or maximum) since an instance of Product can "
+          "describe either a general product type, or a specific item "
+          "that is acquired. In the case of a specific item, a "
+          "cardinality of Max(1) is indicated. However, when dealing "
+          "with the general description/templating of a Product, then "
+          "it may be a component of several others and a cardinality "
+          "of Max(1) would be invalid."), 
+       ModelCorrespondence { "PRS_ProductComponent.Antecedent" }]
+   CIM_Product REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The contained Product."), 
+       ModelCorrespondence { "PRS_ProductComponent.Dependent" }]
+   CIM_Product REF PartComponent;
+};
+
+
+// ==================================================================
+// ProductParentChild
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "The CIM_ProductParentChild association defines a parent child "
+       "hierarchy among Products. For example, a Product may come "
+       "bundled with other Products.")]
+class CIM_ProductParentChild {
+
+      [Key, Aggregate, Description (
+          "The parent Product in the association.")]
+   CIM_Product REF Parent;
+
+      [Key, Description (
+          "The child Product in the association.")]
+   CIM_Product REF Child;
+};
+
+
+// ==================================================================
+// CompatibleProduct
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_CompatibleProduct is an association between Products that "
+       "can indicate a wide variety of information. For example, it "
+       "can indicate that the two referenced Products interoperate, "
+       "that they can be installed together, that one can be the "
+       "physical container for the other, etc. The string property, "
+       "CompatibilityDescription, defines how the Products "
+       "interoperate or are compatible, any limitations regarding "
+       "interoperability or installation, ...")]
+class CIM_CompatibleProduct {
+
+      [Key, Description (
+          "The Product for which compatible offerings are defined.")]
+   CIM_Product REF Product;
+
+      [Key, Description (
+          "The compatible Product.")]
+   CIM_Product REF CompatibleProduct;
+
+      [Description (
+          "CompatibilityDescription is a free-form string defining how "
+          "the two referenced Products interoperate or are compatible, "
+          "any limitations to compatibility, etc.")]
+   string CompatibilityDescription;
+};
+
+
+// ==================================================================
+// ProductProductDependency
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_ProductProductDependency is an association between two "
+       "Products, indicating that one must be installed, or must be "
+       "absent, for the other to function. This is conceptually "
+       "equivalent to the ServiceServiceDependency association.")]
+class CIM_ProductProductDependency {
+
+      [Key, Description (
+          "The required Product.")]
+   CIM_Product REF RequiredProduct;
+
+      [Key, Description (
+          "The Product that is dependent on another Product.")]
+   CIM_Product REF DependentProduct;
+
+      [Description (
+          "The nature of the Product dependency. This property "
+          "describes that the associated Product must be installed "
+          "(value=2) or must be absent (value=3) in order for the "
+          "Product to function."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "Product Must Be Installed",
+          "Product Must Not Be Installed" }]
+   uint16 TypeOfDependency;
+};
+
+
+// ==================================================================
+// SupportAccess
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The CIM_SupportAccess association defines how to obtain "
+       "assistance for a Product.")]
+class CIM_SupportAccess : CIM_ManagedElement {
+
+      [Key, Description (
+          "SupportAccessID is an arbitrary, free form string defined "
+          "by the Product Vendor or by the organization that deploys "
+          "the Product. This property, since it is a key, should be "
+          "unique throughout the enterprise."), 
+       MaxLen ( 256 )]
+   string SupportAccessId;
+
+      [Override ( "Description" ), Description (
+          "A textual description of the type of Support provided."), 
+       MappingStrings { "MIF.DMTF|Support|001.3" }]
+   string Description;
+
+      [Description (
+          "CommunicationInfo provides the details of the Communication "
+          "Mode. For example, if the CommunicationMode is 'Phone', "
+          "CommunicationInfo specifies the phone number to be called."), 
+       MappingStrings { "MIF.DMTF|FRU|002.11", "MIF.DMTF|FRU|002.12" }]
+   string CommunicationInfo;
+
+      [Description (
+          "CommunicationMode defines the form of communication in "
+          "order to obtain support. For example, phone communication "
+          "(value =2), fax (3) or email (8) can be specified."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Other", "Phone", "Fax", "BBS", "Online Service",
+          "Web Page", "FTP", "E-mail" }, 
+       MappingStrings { "MIF.DMTF|Support|001.5" }]
+   uint16 CommunicationMode;
+
+      [Description (
+          "Locale defines the geographic region and/or language "
+          "dialect to which this Support resource pertains."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|Support|001.2" }]
+   string Locale;
+};
+
+
+// ==================================================================
+// ProductSupport
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_ProductSupport is an association between Product and "
+       "SupportAccess that conveys how support is obtained for the "
+       "Product. This is a many-to-many relationship, implying that "
+       "various types of Support are available for a Product, and that "
+       "the same Support object can provide assistance for multiple "
+       "Products.")]
+class CIM_ProductSupport {
+
+      [Key, Description (
+          "The Product.")]
+   CIM_Product REF Product;
+
+      [Key, Description (
+          "Support for the Product.")]
+   CIM_SupportAccess REF Support;
+};
+
+
+// ==================================================================
+//  FRU
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The CIM_FRU class is a vendor-defined collection of Products "
+       "and/or PhysicalElements that is associated with a Product for "
+       "the purpose of supporting, maintaining or upgrading that "
+       "Product at the customer's location. FRU is an acronym for "
+       "'field replaceable unit'.")]
+class CIM_FRU : CIM_ManagedElement {
+
+      [Key, Description (
+          "FRU ordering information."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|FRU|002.6" }]
+   string FRUNumber;
+
+      [Key, Description (
+          "FRU identification such as a serial number on software or a "
+          "die number on a hardware chip."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|FRU|002.7" }]
+   string IdentifyingNumber;
+
+      [Key, Description (
+          "The name of the FRU's supplier."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIF.DMTF|FRU|002.4" }]
+   string Vendor;
+
+      [Override ( "Description" ), Description (
+          "A textual description of the FRU."), 
+       MappingStrings { "MIF.DMTF|FRU|002.3" }]
+   string Description;
+
+      [Description (
+          "FRU name."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "The FRU's revision level."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|FRU|002.8" }]
+   string RevisionLevel;
+
+      [Description (
+          "Indicates whether the FRU is customer replaceable.")]
+   boolean CustomerReplaceable;
+};
+
+
+// ==================================================================
+// ProductFRU
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_ProductFRU is an association between Product and FRU that "
+       "provides information regarding what Product components have "
+       "been or are being replaced. The association is one to many, "
+       "conveying that a Product can have many FRUs, and that a "
+       "particular instance of a FRU is only applied to one (instance "
+       "of a) Product.")]
+class CIM_ProductFRU {
+
+      [Key, Max ( 1 ), Description (
+          "The Product to which the FRU is applied.")]
+   CIM_Product REF Product;
+
+      [Key, Description (
+          "The FRU.")]
+   CIM_FRU REF FRU;
+};
+
+
+// ==================================================================
+// ReplaceableProductFRU
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "ReplaceableProductFRU is an association between Product and "
+       "FRU that shows what Product components may be replaced. The "
+       "association is one to many, conveying that a Product can have "
+       "many FRUs, and that a particular instance of a FRU is only "
+       "applied to one (instance of a) Product.")]
+class CIM_ReplaceableProductFRU {
+
+      [Key, Max ( 1 ), Description (
+          "The Product to which the FRU is applied.")]
+   CIM_Product REF Product;
+
+      [Key, Description (
+          "The FRU.")]
+   CIM_FRU REF FRU;
+};
+
+
+// ==================================================================
+// ProductPhysicalComponent
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "Indicates that the referenced PhysicalElement is acquired as "
+       "part of a Product.")]
+class CIM_ProductPhysicalComponent : CIM_Component {
+
+      [Override ( "GroupComponent" ), Max ( 1 ), Description (
+          "The Product.")]
+   CIM_Product REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The PhysicalElement which is a part of the Product.")]
+   CIM_PhysicalElement REF PartComponent;
+};
+
+
+// ==================================================================
+// ProductSoftwareComponent
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "Indicates that the referenced SoftwareIdentity is acquired as "
+       "part of a Product.")]
+class CIM_ProductSoftwareComponent : CIM_Component {
+
+      [Override ( "GroupComponent" ), Max ( 1 ), Description (
+          "The Product.")]
+   CIM_Product REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The software which is a part of the Product.")]
+   CIM_SoftwareIdentity REF PartComponent;
+};
+
+
+// ==================================================================
+// ProductServiceComponent
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "Indicates that the referenced Service is acquired as part of a "
+       "Product. Examples of Services that may be acquired are "
+       "outsourced storage and networking services, or support and "
+       "warranty services. Expanding on the examples, Services "
+       "represent generic functionality - so, it is possible to model "
+       "the existence of storage volume management or warranty "
+       "services as individual instances of subclasses of CIM_Service. "
+       "These 'Services' may be enabled/disabled, started/stopped, "
+       "signal an error, etc. (They behave as standard "
+       "ManagedSystemElements.) Specific requests against the Services "
+       "- for example, a request for warranty service or increased "
+       "storage space - are NOT new instances of Service, but may be "
+       "requested via the methods of the Service subclass, or be "
+       "instantiated as specific subclasses of ManagedElement.")]
+class CIM_ProductServiceComponent : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The Product.")]
+   CIM_Product REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The Service which is a part of the Product.")]
+   CIM_Service REF PartComponent;
+};
+
+
+// ==================================================================
+// ProductPhysicalElements
+// ==================================================================
+   [Association, Deprecated { "CIM_ProductPhysicalComponent" },
+    Aggregation, Composition, Version ( "2.7.0" ), Description (
+       "Indicates the PhysicalElement(s) that make up a Product. This "
+       "association is deprecated in order to correctly place it in "
+       "the inheritance hierarchy and align the definition with other "
+       "new classes that are being added to the model, such as "
+       "CIM_ProductServiceComponent. ProductPhysicalElements was "
+       "defined in the original CIM V2.0 release, when a Managed "
+       "Element and a Component relationship between ManagedElements "
+       "did not exist.")]
+class CIM_ProductPhysicalElements {
+
+      [Deprecated { "CIM_ProductPhysicalComponent.GroupComponent" },
+       Key, Aggregate, Max ( 1 ), Description (
+          "The Product.")]
+   CIM_Product REF Product;
+
+      [Deprecated { "CIM_ProductPhysicalComponent.PartComponent" }, Key, 
+       Description (
+          "The PhysicalElement which is a part of the Product.")]
+   CIM_PhysicalElement REF Component;
+};
+
+
+// ==================================================================
+// FRUPhysicalElements
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "Indicates the PhysicalElements that make up a FRU.")]
+class CIM_FRUPhysicalElements {
+
+      [Key, Aggregate, Max ( 1 ), Description (
+          "The FRU.")]
+   CIM_FRU REF FRU;
+
+      [Key, Description (
+          "The PhysicalElement which is a part of the FRU.")]
+   CIM_PhysicalElement REF Component;
+};
+
+
+// ==================================================================
+// FRUIncludesProduct
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "Indicates that a FRU may be composed of other Product(s).")]
+class CIM_FRUIncludesProduct {
+
+      [Key, Aggregate, Max ( 1 ), Description (
+          "The FRU.")]
+   CIM_FRU REF FRU;
+
+      [Key, Description (
+          "The Product which is a part of the FRU.")]
+   CIM_Product REF Component;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

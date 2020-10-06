@@ -1,0 +1,86 @@
+#!/bin/bash
+
+#
+# The following set of commands tests the new Classes configured through the
+# sample provider interface.
+#
+# WITH AUTHENTICATION ENABLED
+# The following commands test the various authentication options through CLI
+# test client. The are 2 users added through "cimuser" and then both these
+# users are authenticated by giving them the "read" permission to our test
+# repository root/SampleProvider
+#
+# Important: Please change the <user> and <password> fields present in the
+# cim commands execution as per the settings on your system. The only thing to
+# care about is that the user provided on the command line with -u option
+# should be a valid user on the system where this test is running.
+#
+# WITHOUT AUTHENTICATION ENABLED
+# Simple Execution of CLI without any user/password authentication required
+# for any specific namespace.
+#
+
+AUTHENTICATION=$1;
+if [ $AUTHENTICATION ];
+then {
+	rm -f ei-auth.log
+	#enumerateinstances
+	echo "Executing enumerateinstances on CIMOMSample Class"
+	CLI ei -n root/SampleProvider CIMOMSample 2>&1 | tee ei-auth.log
+	CLI ei -n root/SampleProvider CIMOMSample -u guest -p nothing 2>&1 | tee -a ei-auth.log
+	CLI ei -n root/SampleProvider CIMOMSample -u guest -p guest 2>&1 | tee -a ei-auth.log
+	CLI ei -n root/SampleProvider CIMOMSample -u subodh -p soni 2>&1 | tee -a ei-auth.log
+
+	rm -f ec-auth.log
+	#enumerateclasses
+	echo "Executing enumerateclasses on CIMOMSample Class"
+	CLI ec -n root/SampleProvider CIMOMSample 2>&1 | tee ec-auth.log
+	CLI ec -n root/SampleProvider CIMOMSample -u guest -p nothing 2>&1 | tee -a ec-auth.log
+	CLI ec -n root/SampleProvider CIMOMSample -u guest -p guest 2>&1 | tee -a ec-auth.log
+	CLI ec -n root/SampleProvider CIMOMSample -u subodh -p soni 2>&1 | tee -a ec-auth.log
+	
+	rm -f ni-auth.log
+	#enumerateinstancenames
+	echo "Executing enumerateinstancenames on CIMOMSample Class"
+	CLI ni -n root/SampleProvider CIMOMSample 2>&1 | tee ni-auth.log
+	CLI ni -n root/SampleProvider CIMOMSample -u guest -p nothing 2>&1 | tee -a ni-auth.log
+	CLI ni -n root/SampleProvider CIMOMSample -u guest -p guest 2>&1 | tee -a ni-auth.log
+	CLI ni -n root/SampleProvider CIMOMSample -u subodh -p soni 2>&1 | tee -a ni-auth.log
+	
+	rm -f nc-auth.log
+	#enumerateclassnames
+	echo "Executing ....... enumerateclassenames on CIMOMSample Class"
+	echo ".."
+	CLI nc -n root/SampleProvider CIMOMSample 2>&1 | tee nc-auth.log
+	echo ".."
+	CLI nc -n root/SampleProvider CIMOMSample -u guest -p nothing 2>&1 | tee -a nc-auth.log
+	echo ".."
+	CLI nc -n root/SampleProvider CIMOMSample -u guest -p guest 2>&1 | tee -a nc-auth.log
+	echo ".."
+	CLI nc -n root/SampleProvider CIMOMSample -u subodh -p sonc 2>&1 | tee -a nc-auth.log
+}
+else
+{
+	rm -f ei.log
+	#enumerateinstances
+	echo "Executing enumerateinstances on CIMOMSample Class"
+	CLI ei -n root/SampleProvider CIMOMSample 2>&1 | tee ei.log
+
+	rm -f ec.log
+	#enumerateclasses
+	echo "Executing enumerateclasses on CIMOMSample Class"
+	CLI ec -n root/SampleProvider CIMOMSample 2>&1 | tee ec.log
+
+	rm -f ni.log
+	#enumerateinstancenames
+	echo "Executing enumerateinstancenames on CIMOMSample Class"
+	CLI ni -n root/SampleProvider CIMOMSample 2>&1 | tee ni.log
+
+	rm -f nc.log
+	#enumerateclassnames
+	echo "Executing ....... enumerateclassenames on CIMOMSample Class"
+	echo ".."
+	CLI nc -n root/SampleProvider CIMOMSample 2>&1 | tee nc.log
+	echo ".."
+}
+fi

@@ -1,0 +1,1030 @@
+
+
+
+
+
+
+Internet Engineering Task Force                            Michael Day
+INTERNET DRAFT                                                     IBM
+23 December 2002			         Expires in six months
+
+          Exclusion Extension for Service Location Protocol v2
+                   draft-day-srvloc-exclusion-02.txt
+
+
+
+
+
+
+Status of This Memo
+   This document is an Internet-Draft and is subject to all provisions
+   of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet- Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/1id-abstracts.html
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+   This document is an individual contribution to the Internet
+   Engineering Task Force (IETF). Comments should be submitted to the
+   srvloc@srvloc.org mailing list.
+
+   Distribution of this memo is unlimited.
+
+
+
+
+
+
+
+
+
+
+
+
+Day                                                [Page i]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+                     Table of Contents
+
+
+1  Introduction  . . . . . . . . . . . . . . . . . . . .   2
+1.1 Present SLPv2 Multicast Behavior . . . . . . . . . .   2
+1.2 Optimizations Made by Exclusion Directive  . . . . .   2
+1.3 Terminology  . . . . . . . . . . . . . . . . . . . .   3
+2  Exclusion Extension Format  . . . . . . . . . . . . .   4
+2.1 Exclusion Extension Fields . . . . . . . . . . . . .   4
+2.1.1 Size Field . . . . . . . . . . . . . . . . . . . .   4
+2.1.1.1 Using the Size Field to Calcu-
+late Length of Entries . . . . . . . . . . . . . . . . .   5
+2.1.2 Exclusion XID  . . . . . . . . . . . . . . . . . .   5
+2.1.3 Nonce  . . . . . . . . . . . . . . . . . . . . . .   5
+2.1.4 Exclusion Interval . . . . . . . . . . . . . . . .   5
+2.1.5 Exclusion Entries  . . . . . . . . . . . . . . . .   6
+2.1.5.1 Dual-stack IP Environments . . . . . . . . . . .   6
+2.1.6 Authentication Blocks  . . . . . . . . . . . . . .   6
+2.2 Exclusion Directive Functionality  . . . . . . . . .   6
+2.2.1 Exclusion Directive State Table (EDST) . . . . . .   7
+3  Exclusion Directives in SLP v2 Request Messages . . .   8
+3.1 Dummy Service Request Message with Exclu-
+sion Directive . . . . . . . . . . . . . . . . . . . . .  10
+3.1.1 Format of Dummy Service Request  . . . . . . . . .  11
+3.1.2 Processing the Dummy Service Request . . . . . . .  11
+3.1.3 Using the Exclusion Direc-
+tive and PR List Together  . . . . . . . . . . . . . . .  12
+4  Authenticating Exclusion Directives . . . . . . . . .  13
+4.1 The Exclusion Directive Authentication Block . . . .  13
+4.2 Exclusion Directive Authentication Rules . . . . . .  14
+5  Using the NONCE Value to Prevent Replay Attacks
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . .  15
+5.1 UA Use of the Nonce to Prevent Denial of Ser-
+vice Attack  . . . . . . . . . . . . . . . . . . . . . .  16
+5.2 DA and SA Use of the Nonce . . . . . . . . . . . . .  16
+5.2.1 Zero-filled Nonce  . . . . . . . . . . . . . . . .  16
+5.3 Theory Behind the Nonce  . . . . . . . . . . . . . .  16
+6  Security Considerations . . . . . . . . . . . . . . .  16
+7  Acknowledgements  . . . . . . . . . . . . . . . . . .  17
+8  References  . . . . . . . . . . . . . . . . . . . . .  17
+9  Author's Contact Information  . . . . . . . . . . . .  17
+10  Full Copyright Statement . . . . . . . . . . . . . .  18
+
+
+
+
+
+
+
+Day                                                [Page 1]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+1  Introduction
+
+   The Service Location Protocol, Version 2 [1] allows the use of
+   multicast and broadcast discovery requests.  The SLP exclusion
+   directive is an extension to SLP that optimizes the use of
+   multicasting and broadcasting to find services on an intranet. This
+   document hereafter refers to multicast discovery but all its contents
+   apply to broadcast discovery as well.
+
+
+1.1 Present SLPv2 Multicast Behavior
+
+   Multicast discovery requests allow an SLP User Agent to discover
+   services with no prior configuration. Multicast discovery requests
+   are not sent reliably and must be retransmitted in order to find all
+   services of the desired type on the network.
+
+   When SLP v2 SrvRqst, SrvTypeRqst, and AttrRqst messages are
+   multicast, they contain a <PRList> of previous respondents. Initially
+   the <PRList> is empty. When these requests are unicast, the <PRList>
+   is always empty.
+
+   Any DA or SA which sees its address in the <PRList> does not respond
+   to the request (as specified in RFC 2608).
+
+   The User Agent then retransmits the discovery request until the
+   <PRList> causes no further responses to be elicited or the previous
+   responder list and the request will not fit into a single datagram or
+   until CONFIG_MC_MAX seconds elapse[1].
+
+   The PR list is an effective mechanism for suppressing duplicate
+   responses in smaller environments. However, because of the way PR
+   lists are encoded with the SLP v2 header, the PR List has a limit of
+   as few as 90 IPv4 addressees, and even fewer IPv6 addresses. This
+   means in most environments a User Agent may suppress duplicate
+   responses from approximately 90 host addresses at best.
+
+
+1.2 Optimizations Made by Exclusion Directive
+
+   The Exclusion Directive extension presented in this document allows a
+   User Agent (UA) to direct those Directory Agents (DAs) and Service
+   Agents (SAs) from which it has already received responses not to
+   respond to retransmissions of a particular query. Hence subsequent
+   retransmissions only generate responses from agents from which the
+   requester has not already received a response.
+
+
+
+Day                                                [Page 2]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+   This extension can be used in conjunction with the SLP v2 PR list.
+   SAs and DAs which do not understand the Exclusion Directive extension
+   will ignore it. With the use of the Exclusion Directive extension,
+   SLP v2 User Agents may perform multicast discovery with a high degree
+   of success and efficiency, even when the number of respondents
+   reaches into the thousands. .
+
+
+1.3 Terminology
+
+   In this document, the key words "MAY", "MUST, "MUST NOT", "optional",
+   "recommended", "SHOULD", and "SHOULD NOT", are to be interpreted as
+   described in RFC 2119 [2].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                                                [Page 3]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+2  Exclusion Extension Format
+
+   The fields in an Exclusion extension form an Exclusion Directive that
+   tells receiving agents not to respond to a specific request from a
+   specific host for a specific time interval.
+
+   Each Exclusion Directive is     fully  contained within one  SLP
+   v2 extension block. However, a single SLP v2  request message may
+   contain multiple Exclusion Directives.  For example, a single Service
+   Request may  contain three Exclusion  Directives  within three
+   distinct SLP v2 extension blocks.
+
+
+2.1 Exclusion Extension Fields
+
+   The Exclusion extension has the following format:
+
+
+
+   0             1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Extension ID = 0x000?        |     Next Extension Offset     |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Offset, contd.|     size      |        Exclusion XID          |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                             Nonce                             |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Exclusion Interval           |    Number of Entries          |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                     Exclusion Entries                         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | # auth blocks                 | authentication block (if any) |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+2.1.1 Size Field
+
+   The size field specifies the size, in bytes, of each
+   address entry. A size value of 4 bytes MUST be encoded as
+   an IP v4 address in network byte order. A size value of
+   16 bytes MUST be encoded as an IP v6 address in network
+   byte order. Other address sizes are assumed to be opaque
+   data and will not be interoperable among different imple-
+   mentations
+
+
+
+Day                                                [Page 4]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+2.1.1.1 Using the Size Field to Calculate Length of Entries
+
+   The size of the Exclusion Entries field MUST be calcu-
+   lated by multiplying the value of the Size field by the
+   value of the Number of Entries field.
+
+
+2.1.2 Exclusion XID
+
+   The Exclusion XID identifies the SLP request to which the
+   enclosing Exclusion Directive applies. An Exclusion
+   Directive always applies to exactly one specific XID from
+   exactly one host IP address.
+
+   It is possible that the value of XID field in the Exclu-
+   sion Directive and the XID in the SLP header of the mes-
+   sage containing the Exclusion Directive will be differ-
+   ent. This is a subtle but important point: the SLP v2
+   header XID and the Exclusion XID are not equivalent. See
+   section 3.0 for details of how the exclusion XID works.
+
+
+2.1.3 Nonce
+
+   The Nonce adds a unique value to each Exclusion Directive
+   that makes it difficult to mount a denial of service
+   attack by replaying Exclusion Directives. The Nonce is a
+   128-bit field which MUST contain a cryptographic-quality
+   random unique value; or alternatively must be filled with
+   zero bytes. (If the Nonce is filled with zero bytes, it
+   is ignored.)
+
+   The usage of the Nonce is explained further in section
+   4.3.
+
+
+2.1.4 Exclusion Interval
+
+   The Exclusion Interval indicates the lifetime, in sec-
+   onds, of the containing Exclusion Directive. The interval
+   begins when the SA or DA receives the Exclusion Direc-
+   tive. Exclusion Directives SHOULD have an interval from
+   one to several seconds. However, the Exclusion Interval
+   may need to be increased for unusually large networks or
+   media with high latency characteristics, such as satel-
+   lite links.
+
+
+
+Day                                                [Page 5]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+2.1.5 Exclusion Entries
+
+   The Exclusion Entries field is the list of host IP
+   addresses that are subject to the containing Exclusion
+   Directive. The length of the Exclusion Entries field is
+   the number of IP addresses in the list multiplied by the
+   size of each IP address.
+
+   The size of each IP address is determined by the value of
+   the size field. Each Exclusion Directive therefore may
+   only contain IPv4 addresses or IPv6 addresses, but not
+   both.
+
+
+2.1.5.1 Dual-stack IP Environments
+
+   In environments using both IPv4 and IPv6 addresses it may
+   be necessary to deliver two Exclusion Directives where
+   otherwise one would be sufficient. E.g., one Directive
+   containing IPv4 addresses and another Directive contain-
+   ing IPv6 addresses. One way to accomplish this is to pack
+   two separate Exclusion Directives into a single SLP
+   request. Another way involves using dummy request mes-
+   sages to deliver Exclusion Directives. Dummy request mes-
+   sages are covered in section 3.1 below.
+
+
+2.1.6 Authentication Blocks
+
+   The Number of Auth Blocks indicates how many authentica-
+   tion blocks are contained in the containing Exclusion
+   Directive. The format of the authentication block is cov-
+   ered in section 4 below.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                                                [Page 6]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+2.2 Exclusion Directive Functionality
+
+   The purpose of the Exclusion Directive is to cause SAs or
+   DAs to silently discard specific SLP requests that origi-
+   nate from specific IP addresses. This purpose aids in the
+   use of multicasting to discover services in large network
+   environments. The Exclusion Directive makes multicast
+   discovery  more reliable and efficient by:
+
+
+     1. Providing a more compact mechanism to silence previ-
+        ous responders.
+
+     2. Magnifying the effect of the silencing mechanism by
+        specifying a quiet interval.
+
+
+2.2.1 Exclusion Directive State Table (EDST)
+
+   When the Exclusion Directive is present in an SLP
+   request, the receiving agent uses the directive to create
+   and maintain state information that causes the receiving
+   agent to ignore and discard matching requests (possibly
+   including the request containing the Exclusion Direc-
+   tive).
+
+   The Exclusion Directive State Table (EDST) is the collec-
+   tion of information describing all current Exclusion
+   Directives received by the agent. EDST entries are a
+   record with five fields: Source Address, Source Port,
+   exclusion XID , exclusion nonce value, and expiration
+   time. (The nonce value MAY be zero filled.)
+
+   The Exclusion Directive only applies to SLP v2 messages
+   that have the multicast flag set. The SA or DA MUST
+   respond to SLP v2 messages that do not have the multicast
+   flag set as specified in [1].
+
+   If the incoming request message matches a current record
+   in the receiving agent's EDST, and if the incoming
+   request's Multicast flag is set in the SLP header, the DA
+   or SA MUST silently discard the message.
+
+   When the Exclusion Interval of an Exclusion Directive has
+   expired, the SA or DA MUST delete the corresponding
+   record in its EDST and resume processing SLP v2 multicast
+
+
+
+Day                                                [Page 7]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+   request as if that Exclusion Directive was never
+   received.
+
+   If an incoming request does not contain an Exclusion
+   Directive, the receiving agent MUST process that request
+   without regard to the local EDST. (In other words, pro-
+   cess the request normally.)
+
+
+
+3  Exclusion Directives in SLP v2 Request Messages
+
+   An SA or DA may encounter the Exclusion Directive in Ser-
+   vice Request, Attribute Request, and Service Type Request
+   messages. In each case, the request may also contain a PR
+   list as described in [1].
+
+   A UA MUST NOT include an Exclusion Directive in a unicast
+   SLP v2 request message. DAs and SAs MUST ignore Exclusion
+   Directives that are erroneously included in unicast
+   request messages.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                                                [Page 8]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+   If the SA or DA supports the Exclusion Directive, it MUST
+   perform the following steps when processing an SLP v2
+   Request message.
+
+     1. If the request message is unicast or if the receiv-
+        ing agent does not recognize the Exclusion Direc-
+        tive, go to step 6 below.
+
+     2. If the incoming request does not have an Exclusion
+        Directive, proceed to step 6.
+
+     3. Extract the Exclusion Directive from the request.
+        Search the Directive's Exclusion Entries list for
+        the receiving agent's IP address. If not found, pro-
+        ceed to step 6.
+
+     4. Extract the source address and port from the UDP
+        header and the Exclusion XID and nonce from the
+        Exclusion Directive. The receiving agent MUST ensure
+        that its EDST contains a record for this directive,
+        creating a new EDST record if necessary. (This step
+        is also a convenient time to delete expired entries
+        from the EDST.)
+
+     5. Extract the source address and port from the incom-
+        ing request's UDP header. Extract the XID from the
+        request's SLP v2 header. If the incoming request has
+        an Exclusion Directive, extract the nonce from the
+        directive.
+
+        Search the EDST for an entry containing matching
+        values for these data (Optionally ignoring the nonce
+        from the EDST entry if the incoming request does not
+        contain an exclusion directive). Upon finding a
+        matching EDST entry, silently discard the request.
+        Otherwise continue.
+
+     6. If the SA or DA has not discarded the request up to
+        this point, evaluate the request normally as out-
+        lined in [1].
+
+   It is worth repeating that the Exclusion Directive only
+   applies to SLP v2 request messages that have the R
+   (Request Multicast) flag turned on in the SLP v2 header.
+   Agents MUST NOT silently discard unicast request messages
+   regardless of exclusion directives or EDST entries.
+
+
+
+Day                                                [Page 9]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+   Note that additional steps may be necessary if the Exclu-
+   sion directive contains one or more authentication
+   blocks. These steps are outlined in section 4.
+
+
+3.1 Dummy Service Request Message with Exclusion Directive
+
+   A "dummy" request message is one that has zero-length
+   fields for the entire request body, exclusive of the SLP
+   v2 header and the Exclusion directive.
+
+   Using a dummy SLP request message for the sole purpose of
+   transporting an Exclusion Directive may be helpful in two
+   cases:
+
+     1. The Exclusion Directive is too large to fit within a
+        single request datagram alongside the SLP header,
+        service type, predicate, and other request data.
+        However, it will fit in a datagram with just itself
+        and the SLP header.
+
+     2. The Exclusion Directive is larger than the sum of
+        the network MTU and the SLP Header. The agent can
+        divide the Exclusion Entries list across two or more
+        Exclusion Directives and transport those Directives
+        within a corresponding number of dummy SLP request
+        messages.
+
+	        This method can support Exclusion Entry lists that
+        contain thousands of addresses.
+
+   When an SA or DA receives a dummy SLP request that con-
+   tains an Exclusion Directive, the receiving agent MUST
+   extract the Exclusion Directive from the dummy request
+   and ensure that the local EDST contains a record corre-
+   sponding to the Exclusion Directive. This is described in
+   section 3, step 4 above.
+
+
+   A Dummy request message MUST have the R (Request Multi-
+   cast) flag turned on in the SLP v2 header. This causes
+   SLP v2 SAs and DAs that are unaware of the Exclusion
+   Directive to silently discard dummy request messages due
+   to a parsing error (instead of responding to the sending
+   agent with an error code).
+
+
+
+
+Day                                               [Page 10]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+3.1.1 Format of Dummy Service Request
+
+   0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Service Location Header (R flag on) (function = SrvRqst = 1)  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    length of <PRList> = 0     | length of <service-type> = 0  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   length of <scope-list> = 0  |   length of <predicate> = 0   |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |    length of <SLP SPI > = 0   |   Extension ID = Exclusion    |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |         Next Extension Offset                 |     size      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     Exclusion XID             |   Nonce                       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |          Nonce, cont'd.       |       Exclusion Interval      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |        Number of Entries      |          Exclusion Entries    \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   \ # auth blocks                 |  authentication block (if any)\
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+3.1.2 Processing the Dummy Service Request
+
+   Dummy Service Request messages MUST be processed as out-
+   lined in section 3 above. The result is that the receiv-
+   ing agents which support the Exclusion Directive will
+   process the Directive, while all other agents will
+   silently discard the message due to a parsing error.
+
+   After processing the Exclusion Directive, the receiving
+   agent will produce a parse error. Because the service
+   request has the multicast flag set, the receiving agent
+   will not send an error response to the originating agent.
+
+   Note that if the Exclusion Directive contains an authen-
+   tication block, the SA or DA SHOULD validate the signa-
+   ture of the Exclusion Directive. Authentication of Exclu-
+   sion Directives is covered in section 4.
+
+
+
+
+
+
+
+Day                                               [Page 11]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+3.1.3 Using the Exclusion Directive and PR List Together
+
+   The steps below show how to use the Exclusion Directive
+   in combination with the SLP PR list to perform multicast
+   discovery (substitute actual XIDs in real usage):
+
+     1. Send a new Service Request with no PR list and no
+        Exclusion Directive; process the replies and remem-
+        ber the respondents as RL1.
+
+     2. Build an exclusion list and remember it as list EL1.
+
+     3. Immediately re-transmit the Service Request from (1)
+        with no PR list and but with an Exclusion Directive
+        that contains Exclusion List EL1; process the
+        replies and remember the respondents as RL2.
+
+     4. The intersection of EL1 and RL2 are agents that do
+        not support the Exclusion Directive. Create PRL1 =
+        EL1 n RL2. Build EL2 = RL2 - PRL1.
+
+     5. Immediately re-transmit the Service Request from (3)
+        including PRL1 in the SLP header and substituting
+        EL2 for EL1 in the Exclusion Directive. If no
+        responses the discovery cycle is complete.
+
+     6. Repeat the previous thre steps n times using ELn-1,
+        RLn, PRLn-1, and ELn until the UA receives no
+        responses for the configured timeout period.
+
+   In steps 1 - 6 above, it is important that each Service
+   Request (steps 1, 3, and 5) have the same XID in the SLP
+   Header ; and equally that each Exclusion Directive also
+   has the same value in the XID field.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                                               [Page 12]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+4  Authenticating Exclusion Directives
+
+   To prevent denial of service attacks against UAs, all
+   agents that recognize the Exclusion Directive SHOULD sup-
+   port authentication of the Exclusion Directive.
+
+   Authenticating Exclusion Directives places the additional
+   burden upon the User Agent of signing data. In standard
+   SLP v2, UAs only need to verify signatures. The addi-
+   tional ability to generate signatures means that UAs must
+   be issued private key material.
+
+
+4.1 The Exclusion Directive Authentication Block
+
+   The format of the Exclusion Directive Authentication
+   Block is the same as that used by SLP v2 [1].
+
+
+   0                   1                   2                     3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Block Structure Descriptor   |  Authentication Block Length  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                           Timestamp                           |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |     SLP SPI String Length     |         SLP SPI String        \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   \                Structured Authentication Block...            \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                                               [Page 13]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+4.2 Exclusion Directive Authentication Rules
+
+   To sign or verify the signature of an Exclusion Direc-
+   tive, the SLP agent MUST use the following components of
+   the Exclusion Directive as if they were a single continu-
+   ous byte-aligned buffer:
+
+     �  16-bit Exclusion XID
+
+     �  32-bit Nonce
+
+     �  16-bit Exclusion Interval
+
+     �  8-bit Exclusion Entry size
+
+     �  16-bit Number of Entries
+
+     �  Variable-length Exclusion Entries.
+
+
+5  Using the NONCE Value to Prevent Replay Attacks
+
+   Despite the use of signatures to authenticate Exclusion
+   Directives, UAs may still be vulnerable to a replay
+   denial of service attack.  To prevent this possibility,
+   SLP Agents that recognize the Exclusion directive SHOULD
+   make use of the nonce value as described in this section.
+
+   Every Exclusion Directive contains a 128-bit nonce field,
+   which MUST contain a 128-bit cryptographicly random value
+   or be filled with zeros. If the nonce is filled with
+   zeroes, the UA is open to a denial-of service attack.
+
+   Because the nonce field is included in signature genera-
+   tion and validation, each signed Exclusion Directive can
+   be cryptographically unique. Unsigned Exclusion Direc-
+   tives can also be cryptographically unique but their
+   source can be spoofed.
+
+
+
+
+
+
+
+
+
+
+
+Day                                               [Page 14]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+   By using the nonce correctly, Exclusion Directives can be
+   specific to:
+
+     1. The source address and port of the requesting UA.
+
+     2. The XID of the request.
+
+     3. A cryptographically unique value for each and every
+        request. To make this work, SAs and DAs MUST include
+        the nonce value, along with the UA source address
+        and the request XID when deciding whether or not an
+        Exclusion Directive applies to a request message.
+
+
+5.1 UA Use of the Nonce to Prevent Denial of Service Attack
+
+   The UA is the SLP component vulnerable to a denial of
+   service attack so it is responsible for using an appro-
+   priate algorithm to generate a nonce with the requisite
+   random characteristics.
+
+   For each Exclusion Directive:
+
+     1. Generate a random 128-bit integer to use as the
+        nonce.
+
+     2. Initialize an Exclusion Directive, including the XID
+        of the request that is subject to response suppres-
+        sion.
+
+     3. Insert the nonce value from (1) into the Exclusion
+        Directive.
+
+     4. Optionally sign the Exclusion Directive as outlined
+        in the section on Authentication above.
+
+     5. Use a Exclusion Directive containing the nonce in
+        all requests and dummy Service Requests for the XID
+        in step (2).
+
+     6. IMPORTANT - use a DIFFERENT, cryptographically gen-
+        erated nonce for each request XID for which you are
+        issuing an Exclusion directive.
+
+
+
+
+
+
+Day                                               [Page 15]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+5.2 DA and SA Use of the Nonce
+
+   SA's DAs that recognize the Exclusion Directive MUST use
+   the nonce value to initialize EDST entries and to evalu-
+   ate Exclusion Directives in request messages.
+
+
+5.2.1 Zero-filled Nonce
+
+   UAs that don't have the ability to generate unique nonce
+   values MUST fill the nonce field of the Exclusion Direc-
+   tive with zeros. This opens the agent up to a denial of
+   service attack, however. (See below).
+
+
+5.3 Theory Behind the Nonce
+   The nonce is a simple mechanism to make it as difficult
+   as possible for an attacker to predict the composition of
+   SLP service requests that a particular UA may issue in
+   the near future.
+
+   Most UA's use the XID field in the SLP 2 header as a
+   sequential counter. Hence an attacker that has a copy of
+   a recent SLP request can guess the XID of the next
+   request the agent will make. Using the Exclusion Direc-
+   tive, an attacker can cause DA's and SA's not to respond
+   to subsequent SLP requests made by the attacked agent.
+
+   However, the inclusion of the nonce value in the Exclu-
+   sion Directive makes it infeasible for an attacker to
+   guess the composition of future requests made by the UA.
+   This is true because the nonce, unlike the XID, is a ran-
+   dom value. Also, the nonce is large enough to make guess-
+   ing its value in the next request too difficult for the
+   attacker.
+
+6  Security Considerations
+
+   Implementing the Exclusion Directive without using the
+   nonce value opens SLP v2 UAs up to a trivial denial of
+   service attack, which would nullify the ability of the UA
+   to perform discovery.
+
+   Implementing the Exclusion Directive with authentication
+   but without using the nonce value may leave the UA open
+   to a more sophisticated replay attack using previously
+
+
+
+Day                                               [Page 16]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+   signed and multicast request messages.
+
+   UAs that support the Exclusion Directive SHOULD authenti-
+   cate their requests as outlined in section 4 and SHOULD
+   include the nonce value in all Exclusion Directives.
+
+   SAs and DAs that support the Exclusion Directive SHOULD
+   be able to verify signed Exclusion Directives and MUST
+   store the nonce value in the EDST entry for that direc-
+   tive.
+
+   Nonce values generated by UAs MUST  be cryptographically
+   unique and random values if they are to provide any safe-
+   guard against a replay attack.
+
+
+7  Acknowledgements
+
+   Erik Guttman has provided a great deal of feedback and
+   improvements to this document. The srvloc working group
+   also contributed to the development of this document,
+   especialy Kevin Arnold, James Kempf, Ira McDonald, Evan
+   Hughes, Terry Lambert, and others. Thomas Narten recom-
+   mended some important changes during the review process.
+
+8  References
+
+     1. Guttman, E., Perkins, C., Veizades, J., and M. Day,
+        "Service Location Protocol Version 2", RFC 2608,
+        June 1999.
+
+     2. Bradner, S,. "Key Words for Use in RFCs to Indicate
+        Requirements Levels", BCP 14, RFC 2119, March 1997
+
+9  Author's Contact Information
+
+   Michael Day IBM 3039 Cornwallis Road Research Triangle
+   Park, NC 27709
+
+   Phone:  919 543-4283
+
+   Email:  mdday@us.ibm.com
+
+
+
+
+
+
+
+Day                                               [Page 17]
+
+INTERNET DRAFT     SLP Exclusion Directive   Exp. May 2003
+
+
+10  Full Copyright Statement
+
+   Copyright (C) The Internet Society (2000-2002).  All
+   Rights Reserved.
+
+   This document and translations of it may be copied and
+   furnished to others, and derivative works that comment on
+   or otherwise explain it or assist in its implementation
+   may be prepared, copied, published and distributed, in
+   whole or in part, without restriction of any kind, pro-
+   vided that the above copyright notice and this paragraph
+   are included on all such copies and derivative works.
+   However, this document itself may not be modified in any
+   way, such as by removing the copyright notice or refer-
+   ences to the Internet Society or other Internet organiza-
+   tions, except as needed for the purpose of developing
+   Internet standards in which case the procedures for copy-
+   rights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages
+   other than English.
+
+   The limited permissions granted above are perpetual and
+   will not be revoked by the Internet Society or its suc-
+   cessors or assigns.
+
+   This document and the information contained herein is
+   provided on an "AS IS" basis and THE INTERNET SOCIETY AND
+   THE INTERNET ENGINEERING TASK FORCE DISCLAIMS ALL WAR-
+   RANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+   ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
+   NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF MER-
+   CHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                                               [Page 18]
+
+

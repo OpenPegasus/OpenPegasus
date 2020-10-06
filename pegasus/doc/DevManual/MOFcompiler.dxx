@@ -1,0 +1,92 @@
+/*
+The file documents the Pegasus MOF compiler.
+*/
+
+/** @name Pegasus MOF Compiler
+
+The Pegasus MOF compiler is a command line utility that compiles MOF files
+(using the MOF format defined by the DMTF CIM Specification) into a Pegasus
+repository. It allows compiling from strucutures of MOF files using the
+include pragma and can either compile into a Pegasus repository or simply
+perform a syntax check on the MOF files.
+
+In the syntax check mode, it checks each class independently and does not do
+semantic checks between classes (ex. check for super-classes, etc.). When
+compiling into a Pegasus repository, the compiler uses Pegasus to install the
+classes and instances into the repository and uses the semantic checking built
+into Pegasus.
+
+The compiler operates standalone in the syntax checking mode but requires the
+Pegasus libraries when compiling into a Pegasus respository.
+
+The compiler requires that the input MOF files be in the current directory
+or that a fully qualified path be given.  MOF files included using
+#pragma include must be in the current directory or in a directory specified
+by a -I command line switch.
+
+The compiler assumes that the file extension is .mof it is not specified.
+(This feature is not yet implemented.)
+
+The actual configuration and type of repository created depends on the
+characteristics of the repository implemented in Pegasus. 
+See the description of the Pegasus repositories for more information.
+
+There are actually two compiler executable files.
+
+cimof.exe - This file operates through the client interface and acts as a
+remote compiler against an active CIM Repository
+cimmofl.exe - This file operates locally and directly against the repository.
+
+<B>EXAMPLE</B>
+
+<PRE>
+       cimmof -w -Rtestrepository -I./MOF MOF/CIMSchema25.mof
+</PRE>
+
+Compile the mof file defined in the directory MOF with the name CIMSchema25.mof
+and with include pragmas for other MOF files also in that directory and create
+the repository testrepository
+
+
+<B>NAME</B>
+
+	cimmof - Compile DMTF CIM MOF
+
+<B>SYNOPSIS</B>
+	<PRE>
+	cimmof [OPTION]... [FILE]...
+	</PRE>
+	
+
+<B>DESCRIPTION</B>
+
+The MOF compiler TBD
+
+<B>OPTIONS</B>
+<UL>
+<LI>-h, --help	Print out usage message with command line definitions.
+
+
+<LI>-E - 		Perform only a syntax check on the input and creates no 					repository.  Inthis mode, the compiler does not do the sematic checks that are done when a CIM object is\
+ added to a repository
+
+-w -- Suppresses warning messages.
+
+<LI>-R<path> - 	Specifies the path to the repository to be written. This is an
+alternative to the PEGASUS_HOME environment variable. If PEGASUS_HOME is set
+the repository gets written to $PEGASUS_HOME/repository. The -R flag one the
+command line overrides this with <path> specified in the directive.
+Specify an absolute path.
+
+<LI>--CIMRepository=<path>
+
+<LI>-I<path> -- 	Specifies the path to included MOF files. If the inputmof file has include pragmas and the included files  do not reside in the current directory, the -I directive must be used to specify a path to them on the compiler command line. Do this with the -I flag.
+
+	cimmof -I~/testfiles ~/testfiles/main.mof
+
+The path may be relative or absolute.
+
+</UL>
+
+*/
+

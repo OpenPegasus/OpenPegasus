@@ -1,0 +1,114 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_PhysicalPackage 
+// ==================================================================
+   [Version ( "2.8.0" ), 
+    UMLPackagePath ( "CIM::Physical::Package" ), 
+    Description ( 
+       "The PhysicalPackage class represents PhysicalElements that "
+       "contain or host other components. Examples are a Rack "
+       "enclosure or an adapter Card." )]
+class CIM_PhysicalPackage : CIM_PhysicalElement {
+
+      [Description ( 
+          "The RemovalCapabilites property is used to describe the "
+          "conditions under which a PhysicalPackage can be removed. "
+          "Since all PhysicalPackages are not removable, this "
+          "property defaults to 2, \'Not Applicable\'." ), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Not Applicable", "Removable when off", 
+          "Removable when on or off" }]
+   uint16 RemovalConditions = 2;
+
+      [Deprecated { "CIM_PhysicalPackage.RemovalConditions" }, 
+       Description ( 
+          "The use of this property is being deprecated. Instead "
+          "RemovalConditions should be used. The RemovalConditions "
+          "property addresses whether a PhysicalPackage is "
+          "removable with or without power being applied. \n"
+          "A PhysicalPackage is Removable if it is designed to be "
+          "taken in and out of the physical container in which it "
+          "is normally found, without impairing the function of the "
+          "overall packaging. A Package can still be Removable if "
+          "power must be \'off\' in order to perform the removal. "
+          "If power can be \'on\' and the Package removed, then the "
+          "Element is both Removable and HotSwappable. For example, "
+          "an extra battery in a laptop is Removable, as is a disk "
+          "drive Package inserted using SCA connectors. However, "
+          "the latter is also HotSwappable. A laptop\'s display is "
+          "not Removable, nor is a non-redundant power supply. "
+          "Removing these components would impact the function of "
+          "the overall packaging or is impossible due to the tight "
+          "integration of the Package." )]
+   boolean Removable;
+
+      [Deprecated { "No Value" }, 
+       Description ( 
+          "The use of this property is being deprecated because it "
+          "is redundant with the FRU class and its associations. A "
+          "PhysicalPackage is Replaceable if it is possible to "
+          "replace (FRU or upgrade) the Element with a physically "
+          "different one. For example, some ComputerSystems allow "
+          "the main Processor chip to be upgraded to one of a "
+          "higher clock rating. In this case, the Processor is said "
+          "to be Replaceable. Another example is a power supply "
+          "Package mounted on sliding rails. All Removable packages "
+          "are inherently Replaceable." )]
+   boolean Replaceable;
+
+      [Deprecated { "CIM_PhysicalPackage.RemovalConditions" }, 
+       Description ( 
+          "The use of this property is being deprecated. Instead "
+          "RemovalConditions should be used. The RemovalConditions "
+          "property addresses whether a PhysicalPackage is "
+          "removable with or without power being applied. \n"
+          "\n"
+          "A PhysicalPackage is HotSwappable if it is possible to "
+          "replace the Element with a physically different but "
+          "equivalent one while the containing Package has power "
+          "applied to it (ie, is \'on\'). For example, a disk drive "
+          "Package inserted using SCA connectors is both Removable "
+          "and HotSwappable. All HotSwappable packages are "
+          "inherently Removable and Replaceable." )]
+   boolean HotSwappable;
+
+      [Description ( "The height of the PhysicalPackage in inches." ), 
+       Units ( "Inches" )]
+   real32 Height;
+
+      [Description ( "The depth of the PhysicalPackage in inches." ), 
+       Units ( "Inches" )]
+   real32 Depth;
+
+      [Description ( "The width of the PhysicalPackage in inches." ), 
+       Units ( "Inches" )]
+   real32 Width;
+
+      [Description ( "The weight of the PhysicalPackage in pounds." ), 
+       Units ( "Pounds" )]
+   real32 Weight;
+
+
+      [Deprecated { "No Value" }, 
+       Description ( 
+          "This method is being deprecated. A PhysicalPackage "
+          "cannot determine if it is compatible with another "
+          "object. The IsCompatible method verifies whether the "
+          "referenced PhysicalElement may be contained by or "
+          "inserted into the PhysicalPackage. The return value "
+          "should be 0 if the request was successfully executed, 1 "
+          "if the request is not supported and some other value if "
+          "an error occurred. In a subclass, the set of possible "
+          "return codes could be specified, using a ValueMap "
+          "qualifier on the method. The strings to which the "
+          "ValueMap contents are \'translated\' may also be "
+          "specified in the subclass as a Values array qualifier." )]
+   uint32 IsCompatible(
+         [IN, Description ( 
+             "The element to check for compatibility with this one."
+              )]
+      CIM_PhysicalElement REF ElementToCheck);
+
+};

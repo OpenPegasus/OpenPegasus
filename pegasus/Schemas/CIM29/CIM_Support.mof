@@ -1,0 +1,1938 @@
+// ===================================================================
+// Title: CIM_Support
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: CIM_Support.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Solution Exchange Standard (SES) defines an object
+// model
+//          for the exchange of knowledge.  The Service Incident
+//          Exchange
+//          Standard (SIS) adds a transaction model to SES.
+// 
+//          The object classes below are listed in an order that
+//          avoids forward references. Required objects, defined
+//          by other working groups, are omitted.
+// ===================================================================
+// Change log for v2.8 Final
+// 01/09/2005   Fix lint errors (CR1236)
+// Change log for v2.8 Preliminary
+// 08/01/2003   Change subclassing of CategoryParentChild,
+//              ExpressionLink, and AdministrativeRevision from
+//              Dependency to HostedDependency (CR1128)
+// 
+// 07/07/2002   Re-declared the inherited Min (1) qualifier on Contact
+//              Organization and ContactPerson; Repeated Antecedent
+//              references where inherited (for clarification purposes
+//              only - no semantic change)
+// 05/09/2002   Version 1.4
+//              CR836: Cleaned up formatting, Descriptions and MOF
+//              errors
+// 03/19/2002   Version 1.3
+//              CR746: Add Version Qualifier
+// 11/17/2000   Version 1.2j
+//              CR562: Changed property names using reserved words
+//                PRS_Resource.Type to ResourceType
+//                PRS_Attachment.Reference to AttachmentReference
+//                PRS_Attachment.Size to AttachmentSize
+//                PRS_Attachment.Object to AttachmentObject
+//                PRS_Statement.Role to StatementRole
+//                PRS_Statement.Operator to StatementOperator
+//                PRS_Revision.Date to RevisionDate
+//                PRS_Activity.New to NewKeys
+//                PRS_Transaction.State to TransactionState
+//              CR563: Added deprecated qualifier to deprecated
+//              properties
+//                PRS_Transaction.TransactionName
+//                PRS_Activity.ParameterList
+//              Removed Description from PRS_Feature and PRS_Resource
+//              (already
+//                inherited from PRS_ExchangeElement)
+//              Added MinValue and MaxValue to the following:
+//                PRS_Problem.Likelihood
+//                PRS_Problem.Impact
+//                PRS_Resolution.Confidence
+//                PRS_Statement.Relevance
+//              Broke long lines over two lines
+// 08/08/2000   Version 1.2i  CR525
+//              Added missing Association qualifier to both
+//              PRS_ContactOrganization
+//              and PRS_ContactPerson.
+// 05/02/2000   Version 1.2h
+//              Converted all CIM_Dependency children to use original
+//              property names:
+//                Antecedent and Dependent
+// 03/07/2000   Version 1.2g
+//              Added Association qualifier to all association classes
+//              Added spaces to end of descriptions where they were
+//              missing
+//              Added Notification_Pending state to PRS_Transaction
+//              State property
+// 02/03/2000   Version 1.2f
+//              Added definitions for PRS_SISServices method return
+//              values and
+//              CompletionStatus parameters as well as PRS_Transaction
+//              CompletionStatus
+// 01/26/2000   Version 1.2e
+//              Changed PRS_ExchangeElement description
+// 01/21/2000   Version 1.2d
+//              Fixed spelling error in PRS_Category
+// 01/20/2000   Version 1.2c
+//              Added ParameterList property back to PRS_Activity for
+//              backward
+//                compatibility
+//              Removed methods from PRS_Transaction and edited
+//              property descriptions
+//              Corrected data types of some properties to match
+//              specification (strings
+//                to uint8)
+//              Added some missing superclass references ( :
+//              CIM_Dependency)
+// 01/17/2000   Version 1.2b
+//              Reformatted MOF and expanded description fields
+//              Incorporated SIS Transactions using CIM over HTTP
+//                Added properties and methods to PRS_Transaction
+//                Added DirtyFlag to PRS_ExchangeElement
+//                Added PRS_SISService
+// 
+// ==================================================================
+
+#pragma Locale ("en-US")
+
+
+// ==================================================================
+// Compile prerequisite:  Core MOF
+// ==================================================================
+
+
+// ==================================================================
+//    PRS_ExchangeElement
+// ==================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "PRS_ExchangeElement is an abstract base class for all classes "
+       "in the Solution and Service Incident object model. As an "
+       "abstract class it is never instantiated. \n"
+       "\n"
+       "PRS_ExchangeElement exists to provide a single anchor point "
+       "for associations that may be made to any Solution or Service "
+       "Incident object. For example, Administrative or Attachment "
+       "instances may be associated with any object derived from "
+       "PRS_ExchangeElement. To support this generic association "
+       "capability, the PRS_AdminAssociation and PRS_Attached "
+       "associations both derive from the CIM_Dependency association "
+       "and override the Antecedent property of that class to be a "
+       "PRS_ExchangeElement REF.")]
+class PRS_ExchangeElement : CIM_ManagedElement {
+
+      [Key, Description (
+          "The PRSUniqueName property is a Globally Unique IDentifier "
+          "(GUID) also known as a Universally Unique IDentifier "
+          "(UUID). This property allows Solution and Service Incident "
+          "objects to be used by multiple Solutions or Service "
+          "Incidents without duplication. In addition, all Solution or "
+          "Service Incidents containing a unique object are updated "
+          "when the object is updated.")]
+   string PRSUniqueName;
+
+      [Description (
+          "The DirtyFlag is used by the SISService Start Transaction "
+          "method to determine whether an ExchangeElement has been "
+          "created, modified or deleted since the last Transaction. "
+          "Any object not marked 'Clean' is included in the next "
+          "Transaction. \n"
+          "\n"
+          "It is the responsibility of the entity creating, modifying "
+          "or deleting the object derived from ExchangeElement to set "
+          "this property appropriately. \n"
+          "\n"
+          "This property value is set to 'Clean' by an invocation of "
+          "the Transaction Complete method with a Status parameter of "
+          "zero (0)."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Clean", "New", "Modified", "Deleted" }]
+   uint8 DirtyFlag;
+};
+
+
+// =================================================================
+//    PRS_Solution
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Solution is the root class of a set of associated classes "
+       "used to describe a single Solution. If a Solution is "
+       "associated with multiple Problems or Resolutions, all of the "
+       "Problems described are related to all of the Resolutions "
+       "described. The reverse is also true. All of the Resolutions "
+       "described are related to all of the Problems described in the "
+       "Solution. \n"
+       "\n"
+       "PRS_Solution is directly associated to one or more of the "
+       "following classes: \n"
+       "PRS_Reference \n"
+       "PRS_Problem \n"
+       "PRS_Resolution.")]
+class PRS_Solution : PRS_ExchangeElement {
+
+      [Description (
+          "The Solution title.")]
+   string Title;
+
+      [Description (
+          "A brief description of the Solution.")]
+   string SolutionAbstract;
+
+      [Description (
+          "The SolutionType suggests the type of knowledge contained "
+          "in the Solution. Depending on the type, the Solution may or "
+          "may not include particular objects. For example, a "
+          "'Reference' Solution describes non-diagnostic technical or "
+          "general information using PRS_Statement objects. A "
+          "'Diagnostic' Solution includes one or more PRS_Problem and "
+          "PRS_Resolution objects. A 'How To' Solution describes how "
+          "to solve a particular Problem described by a PRS_Problem in "
+          "a series of sequential steps within a PRS_Resolution."), 
+       ValueMap { "0", "1", "2", "254", "255" }, 
+       Values { "Reference", "Diagnostic", "How To", "Other",
+       "Unknown" }]
+   uint8 SolutionType;
+};
+
+
+// ==================================================================
+//    PRS_SolutionElement
+// ==================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "PRS_SolutionElement is an abstract base class for non-Category "
+       "objects that are associated with a Solution. This includes: \n"
+       "PRS_Reference \n"
+       "PRS_Problem \n"
+       "PRS_Resolution \n"
+       "\n"
+       "PRS_SolutionElement provides a common reference for these "
+       "objects to be associated with PRS_Expression objects through "
+       "the SolutionExpression association. \n"
+       "\n"
+       "In addition, all of the derived objects may be retrieved with "
+       "a single query for the common super-class.")]
+class PRS_SolutionElement : PRS_ExchangeElement {
+};
+
+
+// ===================================================================
+//    PRS_Reference
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Reference is a placeholder to support links between "
+       "PRS_Expression objects and a PRS_Solution. It does not have "
+       "any properties. A 'Reference' Solution uses PRS_Statement "
+       "objects to describe general, non-diagnostic knowledge and may "
+       "not include any PRS_Problem and PRS_Resolution instances.")]
+class PRS_Reference : PRS_SolutionElement {
+};
+
+
+// ===================================================================
+//    PRS_Problem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Problem is the root object of a set of associated objects "
+       "that describe a Problem. One or more Problems may be "
+       "associated with a Solution. \n"
+       "\n"
+       "The Problem is described by PRS_Statement and PRS_Product "
+       "instances indirectly associated to the PRS_Problem through a "
+       "PRS_Expression.")]
+class PRS_Problem : PRS_SolutionElement {
+
+      [Description (
+          "The Likelihood describes the potential for the Problem to "
+          "occur. The value of this property shall be an integer value "
+          "in the range of 0 to 100, inclusive."), 
+       MinValue ( 0 ), MaxValue ( 100 )]
+   uint16 Likelihood;
+
+      [Description (
+          "The Impact describes the severity of the problem. The value "
+          "of this property shall be an integer value in the range of "
+          "0 to 100, inclusive."), 
+       MinValue ( 0 ), MaxValue ( 100 )]
+   uint16 Impact;
+};
+
+
+// ===================================================================
+//    PRS_Resolution
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Resolution is the root object of a set of associated "
+       "objects that describe a the resolution to a Problem. One or "
+       "more Resolutions may be associated with a Solution. \n"
+       "\n"
+       "The Resolution is described by PRS_Statement and PRS_Product "
+       "instances indirectly associated to the PRS_Resolution through "
+       "a PRS_Expression.")]
+class PRS_Resolution : PRS_SolutionElement {
+
+      [Description (
+          "The Confidence describes the potential for the Resolution "
+          "to correct the Problem or Problems associated with the "
+          "PRS_Solution. The value of this property shall be an "
+          "integer value in the range of 0 to 100, inclusive."), 
+       MinValue ( 0 ), MaxValue ( 100 )]
+   uint16 Confidence;
+};
+
+
+// ===================================================================
+//    PRS_SolutionHasElement
+// ===================================================================
+   [Association, Abstract, Aggregation, Version ( "2.6.0" ), 
+    Description (
+       "PRS_SolutionHasElement is an abstract base class for "
+       "associating PRS_Solution with objects derived from "
+       "PRS_SolutionElement. This association class allows all "
+       "PRS_Reference, PRS_Problem and PRS_Resolution objects to be "
+       "retrieved with a single query.")]
+class PRS_SolutionHasElement : CIM_Dependency {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Solution root object of the Solution.")]
+   PRS_Solution REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Reference, PRS_Problem or PRS_Resolution aggregated "
+          "into the Solution by this association.")]
+   PRS_SolutionElement REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_SolutionReference
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "PRS_SolutionReference aggregates a Reference into a Solution.")]
+class PRS_SolutionReference : PRS_SolutionHasElement {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Solution root object of the Solution.")]
+   PRS_Solution REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Reference aggregated into the Solution.")]
+   PRS_Reference REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_SolutionProblem
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "PRS_SolutionProblem aggregates a Problem into a Solution.")]
+class PRS_SolutionProblem : PRS_SolutionHasElement {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Solution root object of the Solution.")]
+   PRS_Solution REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Problem aggregated into the Solution.")]
+   PRS_Problem REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_SolutionResolution
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "PRS_SolutionResolution aggregates a Resolution into a "
+       "Solution.")]
+class PRS_SolutionResolution : PRS_SolutionHasElement {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Solution root object of the Solution.")]
+   PRS_Solution REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Solution aggregated into the Solution.")]
+   PRS_Resolution REF Dependent;
+};
+
+
+// =================================================================
+//    PRS_Category
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Category is used to classify the components of a Solution. "
+       "Hierarchical classifications are created by associating "
+       "PRS_CategoryParentChild with multiple PRS_Category instances.")]
+class PRS_Category : PRS_ExchangeElement {
+
+      [Description (
+          "The specific value for the category. For example, 'HP "
+          "Laserjet' would be a value for a category containing "
+          "printer names.")]
+   string CategoryContents;
+
+      [Description (
+          "The type of category. Used to give additional semantics to "
+          "the category. For example, a Category of Type 'Printers' "
+          "would qualify the list of category values for a list of "
+          "printers. \n"
+          "\n"
+          "Note: the relationship of Category Type to Category Value "
+          "expresses no intrinsic hierarchy. If a tree of "
+          "relationships exists to define categories and "
+          "sub-categories, this should be defined using "
+          "CategoryParentChild associations.")]
+   string CategoryType;
+};
+
+
+// ===================================================================
+//    PRS_SolutionCategory
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "PRS_SolutionCategory associates PRS_Solution with a "
+       "PRS_Category for classification purposes.")]
+class PRS_SolutionCategory : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Solution being classified.")]
+   PRS_Solution REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The specific PRS_Category being used to classify the "
+          "Solution.")]
+   PRS_Category REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Categorization
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "PRS_Categorization associates PRS_Reference, PRS_Problem or "
+       "PRS_Resolution with a PRS_Category for classification "
+       "purposes. For example, a Category named 'Printing Issues' can "
+       "be defined for a Problem using the Categorization association "
+       "between a PRS_Problem and a PRS_Category.")]
+class PRS_Categorization : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PRS_Category used for classification.")]
+   PRS_Category REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The specific PRS_Reference, PRS_Problem or PRS_Resolution "
+          "classified by this association.")]
+   PRS_SolutionElement REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_CategoryParentChild
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "PRS_CategoryParentChild is used to define classification "
+       "hierarchies.")]
+class PRS_CategoryParentChild : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The parent PRS_Category used for classification.")]
+   PRS_Category REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The child PRS_Category used for classification.")]
+   PRS_Category REF Dependent;
+};
+
+
+// =================================================================
+//    PRS_ExpressionElement
+// ==================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "PRS_ExpressionElement is an abstract base class for "
+       "PRS_Products and PRS_Statements. It provides a common "
+       "association point for objects associated with PRS_Expressions.")]
+class PRS_ExpressionElement : PRS_ExchangeElement {
+};
+
+
+// =================================================================
+//    PRS_Expression
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Expression defines a specific relationship between "
+       "PRS_ExpressionElements associated with PRS_SolutionElements.")]
+class PRS_Expression : PRS_ExpressionElement {
+
+      [Description (
+          "The operator to be used with the associated PRS_Expression "
+          "Elements. The 'AND', 'OR' and 'NOT' operators are the only "
+          "operators currently defined by the standard. (They must be "
+          "used as uppercase strings.) Note that this is a "
+          "vendor-extensible property - so that additional operators "
+          "can be defined and used in implementations.")]
+   string Relation;
+};
+
+
+// =================================================================
+//    PRS_Product
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Product is used to describe a single product to associate "
+       "with a PRS_Expression.")]
+class PRS_Product : PRS_ExpressionElement {
+
+      [Description (
+          "The vendor of the product.")]
+   string Vendor;
+
+      [Description (
+          "The make and or model of the product.")]
+   string ProductName;
+
+      [Description (
+          "The version of the product.")]
+   string Version;
+
+      [Description (
+          "The order of relevance of this product to an associated "
+          "PRS_SolutionElement (which includes PRS_Reference, "
+          "PRS_Problem or PRS_Resolution).")]
+   string Order;
+};
+
+
+// =================================================================
+//    PRS_Statement
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Statement contains the text describing a problem, any "
+       "relevant background information, and its resolution. "
+       "Statements are units of text ranging from brief sentences or "
+       "phrases to paragraphs or pages. There is no limit to the "
+       "number of PRS_Statements within a Solution, as long as they "
+       "support the intent and focus of their root class. Root classes "
+       "include: PRS_Reference, PRS_Problem or PRS_Resolution. \n"
+       "\n"
+       "PRS_Statements may be grouped together to build compound "
+       "'sentences'. For example, \n"
+       "StatementA = Printer output is blotchy. \n"
+       "StatementB = Print jobs per day are less than 50. \n"
+       "ExpressionA = StatementA AND StatementB.")]
+class PRS_Statement : PRS_ExpressionElement {
+
+      [Description (
+          "StatementRole describes how the PRS_Statement relates to "
+          "the larger context. For example, is the PRS_Statement "
+          "describing a Fix or a Symptom? 'Description' is generic "
+          "text without a specific diagnostic application. 'Symptom' "
+          "describes initial observable incident or behavior that the "
+          "user reports. 'Error_Message' is a specific type of symptom "
+          "that the user reports, describing the specific error "
+          "condition. 'Objective' is what the user wants to "
+          "accomplish, often expressed as a positive condition. FOr "
+          "example, how to print on a network. 'Evidence' is "
+          "information that is collected to diagnose the problem after "
+          "the symptom is reported. 'Cause' is a description of the "
+          "underlying facts or factors that engender or relate this "
+          "behavior. 'Work_around' is information that lets the user "
+          "work, but does not correct the problem completely. 'Fix' is "
+          "information that fixes the problem completely. 'Answer' is "
+          "the information given to the user such as steps to perform, "
+          "wording to support their environment and understanding. "
+          "'Keyword' is a specific classification using defined words "
+          "or phrases. 'Changes' describe recent changes in the "
+          "environment which could affect the problem or resolution. "
+          "'Title' is the title applying to associated PRS_Statements "
+          "(usually associated via an 'and' expression."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "254", "255" }, 
+       Values { "Description", "Symptom", "Error_Message", "Objective",
+          "Evidence", "Cause", "Work_Around", "Fix", "Answer",
+          "Keyword", "Changes", "Title", "Other", "Unknown" }]
+   uint8 StatementRole;
+
+      [Description (
+          "The descriptive text used for the PRS_Statement.")]
+   string Text;
+
+      [Description (
+          "When the PRS_Adminstrative object indicates Level 2 "
+          "compliance, StatementOperator describes the relationship "
+          "between an associated PRS_Feature and the FeatureValue "
+          "property. This property is ignored if there is no "
+          "PRS_Feature associated with this PRS_Statement.")]
+   string StatementOperator;
+
+      [Description (
+          "When the PRS_Adminstrative object indicates Level 2 "
+          "compliance, FeatureValue is the specific value selected "
+          "from the associated PRS_Feature. This property is ignored "
+          "if there is no PRS_Feature associated with this "
+          "PRS_Statement.")]
+   string FeatureValue;
+
+      [Description (
+          "Order is used to sequence PRS_Statements associated with a "
+          "single PRS_Expression to allow a Consumer to process the "
+          "information in the order desired by the Producer.")]
+   string Order;
+
+      [Description (
+          "Importance of this Statement. The value of this property "
+          "shall be an integer value in the range of 0 to 100, "
+          "inclusive."), 
+       MinValue ( 0 ), MaxValue ( 100 )]
+   uint16 Relevance;
+};
+
+
+// =================================================================
+//    PRS_Feature
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Feature is used for structured diagnostic data, including "
+       "specific data values like steps or conditions. For example, "
+       "consider a PRS_Statement with a Text property value of: \n"
+       "Print jobs per day are less than 50 \n"
+       "\n"
+       "This could be described using a PRS_Feature as follows: \n"
+       "Description: 'Print jobs per day' \n"
+       "Prompt: 'How many print jobs per day?' \n"
+       "ValidValues: '10' '50' '100' \n"
+       "DataType: 'Integer' \n"
+       "\n"
+       "The associated PRS_Statement would contain: \n"
+       "Operator: '<' \n"
+       "FeatureValue: '50'")]
+class PRS_Feature : PRS_ExchangeElement {
+
+      [Description (
+          "Prompt presented through user interface.")]
+   string Prompt;
+
+      [Description (
+          "Valid values for this PRS_Feature.")]
+   string ValidValues;
+
+      [Description (
+          "Data type used for PRS_Statement FeatureValue property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "254", "255" }, 
+       Values { "String", "Integer", "Float", "Date/Time", "Boolean",
+          "Binary", "Other", "Unknown" }]
+   uint8 DataType;
+};
+
+
+// =================================================================
+//    PRS_Resource
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "Each PRS_Resolution may have an associated cost of "
+       "implementation. This cost may have several components such as "
+       "time, material costs, labor cost, etc. To capture these costs, "
+       "a PRS_Resouce is associated with a PRS_Resolution. For Service "
+       "Incidents, one or more PRS_Resource objects may be associated "
+       "with an Activity.")]
+class PRS_Resource : PRS_ExchangeElement {
+
+      [Description (
+          "A string describing the type of resource.")]
+   string ResourceType;
+
+      [Description (
+          "Number of units of resource used.")]
+   uint16 Quantity;
+
+      [Description (
+          "Unit of measure for this resource.")]
+   string Units;
+};
+
+
+// ===================================================================
+//    PRS_ExpressionLink
+// ===================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "Associates a PRS_Expression with PRS_ExpressionElements such "
+       "as PRS_Expression, PRS_Product, and PRS_Statement.")]
+class PRS_ExpressionLink : CIM_HostedDependency {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The parent PRS_Expression.")]
+   PRS_Expression REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The child PRS_ExpressionElement, either a PRS_Expression, "
+          "PRS_Product or PRS_Statement.")]
+   PRS_ExpressionElement REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ProductParentChild
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Products may exist in a hierarchy of relationships with "
+       "related Products. If a Producer deems these hierarchy "
+       "relationships are relevant to the current Problem or "
+       "Resolution, then the position of the Product in a hierarchy "
+       "can be implied using one of two types of relationships: 'is a' "
+       "and 'has a'. An 'is a' relationship implies a classification, "
+       "such as versioning or typing. A 'has a' relationship implies "
+       "that one product contains another. The PRS_ProductParentChild "
+       "association is used to imply an 'is a' hierarchy. Use the "
+       "ProductComponent association to imply 'has a' relationships.")]
+class PRS_ProductParentChild : CIM_Dependency {
+
+      [Aggregate, Override ( "Antecedent" ), Description (
+          "The parent PRS_Product.")]
+   PRS_Product REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The child PRS_Product.")]
+   PRS_Product REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ProductComponent
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "PRS_ProductComponent is used to describe 'has a' relationships "
+       "between Products and their components parts. See "
+       "PRS_ProductParentChild for 'is a' relationships.")]
+class PRS_ProductComponent : CIM_Dependency {
+
+      [Aggregate, Override ( "Antecedent" ), Description (
+          "The PRS_Product which contains the component.")]
+   PRS_Product REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The component PRS_Product.")]
+   PRS_Product REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ProductAsset
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "PRS_ProductAsset is used to provide specific information about "
+       "a PRS_Product. PRS_ProductAsset associates this information to "
+       "a PRS_Product using one or more Statements associated to a "
+       "PRS_Expression.")]
+class PRS_ProductAsset : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The product.")]
+   PRS_Product REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The expression.")]
+   PRS_Expression REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_StatementFeature
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Statement with PRS_Feature.")]
+class PRS_StatementFeature : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PRS_Statement.")]
+   PRS_Statement REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Feature.")]
+   PRS_Feature REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_FeatureResource
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Feature with PRS_Resource. This is used to "
+       "track labor and costs associated with specific tasks defined "
+       "in a Feature object.")]
+class PRS_FeatureResource : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PRS_Feature.")]
+   PRS_Feature REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Resource.")]
+   PRS_Resource REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ResolutionResource
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Resolution with PRS_Resource.")]
+class PRS_ResolutionResource : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PRS_Resource.")]
+   PRS_Resource REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Resolution.")]
+   PRS_Resolution REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Solution Expression
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Associates PRS_SolutionElements (PRS_Reference, PRS_Problem or "
+       "PRS_Resolution) with PRS_Expressions.")]
+class PRS_SolutionExpression : CIM_Dependency {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_SolutionElement.")]
+   PRS_SolutionElement REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The PRS_Expression.")]
+   PRS_Expression REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Administrative
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Administrative defines administrative information about "
+       "associated objects. There must be at least one "
+       "PRS_Administrative instance associated with a PRS_Solution. "
+       "Administrative information is inherited from a parent object. "
+       "\n\n"
+       "If the administrative information among objects within a "
+       "Solution is not the same, additional PRS_Administrative "
+       "instances may be associated with other objects within the "
+       "Solution. All instances under a specific parent inherit their "
+       "administrative information unless there is an "
+       "PRS_Administrative instance associated with that instance. \n"
+       "\n"
+       "For example, if there is a PRS_Administrative instance "
+       "associated with a PRS_Problem instance, all of the "
+       "PRS_Statement and PRS_ Product instances within the Problem "
+       "use the same Administrative information as the PRS_Problem "
+       "instance.")]
+class PRS_Administrative : PRS_ExchangeElement {
+
+      [Description (
+          "Level 0 means all information within a Reference, Problem "
+          "or Resolution is conveyed by a single PRS_Statement. \n"
+          "\n"
+          "Level 1 means there may be multiple PRS_Statement instances "
+          "within a Reference, Problem or Resolution. \n"
+          "\n"
+          "Level 2 means that a PRS_Statement may be associated with a "
+          "PRS_Feature instance within a Reference, Problem or "
+          "Resolution."), 
+       ValueMap { "0", "1", "2" }]
+   uint16 ComplianceLevel;
+
+      [Description (
+          "Editorial status of the document. If 'Draft', information "
+          "is complete, but unedited. If 'Reviewed', an editorial "
+          "review has been completed. If 'Published', information has "
+          "been reviewed and approved for distribution."), 
+       ValueMap { "0", "1", "2", "254", "255" }, 
+       Values { "Draft", "Reviewed", "Published", "Other", "Unknown" }]
+   uint8 DocumentStatus;
+
+      [Description (
+          "Intended distribution audience for the associated "
+          "information. If 'Proprietary', information contains "
+          "proprietary information and is not to be released "
+          "externally. If 'Internal', information is for internal use "
+          "only. If 'Partner', information is only available to "
+          "contracted partners. If 'Public', information is available "
+          "to anyone."), 
+       ValueMap { "0", "1", "2", "3", "254", "255" }, 
+       Values { "Proprietary", "Internal", "Partner", "Public",
+          "Other", "Unknown" }]
+   uint8 Distribution;
+
+      [Description (
+          "Language used in the associated information.")]
+   string Language;
+
+      [Description (
+          "Copyright for the associated information.")]
+   string Copyright;
+
+      [Description (
+          "Disclaimers about the associated information.")]
+   string Disclaimer;
+
+      [Description (
+          "Usage rights for the associated information.")]
+   string Rights;
+};
+
+
+// ===================================================================
+//    PRS_AdminAssociation
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Administrative data with any object derived "
+       "from PRS_ExchangeElement.")]
+class PRS_AdminAssociation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_ExchangeElement.")]
+   PRS_ExchangeElement REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Administrative object.")]
+   PRS_Administrative REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Revision
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Revision records changes to the content.")]
+class PRS_Revision : PRS_ExchangeElement {
+
+      [Description (
+          "The date of this revision.")]
+   datetime RevisionDate;
+
+      [Description (
+          "The name of the specific revision being made."), 
+       ValueMap { "0", "1", "2", "254", "255" }, 
+       Values { "Create", "Update", "Delete", "Other", "Unknown" }]
+   uint8 ActivityName;
+
+      [Description (
+          "Type of revision activity. 'Technical' refers to a change "
+          "in content. 'Editorial' refers to a change in language or "
+          "style. 'Administrative' refers to information about the "
+          "object."), 
+       ValueMap { "0", "1", "2", "254", "255" }, 
+       Values { "Technical", "Editorial", "Administrative", "Other",
+          "Unknown" }]
+   uint8 ActivityType;
+
+      [Description (
+          "The current state of technical review. 'Open' means created "
+          "but not necessarily completed or resolved. 'Not Reviewed' "
+          "means contents have to be reviewed for accuracy and "
+          "consistency with other content. 'Reviewed' means review has "
+          "been completed. 'Approved' means formally approval to "
+          "certify the solution given the specific status of the "
+          "contents."), 
+       ValueMap { "0", "1", "2", "3", "254", "255" }, 
+       Values { "Open", "Not Reviewed", "Reviewed", "Approved",
+          "Other", "Unknown" }]
+   uint8 TechnicalStatus;
+
+      [Description (
+          "The current state of editorial review. 'In Progress' means "
+          "the content is in the process of being developed. 'Draft' "
+          "means the content is complete but unedited. 'Reviewed' "
+          "means the review has been completed. 'Published' means the "
+          "contents have been released."), 
+       ValueMap { "0", "1", "2", "3", "254", "255" }, 
+       Values { "In_Progress", "Draft", "Reviewed", "Published",
+          "Other", "Unknown" }]
+   uint8 EditorialStatus;
+
+      [Override ( "Description" ), Description (
+          "Text description of what was done in this revision.")]
+   string Description;
+};
+
+
+// ===================================================================
+//    PRS_AdministrativeRevision
+// ===================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "Associates PRS_Administrative with PRS_Revision.")]
+class PRS_AdministrativeRevision : CIM_HostedDependency {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The PRS_Administrative.")]
+   PRS_Administrative REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Revision.")]
+   PRS_Revision REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Contact
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Contact is used to anchor associations to PRS_Person and "
+       "PRS_Orgnaization. PRS_Contact is also used to anchor "
+       "associations to PRS_Revision and PRS_Resolution, as well as "
+       "PRS_ServiceIncident.")]
+class PRS_Contact : PRS_ExchangeElement {
+};
+
+
+// ===================================================================
+//    PRS_ContactItem
+// ===================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "PRS_ContactItem is the abstract root class for PRS_Person and "
+       "PRS_Organization. It provides a common anchor point for the "
+       "PRS_ContactContactItem association.")]
+class PRS_ContactItem : PRS_ExchangeElement {
+};
+
+
+// ===================================================================
+//    PRS_AdministrativeContact
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Associates PRS_Administrative and PRS_Contact.")]
+class PRS_AdministrativeContact : CIM_Dependency {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Administrative instance.")]
+   PRS_Administrative REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The PRS_Contact.")]
+   PRS_Contact REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_RevisionContact
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Associates PRS_Revision and PRS_Contact.")]
+class PRS_RevisionContact : CIM_Dependency {
+
+      [Aggregate, Override ( "Antecedent" ), Description (
+          "The PRS_Revision.")]
+   PRS_Revision REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The PRS_Contact.")]
+   PRS_Contact REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Organization
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Organization describes a PRS_Contact's organization name "
+       "and business.")]
+class PRS_Organization : PRS_ContactItem {
+
+      [Description (
+          "The name of the organization.")]
+   string Name;
+
+      [Description (
+          "Description of organization's primary business.")]
+   string Business;
+};
+
+
+// ===================================================================
+//    PRS_Person
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Information about a personal contact.")]
+class PRS_Person : PRS_ContactItem {
+
+      [Description (
+          "Contact's first name.")]
+   string FirstName;
+
+      [Description (
+          "Contact's last name.")]
+   string LastName;
+
+      [Description (
+          "How the contact is addressed, i.e. Dr., Mr., Ms., Mrs., "
+          "etc.")]
+   string Salutation;
+
+      [Description (
+          "Contact's business title.")]
+   string Title;
+
+      [Description (
+          "Description of the contact. For example, they may have "
+          "responsibilities not apparent from their title.")]
+   string ContactType;
+
+      [Description (
+          "Contact's preferred communication method. See the "
+          "PRS_Location.LocationType property."), 
+       ValueMap { "0", "1", "2", "3", "4", "254", "255" }, 
+       Values { "Primary_Voice", "Alternate_Voice", "Fax", "Email",
+          "URL", "Other", "Unknown" }]
+   uint8 CommunicationMode;
+};
+
+
+// ===================================================================
+//    PRS_ContactContactItem
+// ===================================================================
+   [Association, Abstract, Version ( "2.6.0" ), Description (
+       "Abstract root class to associate PRS_Person or "
+       "PRS_Organization and PRS_Contact.")]
+class PRS_ContactContactItem : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Contact.")]
+   PRS_Contact REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The PRS_ContactItem, either PRS_Person or PRS_Organization. "
+          "There is always at least one PRS_ContactItem, however it "
+          "may be either a PRS_Person or PRS_Organization. For that "
+          "reason, there is a minimum cardinality of one for this "
+          "property, but a minimum cardinality of zero in the classes "
+          "derived from this class.")]
+   PRS_ContactItem REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ContactOrganization
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Contact and PRS_Organization.")]
+class PRS_ContactOrganization : PRS_ContactContactItem {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Contact.")]
+   PRS_Contact REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The PRS_Organization.")]
+   PRS_Organization REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ContactPerson
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Contact and PRS_Person.")]
+class PRS_ContactPerson : PRS_ContactContactItem {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Contact.")]
+   PRS_Contact REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The PRS_Person.")]
+   PRS_Person REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Address
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Provides address information for PRS_ContactItem.")]
+class PRS_Address : PRS_ExchangeElement {
+
+      [Description (
+          "The type of address."), 
+       ValueMap { "0", "1", "2", "3", "254", "255" }, 
+       Values { "Primary", "Shipping", "Billing", "Service", "Other",
+          "Unknown" }]
+   uint8 AddressType;
+
+      [Description (
+          "First line of address information.")]
+   string Address1;
+
+      [Description (
+          "Second line of address information.")]
+   string Address2;
+
+      [Description (
+          "Third line of address information.")]
+   string Address3;
+
+      [Description (
+          "Fourth line of address information.")]
+   string Address4;
+
+      [Description (
+          "The city.")]
+   string City;
+
+      [Description (
+          "The specific region, such as state or province.")]
+   string Region;
+
+      [Description (
+          "The country's postal code for the address.")]
+   string PostalCode;
+
+      [Description (
+          "The time zone of the address.")]
+   string TimeZone;
+
+      [Description (
+          "The country code, based on ISO/IEC 3166.")]
+   string Country;
+};
+
+
+// ===================================================================
+//    PRS_ContactItemAddress
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_ContactItem with PRS_Address.")]
+class PRS_ContactItemAddress : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_ContactItem.")]
+   PRS_ContactItem REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Address.")]
+   PRS_Address REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Location
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Location describes the location of a PRS_Address.")]
+class PRS_Location : PRS_ExchangeElement {
+
+      [Description (
+          "The type of location."), 
+       ValueMap { "0", "1", "2", "3", "4", "254", "255" }, 
+       Values { "Primary_Voice", "Alternate_Voice", "Fax", "Email",
+          "URL", "Other", "Unknown" }]
+   uint8 LocationType;
+
+      [Description (
+          "The specific location.")]
+   string LocationID;
+};
+
+
+// ===================================================================
+//    PRS_AddressLocation
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Address and PRS_Location.")]
+class PRS_AddressLocation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_Address.")]
+   PRS_Address REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Location.")]
+   PRS_Location REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Attachment
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Attachment describes file attachments. A PRS_Attachment "
+       "may be associated to any object derived from "
+       "PRS_ExchangeElement. PRS_Attachment is used to attach objects "
+       "of any type including binary files, ASCII documents, or URLs. "
+       "Only one object may be attached per PRS_Attachment. \n"
+       "\n"
+       "The actual attachment carried by the Attachment object is "
+       "included by one of two methods: by reference or by value as "
+       "embedded data. A 'by reference' approach links indirectly to "
+       "the attachment through the use of a string identifier, e.g. a "
+       "file name. An 'embedded data' approach means the actual binary "
+       "data is included in PRS_Attachment.")]
+class PRS_Attachment : PRS_ExchangeElement {
+
+      [Description (
+          "If the attachment is not embedded, where the attachment is "
+          "located.")]
+   string AttachmentReference;
+
+      [Description (
+          "Protocol required to read the attachment (e.g., http).")]
+   string Protocol;
+
+      [Description (
+          "The file format of the attachment.")]
+   string Format;
+
+      [Description (
+          "The size of the attachment in bytes.")]
+   string AttachmentSize;
+
+      [Description (
+          "The attachment itself, if embedded.")]
+   string AttachmentObject;
+
+      [Description (
+          "The purpose of the attachment, as related to the diagnosis. "
+          "'Instructions' are compilable code. 'Background' is "
+          "descriptive information. 'Log' is information captured in a "
+          "log file."), 
+       ValueMap { "0", "1", "2", "254", "255" }, 
+       Values { "Instructions", "Background", "Log", "Unknown",
+          "Undefined" }]
+   uint8 AttachmentType;
+
+      [Description (
+          "The displayable attachment identifier. Used to define what "
+          "will appear as the name of the attachment, as opposed to "
+          "the specific attachment file name or URL.")]
+   string AttachmentName;
+};
+
+
+// ===================================================================
+//    PRS_Attached
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Attachment with PRS_ExchangeElement.")]
+class PRS_Attached : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PRS_Attachment.")]
+   PRS_Attachment REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The PRS_ExchangeElement.")]
+   PRS_ExchangeElement REF Dependent;
+};
+
+
+// ===================================================================
+// ===================================================================
+//    Service Incident Exchange information
+// ===================================================================
+// ===================================================================
+
+// ===================================================================
+//    PRS_ServiceIncident
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_ServiceIncident contains the fundamental information "
+       "related to a specific incident: its identity, status, "
+       "priority, etc. The actual incident data, including specific "
+       "transactions and resolution information, is contained in the "
+       "objects associated with PRS_ServiceIncident. These include "
+       "specific Problem, Resolution and Activity related objects "
+       "accrued through the Transaction workflow.")]
+class PRS_ServiceIncident : PRS_ExchangeElement {
+
+      [Description (
+          "The unique identifier for this incident assigned by the "
+          "Requester.")]
+   string RequesterID;
+
+      [Description (
+          "The unique identifier for this incident assigned by the "
+          "Provider.")]
+   string ProviderID;
+
+      [Description (
+          "The state of the incident within the Service Incident "
+          "Exchange Standard transaction model."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "254",
+       "255" }, 
+       Values { "Beginning_State", "Not_Entitled", "Entitled",
+          "Problem_Submitted", "Open_Requester", "Open_Provider",
+          "Closed_Pending_Confirmation", "Closed", "Other", "Unknown" }]
+   uint8 CurrentState;
+
+      [Description (
+          "The severity of the incident as defined by the Requester. "
+          "One is the most severe and five is the least severe."), 
+       ValueMap { "1", "2", "3", "4", "5" }]
+   uint8 RequesterSeverity;
+
+      [Description (
+          "The priority of the incident as defined by the Requester. "
+          "One is the highest priority and five is the lowest "
+          "priority."), 
+       ValueMap { "1", "2", "3", "4", "5" }]
+   uint8 ProviderPriority;
+
+      [Description (
+          "The explicit time the Requester expects a response.")]
+   datetime ResponseTime;
+
+      [Description (
+          "Status of the incident according to the workflow.")]
+   string WorkflowStatus;
+
+      [Description (
+          "Additional general information about the incident.")]
+   string Comment;
+
+      [Description (
+          "Is the Requester entitled to service or not?"), 
+       ValueMap { "0", "1", "254", "255" }, 
+       Values { "Yes", "No", "Other", "Unknown" }]
+   uint8 Entitled;
+
+      [Description (
+          "Was the last transaction was accepted or rejected?"), 
+       ValueMap { "0", "1", "254", "255" }, 
+       Values { "Yes", "No", "Other", "Unknown" }]
+   uint8 Acknowledge;
+
+      [Deprecated { "PRS_ServiceIncident.LastTransaction" }, 
+       Description (
+          "The use of the TransactionName property is deprecated. New "
+          "Service Incidents should use the LastTransaction property "
+          "and set this property to NULL.")]
+   string TransactionName;
+
+      [Description (
+          "The name of the last transaction which was acknowledged."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "254", "255" }, 
+       Values { "Service_Request", "Entitlement", "Problem_Submittal",
+          "Accept_Problem", "Problem_Resolution",
+          "Request_Problem_Information", "Provide_Problem_Information",
+          "Provide_Admin_Information", "Query_Incident",
+          "Confirm_Close", "Reject_Resolution", "Request_Closure",
+          "Other", "Unknown" }]
+   uint8 LastTransaction;
+};
+
+
+// ===================================================================
+//    PRS_ServiceRequester
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "PRS_ServiceRequester associates a PRS_ServiceIncident with a "
+       "PRS_Contact representing the entity requesting service. Note "
+       "that the Contact class is used for both Requesters and "
+       "Providers, the context is determined by which association "
+       "exists.")]
+class PRS_ServiceRequester : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PRS_ServiceIncident.")]
+   PRS_ServiceIncident REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The PRS_Contact.")]
+   PRS_Contact REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ServiceProvider
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_ServiceIncident to PRS_Contact to describe the "
+       "Service Provider.")]
+class PRS_ServiceProvider : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PRS_ServiceIncident.")]
+   PRS_ServiceIncident REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The PRS_Contact.")]
+   PRS_Contact REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ServiceProblem
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_ServiceIncident to PRS_Problem to describe the "
+       "Problem being submitted to the Service Provider.")]
+class PRS_ServiceProblem : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The PRS_ServiceIncident.")]
+   PRS_ServiceIncident REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The PRS_Problem.")]
+   PRS_Problem REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ServiceResolutionSolution
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Associates PRS_ServiceIncident to PRS_Solution to describe the "
+       "Resolutions proposed by the Service Provider.")]
+class PRS_ServiceResolutionSolution : CIM_Dependency {
+
+      [Aggregate, Override ( "Antecedent" ), Description (
+          "The PRS_ServiceIncident.")]
+   PRS_ServiceIncident REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Solution. PRS_Solution must be associated with at "
+          "least one Resolution.")]
+   PRS_Solution REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Agreement
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The agreement or contract referenced for entitlement to "
+       "service.")]
+class PRS_Agreement : PRS_ExchangeElement {
+
+      [Description (
+          "The identifier for the contract between the Request and the "
+          "Provider. This property is set by the Requester prior to "
+          "submitting a Service Request.")]
+   string ContractID;
+
+      [Description (
+          "A brief description of the contract.")]
+   string AgreementType;
+};
+
+
+// ===================================================================
+//    PRS_ServiceAgreement
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_ServiceIncident to PRS_Agreement.")]
+class PRS_ServiceAgreement : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PRS_ServiceIncident.")]
+   PRS_ServiceIncident REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The PRS_Agreement.")]
+   PRS_Agreement REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_Activity
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Describes the date of each transaction and the objects "
+       "involved.")]
+class PRS_Activity : PRS_ExchangeElement {
+
+      [Deprecated { "PRS_Activity.NewKeys", "PRS_Activity.Deleted",
+          "PRS_Activity.Modified" }, Description (
+          "The key fields for the objects in the associated "
+          "Transaction. The use of this property is deprecated. The "
+          "PRS_SISService StartSISTransaction method uses the New, "
+          "Modified and Deleted properties instead of this field. This "
+          "field is set to NULL by the StartSISTransaction method if "
+          "the other properties are used.")]
+   string ParameterList;
+
+      [Description (
+          "The key fields for the objects added in the associated "
+          "Transaction. This property is set by the PRS_SISService "
+          "StartSISTransaction method.")]
+   string NewKeys;
+
+      [Description (
+          "The key fields for objects deleted in the associated "
+          "Transaction. This property is set by the PRS_SISService "
+          "StartSISTransaction method.")]
+   string Deleted;
+
+      [Description (
+          "The key fields for objects modified in the associated "
+          "Transaction. This property is set by the PRS_SISService "
+          "StartSISTransaction method.")]
+   string Modified;
+
+      [Description (
+          "The date of the Activity. This property is set by the "
+          "PRS_SISService StartSISTranasaction method.")]
+   datetime LocalDate;
+
+      [Description (
+          "Description of the activity performed.")]
+   string ActionLog;
+};
+
+
+// ===================================================================
+//    PRS_Transaction
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PRS_Transaction represents a single transaction of the Service "
+       "Incident workflow. A PRS_Transaction instance is created by "
+       "the PRS_SISService StartSISTransaction method.")]
+class PRS_Transaction : PRS_ExchangeElement {
+
+      [Description (
+          "The specific SIS transaction represented by this "
+          "PRS_Transaction instance."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "254", "255" }, 
+       Values { "Service_Request", "Entitlement", "Problem_Submittal",
+          "Accept_Problem", "Problem_Resolution",
+          "Request_Problem_Information", "Provide_Problem_Information",
+          "Provide_Admin_Information", "Query_Incident",
+          "Confirm_Close", "Reject_Resolution", "Request_Closure",
+          "Other", "Unknown" }]
+   uint8 TransactionType;
+
+      [Description (
+          "The current state of this transaction. This value is "
+          "manipulated by the PRS_SISService:StartSISTransaction and "
+          "SetSISCompletionStatus method implementations. This "
+          "property is not intended to be written by management "
+          "applications."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Open", "Working", "Closed", "Notification_Pending" }]
+   uint8 TransactionState;
+
+      [Description (
+          "The status of the transaction after it has reached the "
+          "'Closed' state. A CompletionStatus of zero (0) means the "
+          "tranasaction completed successfully. A non-zero "
+          "CompletionStatus indicates the transaction did not complete "
+          "successfully. Non-zero values are implementation-specific. "
+          "While the transaction is 'Open' or 'Working' the "
+          "CompletionStatus property shall be zero (0). See the "
+          "description for PRS_SISService for the definition of the "
+          "contents of this property.")]
+   uint32 CompletionStatus;
+};
+
+
+// ===================================================================
+//    PRS_SISService
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The PRS_SISService is used as a class factory for "
+       "PRS_Transactions.")]
+class PRS_SISService : CIM_Service {
+
+      [Description (
+          "When invoked on a local system, this method validates the "
+          "objects in the local repository, to determine if they are "
+          "sufficient for the indicated (input parameter) "
+          "TransactionType. If not, an error is returned and no "
+          "additional processing is performed. If the repository is "
+          "successfully validated, this method creates a "
+          "PRS_Transaction instance for return to the caller. \n"
+          "\n"
+          "The method also reviews the repository looking for new, "
+          "modified or deleted objects. As these objects are located, "
+          "their keys are appended to the related strings in the "
+          "PRS_Activity instance referenced by another parameter of "
+          "this method. \n"
+          "\n"
+          "After all the appropriate new, modified or deleted objects "
+          "have been located, this method invokes the PRS_SISService's "
+          "StartSISTransaction method on the remote system specified "
+          "by the objects related to the Service Incident, associated "
+          "with the PRS_Activity instance specified as a method "
+          "parameter. The TransactionType and PRS_Activity REF is "
+          "forwarded to the remote system as method parameters as well "
+          "as the PRS_Transaction REF for the instance created by this "
+          "method. \n"
+          "\n"
+          "The remote system creates a child namespace using the "
+          "PRS_Transaction REF for the name. The local system then "
+          "transfers all of the new, modified and deleted objects to "
+          "the namespace on the remote system. Once all objects have "
+          "been successfully transferred, the PRS_SISService's "
+          "EndSISTransaction method is invoked on the remote system "
+          "with a Status value of zero to indicate that the remote "
+          "system should attempt to commit the transaction to the "
+          "remote repository. \n"
+          "\n"
+          "The remote system passes the results of the remote commit "
+          "back to the originating system by invoking the "
+          "PRS_SISService's SetSISCompletionStatus method on the "
+          "system that originated the SIS transaction. The "
+          "CompletionStatus method parameter indicates whether the "
+          "remote commit was successful. If the CompletionStatis is "
+          "zero, the remote commit was successful. If it was "
+          "unsuccessful, the objects were not applied to the remote "
+          "repository and the CompletionStatus is non-zero, indicating "
+          "the error. The local invocation of the SetSIS "
+          "CompletionStatus method updates the specified "
+          "PRS_Transaction's TransactionState to Closed and "
+          "CompletionStatus to the value provided by the remote system "
+          "in the CompletionStatus method parameter. \n"
+          "\n"
+          "In order to promote extensibility, the uint32 return values "
+          "for PRS_SISService's methods and Status-related parameters "
+          "are mapped into three sections. The first describes the "
+          "type of value being reported. It indicates Error versus "
+          "Notification, and Standard versus Vendor-Specific. \n"
+          "\n"
+          "The second section describes the source of the value. It "
+          "indicates Method, Operating System, Repository, or "
+          "Transport. In addition, this section indicates whether the "
+          "value was created locally or remotely. \n"
+          "\n"
+          "The third section is the specific return value. \n"
+          "\n"
+          "If all 32 bits of the return value are reset, the method "
+          "completed successfully. Any other value indicates an error "
+          "condition or notification. If D31 is set, the method did "
+          "not complete successfully. If D31 is reset, but the rest of "
+          "the return value is non-zero, this is a Notification that "
+          "the operation did complete successfully, but that there is "
+          "a conditon of which the caller should be aware. \n"
+          "\n"
+          "If D30 is set, the return value is vendor specific. If D30 "
+          "is reset, the return value is defined by the standard. \n"
+          "\n"
+          "If D29 is set, the return value was generated by a remote "
+          "system. If D29 is reset, the return value was generated "
+          "locally. The bit is always set or reset by the local "
+          "system. The local system sets the bit if it receives a "
+          "non-zero return value from a remote method invocation. \n"
+          "\n"
+          "Bit D28 is reserved for future use and shall be reset on "
+          "all return values. \n"
+          "\n"
+          "When there is an error or notification, D24 through D27 "
+          "indicate its source. The following sources are currently "
+          "defined (D24 is the least significant bit below): \n"
+          "0000 Method \n"
+          "0001 Operating System \n"
+          "0010 Repository \n"
+          "0011 Transport \n"
+          "All remaining values are reserved. \n"
+          "\n"
+          "Bits D16 through D23 are reserved for future use and shall "
+          "be reset to zero. \n"
+          "\n"
+          "Bits D0 through D15 indicate the specific return value. If "
+          "zero, all other bits in the return value must be zero, "
+          "indicating successful completion of the method (or "
+          "Transaction).")]
+   uint32 StartSISTransaction ( 
+         [IN, Description (
+             "The specific SIS transaction represented by this "
+             "instance."), 
+          ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+             "10", "11", "254", "255" }, 
+          Values { "Service_Request", "Entitlement",
+             "Problem_Submittal", "Accept_Problem",
+             "Problem_Resolution", "Request_Problem_Information",
+             "Provide_Problem_Information",
+             "Provide_Admin_Information", "Query_Incident",
+             "Confirm_Close", "Reject_Resolution", "Request_Closure",
+             "Other", "Unknown" }]
+      uint8 TransactionType,
+      
+         [IN, Description (
+             "TransactionRef identifies the PRS_Transaction to commit "
+             "or abort. If this property is NULL or does not identify "
+             "an 'Open' transaction, this method returns an error.")]
+      PRS_Activity REF ActivityRef,
+      
+         [IN, OUT, Description (
+             "ActivityRef associates a time and description of the "
+             "activity involved in the service incident transaction.")]
+      PRS_Transaction REF TransactionRef ); 
+
+      [Description (
+          "The EndSISTransaction method is used to handle committing "
+          "or aborting a transaction. For commit, the method is "
+          "invoked by a remote system when all of the objects "
+          "associated with the transaction have been placed in the "
+          "child namespace created by StartSISTransaction. \n"
+          "\n"
+          "For abort, the method cleans up the child namespace and "
+          "closes the specified PRS_Transaction, setting the "
+          "Transaction's CompletionStatus to the method parameter of "
+          "the same name.")]
+   uint32 EndSISTransaction (
+      
+         [IN, Description (
+             "Status indicates whether the transaction is to be "
+             "committed or aborted. If Status is zero, the transaction "
+             "is to be committed. If Status is non-zero, it indicates "
+             "the transaction is to be aborted. If the transaction is "
+             "being aborted, the Status field is passed back to the "
+             "originating system as the CompletionStatus parameter for "
+             "the PRS_SISService SetSISCompletionStatus method. See "
+             "the description for PRS_SISService.StartSISTransaction "
+             "for the definition of the contents of this property.")]
+      uint32 Status,
+      
+         [IN, Description (
+             "TransactionRef identifies the PRS_Transaction to commit "
+             "or abort. If this property is NULL or does not identify "
+             "an 'Open' transaction, this method returns an error.")]
+      PRS_Transaction REF TransactionRef ); 
+
+      [Description (
+          "SetSISCompletionStatus is used to signal the system that "
+          "originated a PRS_Transaction that the remote system has "
+          "completed processing of the transaction. If the processing "
+          "was successful, as indicated by the CompletionStatus "
+          "parameter, the local system resets the DirtyFlag for all of "
+          "the objects identified in the PRS_Activity instance "
+          "associated with the PRS_Transaction.")]
+   uint32 SetSISCompletionStatus (
+      
+         [IN, Description (
+             "This parameter is used to set the CompletionStatus field "
+             "of the specified PRS_Transaction. If zero, the "
+             "Transaction was completed successfully. If non-zero, an "
+             "error occurred and the objects provided in "
+             "StartSISTransaction were not submitted to the remote "
+             "repository. See the description for "
+             "PRS_SISService.StartSISTransaction for the definition of "
+             "the contents of this property.")]
+      uint32 CompletionStatus,
+      
+         [IN, Description (
+             "TransactionRef identifies the PRS_Transaction that has "
+             "completed. If this property is NULL or does not identify "
+             "an 'Open' transaction, this method returns an error.")]
+      PRS_Transaction REF TransactionRef ); 
+};
+
+
+// ===================================================================
+//    PRS_ServiceActivity
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Associates PRS_ServiceIncident to PRS_Activity.")]
+class PRS_ServiceActivity : CIM_Dependency {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The PRS_ServiceIncident.")]
+   PRS_ServiceIncident REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Activity.")]
+   PRS_Activity REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ActivityContact
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Activity with PRS_Contact.")]
+class PRS_ActivityContact : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PRS_Activity.")]
+   PRS_Activity REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The PRS_Contact.")]
+   PRS_Contact REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ActivityResource
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Associates PRS_Activity with PRS_Resource.")]
+class PRS_ActivityResource : CIM_Dependency {
+
+      [Aggregate, Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The PRS_Activity.")]
+   PRS_Activity REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PRS_Resource.")]
+   PRS_Resource REF Dependent;
+};
+
+
+// ===================================================================
+//    PRS_ActivityTransaction
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates PRS_Activity with PRS_Transaction.")]
+class PRS_ActivityTransaction : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The PRS_Activity.")]
+   PRS_Activity REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The PRS_Transaction.")]
+   PRS_Transaction REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

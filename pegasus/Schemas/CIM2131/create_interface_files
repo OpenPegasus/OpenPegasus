@@ -1,0 +1,157 @@
+#!/bin/bash
+###########################################################################
+##
+## create_interface_files script to create CIM Schema "interface" files:
+##
+## This file was used when CIM Schema Version 2.11 was installed. 
+## It is not inteneded for general use. It is available here as 
+## further documentation of the CIM Schema install process and for 
+## future reference when new CIM Schema versions are installed.
+##
+## This bash shell script file creates "interface" files for the new 
+## DMTF CIM Schema Version 2.11 to make them compatible with the 
+## OpenPegasus build enviroment that has been used for previous versions.
+##              
+##
+## The following files are needed and will each include the appropriate 
+## DMTF files. 
+##
+## CIM_Schema
+## CIM_Event
+## CIM_Core
+## Core_Qualifiers
+## CIM_Interop
+##
+## CIM_Physical.mof
+## CIM_Schema.mof
+##
+##########################################################################
+
+##########################################################################
+##
+## FUNCTION DEFINITIONS
+##
+##########################################################################
+
+##########################################
+## INSERT_LICENSE ()
+##
+function INSERT_LICENSE
+{
+FILE=$1 ;
+cat ../../doc/license.txt > ${FILE}.mof ;
+##### cat header_add.txt | sed 's/FILE_NAME/${FILE}/' >> ${FILE}.mof ;
+return 0 ; 
+}
+
+##########################################
+## INSERT_BLANK_LINE ()
+##
+function INSERT_BLANK_LINE
+{
+FILE=$1 ;
+echo " " >> ${FILE}.mof ;
+}
+
+##########################################
+## INSERT_LINE ()
+##
+function INSERT_LINE
+{
+FILE=$1 ;
+echo "$2" >> ${FILE}.mof ;
+}
+
+##########################################
+## INSERT_EXTRACTED_INCLUDES ()
+##
+## copy all include lines for this file from cimv213.mof changing 
+## them to add the DMTF directory. 
+##
+## IE: The following line for the CIM_Core.mof file 
+##
+##    #pragma include ("Core\CIM_ManagedElement.mof")
+##
+##     gets changed to the following:
+##
+##    #pragma include ("DMTF/Core\CIM_ManagedElement.mof")
+##
+##
+function INSERT_EXTRACTED_INCLUDES
+{
+FILE=$1 ;
+NAME=$2 ;
+
+grep "(\"${NAME}" DMTF/cimv213.mof |  sed 's/include ("/include ("DMTF\//' >> ${FILE}.mof ;
+return 0 ;
+}
+
+##########################################################################
+##
+## Create the files
+##
+##########################################################################
+
+#### create  Core_Qualifiers.mof
+INSERT_LICENSE Core_Qualifiers ;
+cat header_add.txt | sed 's/FILE_NAME/Core_Qualifiers/' >> Core_Qualifiers.mof
+INSERT_BLANK_LINE Core_Qualifiers ;
+INSERT_LINE Core_Qualifiers "#pragma include (\"DMTF/qualifiers.mof\")"
+INSERT_LINE Core_Qualifiers "#pragma include (\"DMTF/qualifiers_optional.mof\")"
+INSERT_BLANK_LINE Core_Qualifiers ;
+
+
+#### create CIM_Schema.mof
+INSERT_LICENSE CIM_Schema ;
+cat header_add.txt | sed 's/FILE_NAME/CIM_Schema/' >> CIM_Schema.mof
+INSERT_BLANK_LINE CIM_Schema ;
+INSERT_LINE CIM_Schema "#pragma include (\"DMTF/cimv213.mof\")"
+INSERT_BLANK_LINE CIM_Schema ;
+
+#### create CIM_Core.mof
+INSERT_LICENSE CIM_Core ;
+cat header_add.txt | sed 's/FILE_NAME/CIM_Core/' >> CIM_Core.mof
+INSERT_BLANK_LINE CIM_Core ;
+INSERT_LINE CIM_Core  "#pragma include (\"DMTF/qualifiers.mof\")" ;
+INSERT_LINE CIM_Core "#pragma include (\"DMTF/qualifiers_optional.mof\")"
+INSERT_BLANK_LINE CIM_Core ;
+INSERT_EXTRACTED_INCLUDES CIM_Core Core ;
+INSERT_BLANK_LINE CIM_Core ;
+
+
+#### create CIM_Event.mof
+INSERT_LICENSE CIM_Event ;
+cat header_add.txt | sed 's/FILE_NAME/CIM_Event/' >> CIM_Event.mof
+INSERT_BLANK_LINE CIM_Event ;
+INSERT_EXTRACTED_INCLUDES CIM_Event Event ;
+INSERT_BLANK_LINE CIM_Event ;
+
+
+#### create CIM_Interop.mof
+INSERT_LICENSE CIM_Interop ;
+cat header_add.txt | sed 's/FILE_NAME/CIM_Interop/' >> CIM_Interop.mof
+INSERT_BLANK_LINE CIM_Interop ;
+INSERT_EXTRACTED_INCLUDES CIM_Interop Interop ;
+INSERT_BLANK_LINE CIM_Interop ;
+
+
+############################################################
+#### The following are all required for the make testrepository
+
+#### create CIM_Physical.mof
+INSERT_LICENSE CIM_Physical ;
+cat header_add.txt | sed 's/FILE_NAME/CIM_Physical/' >> CIM_Physical.mof
+INSERT_BLANK_LINE CIM_Physical ;
+INSERT_EXTRACTED_INCLUDES CIM_Physical Physical ;
+INSERT_BLANK_LINE CIM_Physical ;
+
+
+#### create CIM_System.mof
+INSERT_LICENSE CIM_System ;
+cat header_add.txt | sed 's/FILE_NAME/CIM_System/' >> CIM_System.mof
+INSERT_BLANK_LINE CIM_System ;
+INSERT_EXTRACTED_INCLUDES CIM_System System ;
+INSERT_BLANK_LINE CIM_System ;
+
+
+

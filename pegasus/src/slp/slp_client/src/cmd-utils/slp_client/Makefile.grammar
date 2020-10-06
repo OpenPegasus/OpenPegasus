@@ -1,0 +1,104 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+##############################################################
+# Update the flex version in the following line to reflect
+# the version of flex used the last time the parser files
+# were generated. Never use an older version of flex than
+# indicated here. All of the generated files should be committed
+# after adding the OpenPegasus license to the top of each.
+# *************   REQUIRES FLEX 2.5.4a or later   ***********
+# Update the Bison version in the following line to reflect
+# the version of Bison used the last time the parser files
+# were generated. Never use an older version of Bison than
+# indicated here. All of the generated files should be committed
+# after adding the OpenPegasus license to the top of each.
+# *************   REQUIRES BISON 1.875c or later   ***********
+##############################################################
+
+ROOT = ../../../../../..
+include $(ROOT)/mak/config.mak
+
+export BISON_SIMPLE := bison.simple
+
+#############################################################
+# do make -f Makefile.grammar when both yacc and lex files 
+# are modified which invokes y_grammar and l_grammar 
+#############################################################
+all: y_grammar l_grammar
+
+y_grammar: y_attr.c y_url.c y_filter.c
+
+l_grammar: l_attr.c l_url.c l_filter.c
+
+##############################################################
+# 1. bison -oy_attr.c -pattr -v -d attr.y
+##############################################################
+y_attr.c : attr.y
+	$(YACC) -o$@ -p$(basename $<) -v -d $<
+	$(MOVE) $@ $(basename $@).cpp
+
+##############################################################
+# 2. flex -p -v -ol_attr.c -Pattr attr.l
+##############################################################
+l_attr.c : attr.l
+	$(LEX) -p -v -o$@ -P$(basename $<) $<
+	$(MOVE) $@ $(basename $@).cpp
+
+##############################################################
+# 3. bison -oy_url.c -purl -v -d url.y
+##############################################################
+y_url.c : url.y
+	$(YACC) -o$@ -p$(basename $<) -v -d $<
+	$(MOVE) $@ $(basename $@).cpp
+
+##############################################################
+# 4. flex -p -v -ol_url.c -Pattr url.l
+##############################################################
+l_url.c : url.l
+	$(LEX) -p -v -o$@ -P$(basename $<) $<
+	$(MOVE) $@ $(basename $@).cpp
+
+##############################################################
+# 5. bison -ol_filter.c -pfilter -v -d l_filter.y
+##############################################################
+y_filter.c : filter.y
+	$(YACC) -o$@ -p$(basename $<) -v -d $<
+	$(MOVE) $@ $(basename $@).cpp
+
+##############################################################
+# 6. flex -p -v -ol_filter.c -Pfilter filter.l
+##############################################################
+l_filter.c : filter.l
+	$(LEX) -p -v -o$@ -P$(basename $<) $<
+	$(MOVE) $@ $(basename $@).cpp
+
+clean:
+	$(RM) y_attr.cpp l_attr.cpp y_url.cpp l_url.cpp y_filter.cpp \
+	      l_filter.cpp y_url.h y_filter.h y_attr.h y_attr.output \
+	      y_url.output y_filter.output

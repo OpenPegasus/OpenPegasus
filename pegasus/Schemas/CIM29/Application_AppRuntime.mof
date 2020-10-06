@@ -1,0 +1,208 @@
+// ===================================================================
+// Title: Application_AppRuntime
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Application_AppRuntime.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: These classes represent the characterization of a
+//      running application that supports a particular business
+//      function and that can be managed as an independent unit.
+//      They are maintained as a separate MOF file in the
+//      Application Model.
+// 
+//      The object classes below are listed in an order that
+//      avoids forward references. Required objects, defined
+//      by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Preliminary
+//      15 May 2003
+//         - CR 1063 - Original Application Runtime Model
+//         - CR 1147 - Change name of LastStatusUpdate
+//                     property in the RuntimeApplicationSystem and
+//                     change the statistics association to point
+//                     to the CIM_Application class.
+//     19 Dec 2003 CIM 2.8 Final
+//         - CR 1178 - Change to the CIM_ApplicationSystem class
+//                     to add the application runtime subclass back in.
+//         - CR 1197 - Delete DependencyCharacteristics[] from
+//                     CIM_ApplicationSystemDependency
+//         - CR 1198 - Move the Application Runtime Model from
+//                     Preliminary to Final status
+// ===================================================================
+
+#pragma locale ("en_US")
+
+// ===================================================================
+// ApplicationSystemDependency
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "This dependency expresses use-relationships or other logical "
+       "interactions between application systems. At the business "
+       "level, the relationship could be due to a distributed business "
+       "process. Viewed from the technical level, the relationship is "
+       "to be interpreted as communication between application "
+       "systems. ApplicationSystemDependency primarily expresses "
+       "'horizontal' relationships, i.e., relationships between "
+       "distributed or local application systems.")]
+class CIM_ApplicationSystemDependency : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "Antecedent represents the independent application system in "
+          "this association.")]
+   CIM_ApplicationSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "Dependent represents the application system dependent on "
+          "the Antecedent.")]
+   CIM_ApplicationSystem REF Dependent;
+};
+
+
+// ===================================================================
+// ApplicationSystemHierarchy
+// ===================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "Application systems may have arbitrarily complex structures. "
+       "It may be necessary to build application system hierarchies "
+       "including the two-step hierarchy of distributed and local "
+       "systems. ApplicationSystemHierarchy allows building "
+       "containment trees (only one parent at a time). It should not "
+       "be used to express use-relationships; use "
+       "CIM_ApplicationSystemDependency instead.")]
+class CIM_ApplicationSystemHierarchy : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The parent ApplicationSystem in the association.")]
+   CIM_ApplicationSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The child ApplicationSystem in the association.")]
+   CIM_ApplicationSystem REF PartComponent;
+};
+
+// ===================================================================
+// StatisticalRuntimeOverview
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "This class represents statistical data and metrics that "
+       "characterize the application as a whole. It exists only once "
+       "per application system instance and provides primarily raw "
+       "data for the monitoring of service levels. Therefore, the "
+       "metrics presented are only a summary or overview of the "
+       "application system behavior at a certain point of time. "
+       "Instances are only available if the concerned application is "
+       "running. Therefore, an instance of ApplicationSystem MUST "
+       "exist when the instance of this class is created.")]
+class CIM_StatisticalRuntimeOverview : CIM_StatisticalData {
+
+      [Description (
+          "The point in time (date and time) when the most recent "
+          "inbound activity was observed for the application. A value "
+          "of all zeros indicates that no inbound activity has taken "
+          "place since the application was started.")]
+   datetime LastActivity;
+
+      [Description (
+          "The number of requests currently being served. This is not "
+          "the count of open connections! Very often it reflects the "
+          "number of current user requests. Note that the semantics of "
+          "a request are general enough to characterize the entire "
+          "application system."), 
+       Counter]
+   uint32 NumberOfActiveRequests;
+
+      [Description (
+          "The number of active requestors in the application system. "
+          "It may differ from the number of active requests (greater "
+          "if a requestor has issued multiple requests, smaller if "
+          "some of the requestors have no request running at the "
+          "considered point in time). Very often it reflects the "
+          "number of user logged on to the application system or the "
+          "number of sessions being served by the system. \n"
+          "Note that the semantics of a requestor are general enough "
+          "to characterize the entire application system."), 
+       Counter]
+   uint32 NumberOfActiveRequestors;
+
+      [Description (
+          "The average response time is the mean of a number of "
+          "requests captured between StatisticTime and a close point "
+          "in time in the past. This interval or duration, that the "
+          "average depends on, is defined by the underlying "
+          "implementation such that it still has a reasonable "
+          "proximity to one point in time. The term average is not "
+          "focused on averaging a number of requests but averaging a "
+          "period of time. Therefore, the average does not relate to "
+          "more than a couple of minutes and, consequently, "
+          "AverageResponseTime has the notion of the response time at "
+          "the point in time of StatisticTime. If the interval is too "
+          "great, AverageResponseTime becomes meaningless for "
+          "monitoring. If no response time can be determined, the "
+          "value is 0."), 
+       Units ( "MilliSeconds" )]
+   uint32 AverageResponseTime;
+};
+
+
+// ===================================================================
+// AssociatedAppSystemOverviewStatistics
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "The link to the runtime overview statistics of an application "
+       "system.")]
+class CIM_AssociatedAppSystemOverviewStatistics : CIM_ElementStatisticalData {
+
+      [Override ( "ManagedElement" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The application system for which the overview is defined.")]
+   CIM_ApplicationSystem REF ManagedElement;
+
+      [Override ( "Stats" ), Max ( 1 ), Description (
+          "The application system runtime statistical overview.")]
+   CIM_StatisticalRuntimeOverview REF Stats;
+};
+
+
+// ==================================================================
+// end of file
+// ==================================================================

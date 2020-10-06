@@ -1,0 +1,714 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+  <meta content="en-us" http-equiv="Content-Language">
+
+  <meta content="Microsoft FrontPage 5.0" name="GENERATOR">
+
+  <meta content="FrontPage.Editor.Document" name="ProgId">
+
+  <meta content="text/html; charset=windows-1252"
+ http-equiv="Content-Type">
+  <title>PEP</title>
+
+  <link href="PEP000_PEPTemplate_files/info1.css" rel="stylesheet">
+</head>
+  <body>
+
+<hr>
+<p align="center"><small><font face="Helvetica, Arial, sans-serif"><b><font
+ size="4"><small>Pegasus Enhancement Proposal (PEP)</small></font></b></font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif"><b>PEP #:</b> 121</font></small></p>
+         <small><font face="Helvetica, Arial, sans-serif"><b>Title: </b>Test
+  Enhancements   for Pegasus </font></small>
+<p><small><font face="Helvetica, Arial, sans-serif" color="#0000ff"></font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif"><b>Version: </b>1.3 </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif"><b>Created:</b> 18 Dec.
+    2003</font><font face="Helvetica, Arial, sans-serif" color="#0000ff"></font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif"><b>Authors: Subodh Soni</b></font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif"><b>Status:  </b>Final<br>
+         </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif"><br>
+         </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif"><b>Version History:</b></font></small></p>
+
+<table border="1" cellspacing="1" bordercolordark="#666666"
+ bordercolorlight="#CCCCCC" width="100%" style="font-family: Arial;">
+           <tbody>
+             <tr>
+               <th bgcolor="#cae6ca"><small>Version</small></th>
+               <th bgcolor="#cae6ca"><small>Date</small></th>
+               <th bgcolor="#cae6ca"><small>Author</small></th>
+               <th bgcolor="#cae6ca"><small>Change Description</small></th>
+             </tr>
+             <tr>
+               <td align="center"><small>1.0</small></td>
+               <td align="center"><small>18 Dec 2003</small></td>
+               <td align="center"><small>Subodh Soni</small></td>
+               <td><small>Initial Submission</small></td>
+             </tr>
+             <tr>
+               <td align="center"><small>1.1</small></td>
+               <td align="center"><small>13 Jan 2004</small></td>
+               <td align="center"><small>Subodh Soni</small></td>
+               <td><small>Minor editorial changes based on comments by David
+  Dillard</small> </td>
+             </tr>
+       <tr>
+         <td valign="top" align="center"><small>1.2</small><br>
+         </td>
+         <td valign="top" align="center"><small>02 Feb 2004</small><br>
+         </td>
+         <td valign="top" align="center"><small>Subodh Soni</small><br>
+         </td>
+         <td valign="top" align="left"><small>Priorities of the proposed
+test  enhancements added.</small><br>
+         </td>
+       </tr>
+    <tr>
+      <td valign="top" align="center"><small>1.3</small><br>
+      </td>
+      <td valign="top" align="center"><small>05 Feb 2004</small><br>
+      </td>
+      <td valign="top" align="center"><small>Subodh Soni</small><br>
+      </td>
+      <td valign="top"><small>Final Version uploaded to "Recent Documents"</small><br>
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+         <br>
+         <br>
+
+<hr>
+<p><small><font face="Helvetica, Arial, sans-serif"><b>Abstract:</b> This
+    PEP aims to deliver test enhancements for Pegasus CIMOM. These enhancements
+    introduce some specific conditions in the CIMOM and check its behavior.
+  These  conditions or test scenarios are the ones that are not tested in
+the  current  implementation of Pegasus and consists of some of the real-life
+ issues faced  by the developers and users (working with various configurations
+ and machine setups) of Pegasus . The different test cases are present in
+the form of either sample providers or shell scripts and are independent of
+the existing test programs present in the Pegasus CVS tree.The complete package
+containing these test cases can be easily integrated with the existing source
+tree and no special knowledge is required to execute these tests.</font></small></p>
+
+<hr>
+<h2><small><font face="Helvetica, Arial, sans-serif" color="#000000">Definition
+    of the Problem</font></small></h2>
+
+<p><small><font face="Helvetica, Arial, sans-serif">There are many scenarios
+    where the cimom behavior is not known as of the current pegasus stable
+ source   tree. This PEP is an attempt to identify some of these scenarios
+ and develop   test programs to check the behavior exhibited by pegasus when
+ subjected to  these conditions.<br>
+         </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif"> The problems are defined
+    below: [These are various situations in which the cimserver behavior is
+  not  known/ or inconsistent]<br>
+         </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif">1. Single provider responsible
+    for loading multiple classes and running multiple clients simultaneously
+   using the classes loaded by this provider.<br>
+         </font><font face="Helvetica, Arial, sans-serif"
+ color="#ff6666"></font><font face="Helvetica, Arial, sans-serif"><br>
+         2. Behavior of Pegasus is different depending on whether the exception
+   thrown is a CIMException, Pegasus::Exception, or "unknown" exception such
+   as int.  exceptions on initialize, after processing(), etc.</font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif">3. What happens if the
+    provider method does a fork() and creates subprocess from within itself.
+   What are the handles  (or file descriptors) it inherits from the parent.
+  These conditions occur frequently when an actual provider interacts with
+ the system through various system calls.<br>
+         </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif">4. What is the behavior
+    on linux when providers manipulate signals from within their methods.
+How    is threading and signal handling taken care by pegasus ?<br>
+         </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif">5. Checking for timing-related
+    issues in the Pegasus common code. Memory testing involving significant
+  exercising  of multiple providers with strange timings, and clients timed
+  to both stress  provider subsystems and pause long enough to exercise the
+  provider unload  logic.<br>
+         </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif">6. The provider calling
+    the CIMOMHandle sets a UserIdentity into the OperationContext. It is possible
+    for a provider to call the CIMOMHandle with a user name that is different
+    than the end-user on the client who sent in the original request. For
+example,    a provider could set "root" into the UserIdentity, effectively
+promoting   itself to root authority when calling the CIMOMHandle.<br>
+         </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif">7. Testing the behavior
+    of Pegasus when the classes it has implemented return a large amount of
+  data.   (</font><font face="Helvetica, Arial, sans-serif"
+ color="#000000">For example:   a sample provider in which the enumInstances
+   returns 10000 instances of  the class implemented by the provider.<br>
+   </font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif" color="#000000">8. </font></small><small><font
+ face="Helvetica, Arial, sans-serif">Checking the XML parser    and generator
+ programs when malformed strings are passed through the providers</font></small><br>
+   </p>
+
+<h2><b><small><small><font face="Helvetica, Arial, sans-serif"
+ color="#000000">Priority</font></small></small></b></h2>
+
+<p><small><font face="Helvetica, Arial, sans-serif">The priorities of the
+ above mentioned test enhancements can be assigned based on the areas in the
+ pegasus code that require more testing. <br>
+   Based on the above serial nos. the order of the tests can be: <small>2</small>,
+ <small>1, 5, 7,  3, 4, 8, 6</small></font><font
+ face="Helvetica, Arial, sans-serif"><small></small></font></small><br>
+   </p>
+
+<h2><small><font face="Helvetica, Arial, sans-serif" color="#000000">Proposed
+    Solution</font></small></h2>
+         <small><font face="Helvetica, Arial, sans-serif">An attempt is made
+  to  address  the issues/problems/scenarios described in the problem definition
+   above by  writing sample providers, test client programs and various shell
+   scripts.  The sample providers follow the same structure in all the test
+  programs. <br>
+         Each sample provider is made atleast of the following files :<br>
+         <br>
+         </font></small>
+<table border="1" width="100%" cellpadding="2" cellspacing="2">
+           <tbody>
+             <tr>
+               <td><font face="Helvetica, Arial, sans-serif"><small>&lt;ProviderName&gt;.cpp</small></font>
+          </td>
+               <td><font face="Helvetica, Arial, sans-serif"><small> Implementing
+    the provider methods</small></font></td>
+             </tr>
+             <tr>
+               <td><small><font face="Helvetica, Arial, sans-serif">&lt;ProviderName&gt;.h</font>
+          </small></td>
+               <td><font face="Helvetica, Arial, sans-serif"><small> Header
+ for   the  provider implemented</small></font></td>
+             </tr>
+             <tr>
+               <td><small><font face="Helvetica, Arial, sans-serif">&lt;ProviderNameMain.cpp&gt;</font>
+          </small></td>
+               <td><font face="Helvetica, Arial, sans-serif"><small> The
+main()    function  calling the PegasusCreateProvider API</small></font></td>
+             </tr>
+             <tr>
+               <td><font face="Helvetica, Arial, sans-serif"><small>&lt;Provider.mof&gt;</small></font>
+          </td>
+               <td><font face="Helvetica, Arial, sans-serif"><small> The
+Sample    Class  MOF</small></font></td>
+             </tr>
+             <tr>
+               <td><font face="Helvetica, Arial, sans-serif"><small>&lt;ProviderR.mof&gt;</small></font>
+          </td>
+               <td><font face="Helvetica, Arial, sans-serif"><small> Provider
+  Registration   MOF.</small></font></td>
+             </tr>
+
+  </tbody>
+</table>
+         <small><font face="Helvetica, Arial, sans-serif"><br>
+         The solution consists of test providers and test programs for the
+ following    specific conditions: [some parts of the actual code developed
+ are also provided   with the proposed solution for each of the specific
+scenarios]</font></small>
+<h3><small><font face="Helvetica, Arial, sans-serif">a.) Single Provider implementing
+Multiple Classes<br>
+         </font></small></h3>
+         <small><font face="Helvetica, Arial, sans-serif"
+ color="#000000">This    test  program containing a sample provider is used
+to test the provider  for  loading  multiple classes with various combinations
+of the test client  to  fetch the  classes.</font><font
+ face="Helvetica, Arial, sans-serif"> Various  complex  client loading scenarios
+are introduced in order to achieve this.<br>
+         The following source programs are implemented for this test case:<br>
+         1. TestProvider.mof defines 3 sample classes that implement the
+TestProvider.cpp     source program. <br>
+         2. The registration mof TestProviderR.mof registers the TestProvider
+  in  the  root/SampleProvider namespace.<br>
+         3. TestProvider.cpp is the actual provider module code.<br>
+         4. TestProviderMain.cpp is the main program calling the TestProvider
+  through   PegasusCreateProvider call.<br>
+         5. A client script containing the commands for running CLI with
+the   possible   CIM operations for the classes implemented by the provider.<br>
+         6. Scripts for deleting provider module and restarting the cimserver
+  are   also written for simplifying the test execution.<br>
+         <br>
+         A TestProvider is implemented for handling multiple classes. This
+ provider    also contains the code for testing the exception handling explained
+ in the   solution b) below. This exception handling test is present inside
+ conditional    macros to enable/disable it.</font></small>
+<h3><small><font face="Helvetica, Arial, sans-serif">b) Exception handling
+    by Providers<br>
+         </font></small></h3>
+         <small><font face="Helvetica, Arial, sans-serif"
+ color="#000000">Exception     handling by the cimom when all types of exceptions
+are thrown from within     the provider methods. A sample provider will be
+used to throw exceptions     at different points in the execution of its
+methods (like enumInstances,    enumInstNames  etc.)<br>
+         <br>
+         The provider contains the following code macro for enabling and
+disabling     the exception handling tests in the provider<br>
+         <br>
+         </font><font face="Helvetica, Arial, sans-serif">// The following
+ macro   is  enabled/ disabled by setting TEST_EXCEPTIONS in the Makefile.<br>
+         </font><font face="Helvetica, Arial, sans-serif" size="-1"><small><br>
+         <big><b>TestProvider.cpp</b></big></small></font><big><font
+ face="Helvetica, Arial, sans-serif" size="-1"><big><br>
+         ....<br>
+         </big></font><font face="Helvetica, Arial, sans-serif"
+ size="-1">#ifdef     TEST_EXCEPTIONS<br>
+         #define PEGASUS_EXCEPTION    PEGASUS_CIM_EXCEPTION(CIM_ERR_FAILED,  
+  "TestProvider   Exception")<br>
+         #define CIM_EXCEPTION               CIMException(CIM_ERR_FAILED,
+"Test    Provider")<br>
+         #else<br>
+         #define PEGASUS_EXCEPTION // These can be defined at the compilation
+  time   in the Makefile.<br>
+         #define CIM_EXCEPTION<br>
+         #endif<br>
+         <br>
+         // Update the value of the following macro for enabling/ disabling
+ exceptions.<br>
+         //<br>
+         #define EXCEPTION_TYPE      0<br>
+         <br>
+         #define CheckExceptionType(X)                  {                  
+ \<br>
+                         if (X == 1) throw PEGASUS_EXCEPTION;    \<br>
+                         if (X == 2) throw CIM_EXCEPTION;               \<br>
+                         }<br>
+      <br>
+         </font></big><font face="Helvetica, Arial, sans-serif">The normal
+ working    of the provider is unaffected if the TEST_EXCEPTIONS flag is
+not  set during    the compilation.<br>
+         </font></small>
+<h3><small><font face="Helvetica, Arial, sans-serif">c) Provider load/unload
+    and Timing<br>
+         </font></small></h3>
+         <small><font face="Helvetica, Arial, sans-serif">Written a sample
+ provider    in which multiple sleep points are introduced at various points
+ in the provider   method execution. The sleep durations can be different
+for the different  provider methods.<br>
+         Its an attempt to find out any inconsistencies in the provider load/unload
+    (if any) logic.The ideal test case requires that a provider unloads when
+   another client is invoking enumerate instances for a provider class and
+ vice  versa. It is quite difficult to create this kind of situation with
+this set  of test programs. By running these tests for long hours we might
+hit some  problem.</font></small>
+<ul>
+           <li><small><font face="Helvetica, Arial, sans-serif">The provider
+  (TimingProvider.cpp)   implements the base class TimingSampleClass with
+3  derived classes TimeOne,   TimeTwo, TimeThree.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">The instances
+  of  the  TimeOne and TimeTwo classes are created inside the TimingProvider:initialize
+    method in the provider.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">Scripts are
+ provided    to build, load and execute the provider programs as well running
+ the client    programs and scripts.</font></small></li>
+
+</ul>
+         <small><font face="Helvetica, Arial, sans-serif">The client programs
+  include:<br>
+         </font></small>
+<ul>
+           <li><small><font face="Helvetica, Arial, sans-serif">Makefile.Client
+   -  A separate Makefile to execute the client program.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">TimingClient.cpp
+   -  This program tests the TimingProvider implemented by running multiple
+  threads  performing different CIM operations.</font> <font
+ face="Helvetica, Arial, sans-serif">main() forks and child calls EnumerateInstances
+    for one class. The parent make calls to EnumerateInstances and EnumerateClass.
+    Long sleeps are inserted between the calls to enumerateinstances and enumerateClasses.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">Client script
+  -  This  script contains the combination of TimingClient and CLI client
+programs   with  random sleeps inserted between them.CLI is used to enumerate
+instances/   instancenames  and enumerate classes for the root/SampleProvider
+namespace   created by the  test provider.</font></small></li>
+
+</ul>
+         <font size="-1"><font face="Helvetica, Arial, sans-serif">From <b>TimingClient.cpp</b><br>
+         .....<br>
+         int main(int argc, char** argv)<br>
+         {<br>
+             pid_t pid;<br>
+             try<br>
+             {<br>
+                 CIMClient client;<br>
+         <br>
+                 client.connect("localhost", 5988, "", "");<br>
+         <br>
+                 if ((pid = fork()) &lt; 0)<br>
+                 {<br>
+                         cout &lt;&lt; "Fork Error\n" &lt;&lt; endl;<br>
+                         exit(0);<br>
+                 }<br>
+                 else if (pid == 0)<br>
+                 {   // child<br>
+                     sleep(10);<br>
+                     EnumerateInstancesTiming(client, CLASSONE);<br>
+                     _exit(0);<br>
+                 }<br>
+                 // parent<br>
+                 sleep(10);<br>
+                 EnumerateInstancesTiming(client, CLASSTWO);<br>
+                 sleep(5);<br>
+                 EnumerateClassesTiming(client, "TimingSampleClass");<br>
+             }<br>
+             catch(Exception&amp; e)<br>
+             {<br>
+                 PEGASUS_STD(cerr) &lt;&lt; "Error: " &lt;&lt; e.getMessage()
+  &lt;&lt;<br>
+                     PEGASUS_STD(endl);<br>
+                 exit(1);<br>
+             }<br>
+         }<br>
+         </font></font>
+<h3><small><font face="Helvetica, Arial, sans-serif">d) Resource sharing,
+    multithreading and Inheritance in provider methods.<br>
+         </font></small></h3>
+         <small><font face="Helvetica, Arial, sans-serif">Doing a fork()
+from   inside   the provider methods and examining the file descriptors inherited
+  by the  sub-processes. To handle Linux threading cleanly, the sample provider
+  thread  spawn a reaper thread whose sole purpose is to wait for the subprocess
+  to  terminate.<br>
+         <br>
+         The implementation is done by creating a sample provider in the
+following     manner:</font></small>
+<ol>
+           <li><small><font face="Helvetica, Arial, sans-serif">MultithreadingSampleProviderMain.cpp
+    is the source file which contains the provider entry point routine.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">MultithreadingSampleProvider.cpp
+    [h] are the main provider sources that implement the MultithreadingSampleClass.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">The Base
+class    has  3 derived classes called ThreadSampleOne, ThreadSampleTwo and
+ThreadSampleThree.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">ThreadSampleOne
+   class  instances are created inside the enumerateInstances method of the
+  provider.  After the instances creation this method calls explicitly the
+ CreateThread  function, which spawns a new sub-process and executes the command
+ line cim  client CLI.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">The additional
+   functions  added in the provider source program other than the standard
+ provider  methods  are:</font></small></li>
+
+  <ol>
+             <li><small><font face="Helvetica, Arial, sans-serif">CreateThread()
+   -  Function creating the sub-process (by using fork())</font></small></li>
+             <li><small><font face="Helvetica, Arial, sans-serif">reader()
+ -  child   process reads from the input stream</font></small></li>
+             <li><small><font face="Helvetica, Arial, sans-serif">writer()
+ -  Parent   process writing to the output stream<br>
+               </font></small></li>
+
+  </ol>
+           <li><small><font face="Helvetica, Arial, sans-serif">The parent
+ process    after writing to the output stream sleeps in the function writer()
+ which   makes the CLI command give a timeout error.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">Scripts are
+ created    for building the source and repository and for registering  the
+ provider.</font></small></li>
+
+</ol>
+         <font face="Helvetica, Arial, sans-serif"><small>From <b>MultithreadingSampleProvider.cpp
+    </b>[ CreateThreads() function is illustrated below]:<br>
+         </small></font><small><font face="Helvetica, Arial, sans-serif">....<br>
+         <br>
+       <font size="-1">  int CreateThreads()<br>
+         {<br>
+             char* arg_list[] = {<br>
+                     "CLI",<br>
+                     "niall",<br>
+                     "-n",<br>
+                     "root/SampleProvider",<br>
+                     NULL<br>
+             };<br>
+             int fds[2];<br>
+             pid_t cpid;<br>
+       <br>
+             pipe(fds);<br>
+       <br>
+             cpid = fork();<br>
+             if (cpid == (pid_t)0)<br>
+             {<br>
+                 FILE* stream;<br>
+                 // This is the child process. Close our copy of the write
+ end<br>
+                 // of the file descriptor.<br>
+                 close(fds[1]);<br>
+                 // Connect the read end of the pipe to standard input.<br>
+                 dup2(fds[0], STDIN_FILENO);<br>
+                 // Convert the read file descriptor to a FILE object, and
+ read   from  it<br>
+                 stream = fdopen(fds[0],"r" );<br>
+                 reader(stream);<br>
+                 close(fds[0]);<br>
+                 // Replace the child process with the CLI program<br>
+                 execvp ("CLI", arg_list);<br>
+             }<br>
+             else<br>
+             {<br>
+                 FILE* stream;<br>
+                 // Close our copy of the read end of the file descriptor.<br>
+                 close (fds[0]);<br>
+                 // Convert the write file descriptor to a FILE object,and
+ write    to it.<br>
+                 stream = fdopen(fds[1],"w" );<br>
+       <br>
+                 writer("Test Writer from Parent process\n", 2, stream);<br>
+       </font>        </font><font face="Helvetica, Arial, sans-serif"
+ size="-1">        close (fds[1]);<br>
+                 // Wait for child process to finish<br>
+                 waitpid(cpid, NULL, 0);</font></small><font size="-1"><br>
+           </font><small><font face="Helvetica, Arial, sans-serif"><font
+ size="-1">  }<br>
+             return 0;<br>
+         }<br>
+         ....<br>
+         ....</font><br>
+         </font></small>
+<h3><small><font face="Helvetica, Arial, sans-serif">e) CIMOMHandle and OperationContext</font></small></h3>
+         <small><font face="Helvetica, Arial, sans-serif">A sample provider
+ exercising    the CIMOMHandle that sets the UserIdentity into OperationContext.
+ The provider    method modifies the user identity in the OperationContext
+ to check the cimom   behavior.<br>
+         <br>
+         The CIMOMSample provider modifies the user identity in its methods.
+  Then   a client is executed with different combinations of the user/ password
+  information   for checking provider behavior.<br>
+         <br>
+         Client scripts are written for <br>
+             1) Adding users to be authorised for accessing a particular
+namespace     [using "cimauth"]  <br>
+             2) Trying to access the namespace with valid/invalid user/passwd
+  information   ["cimuser" is used to verify the users present]<br>
+         <br>
+         </font></small>
+<h3><small><font face="Helvetica, Arial, sans-serif">f) XML Parser/ Generator
+    verification for Malformed property strings<br>
+         </font></small></h3>
+         <small><font face="Helvetica, Arial, sans-serif">Checking the XML
+ parser    and generator programs when malformed strings are passed through
+ the providers.    The malformed property strings can be anything from trailing
+ NULs to any   special characters and angle brackets. A sample provider is
+ written which   introduces bad strings while creating the instances of the
+ sample class.  These property strings are verified from inside the provider
+ methods to verify  if the provider receives the proper XML encoded string
+ and not any junk characters.<br>
+         <br>
+         The test provider is written for testing the following 3 cases regarding
+    data handling:</font></small><small><font
+ face="Helvetica, Arial, sans-serif"><br>
+         </font></small>
+<ul>
+           <li><small><font face="Helvetica, Arial, sans-serif">Trailing
+nul,   did   you verify that the provider actually saw the nul character
+rather  than the  URL escape sequence?  For example, the provider should
+see {'a',  ..., \0'},  not {'a', ..., '\\', '0', '0', '0'}.</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">Trailing
+angle    brackets  '&lt;', '&gt;'</font></small></li>
+           <li><small><font face="Helvetica, Arial, sans-serif">Trailing
+spaces    and  special characters.</font></small></li>
+
+</ul>
+
+<h3><small><font face="Helvetica, Arial, sans-serif">g) Large Data Handling
+    by the provider<br>
+         </font></small></h3>
+         <small><font face="Helvetica, Arial, sans-serif">A sample provider
+ implementing    a class with large number of instances. The number of instances
+ can be controlled   through a compilation time configuration variable. Changing
+ the number of   instances the provider can be tested for large data handling.<br>
+         <br>
+         There is a const macro NO_OF_INSTANCES which decides the number
+of  instances    to be created. This can be modified for testing huge amount
+of data in 2  places. Either in the source file LargeDataProvider.cpp Or in
+the Makefile   by defining the NO_OF_INSTANCES locally (LOCAL_DEFINES=-DNO_OF_INSTANCES=&lt;number&gt;).
+    If it is defined inside the Makefile, the value present in the cpp source
+    is overwritten.<br>
+         </font><font face="Helvetica, Arial, sans-serif" size="-1"><small><br>
+      </small></font></small><font face="Helvetica, Arial, sans-serif"
+ size="-1">   from <b>LargeDataProvider.cpp<br>
+         </b>......<b><br>
+         </b>#ifndef NO_OF_INSTANCES<br>
+             #define NO_OF_INSTANCES 100<br>
+         #endif<br>
+         </font><font face="Helvetica, Arial, sans-serif" size="-1">......</font><font
+ face="Helvetica, Arial, sans-serif" size="-1"><br>
+         <br>
+         </font><font face="Helvetica, Arial, sans-serif" size="-1">from
+<b>Makefile</b></font><font face="Helvetica, Arial, sans-serif"
+ size="-1"><br>
+         </font><font face="Helvetica, Arial, sans-serif" size="-1">NO_OF_INSTANCES
+    = 100 # The number of instances can be changed here<br>
+         </font><font face="Helvetica, Arial, sans-serif" size="-1">......</font><font
+ face="Helvetica, Arial, sans-serif" size="-1"><br>
+      <br>
+         </font><small><font face="Helvetica, Arial, sans-serif">   The creation
+   of Instances is done when the enumerateInstances method of the  provider
+  is called.If a client requests for enumerateInstanceNames it will  fail
+if  enumerateInstances wouldn't have been executed. </font></small>
+
+<h3> </h3>
+
+<h3><small><font face="Helvetica, Arial, sans-serif">f) Load MOFs</font></small></h3>
+         <small><font face="Helvetica, Arial, sans-serif">The MOF files for
+ all   the  sample providers developed above are present in a common directory
+ LoadMOF/.   The directory structure is taken from the $PEGASUS_HOME/src/Providers/sample
+   directory  inside the pegasus source tree. Makefile in LoadMOF is responsible
+   for compiling  all the classes and registering the sample providers. Unregistering
+   of providers  is also supported by introducing a "unregister" target in
+ the  LoadMOF/Makefile.  This unregister and deletes the provider loaded by
+ it.  <br>
+       The user has to run  "make repository" again in order to compile the
+ provider   classes and to re-register  the provider.</font></small>
+
+<h2><small><font face="Helvetica, Arial, sans-serif" color="#000000">Rationale</font></small></h2>
+        <small><font face="Helvetica, Arial, sans-serif"> Improved test coverage
+    for Pegasus</font></small><br>
+
+<h2><small><font face="Helvetica, Arial, sans-serif" color="#000000">Schedule</font></small></h2>
+
+<p><small><font face="Helvetica, Arial, sans-serif">The goal is to get this
+    functionality in 2.3.2 or very early in the 2.4 main branch. [The first
+  code  drop for the test programs mentioned in this PEP is available now
+and  can  be committed anytime].<br>
+        </font></small></p>
+
+<table cellpadding="2" cellspacing="2" border="1"
+ style="text-align: left; width: 100%;">
+           <tbody>
+             <tr>
+               <td style="vertical-align: top;" bgcolor="#cccccc"><font
+ face="Helvetica, Arial, sans-serif"><small>action<br>
+               </small></font></td>
+               <td style="vertical-align: top;" bgcolor="#cccccc"><font
+ face="Helvetica, Arial, sans-serif"><small>planned<br>
+               </small></font></td>
+               <td style="vertical-align: top;" bgcolor="#cccccc"><font
+ face="Helvetica, Arial, sans-serif"><small>actual<br>
+               </small></font></td>
+               <td style="vertical-align: top;" bgcolor="#cccccc"><font
+ face="Helvetica, Arial, sans-serif"><small>comment<br>
+               </small></font></td>
+             </tr>
+              <tr>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>PEP submitted<br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>12/24/2003<br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>12/24/2003<br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small><br>
+               </small></font></td>
+             </tr>
+             <tr>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>PEP reviewed<br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>02/03/2004</small></font></td>
+       <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>02/03/2004<br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small><br>
+               </small></font></td>
+             </tr>
+             <tr>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>PEP approved<br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>02/03/2004<br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>02/03/2004<br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small><br>
+               </small></font></td>
+             </tr>
+             <tr>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>Code committed<br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small><br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small><br>
+               </small></font></td>
+               <td style="vertical-align: top;"><font
+ face="Helvetica, Arial, sans-serif"><small>The changes can be committed in
+a day after the PEP is approved.<br>
+               </small></font></td>
+             </tr>
+
+  </tbody>
+</table>
+
+<h2><small><font face="Helvetica, Arial, sans-serif" color="#000000">Discussion</font></small></h2>
+<small><font face="Helvetica, Arial, sans-serif">The PEP was not balloted,
+as per the agreement of the Pegasus Architecture team.</font></small>
+
+<p><small><font face="Helvetica, Arial, sans-serif" color="#0000ff"></font></small></p>
+
+<hr><br>
+<br>
+
+<p><small><font face="Helvetica, Arial, sans-serif"><i><font size="2"><small>Copyright
+    (c) 2003 BMC Software; Hewlett-Packard Development Company, L.P.; IBM
+Corp.;   The Open Group</small></font><br>
+         <br>
+         <font size="1"><small>Permission is hereby granted, free of charge,
+  to  any person obtaining a copy  of this software and associated documentation
+   files (the "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish, distribute,
+   sublicense, and/or sell copies of the Software, and to permit persons to
+  whom the Software is furnished to do so, subject to the following conditions:</small></font><br>
+         <font size="2"><small><br>
+         </small></font> <font size="1"><small>THE ABOVE COPYRIGHT NOTICE
+AND   THIS   PERMISSION NOTICE SHALL BE INCLUDED IN ALL COPIES OR SUBSTANTIAL
+PORTIONS    OF THE SOFTWARE. THE SOFTWARE IS PROVIDED  "AS IS", WITHOUT WARRANTY
+OF  ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.</small></font></i></font></small></p>
+
+<p><small><font face="Helvetica, Arial, sans-serif"> </font></small></p>
+         <small><font face="Helvetica, Arial, sans-serif"><br>
+         <br>
+         <br>
+         </font></small> <br>
+        <br>
+       <br>
+      <br>
+     <br>
+    <br>
+   <br>
+  <br>
+ <br>
+</body>
+</html>

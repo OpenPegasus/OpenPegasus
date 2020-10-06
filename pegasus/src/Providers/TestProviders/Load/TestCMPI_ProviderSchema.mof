@@ -1,0 +1,221 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+Qualifier EmbeddedInstance : string,
+    Scope(property, method, parameter),
+    Flavor(DisableOverride);
+
+[Indication]
+class TestCMPI_Indication
+{
+    string PropertyA;
+    string PropertyB;
+
+    string s;
+    char16 c;
+    uint64 n64;
+    uint32 n32;
+    uint16 n16;
+    uint8  n8;
+    real64 r64;
+    real32 r32;
+    datetime d;
+    sint64 s64;
+    sint32 s32;
+    sint16 s16;
+    sint8  s8;
+    boolean b;
+};
+
+class TestCMPI_Parent
+{
+    string parentProperty;
+    uint32 Property1;
+};
+
+class TestCMPI_Instance : TestCMPI_Parent
+{
+    [key]
+    string ElementName;
+
+    string s;
+    char16 c;
+    uint64 n64;
+    uint32 n32;
+    uint16 n16;
+    real64 r64;
+    real32 r32;
+    datetime d;
+    sint64 s64;
+    sint32 s32;
+    sint16 s16;
+    boolean b;
+
+    string childProperty;
+};
+
+class TestCMPI_ExecQuery : TestCMPI_Instance
+{
+    uint8  n8;
+    sint8  s8;
+};
+
+class TestCMPI_Embedded
+{
+    [key]
+    uint32 id;
+    [EmbeddedInstance("TestCMPI_Parent")]
+    string emInstance;
+    [EmbeddedObject]
+    string emObject;
+};
+
+class TestCMPI_Method : TestCMPI_Parent
+{
+	uint32 TestCMPIBroker (
+	 [IN, Description (
+		"The requested are to test different CMPI data structure operations."),
+		ValueMap { "1", "2", "3", "4", "5", "6"},
+		Values {"CDGetType", "CDToString", "CDIsOfType", "CMGetMessage",  "CMLogMessage","CDTraceMessage"}]
+			uint32 Operation,
+	  [OUT, Description (
+		" The result of what the operation carried out.")]
+			string Result);
+
+	String returnString();
+	Uint32 returnUint32();
+	[EmbeddedObject]
+    string returnInstance();
+	[EmbeddedInstance("TestCMPI_Parent")]
+    string processEmbeddedInstance(
+         [IN, EmbeddedInstance("TestCMPI_Parent")]
+       string inputInstance,
+         [OUT, EmbeddedInstance("TestCMPI_Parent")]
+       string outputInstance);
+	datetime returnDateTime();
+    Uint32 testArrayTypes();
+    Uint32 testErrorPaths();
+    Uint32 testSimpleTypes();
+    Uint32 testArrayClone();
+    Uint32 testReturn();
+
+        [EmbeddedInstance("TestCMPI_Parent")]
+    string processArrayEmbeddedInstance(
+        [IN, EmbeddedInstance("TestCMPI_Parent")]
+        string inputInstances[],
+        [OUT, EmbeddedInstance("TestCMPI_Parent")]
+        string outputInstances[],
+        [OUT, EmbeddedObject]
+        string outputObjects[],
+        [OUT, EmbeddedObject]
+        string outputEmbeddedObjects[]);
+
+
+    uint64 firstPropertyName;
+    uint64 secondPropertyName;
+};
+
+class TestCMPI_Enumeration : TestCMPI_Parent
+{
+    Uint32 testEnumeration();
+};
+
+class TestCMPI_BrokerEnc : TestCMPI_Parent
+{
+    Uint32 testBrokerEnc();
+};
+
+class TestCMPIInstance_Method : TestCMPI_Parent
+{
+    Uint32 testInstance();
+};
+
+class TestCMPI_BrokerInstance : TestCMPI_Instance
+{
+};
+
+class TestCMPI_Broker : TestCMPI_Parent
+{
+    Uint32 testBrokerServices();
+};
+
+class TestCMPI_Fail_1: TestCMPI_Parent
+{
+};
+
+class TestCMPI_Fail_2: TestCMPI_Parent
+{
+};
+class TestCMPI_Fail_3: TestCMPI_Parent
+{
+};
+
+class TestCMPI_Fail_4: TestCMPI_Parent
+{
+  string Name;
+};
+
+class TestCMPI_Thread: TestCMPI_Parent
+{
+};
+
+class TestCMPI_Error : TestCMPI_Parent
+{
+	uint32 TestCMPIError (
+	  [OUT, Description (
+		" The result of what the operation carried out.")]
+			string Result);
+};
+
+
+// Class for IndicationStressTest Provider
+class TestCMPI_IndicationStressTestClass : CIM_Indication
+{
+  uint64 IndicationSequenceNumber;
+  [Static]
+  uint32 SendTestIndicationNormal(uint32 indicationSendCount);
+  [Static]
+  uint32 getSubscriptionCount();
+};
+
+class TestCMPI_IndicationStressTestSubClass : TestCMPI_IndicationStressTestClass
+{
+};
+
+class TestCMPI_KeyReturned
+{
+    [key]
+    string Name;
+
+    [key]
+    uint32 Number;
+    
+    [key]
+    boolean Flag;
+};

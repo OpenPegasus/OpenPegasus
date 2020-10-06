@@ -1,0 +1,2419 @@
+// The following classes definitions were based on the DMTF 
+// CIM_Core25.MOF. However, this file is used to trigger
+// various test senarios and therefore may be modified in
+// ways that are not consistent with the DMTF definition.
+// For this reason, all CIM_ class names have been changed
+// to WET_ (WbemExec Test) to avoid any confusion.
+
+
+// ==================================================================
+// Qualifiers
+// ==================================================================
+Qualifier Abstract : boolean = false, Scope(class, association, 
+    indication), Flavor(DisableOverride, Restricted);
+Qualifier Aggregate: boolean = false, Scope (reference),
+    Flavor(DisableOverride);
+Qualifier Aggregation : boolean = false, Scope(association),
+    Flavor(DisableOverride);
+Qualifier Alias : string = null, Scope(property, reference, 
+    method), Flavor(Translatable);
+Qualifier ArrayType : string = "Bag", Scope(property, parameter);
+Qualifier Association : boolean = false, Scope(class, association), 
+      Flavor(DisableOverride);
+Qualifier BitMap : string[], Scope(property, method, parameter);
+Qualifier BitValues : string[], Scope(property, method,
+    parameter), Flavor(Translatable);
+Qualifier Counter : boolean = false, Scope(property, method, 
+    parameter);
+Qualifier Delete : boolean = false, Scope(association, reference);
+Qualifier Deprecated : string [], Scope(class, association, property, method);
+Qualifier Description : string = null, Scope(any), 
+    Flavor(Translatable);
+Qualifier DisplayName : string = null, Scope(any),
+    Flavor(Translatable);
+Qualifier DN : boolean=false, 
+    Scope(property, parameter), Flavor(DisableOverride); 
+Qualifier EmbeddedObject : boolean = false, Scope(property);
+Qualifier Expensive : boolean = false, 
+    Scope(property, reference, method, class, association);
+Qualifier Experimental : boolean = false, 
+    Scope(any), Flavor (DisableOverride); 
+Qualifier Gauge : boolean = false, Scope(property, method, 
+    parameter);
+Qualifier Ifdeleted : boolean = false, Scope(association, 
+    reference);
+Qualifier In : boolean = true, Scope(parameter),
+    Flavor(DisableOverride);
+Qualifier Indication : boolean = false, Scope(class, indication), 
+    Flavor(DisableOverride);
+Qualifier Invisible : boolean = false,
+    Scope(reference, association, class, property, method);
+Qualifier Key : boolean = false, Scope(property, reference), 
+    Flavor(DisableOverride);
+Qualifier Large : boolean = false, Scope(property, class);
+Qualifier MappingStrings : string[],
+    Scope(class, property, association, indication, reference);
+Qualifier Max : uint32 = null, Scope(reference);
+Qualifier MaxLen : uint32 = null, Scope(property, method, 
+    parameter);
+Qualifier MaxValue : sint64 = null, Scope(property, method,
+    parameter);
+Qualifier Min : uint32 = 0, Scope(reference);
+Qualifier MinValue : sint64 = null, Scope(property, method,
+    parameter);
+Qualifier ModelCorrespondence : string[], Scope(property);
+Qualifier Nonlocal : string = null, Scope(reference);
+Qualifier NonlocalType : string = null, Scope(reference);
+Qualifier NullValue : string = null, Scope (property),
+      Flavor(DisableOverride);
+Qualifier Octetstring : boolean = false, Scope(property, parameter);
+Qualifier Out : boolean = false, Scope(parameter),
+    Flavor(DisableOverride);
+Qualifier Override : string = null, Scope(property, method, 
+    reference), Flavor(DisableOverride);
+Qualifier Propagated : string = null, Scope(property),
+    Flavor(DisableOverride);
+Qualifier PropertyUsage : string = "CurrentContext", Scope(property) ; 
+Qualifier Provider : string = null, Scope(any);
+Qualifier Read : boolean = true, Scope(property);
+Qualifier Required : boolean = false, Scope(property);
+Qualifier Revision : string = ".5", Scope(class, 
+    association, indication ), Flavor(Translatable);
+Qualifier Schema : string = null, Scope (property, method), 
+    Flavor(DisableOverride, Translatable);
+Qualifier Source : string = null, Scope(class, association, 
+    indication);
+Qualifier SourceType : string = null, Scope(class, association, 
+      indication, reference);
+Qualifier Static : boolean = false, Scope(method, property),
+    Flavor(DisableOverride);
+Qualifier Syntax : string = null, Scope(property, reference,
+    method, parameter);
+Qualifier SyntaxType : string = null, Scope(property, reference,
+    method, parameter);
+Qualifier Terminal : boolean = FALSE, Scope(class);
+Qualifier TriggerType : string = null,
+    Scope(class, property, reference, method, association, 
+    indication);
+Qualifier Units : string = null, Scope(property, method,  
+    parameter), Flavor(Translatable);
+Qualifier UnknownValues : string[], Scope(property),
+    Flavor(DisableOverride);
+Qualifier UnsupportedValues : string[], Scope(property),
+    Flavor(DisableOverride);
+Qualifier ValueMap : string[], Scope(property, method, parameter);
+Qualifier Values : string[], Scope(property, method, parameter), 
+    Flavor(Translatable);
+Qualifier Version : string = "V2.5", Scope(class, 
+    association, indication), Flavor(Translatable);
+Qualifier Weak : boolean = false, Scope(reference), 
+      Flavor(DisableOverride, ToSubclass);
+Qualifier Write : boolean = false, Scope(property);
+
+// ==================================================================
+//
+//  Elements and Collections
+//
+// ==================================================================
+// ==================================================================
+// ManagedElement
+// ================================================================== 
+   [Abstract, Description (
+     "ManagedElement is an abstract class that provides a common "  
+     "superclass (or top of the inheritance tree) for the "
+     "non-association classes in the CIM Schema.")]
+class WET_ManagedElement {  
+      [MaxLen (64), Description (  
+        "The Caption property is a short textual description (one-"    
+        "line string) of the object.") ]   
+   string Caption;  
+      [Description (  
+        "The Description property provides a textual description of "
+        "the object.") ]   
+   string Description;    
+};
+     
+
+// ================================================================== 
+//    ManagedSystemElement
+// ==================================================================
+   [Abstract, Description (
+     "WET_ManagedSystemElement is the base class for the System "
+     "Element hierarchy. Membership Criteria: Any distinguishable "
+     "component of a System is a candidate for inclusion in this "
+     "class. Examples: software components, such as files; and "
+     "devices, such as disk drives and controllers, and physical "
+     "components such as chips and cards.") ] 
+class WET_ManagedSystemElement : WET_ManagedElement {
+      [Description (
+        "A datetime value indicating when the object was installed. "
+        "A lack of a value does not indicate that the object is not "
+        "installed."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.5"} ] 
+   datetime InstallDate;
+      [MaxLen (256), Description (
+        "The Name property defines the label by which the object is "
+        "known. When subclassed, the Name property can be overridden "
+        "to be a Key property.") ] 
+   string Name;
+      [MaxLen (10), Description ( 
+        "  A string indicating the current status of the object. " 
+        "Various operational and non-operational statuses are " 
+        "defined. Operational statuses are \"OK\", \"Degraded\", " 
+        "\"Stressed\" and \"Pred Fail\". \"Stressed\" indicates that " 
+        "the Element is functioning, but needs attention. Examples " 
+        "of \"Stressed\" states are overload, overheated, etc. The " 
+        "condition \"Pred Fail\" (failure predicted) indicates that " 
+        "an Element is functioning properly but predicting a failure " 
+        "in the near future. An example is a SMART-enabled hard " 
+        "drive. \n" 
+        "  Non-operational statuses can also be specified. These " 
+        "are \"Error\", \"NonRecover\", \"Starting\", \"Stopping\", " 
+        " \"Stopped\", " 
+        "\"Service\", \"No Contact\" and \"Lost Comm\". \"NonRecover\" " 
+        "indicates that a non-recoverable error has occurred. " 
+        "\"Service\" describes an Element being configured, maintained, " 
+        "cleaned, or otherwise administered. This status could apply " 
+        "during mirror-resilvering of a disk, reload of a user " 
+        "permissions list, or other administrative task. Not all such " 
+        "work is on-line, yet the Element is neither \"OK\" nor in " 
+        "one of the other states. \"No Contact\" indicates that the " 
+        "current instance of the monitoring system has knowledge of " 
+        "this Element but has never been able to establish " 
+        "communications with it. \"Lost Comm\" indicates that " 
+        "the ManagedSystemElement is known to exist and has been " 
+        "contacted successfully in the past, but is currently unreachable." 
+        "\"Stopped\" indicates that the ManagedSystemElement is known " 
+        "to exist, it is not operational (i.e. it is unable to " 
+        "provide service to users), but it has not failed. It has purposely " 
+        "been made non-operational. The Element " 
+        "may have never been \"OK\", the Element may have initiated its " 
+        "own stop, or a management system may have initiated the stop."), 
+       ValueMap {"OK", "Error", "Degraded", "Unknown", "Pred Fail", 
+                 "Starting", "Stopping", "Service", "Stressed", 
+                 "NonRecover", "No Contact", "Lost Comm", "Stopped"} ] 
+   string Status; 
+};
+
+
+// ==================================================================
+// Collection 
+// ================================================================== 
+   [Abstract, Description (   
+     "Collection is an abstract class that provides a common"   
+     "superclass for data elements that represent collections of "
+     "ManagedElements and its subclasses.")]
+class WET_Collection : WET_ManagedElement {   
+};
+
+
+// ===================================================================
+//    CollectionOfMSEs
+// ===================================================================
+   [Abstract, Description (
+     "The CollectionOfMSEs object allows the grouping of Managed"
+     "SystemElements for various identification purposesand to "
+     "reduce the complexity of associating Settings and"
+     "Configurations. It is abstract to require furtherdefinition "
+     "and semantic refinement in subclasses. TheCollectionOfMSEs "
+     "object does not carry any state or statusinformation, but "
+     "only represents a grouping or 'bag' of Elements. Forthis "
+     "reason, it is incorrect to subclass groups that havestate/"
+     "status from CollectionOfMSEs - an example isWET_Redundancy"
+     "Group (which is correctly subclassed fromLogicalElement).\n"
+     "Collections typically aggregate 'like'objects, but are " 
+     "not required to do so.  They simply identify 'bags' and "
+     "may represent an optimization. This is especiallytrue "
+     "with respect to their association to Settings and"
+     "Configurations. Without Collections, one is forcedto "
+     "define individual ElementSetting andElementConfiguration "
+     "associations, to tie Settings and Configurationobjects to "
+     "individual ManagedSystemElements. There may be much"
+     "duplication in assigning the same Setting tomultiple objects. "
+     "In addition, using the Collection object allows the"
+     "determination that the Setting and Configurationassociations "
+     "are indeed the same for the Collection's members.This "
+     "information would otherwise be obtained by definingthe "
+     "Collection in a proprietary manner, and thenquerying "
+     "the ElementSetting and ElementConfigurationassociations to "
+     "determine ifthe Collection set is completely covered.") ]
+class WET_CollectionOfMSEs : WET_Collection {
+      [MaxLen (256), Description (
+        "The identification of the Collection object. When subclassed, "
+        "the CollectionID property can be overridden to be a Key "
+        "property.") ]
+   string CollectionID;
+};
+
+
+// ==================================================================
+//    CollectedCollections
+// ==================================================================
+   [Association, Aggregation, Description (
+     "WET_CollectedCollections is an aggregation association "
+     "representing that a CollectionOfMSEs may itself be contained "
+     "in a CollectionOfMSEs.") ]
+class WET_CollectedCollections {
+      [Aggregate, Key, Description (
+        "The 'higher level' or parent element in the aggregation.") ]
+   WET_CollectionOfMSEs REF Collection;
+      [Key, Description ("The 'collected' Collection.") ]
+   WET_CollectionOfMSEs REF CollectionInCollection;
+};
+
+     
+// ================================================================= 
+//    PhysicalElement
+// ==================================================================
+   [Abstract, Description (
+     "Subclasses of WET_PhysicalElement define any component of a " 
+     "System that has a distinct physical identity. Instances of "
+     "this class can be defined in terms of labels that can be "
+     "physically attached to the object. All Processes, Files, "
+     "and LogicalDevices are considered not to be Physical"
+     "Elements. For example, it is not possible to attach a "
+     "label to a modem. It is only possible to attach a label to "
+     "the card that implements the modem. The same card could "
+     "also implement a LAN  adapter. These are tangible Managed "
+     "System Elements (usually actual hardware items) that have a "
+     "physical manifestation of some sort. A Managed System "
+     "Element is not necessarily a discrete component. For "
+     "example, it is possible for a single Card (which is a type "
+     "of Physical Element) to host more than one Logical Device. "
+     "The card would be represented by a single Physical Element "
+     "associated with multiple Logical Devices.") ] 
+class WET_PhysicalElement : WET_ManagedSystemElement {
+      [Key, MaxLen (256), Description (
+        "An arbitrary string that uniquely identifies the Physical"
+        "Element and serves as the Element's key.  The Tag property "
+        "can contain information such as asset tag or serial number "
+        "data. The key for PhysicalElement is placed very high in the "
+        "object hierarchy in order to independently identify the "
+        "hardware/entity, regardless of physical placement in or on "
+        "Cabinets, Adapters, etc.  For example, a hotswappable or "
+        "removeable component may be taken from its containing "
+        "(scoping) Package and be temporarily unused.  The object "
+        "still continues to exist - and may even be inserted into a "
+        "different scoping container.  Therefore, the key for Physical"
+        "Element is an arbitrary string and is defined independently "
+        "of any placement or location-oriented hierarchy.") ]
+   string Tag;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [MaxLen (256), Description (
+        "The name of the organization responsible for producing the "
+        "PhysicalElement. This may be the entity from whom the Element "
+        "is purchased, but this is not necessarily true. The latter "
+        "information is contained in the Vendor property of "
+        "WET_Product.") ] 
+   string Manufacturer;
+      [MaxLen (64), Description (
+        "The name by which the PhysicalElement is generally known.") ] 
+   string Model;
+      [MaxLen (64), Description (
+        "The stock keeping unit number for this PhysicalElement.") ] 
+   string SKU;
+      [MaxLen (64), Description (
+        "A manufacturer-allocated number used to identify the Physical"
+        "Element.") ] 
+   string SerialNumber;
+      [MaxLen (64), Description (
+        "A string indicating the version of the PhysicalElement.") ] 
+   string Version;
+      [MaxLen (256), Description (
+        "The part number assigned by the organization responsible for "
+        "producing or manufacturing the PhysicalElement.") ]
+   string PartNumber;
+      [Description (
+        "OtherIdentifyingInfo captures additional data, beyond that of " 
+        "Tag information, that could be used to identify a Physical" 
+        "Element. One example is bar code data associated with an " 
+        "Element that also has an asset tag. Note that if only bar " 
+        "code data is available and is unique/able to be used as an " 
+        "Element key, this property would be NULL and the bar code " 
+        "data used as the class key, in the Tag property.") ] 
+   string OtherIdentifyingInfo;
+      [Description (
+        "Boolean indicating that the PhysicalElement is powered on "
+        "(TRUE), or is currently off (FALSE).") ]
+   boolean PoweredOn;
+      [Description (
+        "Date that this PhysicalElement was manufactured.") ]
+   datetime ManufactureDate;
+};
+
+     
+// ==================================================================
+//    LogicalElement
+// ==================================================================
+   [Abstract, Description (
+     "WET_LogicalElement is a base class for all the components of "
+     "a System that represent abstract system components, such "
+     "as Files, Processes, or system capabilities in the form "
+     "of Logical Devices.") ] 
+class WET_LogicalElement : WET_ManagedSystemElement {
+};
+
+     
+// ==================================================================
+//    LogicalIdentity
+// ==================================================================
+   [Association, Abstract, Description (
+     "WET_LogicalIdentity is an abstract and generic association, "
+     "indicating that two LogicalElements represent different "
+     "aspects of the same underlying entity. This relationship "
+     "conveys what could be defined with multiple inheritance. It "
+     "is restricted to the 'logical' aspects of a ManagedSystem"
+     "Element. In most scenarios, the Identity relationship is "
+     "determined by the equivalence of Keys or some other "
+     "identifying properties of the related Elements. The "
+     "association should only be used in well understood scenarios. "
+     "This is why the association is abstract - allowing more "
+     "concrete definition and clarification in subclasses. One of "
+     "the scenarios where this relationship is reasonable is to "
+     "represent that a Device is both a 'bus' entity and a "
+     "'functional' entity. For example, a Device could be both a "
+     "USB (bus) and a Keyboard (functional) entity.") ]
+class WET_LogicalIdentity {
+      [Key, Description (
+        "SystemElement represents one aspect of the Logical"
+        "Element.") ]
+   WET_LogicalElement ref SystemElement;
+      [Key, Description (
+        "SameElement represents an alternate aspect of the "
+        "System entity.") ]
+   WET_LogicalElement ref SameElement;
+};
+
+
+// ==================================================================
+//    System
+// ==================================================================
+   [Abstract, Description (
+     "A WET_System is a LogicalElement that aggregates an "
+     "enumerable set of Managed System Elements. The aggregation "
+     "operates as a functional whole. Within any particular "
+     "subclass of System, there is a well-defined list of "
+     "Managed System Element classes whose instances must be "
+     "aggregated.") ] 
+class WET_System : WET_LogicalElement {
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen (256), Override ("Name"), Description (
+        "The inherited Name serves as key of a System instance in " 
+        "an enterprise environment.") ] 
+   string Name;
+      [MaxLen (64), Description (
+        "The System object and its derivatives are Top Level Objects "
+        "of CIM. They provide the scope for numerous components. " 
+        "Having unique System keys is required. A heuristic can be "
+        "defined in individual System subclasses to attempt to always "
+        "generate the same System Name Key. The NameFormat property "
+        "identifies how the System name was generated, using "
+        "the subclass' heuristic.") ] 
+   string NameFormat;
+      [MaxLen (64), Description (
+        "The name of the primary system owner."),
+       MappingStrings {"MIF.DMTF|General Information|001.4"} ]  
+   string PrimaryOwnerName;
+      [MaxLen (256), Description (
+        "A string that provides information on how the primary system "
+        "owner can be reached (e.g. phone number, email address, "
+        "...)."),
+       MappingStrings {"MIF.DMTF|General Information|001.3"} ] 
+   string PrimaryOwnerContact;
+      [Description (
+        "An array (bag) of strings that specify the roles this System "
+        "plays in the IT-environment. Subclasses of System may "
+        "override this property to define explicit Roles values. "
+        "Alternately, a Working Group may describe the heuristics, "
+        "conventions and guidelines for specifying Roles. For "
+        "example, for an instance of a networking system, the Roles "
+        "property might contain the string, 'Switch' or 'Bridge'.") ]
+   string Roles[];
+};
+
+
+// ===================================================================
+//    ComputerSystem
+// ===================================================================
+   [Abstract, Description (
+     "A class derived from System that is a special collection of "
+     "ManagedSystemElements. This collection provides "
+     "compute capabilities and serves as aggregation point to "
+     "associate one or more of the following elements: FileSystem, "
+     "OperatingSystem, Processor and Memory (Volatile and/or "
+     "NonVolatile Storage).") ] 
+class WET_ComputerSystem : WET_System {
+      [Override ("NameFormat"), Description (
+        "The ComputerSystem object and its derivatives are Top Level "
+        "Objects of CIM. They provide the scope for numerous "
+        "components. Having unique System keys is required. "
+        "A heuristic is defined to create the ComputerSystem Name "
+        "to attempt to always generate the same Name, independent of "
+        "discovery protocol. This prevents inventory and management "
+        "problems where the same asset or entity is discovered "
+        "multiple times, but can not be resolved to a single object. "
+        "Use of the heuristic is optional, but recommended.\n\n"
+        "The NameFormat property identifies how the ComputerSystem "
+        "Name is generated, using a heuristic. The heuristic is "
+        "outlined, in detail, in the CIM V2 System Model spec. "
+        "It assumes that the documented rules are traversed in order, "
+        "to determine and assign a Name. The NameFormat Values "
+        "list defines the precedence order for assigning the Computer"
+        "System Name. Several rules do map to the same Value.\n\n"
+        "Note that the ComputerSystem Name calculated using the "
+        "heuristic is the System's key value. Other names can be "
+        "assigned and used for the ComputerSystem, that better suit "
+        "a business, using Aliases."), 
+       ValueMap {"Other", "IP", "Dial", "HID", "NWA", "HWA", "X25", 
+                 "ISDN", "IPX", "DCC", "ICD", "E.164", "SNA", "OID/OSI"} ]
+   string NameFormat;
+      [MaxLen (256), ArrayType ("Indexed"), Description (
+        "OtherIdentifyingInfo captures additional data, beyond "
+        "System Name information, that could be used to identify "
+        "a ComputerSystem. One example would be to hold the "
+        "Fibre Channel World-Wide Name (WWN) of a node. Note that "
+        "if only the Fibre Channel name is available and is "
+        "unique (able to be used as the System key), then this "
+        "property would be NULL and the WWN would become the "
+        "System key, its data placed in the Name property."),
+       ModelCorrespondence {
+        "WET_ComputerSystem.IdentifyingDescriptions"} ]
+   string OtherIdentifyingInfo[];
+      [ArrayType ("Indexed"), Description (
+        "An array of free-form strings providing explanations "
+        "and details behind the entries in the OtherIdentifying"
+        "Info array. Note, each entry of this array is related "
+        "to the entry in OtherIdentifyingInfo that is located at "
+        "the same index."),
+       ModelCorrespondence {
+        "WET_ComputerSystem.OtherIdentifyingInfo"} ]
+   string IdentifyingDescriptions[];
+      [Description (
+        "Enumeration indicating whether the ComputerSystem is "
+        "a special-purpose System (ie, dedicated to a particular "
+        "use), versus being 'general purpose'. For example, one "
+        "could specify that the System is dedicated to \"Print\" "
+        "(value=11) or acts as a \"Hub\" (value=8)."),
+       Values {"Not Dedicated", "Unknown", "Other", "Storage", 
+               "Router", "Switch", "Layer 3 Switch", 
+               "Central Office Switch", "Hub", "Access Server", 
+               "Firewall", "Print", "I/O", "Web Caching", "Management"} ]
+   uint16 Dedicated[];
+};
+     
+
+// ===================================================================
+//    LogicalDevice
+// ===================================================================
+   [Abstract, Description (
+     "An abstraction or emulation of a hardware entity, that may "
+     "or may not be Realized in physical hardware. Any "
+     "characteristics of a LogicalDevice that are used to manage "
+     "its operation or configuration are contained in, or "
+     "associated with, the LogicalDevice object. Examples of the "
+     "operational properties of a Printer would be paper sizes "
+     "supported, or detected errors. Examples of the configuration "
+     "properties of a Sensor Device would be threshold settings. "
+     "Various configurations could exist for a LogicalDevice. "
+     "These configurations could be contained in Setting objects "
+     "and associated with the LogicalDevice.") ] 
+class WET_LogicalDevice : WET_LogicalElement {
+      [Propagated("WET_System.CreationClassName"), 
+       Key, MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ]
+   string SystemCreationClassName;
+      [Propagated("WET_System.Name"),
+       Key, MaxLen (256), Description (
+        "The scoping System's Name.") ]
+   string SystemName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or "
+        "the subclass used in the creation of an instance. When "
+        "used with the other key properties of this class, this "
+        "property allows all instances of this class and its "
+        "subclasses to be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen (64), Description (
+        "An address or other identifying information to uniquely "
+        "name the LogicalDevice.") ]
+   string DeviceID;
+      [Description (
+        "Boolean indicating that the Device can be power managed "
+        "- ie, put into a power save state. This boolean does not "
+        "indicate that power management features are currently "
+        "enabled, or if enabled, what features are supported. "
+        "Refer to the PowerManagementCapabilities array for this "
+        "information. If this boolean is false, the integer value "
+        "1, for the string, \"Not Supported\", should be the only "
+        "entry in the PowerManagementCapabilities array.") ]    
+   boolean PowerManagementSupported;
+      [Description(
+        "Indicates the specific power-related capabilities of a "
+        "LogicalDevice. The array values, 0=\"Unknown\", 1="
+        "\"Not Supported\" and 2=\"Disabled\" are self-explanatory. "
+        "The value, 3=\"Enabled\" indicates that the power management "
+        "features are currently enabled but the exact feature set "
+        "is unknown or the information is unavailable. "
+        "\"Power Saving Modes Entered Automatically\" (4) describes "
+        "that a Device can change its power state based on usage or "
+        "other criteria. \"Power State Settable\" (5) indicates that "
+        "the SetPowerState method is supported. \"Power Cycling "
+        "Supported\" (6) indicates that the SetPowerState method "
+        "can be invoked with the PowerState input variable set to 5 ("
+        "\"Power Cycle\"). \"Timed Power On Supported\" (7) indicates "
+        "that the SetPowerState method can be invoked with the Power"
+        "State input variable set to 5 (\"Power Cycle\") and the Time "
+        "parameter set to a specific date and time, or interval, "
+        "for power-on."),
+       Values {"Unknown", "Not Supported", "Disabled", 
+               "Enabled", "Power Saving Modes Entered Automatically",
+               "Power State Settable", "Power Cycling Supported",
+               "Timed Power On Supported"} ]
+   uint16 PowerManagementCapabilities[];
+      [Description (
+        "The primary availability and status of the Device. (Additional "
+        "status information can be specified using the AdditionalAvailability "
+        "array property.) For example, the Availability property indicates "
+        "that the Device is running and has full power (value=3), or is in "
+        "a warning (4), test (5), degraded (10) or power save state (values "
+        "13-15 and 17). Regarding the Power Save states, these are defined "
+        "as follows: Value 13 (\"Power Save - Unknown\") indicates "
+        "that the Device is known to be in a power save mode, but its "
+        "exact status in this mode is unknown; 14 (\"Power Save - Low "
+        "Power Mode\") indicates that the Device is in a power save "
+        "state but still functioning, and may exhibit degraded "
+        "performance; 15 (\"Power Save - Standby\") describes that "
+        "the Device is not functioning but could be brought to full "
+        "power 'quickly'; and value 17 (\"Power Save - Warning\") "
+        "indicates that the Device is in a warning state, though also "
+        "in a power save mode."), 
+       ValueMap {"1", "2", "3", "4", "5", "6", "7", "8", "9",
+                "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+                "20", "21"},
+       Values {"Other", "Unknown", "Running/Full Power", "Warning", 
+               "In Test", "Not Applicable", "Power Off", "Off Line", 
+               "Off Duty", "Degraded", "Not Installed", "Install Error",
+               "Power Save - Unknown", "Power Save - Low Power Mode", 
+               "Power Save - Standby", "Power Cycle","Power Save - Warning", 
+               "Paused", "Not Ready", "Not Configured", "Quiesced"}, 
+       MappingStrings {"MIF.DMTF|Operational State|006",
+        "MIB.IETF|HOST-RESOURCES-MIB.hrDeviceStatus", 
+        "MIF.DMTF|Host Device|001.5"},
+       ModelCorrespondence {"WET_LogicalDevice.AdditionalAvailability"}]
+   uint16 Availability;
+      [Description (
+        "The StatusInfo property indicates whether the Logical"
+        "Device is in an enabled (value = 3), disabled (value = "
+        "4) or some other (1) or unknown (2) state. If this "
+        "property does not apply to the LogicalDevice, the value, "
+        "5 (\"Not Applicable\"), should be used.  "
+        "If a Device is (\"Enabled\")(value=3), it has been "
+        "powered up, and is configured and operational.  The Device "
+        "may or may not be functionally active, depending on whether "
+        "its Availability (or AdditionalAvailability) indicate that "
+        "it is (\"Running/Full Power\")(value=3) or (\"Off line\")"
+        "(value=8). In an enabled but offline mode, a Device may be "
+        "performing out-of-band requests, such as running Diagnostics.  "
+        "If (\"Disabled\") StatusInfo value=4), a Device can only be " 
+        "\"enabled\" or powered off.  In a personal computer environment, "
+        "(\"Disabled\") means that the Device's driver is not "
+        "available in the stack. In other environments, a Device can "
+        "be disabled by removing its configuration file. A disabled "
+        "device is physically present in a System and consuming "
+        "resources, but can not be communicated with until a load "
+        "of a driver, a load of a configuration file or some other "
+        "\"enabling\" activity has occurred."),
+       ValueMap {"1", "2", "3", "4", "5"},
+       Values {"Other", "Unknown", "Enabled",
+               "Disabled", "Not Applicable"},
+       MappingStrings {"MIF.DMTF|Operational State|006"} ]
+   uint16 StatusInfo;
+      [Description (
+        "LastErrorCode captures the last error code reported by " 
+        "the LogicalDevice.")]
+   uint32 LastErrorCode;
+      [Description (
+        "ErrorDescription is a free-form string supplying more " 
+        "information about the error recorded in LastErrorCode, and " 
+        "information on any corrective actions that may be taken.")]
+   string ErrorDescription;
+      [Description (
+        "ErrorCleared is a boolean property indicating that the " 
+        "error reported in LastErrorCode is now cleared.")]
+   boolean ErrorCleared;
+      [MaxLen (256), ArrayType ("Indexed"), Description (
+        "OtherIdentifyingInfo captures additional data, beyond "
+        "DeviceID information, that could be used to identify a "
+        "LogicalDevice. One example would be to hold the Operating"
+        "System's user friendly name for the Device in this "
+        "property."),
+       ModelCorrespondence {
+        "WET_LogicalDevice.IdentifyingDescriptions"} ]
+   string OtherIdentifyingInfo[];
+      [Description (
+        "The number of consecutive hours that this Device has been "
+        "powered, since its last power cycle."),
+       Units ("Hours"), Counter ]
+   uint64 PowerOnHours;
+      [Description (
+        "The total number of hours that this Device has been "
+        "powered."),
+       Units ("Hours"), Counter ]
+   uint64 TotalPowerOnHours;
+      [ArrayType ("Indexed"), Description (
+        "An array of free-form strings providing explanations "
+        "and details behind the entries in the OtherIdentifyingInfo "
+        "array. Note, each entry of this array is related to the "
+        "entry in OtherIdentifyingInfo that is located at the same "
+        "index."),
+       ModelCorrespondence {"WET_LogicalDevice.OtherIdentifyingInfo"} ]
+   string IdentifyingDescriptions[];
+      [Description (
+        "Additional availability and status of the Device, beyond that "
+        "specified in the Availability property. The Availability property "
+        "denotes the primary status and availability of the Device. In "
+        "some cases, this will not be sufficient to denote the complete "
+        "status of the Device.  In those cases, the AdditionalAvailability "
+        "property can be used to provide further information. For example, "
+        "a Device's primary Availability may be \"Off line\" (value=8), "
+        "but it may also be in a low power state (AdditonalAvailability "
+        "value=14), or the Device could be running Diagnostics (Additional"
+        "Availability value=5, \"In Test\")."),
+       ValueMap {"1", "2", "3", "4", "5", "6", "7", "8", "9",
+                 "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+                 "20", "21"},
+       Values {"Other", "Unknown", "Running/Full Power", "Warning", 
+               "In Test", "Not Applicable", "Power Off", "Off Line", 
+               "Off Duty", "Degraded", "Not Installed", "Install Error",
+               "Power Save - Unknown", "Power Save - Low Power Mode", 
+               "Power Save - Standby", "Power Cycle", 
+               "Power Save - Warning", "Paused", "Not Ready",
+               "Not Configured", "Quiesced"}, 
+       ModelCorrespondence {"WET_LogicalDevice.Availability"}]
+   uint16 AdditionalAvailability[];
+      [Description (
+        "Maximum time in milliseconds, that a Device can run in "
+        "a \"Quiesced\" state. A Device's state is defined in its "
+        "Availability and AdditionalAvailability properties, where "
+        "\"Quiesced\" is conveyed by the value 21. What occurs at "
+        "the end of the time limit is device-specific. The Device "
+        "may unquiesce, may offline or take other action. A value of "
+        "0 indicates that a Device can remain quiesced indefinitely."), 
+       Units ("MilliSeconds")]
+   uint64 MaxQuiesceTime;
+      [Description(
+        "SetPowerState defines the desired power state for a "
+        "LogicalDevice and when a Device should be put into that "
+        "state. The desired power state is specified by setting "
+        "the PowerState parameter to one of the "
+        "following integer values: 1=\"Full Power\", 2=\"Power Save "
+        "- Low Power Mode\", 3=\"Power Save - Standby\", 4=\"Power "
+        "Save - Other\", 5=\"Power Cycle\" or 6=\"Power Off\". "
+        "The Time parameter (for all state changes but 5, "
+        "\"Power Cycle\") indicates when the power state should be "
+        "set, either as a regular date-time value or as an interval "
+        "value (where the interval begins when the method "
+        "invocation is received). When the PowerState parameter is "
+        "equal to 5, \"Power Cycle\", the Time parameter indicates "
+        "when the Device should power on again. Power off is "
+        "immediate. SetPowerState should return 0 if successful, 1 "
+        "if the specified PowerState and Time request is not "
+        "supported, and some other value if any other error "
+        "occurred. In a subclass, the set of possible return codes "
+        "could be specified, using a ValueMap qualifier on the method. "
+        "The strings to which the ValueMap contents are 'translated' "
+        "may also be specified in the subclass as a Values array "
+        "qualifier.") ]
+   uint32 SetPowerState(
+      [IN, ValueMap {"1", "2", "3", "4", "5", "6"},
+           Values {"Full Power", "Power Save - Low Power Mode", 
+                   "Power Save - Standby", "Power Save - Other", 
+                   "Power Cycle", "Power Off"}] 
+       uint16 PowerState, 
+      [IN] datetime Time);
+      [Description (
+        "Requests a reset of the LogicalDevice. The return value "
+        "should be 0 if the request was successfully executed, "
+        "1 if the request is not supported and some other value "
+        "if an error occurred. In a subclass, the set of possible "
+        "return codes could be specified, using a ValueMap qualifier "
+        "on the method. The strings to which the ValueMap contents "
+        "are 'translated' may also be specified in the subclass as a "
+        "Values array qualifier.") ]
+    uint32 Reset();
+      [Description (
+        "Requests that the LogicalDevice be enabled (\"Enabled\" "
+        "input parameter = TRUE) or disabled (= FALSE). If "
+        "successful, the Device's StatusInfo property should also "
+        "reflect the desired state (enabled/disabled). The return "
+        "code should be 0 if the request was successfully executed, "
+        "1 if the request is not supported and some other value if "
+        "an error occurred. In a subclass, the set of possible "
+        "return codes could be specified, using a ValueMap qualifier "
+        "on the method. The strings to which the ValueMap contents "
+        "are 'translated' may also be specified in the subclass as a "
+        "Values array qualifier.") ]
+    uint32 EnableDevice(
+      [IN] boolean Enabled);
+      [Description (
+        "Requests that the LogicalDevice be brought online (\"Online\" "
+        "input parameter = TRUE) or taken offline (= FALSE). "
+        "\"Online\" indicates that the Device is ready to accept "
+        "requests, and is operational and fully functioning. In this "
+        "case, the Device's Availability property would be set to "
+        "a value of 3 (\"Running/Full Power\"). \"Offline\" indicates "
+        "that a Device is powered up and operational, but not processing "
+        "functional requests. In an offline state, a Device may be capable "
+        "of running diagnostics or generating operational alerts. For "
+        "example, when the \"Offline\" button is pushed on a Printer, the "
+        "Device is no longer available to process print jobs, but "
+        "could be available for diagnostics or maintenance.\n"
+        "If this method is successful, the Device's Availability and "
+        "AdditionalAvailability properties should reflect the updated "
+        "status. If a failure occurs trying to bring the Device online "
+        "or offline, it should remain in its current state. IE, the "
+        "request, if unsuccessful, should not leave the Device in an "
+        "indeterminate state. When bringing a Device back \"Online\", "
+        "from an \"Offline\" mode, the Device should be restored to its "
+        "last \"Online\" state, if at all possible. Only a Device that "
+        "has a StatusInfo of \"Enabled\" (value=3) and has been "
+        "configured can be brought online or taken offline.\n"
+        "OnlineDevice should return 0 if successful, 1 if the request is not "
+        "supported at all, 2 if the request is not supported due to the "
+        "current state of the Device, and some other value if any other "
+        "error occurred. In a subclass, the set of possible return codes "
+        "could be specified, using a ValueMap qualifier on the method. "
+        "The strings to which the ValueMap contents are 'translated' may "
+        "also be specified in the subclass as a Values array qualifier.") ]
+   uint32 OnlineDevice(
+      [IN] boolean Online);
+      [Description (
+        "Requests that the LogicalDevice cleanly cease all current "
+        "activity (\"Quiesce\" input parameter = TRUE) or resume "
+        "activity (= FALSE). For this method to quiesce a Device, "
+        "that Device should have an Availability (or Additional"
+        "Availability) of \"Running/Full Power\" (value=3) and a "
+        "StatusInfo of \"Enabled\" (value=3). For example, if quiesced, "
+        "a Device may then be offlined for diagnostics, or disabled "
+        "for power off and hot swap.  For the method to \"unquiesce\" "
+        "a Device, that Device should have an Availability (or Additional"
+        "Availability) of \"Quiesced\" (value=21) and a StatusInfo of "
+        "\"Enabled\" (value=3). In this case, the Device would "
+        "be returned to an \"Enabled\" and \"Running/Full Power\" "
+        "status.\n"
+        "The method's return code should indicate the success or "
+        "failure of the quiesce. It should return 0 if successful, "
+        "1 if the request is not supported at all, 2 if the request "
+        "is not supported due to the current state of the Device, "
+        "and some other value if any other error occurred. In a subclass, "
+        "the set of possible return codes could be specified, using a "
+        "ValueMap qualifier on the method.  The strings to which the "
+        "ValueMap contents are 'translated' may also be specified in "
+        "the subclass as a Values array qualifier.") ]
+   uint32 QuiesceDevice(
+      [IN] boolean Quiesce);
+      [Description (
+        "Requests that the Device capture its current configuration, "
+        "setup and/or state information in a backing store. The goal "
+        "would be to use this information at a later time (via the "
+        "RestoreProperties method), to return a Device to its present "
+        "\"condition\". This method may not be supported by all Devices.  "
+        "The method should return 0 if successful, 1 if the request is "
+        "not supported, and some other value if any other error occurred. "
+        "In a subclass, the set of possible return codes could be "
+        "specified, using a ValueMap qualifier on the method. The strings "
+        "to which the ValueMap contents are 'translated' may also be "
+        "specified in the subclass as a Values array qualifier.") ]
+   uint32 SaveProperties();
+      [Description (
+        "Requests that the Device re-establish its configuration, "
+        "setup and/or state information from a backing store. The "
+        "intent is to capture this information at an earlier time "
+        "(via the SaveProperties method), and use it to return a "
+        "Device to this earlier \"condition\". This method may not "
+        "be supported by all Devices. The method should return 0 if "
+        "successful, 1 if the request is not supported, and some "
+        "other value if any other error occurred. In a subclass, "
+        "the set of possible return codes could be specified, using "
+        "a ValueMap qualifier on the method. The strings to which "
+        "the ValueMap contents are 'translated' may also be specified "
+        "in the subclass as a Values array qualifier.") ]
+   uint32 RestoreProperties();        
+};  
+
+   
+// ==================================================================
+//    Service
+// ==================================================================  
+   [Abstract, Description (
+     "A WET_Service is a Logical Element that contains the "
+     "information necessary to represent and manage the "
+     "functionality provided by a Device and/or SoftwareFeature. "
+     "A Service is a general-purpose object to configure and "
+     "manage the implementation of functionality.  It is not the "
+     "functionality itself.") ] 
+class WET_Service : WET_LogicalElement {
+      [Propagated ("WET_System.CreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping System's CreationClassName. ") ] 
+   string SystemCreationClassName;
+      [Propagated ("WET_System.Name"), Key, MaxLen (256),
+       Description ("The scoping System's Name.") ] 
+   string SystemName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Override ("Name"), Key, MaxLen (256), Description (
+        "The Name property uniquely identifies the Service and "
+        "provides an indication of the functionality that is "
+        "managed. This functionality is described in more detail in "
+        "the object's Description property. ") ] 
+   string Name;
+      [MaxLen (10), Description (
+        "StartMode is a string value indicating whether the Service "
+        "is automatically started by a System, Operating System, etc. "
+        "or only started upon request."), 
+       ValueMap {"Automatic", "Manual"} ] 
+   string StartMode;
+      [Description (
+        "Started is a boolean indicating whether the Service "
+        "has been started (TRUE), or stopped (FALSE).") ] 
+   boolean Started;
+      [Description (
+        "The StartService method places the Service in the started "
+        "state. It returns an integer value of 0 if the Service was "
+        "successfully started, 1 if the request is not supported and "
+        "any other number to indicate an error. In a subclass, the "
+        "set of possible return codes could be specified, using a "
+        "ValueMap qualifier on the method. The strings to which the "
+        "ValueMap contents are 'translated' may also be specified in "
+        "the subclass as a Values array qualifier.") ] 
+   uint32 StartService();
+      [Description (
+        "The StopService method places the Service in the stopped "
+        "state. It returns an integer value of 0 if the Service was "
+        "successfully stopped, 1 if the request is not supported and "
+        "any other number to indicate an error. In a subclass, the "
+        "set of possible return codes could be specified, using a "
+        "ValueMap qualifier on the method. The strings to which the "
+        "ValueMap contents are 'translated' may also be specified in "
+        "the subclass as a Values array qualifier.") ] 
+   uint32 StopService();
+};
+
+     
+// ==================================================================
+//    ServiceAccessPoint
+// ==================================================================
+   [Abstract, Description (
+     "WET_ServiceAccessPoint represents the ability to utilize or "
+     "invoke a Service.  Access points represent that a Service is "
+     "made available to other entities for use.") ] 
+class WET_ServiceAccessPoint : WET_LogicalElement {
+      [Propagated ("WET_System.CreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ] 
+   string SystemCreationClassName;
+      [Propagated ("WET_System.Name"), Key, MaxLen (256),
+       Description ("The scoping System's Name.") ] 
+   string SystemName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Override ("Name"), Key, MaxLen (256), Description (
+        "The Name property uniquely identifies the ServiceAccessPoint "
+        "and provides an indication of the functionality that is "
+        "managed.  This functionality is described in more detail in "
+        "the object's Description property.") ] 
+   string Name;
+};
+
+     
+// ==================================================================
+// Dependency   
+// ==================================================================
+   [Association, Abstract, Description (   
+     "WET_Dependency is a generic association used to establish "   
+     "dependency relationships between ManagedElements.") ]    
+class WET_Dependency {   
+      [Key, Description (   
+        "Antecedent represents the independent object in this "   
+        "association.") ]    
+   WET_ManagedElement REF Antecedent;   
+      [Key, Description (   
+        "Dependent represents the object dependent on the "   
+        "Antecedent.") ]    
+   WET_ManagedElement REF Dependent;   
+};   
+ 
+                 
+// ==================================================================
+// MemberOfCollection    
+// ==================================================================
+   [Association, Aggregation, Description (   
+     "WET_MemberOfCollection is an aggregation used to establish "   
+     "membership of ManagedElements in a Collection." ) ]  
+class WET_MemberOfCollection {   
+      [Key, Aggregate, Description (
+        "The Collection that aggregates members") ]    
+   WET_Collection REF Collection;
+      [Key, Description (
+        "The aggregated member of the collection.") ]    
+   WET_ManagedElement REF Member;   
+};   
+
+
+// ==================================================================
+//    CollectedMSEs
+// ==================================================================
+   [Association, Aggregation, Description (
+     "WET_CollectedMSEs is a generic association used to "
+     "establish the members of the grouping object, CollectionOf"
+     "MSEs.") ]
+class WET_CollectedMSEs : WET_MemberOfCollection {
+      [Aggregate, Description (
+        "The grouping or 'bag' object that represents the "
+        "Collection."), Override("Collection") ]
+   WET_CollectionOfMSEs REF Collection;
+      [Description ("The members of the Collection."),
+       Override("Member") ]
+   WET_ManagedSystemElement REF Member;
+};
+
+
+// ==================================================================
+//    ServiceAccessBySAP
+// ==================================================================
+   [Association, Description (
+     "WET_ServiceAccessBySAP is an association that identifies the "
+     "access points for a Service. For example, a printer may be "
+     "accessed by Netware, MacIntosh or Windows ServiceAccess"
+     "Points, potentially hosted on different Systems.") ] 
+class WET_ServiceAccessBySAP : WET_Dependency {
+      [Override ("Antecedent"),
+       Description ("The Service. ") ] 
+   WET_Service REF Antecedent;
+      [Override ("Dependent"), Description (
+        "An Access Point for a Service. Access points are dependent " 
+        "in this relationship since they have no function without a "
+        "corresponding Service. ") ] 
+   WET_ServiceAccessPoint REF Dependent;
+};
+
+     
+// ==================================================================
+//    HostedService
+// ==================================================================
+   [Association, Description (
+     "WET_HostedService is an association between a Service and "
+     "the System on which the functionality resides.  The "
+     "cardinality of this association is 1-to-many.  A System may "
+     "host many Services. Services are weak with respect to their "
+     "hosting System. Heuristic:  A Service is hosted on the "
+     "System where the LogicalDevices or SoftwareFeatures that "
+     "implement the Service are located.  The model does not "
+     "represent Services hosted across multiple systems.  This is "
+     "modeled as an ApplicationSystem that acts as an aggregation "
+     "point for Services, that are each located on a single "
+     "host.") ] 
+class WET_HostedService : WET_Dependency {
+      [Override ("Antecedent"), Max (1), Min (1),
+       Description ("The hosting System.") ] 
+   WET_System REF Antecedent;
+      [Override ("Dependent"), Weak,
+       Description ("The Service hosted on the System.") ] 
+   WET_Service REF Dependent;
+};
+
+     
+// ==================================================================
+//    HostedAccessPoint
+// ==================================================================
+   [Association, Description (
+     "WET_HostedAccessPoint is an association between a Service"
+     "AccessPoint and the System on which it is provided.  The "
+     "cardinality of this association is 1-to-many and is weak "
+     "with respect to the System. Each System may host many "
+     "ServiceAccessPoints.  Heuristic:  If the implementation of "
+     "the ServiceAccessPoint is modeled, it must be "
+     "implemented by a Device or SoftwareFeature that is part of "
+     "the System hosting the ServiceAccessPoint.") ] 
+class WET_HostedAccessPoint:WET_Dependency {
+      [Override ("Antecedent"), Max (1), Min (1), 
+       Description ("The hosting System.") ] 
+   WET_System REF Antecedent;
+      [Override ("Dependent"), Weak,
+       Description ("The SAP(s) that are hosted on this System.") ] 
+   WET_ServiceAccessPoint REF Dependent;
+};
+   
+
+// ==================================================================
+//    ProvidesServiceToElement
+// ==================================================================
+   [Association, Description (
+     "WET_ProvidesServiceToElement is used to describe that "
+     "ManagedElements may be dependent on the functionality "
+     "of one or more Services. An example is that a Processor "
+     "and an Enclosure (PhysicalElement) are dependent on AlertOn"
+     "LAN Services to signal an incomplete or erroneous boot, and "
+     "hardware-related errors.") ]
+class WET_ProvidesServiceToElement : WET_Dependency {
+      [Override ("Antecedent"), Description (
+        "The Service provided.") ]
+   WET_Service ref Antecedent;
+      [Override ("Dependent"), Description (
+        "The ManagedElement dependent on the Service.") ]
+   WET_ManagedElement ref Dependent;
+};
+
+
+// ==================================================================
+//    ServiceServiceDependency
+// ==================================================================
+   [Association, Description (
+     "WET_ServiceServiceDependency is an association between a " 
+     "Service and another Service, indicating that the latter is "
+     "required to be present, required to have completed, or must " 
+     "be absent for the former Service to provide its "
+     "functionality. For example, Boot Services may be dependent "
+     "upon underlying BIOS Disk and initialization Services. "
+     "In the case of the initialization Services, the Boot Service "
+     "is simply dependent on the init Services completing.  For "
+     "the Disk Services, Boot Services may actually utilize the "
+      "SAPs of this Service.  This usage dependency is modeled via "
+     "the WET_ServiceSAPDependency association.") ] 
+class WET_ServiceServiceDependency : WET_ProvidesServiceToElement {
+      [Override ("Antecedent"), 
+       Description ("The required Service.") ] 
+   WET_Service REF Antecedent;
+      [Override ("Dependent"), Description (
+        "The Service that is dependent on an underlying Service.") ] 
+   WET_Service REF Dependent;
+      [Description (
+        "The nature of the Service to Service dependency. This "
+        "property describes that the associated Service must have "
+        "completed (value=2), must be started (3) or must not be "
+        "started (4) in order for the Service to function."),  
+       Values {"Unknown", "Other", "Service Must Have Completed",
+               "Service Must Be Started", 
+               "Service Must Not Be Started"} ]
+   uint16 TypeOfDependency;
+      [Description(
+        "this property describes that the antecedent service "
+        "must be restarted after the dependent operation is complete.")]
+   boolean RestartService;
+};
+
+
+// ==================================================================
+//    ServiceSAPDependency
+// ==================================================================
+   [Association, Description (
+     "WET_ServiceSAPDependency is an association between a Service "
+     "and a ServiceAccessPoint indicating that the referenced SAP "
+     "is utilized by the Service to provide its functionality. For "
+     "example, Boot Services may invoke BIOS' Disk Services "
+     "(interrupts) in order to function.") ] 
+class WET_ServiceSAPDependency : WET_Dependency {
+      [Override ("Antecedent"), 
+       Description ("The required ServiceAccessPoint") ] 
+   WET_ServiceAccessPoint REF Antecedent;
+      [Override ("Dependent"), Description (
+        "The Service that is dependent on an underlying SAP.") ] 
+   WET_Service REF Dependent;
+};
+
+     
+// ==================================================================
+//    SAPSAPDependency
+// ==================================================================
+   [Association, Description (
+     "WET_SAPSAPDependency is an association between a Service"
+     "AccessPoint and another ServiceAccessPoint indicating that "
+     "the latter is required in order for the former ServiceAccess"
+     "Point to utilize or connect with its Service. For example, "
+     "to print at a network printer, local Print Access Points "
+     "must utilize underlying network-related SAPs, or "
+     "ProtocolEndpoints, in order to send the print request.") ] 
+class WET_SAPSAPDependency:WET_Dependency {
+      [Override ("Antecedent"), Description (
+        "The required ServiceAccessPoint.") ] 
+   WET_ServiceAccessPoint REF Antecedent;
+      [Override ("Dependent"), Description (
+        "The ServiceAccessPoint that is dependent on an underlying "
+        "SAP.") ] 
+   WET_ServiceAccessPoint REF Dependent;
+};
+
+
+// ==================================================================
+//    Realizes
+// ==================================================================
+   [Association, Description (
+     "WET_Realizes is the association that defines the mapping "
+     "between a Logical Device and the physical component that "
+     "implements the Device.") ] 
+class WET_Realizes : WET_Dependency {
+      [Override ("Antecedent"), Description (
+        "The physical component that implements the Device.") ]
+   WET_PhysicalElement REF Antecedent;
+      [Override ("Dependent"), Description (
+        "The LogicalDevice.") ]
+   WET_LogicalDevice REF Dependent;
+};
+
+     
+// ==================================================================
+//    Component
+// ==================================================================
+   [Association, Abstract, Aggregation, Description (
+     "WET_Component is a generic association used to establish "
+     "'part of' relationships between Managed System Elements. For "
+     "example, the SystemComponent association defines parts of "
+     "a System.") ] 
+class WET_Component {
+      [Aggregate, Key, Description (
+        "The parent element in the association.") ] 
+   WET_ManagedSystemElement REF GroupComponent;
+      [Key, Description (
+        "The child element in the association.") ] 
+   WET_ManagedSystemElement REF PartComponent;
+};
+
+     
+// ==================================================================
+//    SystemComponent
+// ==================================================================
+   [Association, Aggregation, Description (
+     "WET_SystemComponent is a specialization of the WET_Component "
+     "association that establishes 'part of' relationships between "
+     "a System and the Managed System Elements of which it is "
+     "composed.") ] 
+class WET_SystemComponent : WET_Component {
+      [Override ("GroupComponent"), Aggregate, 
+       Description ("The parent System in the Association.") ] 
+   WET_System REF GroupComponent;
+      [Override ("PartComponent"), Description (
+        "The child element that is a component of a System.") ] 
+   WET_ManagedSystemElement REF PartComponent;
+}; 
+     
+// ==================================================================
+//    SystemDevice
+// ==================================================================
+   [Association, Aggregation, Description (
+     "LogicalDevices may be aggregated by a System.  This " 
+     "relationship is made explicit by the SystemDevice "
+     "association. ") ]
+class WET_SystemDevice:WET_SystemComponent {
+      [Override ("GroupComponent"), Aggregate, Max (1), Min (1), 
+       Description ("The parent system in the Association.") ] 
+   WET_System REF GroupComponent;
+      [Override ("PartComponent"), Weak, Description (
+        "The LogicalDevice that is a component of a System.") ] 
+   WET_LogicalDevice REF PartComponent;
+};
+
+
+// ==================================================================
+//    ServiceComponent
+// ==================================================================
+   [Association, Aggregation, Description (
+     "The ServiceComponent aggregation models a set of "
+     "subordinate Services that are aggregated together to form "
+     "a higher-level service.") ]
+class WET_ServiceComponent : WET_Component {
+      [Override ("GroupComponent"), Aggregate, 
+       Description ("The parent Service.") ]
+   WET_Service REF GroupComponent;
+      [Override ("PartComponent"), 
+       Description ("The component Service.") ]
+   WET_Service REF PartComponent;
+};
+
+     
+// ==================================================================
+//    Synchrononized
+// ==================================================================
+   [Association, Description (
+     "Indicates that two LogicalElements were aligned or made to "
+     "be equivalent at the specified point in time. If the boolean "
+     "property SyncMaintained is TRUE, then synchronization "
+     "of the Elements is preserved. Both like and unlike objects "
+     "may be synchronized. For example, two WatchDog timers may be "
+     "aligned, or the contents of a LogicalFile may be synchronized "
+     "with the contents of a StorageExtent.") ]
+class WET_Synchronized {
+      [Key, Description (
+        "SystemElement represents one LogicalElement that is "
+        "synchronized with the entity referenced as SyncedElement.") ]
+   WET_LogicalElement ref SystemElement;
+      [Key, Description (
+        "SyncedElement represents another LogicalElement that is "
+        "synchronized with the entity referenced as SystemElement.") ]
+   WET_LogicalElement ref SyncedElement;
+      [Description (
+        "The point in time that the Elements were synchronized.") ]
+   datetime WhenSynced;
+      [Description (
+        "Boolean indicating whether synchronization is "
+        "maintained.") ]
+   boolean SyncMaintained;
+};
+
+
+// ==================================================================
+//     AdminDomain
+// ==================================================================
+   [Description (
+     "This is a special grouping of ManagedSystemElements. The "
+     "grouping is viewed as a single entity, reflecting that all "
+     "of its components are administered similarly - either by "
+     "the same user, group of users or policy. It serves as "
+     "an aggregation point to associate one or more of the "
+     "following elements: network devices, such as routers and "
+     "switches, servers, and other resources that can be "
+     "accessed by end systems. This grouping of devices "
+     "plays an essential role in ensuring that the same "
+     "administrative policy and actions are applied to all "
+     "of the devices in the grouping. The specific behavior "
+     "and/or semantics of the AdminDomain can be identified "
+     "through its aggregated and associated entities."
+     "\n\n"
+     "The System class and its subclasses provide the scope for "
+     "numerous types of managed objects. As such, these classes "
+     "must have the ability to create unique keys. This attribute "
+     "is used by the System class and its subclasses to define a "
+     "unique Name, independent of the specific discovery protocol "
+     "used. Use of the heuristic is optional, but recommended."
+     "\n\n"
+     "AdminDomain is a part of the Core model, which has frequently "
+     "been used in the Networks Model to group "
+     "together various network resources that must be "
+     "administered the same way, perhaps using the same "
+     "policies. Viewed in this light, its principal subclass is "
+     "AutonomousSystem.") ]
+class WET_AdminDomain : WET_System {
+      [Override ("NameFormat"), Description (
+        "The NameFormat property identifies how the Name of the "
+        "AdminDomain is generated, using the heuristic specified "
+        "in the CIM V2 System Model spec. It assumes that the "
+        "documented rules are traversed in order, to determine and "
+        "assign a Name. The NameFormat Values list defines the "
+        "precedence order for assigning the Name of the "
+        "AdminDomain."), 
+       ValueMap {"Other", "AS", "NAP", "NOC", "POP", "RNP", "IP",
+            "IPX", "SNA", "Dial", "WAN", "LAN", "ISDN", "Frame Relay",
+            "ATM", "E.164", "IB", "FC", "Policy Repository" },
+       Values {"Other", "Autonomous System",
+               "Network Access Provider", "Network Operations Center",
+               "Point of Presence", "Regional Network Provider",
+               "IP", "IPX", "SNA", "Dial", "WAN", "LAN", "ISDN",
+               "Frame Relay", "ATM", "E.164", "Infiniband", 
+               "Fibre Channel", "Policy Repository"} ]
+   string NameFormat;
+};
+
+
+// ==================================================================
+//
+//  Products, FRUs, and Statistics
+//
+// ==================================================================
+
+
+// ==================================================================
+//    Product
+// ==================================================================
+   [Description (
+     "WET_Product is a concrete class that is a collection of "
+     "PhysicalElements, SoftwareFeatures and/or other Products, "
+     "acquired as a unit. Acquisition implies an agreement "
+     "between supplier and consumer which may have implications "
+     "to Product licensing, support and warranty. Non-commercial "
+     "(e.g., in-house developed Products) should also be "
+     "identified as an instance of WET_Product.") ] 
+class WET_Product : WET_ManagedElement {
+      [Key, MaxLen (256),
+       Description ("Commonly used Product name."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.2"} ] 
+   string Name;
+      [Key, MaxLen (64), Description (
+        "Product identification such as a serial number on software, "
+        "a die number on a hardware chip, or (for non-commercial "
+        "Products) a project number."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.4"} ] 
+   string IdentifyingNumber;
+      [Key, MaxLen (256), Description (
+        "The name of the Product's supplier, or entity selling the "
+        "Product (the manufacturer, reseller, OEM, etc.). Corresponds "
+        "to the Vendor property in the Product object in the DMTF "
+        "Solution Exchange Standard."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.1"} ] 
+   string Vendor;
+      [Key, MaxLen (64), Description (
+        "Product version information.  Corresponds to the Version "
+        "property in the Product object in the DMTF Solution "
+        "Exchange Standard."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.3"} ] 
+   string Version;
+      [MaxLen (64), Description (
+        "Product SKU (stock keeping unit) information.") ] 
+   string SKUNumber;
+      [Description (
+        "If this Product is under warranty, the start date of the "
+        "warranty."),
+       ModelCorrespondence {"WET_Product.WarrantyDuration"},
+       MappingStrings {"MIF.DMTF|FRU|002.9"} ]
+   datetime WarrantyStartDate;
+      [Description (
+        "If this Product is under warranty, the duration of the "
+        "warranty in days."), Units ("Days"), 
+       ModelCorrespondence {"WET_Product.WarrantyStartDate"},
+       MappingStrings {"MIF.DMTF|FRU|002.10"}]
+   uint32 WarrantyDuration;
+};
+
+     
+// ==================================================================
+//    ProductParentChild
+// ==================================================================
+   [Association, Aggregation, Description (
+     "The WET_ProductParentChild association defines a parent "
+     "child hierarchy among Products.  For example, a Product may "
+     "come bundled with other Products. ") ] 
+class WET_ProductParentChild {
+      [Aggregate, Key, Description (
+        "The parent Product in the association.") ] 
+   WET_Product REF Parent;
+      [Key, Description (
+        "The child Product in the association.") ] 
+   WET_Product REF Child;
+};
+
+
+// ==================================================================
+//    CompatibleProduct
+// ================================================================== 
+   [Association, Description ( 
+     "WET_CompatibleProduct is an association between Products " 
+     "that can indicate a wide variety of information. For " 
+     "example, it can indicate that the two referenced Products " 
+     "interoperate, that they can be installed together, that " 
+     "one can be the physical container for the other, etc. The " 
+     "string property, CompatibilityDescription, defines how the " 
+     "Products interoperate or are compatible, any limitations " 
+     "regarding interoperability or installation, ...") ]
+class WET_CompatibleProduct {
+      [Key, Description ( 
+        "The Product for which compatible offerings are defined.") ] 
+   WET_Product REF Product; 
+      [Key, Description (
+        "The compatible Product.") ]
+   WET_Product REF CompatibleProduct; 
+      [Description ( 
+        "CompatibilityDescription is a free-form string defining " 
+        "how the two referenced Products interoperate or are " 
+        "compatible, any limitations to compatibility, etc.") ]
+   string CompatibilityDescription;
+};
+
+
+// ==================================================================
+//    ProductProductDependency
+// ================================================================== 
+   [Association, Description ( 
+     "WET_ProductProductDependency is an association between two " 
+     "Products, indicating that one must be installed, or must be " 
+     "absent, for the other to function. This is conceptually " 
+     "equivalent to the ServiceServiceDependency association.") ] 
+class WET_ProductProductDependency { 
+      [Key, Description ("The required Product.") ] 
+   WET_Product REF RequiredProduct; 
+      [Key, Description ( 
+        "The Product that is dependent on another Product.") ] 
+   WET_Product REF DependentProduct; 
+      [Description ( 
+        "The nature of the Product dependency. This property " 
+        "describes that the associated Product must be installed "
+        "(value=2) or must be absent (value=3) in order for the "
+        "Product to function."),  
+       Values {"Unknown", "Other", "Product Must Be Installed", 
+               "Product Must Not Be Installed"} ]
+   uint16 TypeOfDependency; 
+};
+
+     
+// ==================================================================
+//    SupportAccess
+// ==================================================================
+   [Description (
+     "The WET_SupportAccess association defines how to obtain "
+     "assistance for a Product.") ] 
+class WET_SupportAccess : WET_ManagedElement {
+      [Override ("Description"), Description (
+        "A textual description of the type of Support provided."),
+       MappingStrings {"MIF.DMTF|Support|001.3"} ] 
+   string Description;
+      [Key, MaxLen (256), Description (
+        "SupportAccessID is an arbitrary, free form string defined by "
+        "the Product Vendor or by the organization that deploys the "
+        "Product.  This property, since it is a key, should be unique "
+        "throughout the enterprise.") ] 
+   string SupportAccessId;
+      [Description (
+        "CommunicationInfo provides the details of the Communication"
+        "Mode. For example, if the CommunicationMode is 'Phone', "
+        "CommunicationInfo specifies the phone number to be called."), 
+       MappingStrings {"MIF.DMTF|FRU|002.11", "MIF.DMTF|FRU|002.12"} ] 
+   string CommunicationInfo;
+      [Description (
+        "CommunicationMode defines the form of communication in order "
+        "to obtain support. For example, phone communication (value"
+        "=2), fax (3) or email (8) can be specified."), 
+       ValueMap {"1", "2", "3", "4", "5", "6", "7", "8"}, 
+       Values {"Other", "Phone", "Fax", "BBS", 
+               "Online Service", "Web Page", "FTP", "E-mail"}, 
+       MappingStrings {"MIF.DMTF|Support|001.5"} ] 
+   uint16 CommunicationMode;
+      [MaxLen (64), Description (
+        "Locale defines the geographic region and/or language dialect "
+        "to which this Support resource pertains."), 
+       MappingStrings {"MIF.DMTF|Support|001.2"} ] 
+   string Locale;
+};
+
+     
+// ==================================================================
+//    ProductSupport
+// ==================================================================
+   [Association, Description (
+     "WET_ProductSupport is an association between Product and "
+     "SupportAccess that conveys how support is obtained for the "
+     "Product.  This is a many-to-many relationship, implying that "
+     "various types of Support are available for a Product, and "
+     "that the same Support object can provide assistance for "
+     "multiple Products.") ] 
+class WET_ProductSupport {
+      [Key, Description ("The Product.") ]     
+   WET_Product REF Product;
+      [Key, Description ("Support for the Product.") ]
+   WET_SupportAccess REF Support;
+};
+
+     
+// ==================================================================
+//    FRU
+// ==================================================================
+   [Description (
+     "The WET_FRU class is a vendor-defined collection of Products "
+     "and/or PhysicalElements that is associated with a "
+     "Product for the purpose of supporting, maintaining or "
+     "upgrading that Product at the customer's location. FRU is "
+     "an acronym for 'field replaceable unit'. ") ] 
+class WET_FRU : WET_ManagedElement {
+      [Override ("Description"), Description (
+        "A textual description of the FRU."), 
+       MappingStrings {"MIF.DMTF|FRU|002.3"} ] 
+   string Description;
+      [Key, MaxLen (64), Description (
+        "FRU ordering information."), 
+       MappingStrings {"MIF.DMTF|FRU|002.6"} ] 
+   string FRUNumber;
+      [Key, MaxLen (64), Description (
+        "FRU identification such as a serial number on software or "
+        "a die number on a hardware chip."), 
+       MappingStrings {"MIF.DMTF|FRU|002.7"} ] 
+   string IdentifyingNumber;
+      [Key, MaxLen (256),
+       Description ("The name of the FRU's supplier."), 
+       MappingStrings {"MIF.DMTF|FRU|002.4"} ] 
+   string Vendor;
+      [Description ("FRU name."), MaxLen (256) ] 
+   string Name;
+      [MaxLen (64), Description ("The FRU's revision level."),
+       MappingStrings {"MIF.DMTF|FRU|002.8"} ] 
+   string RevisionLevel;
+};
+    
+     
+// ==================================================================
+//    ProductFRU
+// ==================================================================
+   [Association, Description (
+     "WET_ProductFRU is an association between Product and FRU "
+     "that provides information regarding what Product components "
+     "have been or are being replaced.  The association is one to "
+     "many, conveying that a Product can have many FRUs, and that "
+     "a particular instance of a FRU is only applied to one " 
+     "(instance of a) Product.") ] 
+class WET_ProductFRU {
+      [Max (1), Key, Description (
+        "The Product to which the FRU is applied.") ] 
+   WET_Product REF Product;
+      [Key, Description ("The FRU.") ]
+   WET_FRU REF FRU;
+};
+
+     
+// ==================================================================
+//    ProductPhysicalElements
+// ==================================================================
+   [Association, Aggregation, Description (
+     "Indicates the PhysicalElements that make up a Product.") ]
+class WET_ProductPhysicalElements {
+      [Max (1), Aggregate, Key, Description (
+        "The Product.") ]
+   WET_Product REF Product;
+      [Key, Description (
+        "The PhysicalElement which is a part of the Product.") ]
+   WET_PhysicalElement REF Component;
+};
+
+
+// ==================================================================
+//    FRUPhysicalElements
+// ==================================================================
+   [Association, Aggregation, Description (
+     "Indicates the PhysicalElements that make up a FRU.") ]
+class WET_FRUPhysicalElements {
+      [Max (1), Aggregate, Key, Description (
+        "The FRU.") ]
+   WET_FRU REF FRU;
+      [Key, Description (
+        "The PhysicalElement which is a part of the FRU.") ]
+   WET_PhysicalElement REF Component;
+};
+
+
+// ==================================================================
+//    FRUIncludesProduct
+// ==================================================================
+   [Association, Aggregation, Description (
+     "Indicates that a FRU may be composed of other Product(s).") ]
+class WET_FRUIncludesProduct {
+      [Max (1), Aggregate, Key, Description (
+        "The FRU.") ]
+   WET_FRU REF FRU;
+      [Key, Description (
+        "The Product which is a part of the FRU.") ]
+   WET_Product REF Component;
+};
+
+
+// ==================================================================
+//    StatisticalInformation
+// ================================================================== 
+   [Abstract, Description ( 
+     "WET_StatisticalInformation is a root class for any arbitrary " 
+     "collection of statistical data and/or metrics applicable to " 
+     "one or more ManagedSystemElements.") ] 
+class WET_StatisticalInformation : WET_ManagedElement { 
+      [MaxLen (256), Description ( 
+        "The Name property defines the label by which the statistic " 
+        "or metric is known. When subclassed, the property can be " 
+        "overridden to be a Key property. ") ] 
+   string Name; 
+};
+
+
+// ==================================================================
+//    Statistics
+// ================================================================== 
+   [Association, Description ( 
+     "WET_Statistics is an association that relates Managed" 
+     "Elements to the StatisticalGroup(s) that apply to them.") ]
+class WET_Statistics { 
+      [Key, Description (
+        "The statistic information/object.") ] 
+   WET_StatisticalInformation REF Stats; 
+      [Key, Description ( 
+        "The ManagedElement for which statistical or metric " 
+        "data is defined.") ] 
+   WET_ManagedElement REF Element;
+};
+
+
+// ==================================================================
+//    RelatedStatistics
+// ================================================================== 
+   [Association, Description( 
+     "WET_RelatedStatistics is an association that defines " 
+     "hierarchies and/or dependencies of related WET_Statistical" 
+     "Information classes.") ]
+class WET_RelatedStatistics { 
+      [Key, Description (
+        "The statistic information/object.") ] 
+   WET_StatisticalInformation REF Stats; 
+      [Key, Description (
+        "The related statistics or metrics.") ] 
+   WET_StatisticalInformation REF RelatedStats;
+};
+
+
+// ==================================================================
+//    SystemStatisticalInformation
+// ==================================================================
+   [Description (
+     "Statistical information associated with a System object "
+     "or one of its subclasses.") ]
+class WET_SystemStatisticalInformation : WET_StatisticalInformation {
+      [Propagated("WET_System.CreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ]
+   string SystemCreationClassName;
+      [Propagated("WET_System.Name"), Key, MaxLen (256), 
+       Description ("The scoping System's Name.") ]
+   string SystemName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen (256), Override ("Name"), Description (
+        "The Name property, inherited from StatisticalInformation, "
+        "serves as part of the object key.") ]
+   string Name;
+};
+
+
+// ==================================================================
+//    SystemStatistics
+// ==================================================================
+   [Association, Description (
+     "SystemStatistics relates the SystemStatisticalInformation "
+     "class to the System to which it applies.") ]
+class WET_SystemStatistics : WET_Statistics {
+      [Override ("Stats"), Weak, Description (
+        "The statistical object.") ]
+   WET_SystemStatisticalInformation REF Stats;
+      [Override ("Element"), Min(1), Max(1), 
+       Description ( "The System to which the statistics apply.") ]
+   WET_System REF Element;
+};
+
+
+// ==================================================================
+//    ServiceStatisticalInformation
+// ==================================================================
+   [Description (
+     "Statistical information associated with a Service object "
+     "or one of its subclasses.") ]
+class WET_ServiceStatisticalInformation : WET_StatisticalInformation {
+      [Propagated("WET_Service.SystemCreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ]
+   string SystemCreationClassName;
+      [Propagated("WET_Service.SystemName"), Key, MaxLen (256), 
+       Description ("The scoping System's Name.") ]
+   string SystemName;
+      [Propagated("WET_Service.CreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping Service's CreationClassName.") ]
+   string ServiceCreationClassName;
+      [Propagated("WET_Service.Name"), Key, MaxLen (256), 
+       Description ("The scoping Service's Name.") ]
+   string ServiceName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen (256), Override ("Name"), Description (
+        "The Name property, inherited from StatisticalInformation, "
+        "serves as part of the object key.") ]
+   string Name;
+};
+
+
+// ==================================================================
+//    ServiceStatistics
+// ==================================================================
+   [Association, Description (
+     "ServiceStatistics relates the ServiceStatisticalInformation "
+     "class to the Service to which it applies.") ]
+class WET_ServiceStatistics : WET_Statistics {
+      [Override ("Stats"), Weak, 
+       Description ( "The statistical object.") ]
+   WET_ServiceStatisticalInformation REF Stats;
+      [Override ("Element"), Min(1), Max(1), 
+       Description ( 
+        "The Service to which the statistics apply.") ]
+   WET_Service REF Element;
+};
+
+
+// ==================================================================
+//    SAPStatisticalInformation
+// ==================================================================
+   [Description (
+     "Statistical information associated with a Service"
+     "AccessPoint object or one of its subclasses.") ]
+class WET_SAPStatisticalInformation : WET_StatisticalInformation {
+      [Propagated("WET_ServiceAccessPoint.SystemCreationClassName"),  
+       Key, MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ]
+   string SystemCreationClassName;
+      [Propagated("WET_ServiceAccessPoint.SystemName"), Key, 
+       MaxLen (256), Description ("The scoping System's Name.") ]
+   string SystemName;
+      [Propagated("WET_ServiceAccessPoint.CreationClassName"), 
+       Key, MaxLen (256), Description (
+        "The scoping SAP's CreationClassName.") ]
+   string SAPCreationClassName;
+      [Propagated("WET_ServiceAccessPoint.Name"), Key, 
+       MaxLen (256), Description ("The scoping SAP's Name.") ]
+   string SAPName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen (256), Override ("Name"), Description (
+        "The Name property, inherited from StatisticalInformation, "
+        "serves as part of the object key.") ]
+   string Name;
+};
+
+
+// ==================================================================
+//    SAPStatistics
+// ==================================================================
+   [Association, Description (
+     "SAPStatistics relates the SAPStatisticalInformation "
+     "class to the ServiceAccessPoint to which it applies. ") ]
+class WET_SAPStatistics : WET_Statistics {
+      [Override ("Stats"), Weak, 
+       Description ( "The statistical object.") ]
+   WET_SAPStatisticalInformation REF Stats;
+      [Override ("Element"), Min(1), Max(1), Description (
+        "The ServiceAccessPoint to which the statistics apply.") ]
+   WET_ServiceAccessPoint REF Element;
+};
+
+
+// ==================================================================
+//    DeviceStatisticalInformation
+// ==================================================================
+   [Description (
+     "Statistical information associated with a LogicalDevice "
+     "or one of its subclasses.") ]
+class WET_DeviceStatisticalInformation : WET_StatisticalInformation {
+      [Propagated("WET_LogicalDevice.SystemCreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ]
+   string SystemCreationClassName;
+      [Propagated("WET_LogicalDevice.SystemName"), Key, MaxLen (256), 
+       Description ("The scoping System's Name.") ]
+   string SystemName;
+      [Propagated("WET_LogicalDevice.CreationClassName"), Key, 
+       MaxLen (256), 
+       Description ("The scoping Device's CreationClassName.") ]
+   string DeviceCreationClassName;
+      [Propagated("WET_LogicalDevice.DeviceID"), Key, MaxLen (64), 
+       Description ("The scoping Device's ID.") ]
+   string DeviceID;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen (256), Override ("Name"), Description (
+        "The Name property, inherited from StatisticalInformation, "
+        "serves as part of the object key.") ]
+   string Name;
+};
+
+
+// ==================================================================
+//    DeviceStatistics
+// ==================================================================
+   [Association, Description (
+     "DeviceStatistics relates the DeviceStatisticalInformation "
+     "class to the LogicalDevice to which it applies. ") ]
+class WET_DeviceStatistics : WET_Statistics {
+      [Override ("Stats"), Weak, 
+       Description ( "The statistical object.") ]
+   WET_DeviceStatisticalInformation REF Stats;
+      [Override ("Element"), Min(1), Max(1), 
+       Description ("The Device to which the statistics apply.") ]
+   WET_LogicalDevice REF Element;
+};
+
+
+// ==================================================================
+//    PhysicalStatisticalInformation
+// ==================================================================
+   [Description (
+     "Statistical information associated with a PhysicalElement "
+     "or one of its subclasses.") ]
+class WET_PhysicalStatisticalInformation : WET_StatisticalInformation {
+      [Propagated("WET_PhysicalElement.CreationClassName"), Key, 
+       MaxLen (256), 
+       Description ("The scoping Element's CreationClassName.") ]
+   string PhysicalCreationClassName;
+      [Propagated("WET_PhysicalElement.Tag"), Key, MaxLen (256), 
+       Description ("The scoping Element's identifying Tag.") ]
+   string Tag;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen (256), Override ("Name"), Description (
+        "The Name property, inherited from StatisticalInformation, "
+        "serves as part of the object key.") ]
+   string Name;
+};
+
+
+// ==================================================================
+//    PhysicalStatistics
+// ==================================================================
+   [Association, Description (
+     "PhysicalStatistics relates the PhysicalStatisticalInformation "
+     "class to the PhysicalElement to which it applies. ") ]
+class WET_PhysicalStatistics : WET_Statistics {
+      [Override ("Stats"), Weak, 
+       Description ( "The statistical object.") ]
+   WET_PhysicalStatisticalInformation REF Stats;
+      [Override ("Element"), Min(1), Max(1), Description (
+        "The PhysicalElement to which the statistics apply.") ]
+   WET_PhysicalElement REF Element;
+};
+
+
+// ==================================================================
+//
+//  Settings and Configuration
+//
+// ==================================================================
+// ===================================================================
+//    Configuration
+// ===================================================================
+   [Description (
+     "The Configuration object allows the grouping of sets of "
+     "parameters (defined in Setting objects) and dependencies for "
+     "one or more ManagedSystemElements. The Configuration object "
+     "represents a certain behavior, or a desired functional state "
+     "for the ManagedSystemElements. The desired functional state "
+     "is typically driven by external requirements such as time or "
+     "location. For example, to connect to a Mail System from "
+     "'home', a dependency on a modem exists, but a dependency on "
+     "a network adapter exists at 'work'. Settings for the "
+     "pertinent LogicalDevices (in this example, POTSModem and "
+     "NetworkAdapter) can be defined and aggregated by the "
+     "Configuration. Therefore, two 'Connect to Mail' "
+     "Configurations may be defined grouping the relevant "
+     "dependencies and Setting objects.") ]
+class WET_Configuration : WET_ManagedElement {
+      [Key, MaxLen (256), Description (
+        "The label by which the Configuration object is known.") ]
+   string Name;
+};
+
+
+// ===================================================================
+//    ConfigurationComponent
+// ===================================================================
+   [Association, Aggregation, Description (
+     "ConfigurationComponent aggregates 'lower-level' "
+     "Configuration objects into a 'high-level' Configuration. "
+     "This enables the assembly of complex Configurations by "
+     "grouping together simpler ones. For example, a logon policy "
+     "for the United States could consist of two Configuration "
+     "groups, one for the east coast and one for the west coast. "
+     "Each of these could in turn consist of multiple "
+     "Configurations to handle different aspects of the logon "
+     "process.") ]
+class WET_ConfigurationComponent {
+      [Aggregate, Key, Description (
+        "The Configuration that aggregates additional "
+        "Configurations." ) ]
+   WET_Configuration REF ConfigGroup;
+      [Key, Description (
+        "A Configuration that is part of a 'higher-level' "
+        "Configuration.") ]
+   WET_Configuration REF ConfigComponent;
+};
+
+
+// ===================================================================
+//    ElementConfiguration
+// ===================================================================
+   [Association, Description (
+     "This association relates a Configuration object to one or "
+     "more ManagedSystemElements. The Configuration object "
+     "represents a certain behavior, or a desired functional state "
+     "for the associated ManagedSystemElements.") ]
+class WET_ElementConfiguration {
+      [Key, Description ("The ManagedSystemElement.")]
+   WET_ManagedSystemElement REF Element;
+      [Key, Description (
+        "The Configuration object that groups the Settings and "
+        "dependencies associated with the ManagedSystemElement.") ] 
+   WET_Configuration REF Configuration;
+};
+
+
+// ===================================================================
+//    CollectionConfiguration
+// ===================================================================
+   [Association, Description (
+     "This association relates a Configuration object to one or "
+     "more CollectionOfMSEs objects. The Configuration object "
+     "represents a certain behavior, or a desired functional state "
+     "for the associated Collection.") ]
+class WET_CollectionConfiguration {
+      [Key, Description ("The CollectionOfMSEs.") ]
+   WET_CollectionOfMSEs REF Collection;
+      [Key, Description (
+        "The Configuration object that groups the Settings and "
+        "dependencies associated with the Collection.") ]
+   WET_Configuration REF Configuration;
+};
+
+
+// ===================================================================
+//    Setting
+// ===================================================================
+   [Abstract, Description (
+     "The Setting class represents configuration-related and "
+     "operational parameters for one or more ManagedSystem"
+     "Element(s). A ManagedSystemElement may have multiple Setting "
+     "objects associated with it. The current operational values "
+     "for an Element's parameters are reflected by properties in "
+     "the Element itself or by properties in its associations. "
+     "These properties do not have to be the same values present "
+     "in the Setting object. For example, a modem may have a "
+     "Setting baud rate of 56Kb/sec but be operating "
+     "at 19.2Kb/sec.") ]
+class WET_Setting : WET_ManagedElement {
+      [MaxLen (256), Description (
+        "The identifier by which the Setting object is known.") ]
+   string SettingID;
+      [Description (
+        "The VerifyOKToApplyToMSE method is used to verify that "
+        "this Setting can be 'applied' to the referenced Managed"
+        "SystemElement, at the given time or time interval. This "
+        "method takes three input parameters: MSE (the Managed"
+        "SystemElement that is being verified), TimeToApply (which, "
+        "being a datetime, can be either a specific time or a time "
+        "interval), and MustBeCompletedBy (which indicates the "
+        "required completion time for the method). The return "
+        "value should be 0 if it is OK to apply the Setting, 1 if "
+        "the method is not supported, 2 if the Setting can not be "
+        "applied within the specified times, and any other number "
+        "if an error occurred. In a subclass, the "
+        "set of possible return codes could be specified, using a "
+        "ValueMap qualifier on the method. The strings to which the "
+        "ValueMap contents are 'translated' may also be specified in "
+        "the subclass as a Values array qualifier.") ]
+   uint32 VerifyOKToApplyToMSE(
+      [IN] WET_ManagedSystemElement ref MSE, 
+      [IN] datetime TimeToApply, 
+      [IN] datetime MustBeCompletedBy);
+      [Description (
+        "The ApplyToMSE method performs the actual application of "
+        "the Setting to the referenced ManagedSystemElement. It "
+        "takes three input parameters: MSE (the ManagedSystem"
+        "Element to which the Setting is being applied), "
+        "TimeToApply (which, being a datetime, can be either a "
+        "specific time or a time interval), and MustBeCompletedBy "
+        "(which indicates the required completion time for the "
+        "method). Note that the semantics of this method are that "
+        "individual Settings are either wholly applied or not "
+        "applied at all to their target ManagedSystemElement. The "
+        "return value should be 0 if the Setting is successfully "
+        "applied to the referenced ManagedSystemElement, 1 if the "
+        "method is not supported, 2 if the Setting was not applied "
+        "within the specified times, and any other number if an "
+        "error occurred. In a subclass, the set of possible return "
+        "codes could be specified, using a ValueMap qualifier on "
+        "the method. The strings to which the ValueMap contents are "
+        "'translated' may also be specified in the subclass as a "
+        "Values array qualifier.\n"
+        "Note: If an error occurs in applying the Setting to a "
+        "ManagedSystemElement, the Element must be configured as "
+        "when the 'apply' attempt began. That is, the Element "
+        "should NOT be left in an indeterminate state.") ]
+   uint32 ApplyToMSE(
+      [IN] WET_ManagedSystemElement ref MSE, 
+      [IN] datetime TimeToApply, 
+      [IN] datetime MustBeCompletedBy);
+      [Description (
+        "The VerifyOKToApplyToCollection method is used to verify "
+        "that this Setting can be 'applied' to the referenced "
+        "Collection of ManagedSystemElements, at the given time "
+        "or time interval, without causing adverse effects to "
+        "either the Collection itself or its surrounding "
+        "environment. The net effect is to execute the "
+        "VerifyOKToApply method against each of the Elements "
+        "aggregated by the Collection. This method takes three "
+        "input parameters: Collection (the Collection of Managed"
+        "SystemElements that is being verified), TimeToApply (which, "
+        "being a datetime, can be either a specific time or a time "
+        "interval), and MustBeCompletedBy (which indicates the "
+        "required completion time for the method). The return "
+        "value should be 0 if it is OK to apply the Setting, 1 if "
+        "the method is not supported, 2 if the Setting can not be "
+        "applied within the specified times, and any other number if "
+        "an error occurred. One output parameter is defined - "
+        "CanNotApply - which is a string array that lists the keys of "
+        "the ManagedSystemElements to which the Setting can NOT be "
+        "applied. This enables those Elements to be revisited and "
+        "either fixed, or other corrective action taken.\n"
+        "In a subclass, the set of possible return codes could be "
+        "specified, using a ValueMap qualifier on the method. The "
+        "strings to which the ValueMap contents are 'translated' may "
+        "also be specified in the subclass as a Values array "
+        "qualifier.") ] 
+   uint32 VerifyOKToApplyToCollection (
+      [IN] WET_CollectionOfMSEs ref Collection,
+      [IN] datetime TimeToApply, 
+      [IN] datetime MustBeCompletedBy,
+      [OUT] string CanNotApply[]);
+      [Description (
+        "The ApplyToCollection method performs the application of "
+        "the Setting to the referenced Collection of ManagedSystem"
+        "Elements. The net effect is to execute the ApplyToMSE "
+        "method against each of the Elements aggregated by the "
+        "Collection. If the input value ContinueOnError is FALSE, "
+        "this method applies the Setting to all Elements in the "
+        "Collection until it encounters an error, in which case it "
+        "stops execution, logs the key of the Element that caused "
+        "the error in the CanNotApply array, and issues a return code "
+        "of 2. If the input value ContinueOnError is TRUE, then this "
+        "method applies the Setting to all the ManagedSystemElements "
+        "in the Collection, and reports the failed Elements in the "
+        "array, CanNotApply. For the latter, processing will continue "
+        "until the method is applied to all Elements in the "
+        "Collection, regardless of any errors encountered. The key of "
+        "each ManagedSystemElement to which the Setting could not be "
+        "applied is logged into the CanNotApply array. This method "
+        "takes four input parameters: Collection (the Collection of "
+        "Elements to which the Setting is being applied), TimeToApply "
+        "(which, being a datetime, can be either a specific time or a "
+        "time interval), ContinueOnError (TRUE means to continue "
+        "processing on encountering an error), and MustBeCompletedBy "
+        "(which indicates the required completion time for the "
+        "method). The return value should be 0 if the Setting is "
+        "successfully applied to the referenced Collection, 1 if the "
+        "method is not supported, 2 if the Setting was not applied "
+        "within the specified times, 3 if the Setting can not be "
+        "applied using the input value for ContinueOnError, and any "
+        "other number if an error occurred. One output parameter is "
+        "defined, CanNotApplystring, which is an array that lists "
+        "the keys of the ManagedSystemElements to which the Setting "
+        "was NOT able to be applied. This output parameter has "
+        "meaning only when the ContinueOnError parameter is TRUE.\n"
+        "In a subclass, the set of possible return codes could be "
+        "specified, using a ValueMap qualifier on the method. The "
+        "strings to which the ValueMap contents are 'translated' may "
+        "also be specified in the subclass as a Values array "
+        "qualifier.\n"
+        "Note: if an error occurs in applying the Setting to a "
+        "ManagedSystemElement in the Collection, the Element must be "
+        "configured as when the 'apply' attempt began. That is, the "
+        "Element should NOT be left in an indeterminate state.") ]
+   uint32 ApplyToCollection(
+      [IN] WET_CollectionOfMSEs ref Collection, 
+      [IN] datetime TimeToApply, 
+      [IN] boolean ContinueOnError,
+      [IN] datetime MustBeCompletedBy, 
+      [OUT] string CanNotApply[]);
+      [Description ( 
+        "The VerifyOKToApplyIncrementalChangeToMSE method " 
+        "is used to verify that a subset of the properties in " 
+        "this Setting can be 'applied' to the referenced Managed" 
+        "SystemElement, at the given time or time interval. This " 
+        "method takes four input parameters: MSE (the Managed" 
+        "SystemElement that is being verified), TimeToApply (which, " 
+        "being a datetime, can be either a specific time or a time " 
+        "interval), MustBeCompletedBy (which indicates the " 
+        "required completion time for the method), and a " 
+        "PropertiesToApply array (which contains a list of the " 
+        "property names whose values will be verified. " 
+        "If they array is null or empty or constains the string \"all\" " 
+        "as a property name then all Settings properties shall be " 
+        "verified.  If it is set to \"none\" then no Settings properties " 
+        "will be verified). The return " 
+        "value should be 0 if it is OK to apply the Setting, 1 if " 
+        "the method is not supported, 2 if the Setting can not be " 
+        "applied within the specified times, and any other number " 
+        "if an error occurred. In a subclass, the " 
+        "set of possible return codes could be specified, using a " 
+        "ValueMap qualifier on the method. The strings to which the " 
+        "ValueMap contents are 'translated' may also be specified in " 
+        "the subclass as a Values array qualifier.") ] 
+   uint32 VerifyOKToApplyIncrementalChangeToMSE( 
+      [IN] WET_ManagedSystemElement ref MSE, 
+      [IN] datetime TimeToApply, 
+      [IN] datetime MustBeCompletedBy, 
+      [IN] string PropertiesToApply[]); 
+      [Description ( 
+        "The ApplyIncrementalChangeToMSE method performs the " 
+        "actual application of  a subset of the properties in " 
+        "the Setting to the referenced ManagedSystemElement. It " 
+        "takes four input parameters: MSE (the ManagedSystem" 
+        "Element to which the Setting is being applied), " 
+        "TimeToApply (which, being a datetime, can be either a " 
+        "specific time or a time interval), MustBeCompletedBy " 
+        "(which indicates the required completion time for the " 
+        "method), and a " 
+        "PropertiesToApply array (which contains a list of the " 
+        "property names whose values will be applied. If a " 
+        "property is not in this list, it will be ignored by the apply. " 
+        "If they array is null or empty or constains the string \"all\" " 
+        "as a property name then all Settings properties shall be " 
+        "applied.  If it is set to \"none\" then no Settings properties " 
+        "will be applied. ). " 
+        "Note that the semantics of this method are that " 
+        "individual Settings are either wholly applied or not " 
+        "applied at all to their target ManagedSystemElement. The " 
+        "return value should be 0 if the Setting is successfully " 
+        "applied to the referenced ManagedSystemElement, 1 if the " 
+        "method is not supported, 2 if the Setting was not applied " 
+        "within the specified times, and any other number if an " 
+        "error occurred. In a subclass, the set of possible return " 
+        "codes could be specified, using a ValueMap qualifier on " 
+        "the method. The strings to which the ValueMap contents are " 
+        "'translated' may also be specified in the subclass as a " 
+        "Values array qualifier.\n" 
+        "Note: If an error occurs in applying the Setting to a " 
+        "ManagedSystemElement, the Element must be configured as " 
+        "when the 'apply' attempt began. That is, the Element " 
+        "should NOT be left in an indeterminate state.") ] 
+   uint32 ApplyIncrementalChangeToMSE( 
+      [IN] WET_ManagedSystemElement ref MSE, 
+      [IN] datetime TimeToApply, 
+      [IN] datetime MustBeCompletedBy, 
+      [IN] string PropertiesToApply[]); 
+      [Description ( 
+        "The VerifyOKToApplyIncrementalChangeToCollection method " 
+        "is used to verify that a subset of the properties in " 
+        "this Setting can be 'applied' to the referenced " 
+        "Collection of ManagedSystemElements, at the given time " 
+        "or time interval, without causing adverse effects to " 
+        "either the Collection itself or its surrounding " 
+        "environment. The net effect is to execute the " 
+        "VerifyOKToApplyIncrementalChangeToMSE method " 
+        "against each of the Elements " 
+        "aggregated by the Collection. This method takes three " 
+        "input parameters: Collection (the Collection of Managed" 
+        "SystemElements that is being verified), TimeToApply (which, " 
+        "being a datetime, can be either a specific time or a time " 
+        "interval), MustBeCompletedBy (which indicates the " 
+        "required completion time for the method), and a " 
+        "PropertiesToApply array (which contains a list of the " 
+        "property names whose values will be verified. " 
+        "If they array is null or empty or constains the string \"all\" " 
+        "as a property name then all Settings properties shall be " 
+        "verified.  If it is set to \"none\" then no Settings properties " 
+        "will be verified). The return " 
+        "value should be 0 if it is OK to apply the Setting, 1 if " 
+        "the method is not supported, 2 if the Setting can not be " 
+        "applied within the specified times, and any other number if " 
+        "an error occurred. One output parameter is defined - " 
+        "CanNotApply - which is a string array that lists the keys of " 
+        "the ManagedSystemElements to which the Setting can NOT be " 
+        "applied. This enables those Elements to be revisited and " 
+        "either fixed, or other corrective action taken.\n" 
+        "In a subclass, the set of possible return codes could be " 
+        "specified, using a ValueMap qualifier on the method. The " 
+        "strings to which the ValueMap contents are 'translated' may " 
+        "also be specified in the subclass as a Values array " 
+        "qualifier.") ] 
+   uint32 VerifyOKToApplyIncrementalChangeToCollection ( 
+      [IN] WET_CollectionOfMSEs ref Collection, 
+      [IN] datetime TimeToApply, 
+      [IN] datetime MustBeCompletedBy, 
+      [IN] string PropertiesToApply[], 
+      [OUT] string CanNotApply[]); 
+      [Description ( 
+        "The ApplyIncrementalChangeToCollection method performs " 
+        "the application of a subset of the properties in this " 
+        "Setting to the referenced Collection of ManagedSystem" 
+        "Elements. The net effect is to execute the " 
+        "ApplyIncrementalChangeToMSE " 
+        "method against each of the Elements aggregated by the " 
+        "Collection. If the input value ContinueOnError is FALSE, " 
+        "this method applies the Setting to all Elements in the " 
+        "Collection until it encounters an error, in which case it " 
+        "stops execution, logs the key of the Element that caused " 
+        "the error in the CanNotApply array, and issues a return code " 
+        "of 2. If the input value ContinueOnError is TRUE, then this " 
+        "method applies the Setting to all the ManagedSystemElements " 
+        "in the Collection, and reports the failed Elements in the " 
+        "array, CanNotApply. For the latter, processing will continue " 
+        "until the method is applied to all Elements in the " 
+        "Collection, regardless of any errors encountered. The key of " 
+        "each ManagedSystemElement to which the Setting could not be " 
+        "applied is logged into the CanNotApply array. This method " 
+        "takes four input parameters: Collection (the Collection of " 
+        "Elements to which the Setting is being applied), TimeToApply " 
+        "(which, being a datetime, can be either a specific time or a " 
+        "time interval), ContinueOnError (TRUE means to continue " 
+        "processing on encountering an error), and MustBeCompletedBy " 
+        "(which indicates the required completion time for the " 
+        "method), and a PropertiesToApply array (which contains a list " 
+        "of the property names whose values will be applied. If a " 
+        "property is not in this list, it will be ignored by the apply. " 
+        "If they array is null or empty or constains the string \"all\" " 
+        "as a property name then all Settings properties shall be " 
+        "applied.  If it is set to \"none\" then no Settings properties " 
+        "will be applied. ). " 
+        "The return value should be 0 if the Setting is " 
+        "successfully applied to the referenced Collection, 1 if the " 
+        "method is not supported, 2 if the Setting was not applied " 
+        "within the specified times, 3 if the Setting can not be " 
+        "applied using the input value for ContinueOnError, and any " 
+        "other number if an error occurred. One output parameter is " 
+        "defined, CanNotApplystring, which is an array that lists " 
+        "the keys of the ManagedSystemElements to which the Setting " 
+        "was NOT able to be applied. This output parameter has " 
+        "meaning only when the ContinueOnError parameter is TRUE.\n" 
+        "In a subclass, the set of possible return codes could be " 
+        "specified, using a ValueMap qualifier on the method. The " 
+        "strings to which the ValueMap contents are 'translated' may " 
+        "also be specified in the subclass as a Values array " 
+        "qualifier.\n" 
+        "Note: if an error occurs in applying the Setting to a " 
+        "ManagedSystemElement in the Collection, the Element must be " 
+        "configured as when the 'apply' attempt began. That is, the " 
+        "Element should NOT be left in an indeterminate state.") ] 
+   uint32 ApplyIncrementalChangeToCollection( 
+      [IN] WET_CollectionOfMSEs ref Collection, 
+      [IN] datetime TimeToApply, 
+      [IN] boolean ContinueOnError, 
+      [IN] datetime MustBeCompletedBy, 
+      [IN] string PropertiesToApply[], 
+      [OUT] string CanNotApply[]); 
+};
+
+
+// ===================================================================
+//    ElementSetting
+// ===================================================================
+   [Association, Description (
+     "ElementSetting represents the association between Managed"
+     "SystemElements and the Setting class(es) defined for them.") ]
+class WET_ElementSetting {
+      [Key, Description ("The ManagedSystemElement.") ]
+   WET_ManagedSystemElement REF Element;
+      [Key, Description (
+        "The Setting object associated with the ManagedSystem"
+        "Element.") ]
+   WET_Setting REF Setting;
+};
+
+
+// ===================================================================
+//    DefaultSetting
+// ===================================================================
+   [Association, Description (
+     "DefaultSetting represents the association between a Managed"
+     "SystemElement and the single Setting class that is defined "
+     "to be the default setting for this Element.") ]
+class WET_DefaultSetting : WET_ElementSetting {
+      [Override ("Setting"), Max (1), Description (
+        "The Setting object which is the default.") ]
+   WET_Setting REF Setting;
+};
+
+
+// ===================================================================
+//    DependencyContext
+// ===================================================================
+   [Association, Aggregation, Description (
+     "This relationship associates a Dependency with one or more "
+     "Configuration objects. For example, a ComputerSystem's "
+     "dependencies could change based on the site/network to which "
+     "the System is attached.") ]
+class WET_DependencyContext {
+      [Aggregate, Key, Description (
+        "The Configuration object that aggregates the Dependency.") ]
+   WET_Configuration REF Context;
+      [Key, Description ("An aggregated Dependency.") ]
+   WET_Dependency REF Dependency;
+};
+
+     
+// ===================================================================
+//    SettingContext
+// ===================================================================
+   [Association, Aggregation, Description (
+     "This relationship associates Configuration objects with "
+     "Setting objects. For example, a NetworkAdapter's Settings "
+     "could change based on the site/network to which its hosting "
+     "ComputerSystem is attached. In this case, the ComputerSystem "
+     "would have two different Configuration objects, corresponding "
+     "to the differences in network configuration for the two network "
+     "segments. Configuration A would aggregate a Setting object for "
+     "the NetworkAdapter when operating on segment \"ANet\", whereas "
+     "Configuration B would aggregate a different NetworkAdapter "
+     "Setting object, specific to segment \"BNet\". Note that many "
+     "Settings of the computer are independent of the network "
+     "Configuration. For example, both Configurations A and B would "
+     "aggregate the same Setting object for the ComputerSystem's "
+     "MonitorResolution.") ]
+class WET_SettingContext {
+      [Aggregate, Key, Description (
+        "The Configuration object that aggregates the Setting.") ]
+   WET_Configuration REF Context;
+      [Key, Description ("An aggregated Setting.")]
+   WET_Setting REF Setting;
+};
+
+
+// ===================================================================
+//    CollectionSetting
+// ===================================================================
+   [Association, Description (
+     "CollectionSetting represents the association between a "
+     "CollectionOfMSEs class and the Setting class(es) defined for "
+     "them.") ]
+class WET_CollectionSetting {
+      [Key, Description ("The CollectionOfMSEs.") ]
+   WET_CollectionOfMSEs REF Collection;
+      [Key, Description (
+        "The Setting object associated with the Collection.") ]
+   WET_Setting REF Setting;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================
+

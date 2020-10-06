@@ -1,0 +1,137 @@
+.\" .TA c \" lowercase initial letter of .TH name
+.TH "cimauth" "8" "" "" ""
+.SH "NAME"
+cimauth \- add, modify, remove, or list CIM namespace authorizations of users
+.SH "SYNOPSIS"
+\fBcimauth\fP \fB\-a\fP \fB\-u\fP username \fB\-n\fP namespace [ \fB\-R\fP ] [ \fB\-W\fP ]
+
+\fBcimauth\fP \fB\-m\fP \fB\-u\fP username \fB\-n\fP namespace [ \fB\-R\fP ] [ \fB\-W\fP ]
+
+\fBcimauth\fP \fB\-r\fP \fB\-u\fP username [ \fB\-n\fP namespace ]
+
+\fBcimauth\fP \fB\-l\fP
+
+\fBcimauth\fP \fB\-h\fP
+
+\fBcimauth\fP \fB\-\-help\fP
+
+\fBcimauth\fP \fB\-\-version\fP
+
+.SH "DESCRIPTION"
+.PP 
+The 
+.B cimauth 
+command manages
+read and write CIM namespace authorizations of users. The operations are
+executed on the local host by submitting requests to the CIM Server.
+If the value of the configuration property 
+.B enableNamespaceAuthorization
+is 
+.B True ,
+the CIM Server restricts access to namespaces based on user
+authorizations configured via 
+.B cimauth . 
+Changes to "Dynamic" authorization parameters does not require the CIM Server to be restarted. "Non Dynamic" configuration properties (E.g. \fBenableNamespaceAuthorization\fP 
+) can only be set as planned configuration and the CIM Server needs to be restarted to realize the change.
+(See 
+.B "cimconfig (8)" 
+for information on configuring the CIM Server.)
+.SS Options
+.PP 
+The 
+.B cimauth 
+command recognizes the following options:
+.RS
+.TP 15
+.B  \-a
+Adds read and/or write authorizations to the specified user on the specified
+namespace.  If neither the
+.B \-R
+nor the 
+.B \-W 
+option is specified, adds a read authorization by default.
+.TP 
+.B \-h, \-\-help
+Display command usage information.
+.TP 
+.B \-l
+Lists all the authorizations configured in the CIM Server.
+.TP 
+.B \-m
+Modifies authorizations of the specified user on the specified namespace.
+If neither the 
+.B \-R 
+nor the 
+.B \-W 
+option is specified, modifies the authorization to be
+a read authorization by default.
+.TP 
+\fB\-n\fP namespace
+Specifies the 
+.I R namespace 
+for the operation.
+.TP 
+.B \-r
+Removes authorizations of the specified user on the specified namespace.
+If no namespaces are specified, removes authorizations on all namespaces
+for the specified user.
+.TP 
+.B \-R
+Specifies read authorization on the namespace.
+.TP 
+\fB\-u\fP username
+Specifies the user for the operation.  The specified 
+.I R username 
+must represent a valid user on the local host.
+.TP 
+.B \-\-version
+Display CIM Server version number.
+.TP 
+.B \-W
+Specifies write authorization on the namespace.
+.RE
+.SH "EXIT STATUS"
+.PP 
+When an error occurs, an
+error message is written to stderr and an error value of 1 is returned. The
+following return values are returned:
+.RS
+.TP 
+.B 0
+Successful completion
+.PD 0
+.TP 
+.B 1
+Error
+.PD
+.RE
+.SH "USAGE NOTE"
+.PP 
+The 
+.B cimauth 
+command requires that the CIM Server is running.
+.SH "EXAMPLES"
+.PP 
+Add read authorizations to user "guest" on namespace "root/cimv2".
+.IP 
+.B "cimauth \-a \-u guest \-n root/cimv2 \-R"
+.PP 
+Add read and write authorizations to user "guest" on namespace "root/system".
+.IP 
+.B "cimauth \-a \-u guest \-n root/system \-R \-W"
+.PP 
+Modify authorizations of the user "guest" on namespace "root/system" to 
+read only.
+.IP 
+.B "cimauth \-m \-u guest \-n root/system \-R"
+.PP 
+Remove the authorizations of the user "guest" on namespace "root/system".
+.IP 
+.B "cimauth \-r \-u guest \-n root/system"
+.PP 
+List all the authorizations configured in the CIM Server.
+.IP 
+.B "cimauth \-l"
+.SH "SEE ALSO"
+.PP 
+cimserver(8), cimconfig(8).

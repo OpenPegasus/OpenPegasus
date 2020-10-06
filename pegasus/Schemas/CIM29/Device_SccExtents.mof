@@ -1,0 +1,617 @@
+// ===================================================================
+// Title: Device_SccExtents
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_SccExtents.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file describes
+//              the modeling of SCC (SCSI Controller Commands) using
+//              StorageExtents.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1233 - Sysdev Omnibus CR (correct deprecations)
+// 
+// Change Log for v2.7
+// CR722 - Deprecate PSExtentBaseOnPExtent, VolumeSetBasedOnPSExtent,
+//         LogicalDiskBasedOnVolumeSet, AggregatePSExtent,
+//         AggregatePSExtentBasedOnPExtent,
+//         AggregatePSExtentBasedOnAggregatePExtent,
+//         PExtentRedundancyComponent, AggregateRedundancyComponent,
+//         PhysicalExtent, ProtectedSpaceExtent, VolumeSet,
+//         AggregatePExtent, and AggregatePSExtent
+// CR846 - Deprecate RealizesPExtent and RealizesAggregatePExtent
+// CR861 - Add Deprecated qualifier to the individual properties of
+//         the Deprecated SCC classes
+// CR882 - Deprecate Snapshot and SnapshotOfExtent. Therefore moved
+//         definitions from StorageExtents.mof to here.
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// PhysicalExtent
+// ===================================================================
+   [Deprecated { "CIM_ProtectedExtentBasedOn",
+       "CIM_CompositeExtentBasedOn" }, Version ( "2.7.0" ), 
+    Description (
+       "Deprecated - use CIM_ProtectedExtentBasedOn or "
+       "CIM_CompositeExtentBasedOn instead. The information on check "
+       "and user data is better expressed in the association that "
+       "layers the storage, than in the extent itself. A "
+       "PhysicalExtent is used to model an SCC RAID implementation. It "
+       "defines the consecutive addressable block addresses on a "
+       "single storage device, that are treated as a single "
+       "StorageExtent and that are in the same StorageRedundancyGroup. "
+       "An alternate possibility, if automatic configuration is used, "
+       "is to instantiate or extend the AggregatePExtent class.")]
+class CIM_PhysicalExtent : CIM_StorageExtent {
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.BlockSize",
+          "CIM_ProtectedExtentBasedOn.BlockSize" },
+          Override ( "BlockSize" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.4" }]
+   uint64 BlockSize;
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.NumberOfBlocks",
+          "CIM_ProtectedExtentBasedOn.NumberOfBlocks" },
+          Override ( "NumberOfBlocks" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.3" }]
+   uint64 NumberOfBlocks;
+
+      [Deprecated { 
+          "CIM_CompositeExtentBasedOn.UnitsBeforeCheckDataInterleave",
+          "CIM_ProtectedExtentBasedOn.UnitsBeforeCheckDataInterleave" }, 
+       Description (
+          "Number of bytes of user data to skip before starting the "
+          "check data interleave."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.6" }]
+   uint64 UnitsBeforeCheckDataInterleave;
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.UnitsOfCheckData",
+          "CIM_ProtectedExtentBasedOn.UnitsOfCheckData" }, 
+       Description (
+          "Number of bytes to be reserved for check data."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.7" }]
+   uint64 UnitsOfCheckData;
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.UnitsOfUserData",
+          "CIM_ProtectedExtentBasedOn.UnitsOfUserData" }, Description (
+          "Number of bytes to be reserved for user data."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.8" }]
+   uint64 UnitsOfUserData;
+};
+
+
+// ===================================================================
+// ProtectedSpaceExtent
+// ===================================================================
+   [Deprecated { 
+       "CIM_ProtectedExtentBasedOn","CIM_CompositeExtentBasedOn" },
+    Version ( "2.7.0" ), Description (
+       "Deprecated - use CIM_ProtectedExtentBasedOn or "
+       "CIM_CompositeExtentBasedOn instead. The information on check "
+       "and user data is better expressed in the association that "
+       "layers the storage, than in the extent itself. A "
+       "ProtectedSpaceExtent is used to model an SCC RAID "
+       "implementation. ProtectedSpaceExtent defines addressable "
+       "logical block addresses, treated as a single Extent, located "
+       "on one or more PhysicalExtents. ProtectedSpaceExtents exclude "
+       "any logical blocks mapped as check data and contain user data "
+       "stripe depth mapping information. An alternate possibility, if "
+       "automatic configuration is used, is to instantiate or extend "
+       "the AggregatePSExtent class.")]
+class CIM_ProtectedSpaceExtent : CIM_StorageExtent {
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.BlockSize",
+          "CIM_ProtectedExtentBasedOn.BlockSize" },
+          Override ( "BlockSize" ), 
+       MappingStrings { "MIF.DMTF|Protected Space Extent|001.4" }]
+   uint64 BlockSize;
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.NumberOfBlocks",
+          "CIM_ProtectedExtentBasedOn.NumberOfBlocks" },
+          Override ( "NumberOfBlocks" ), Description (
+          "The number of user data blocks contained in this Extent."), 
+       MappingStrings { "MIF.DMTF|Protected Space Extent|001.3" }]
+   uint64 NumberOfBlocks;
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.UserDataStripeDepth" }, 
+       Description (
+          "For a ProtectedSpaceExtent that is allocated to a Volume "
+          "Set (i.e. is named in a CIM_VolumeSetBasedOnPSExtent "
+          "association), this property is the number of user data "
+          "bytes placed on this ProtectedSpaceExtent before moving on "
+          "to the next ProtectedSpaceExtent in the VolumeSet. "
+          "Otherwise, this ProtectedSpaceExtent is considered to be "
+          "unallocated, and this property shall be set to zero (0h.)"), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Protected Space Extent|001.6" }]
+   uint64 UserDataStripeDepth;
+};
+
+
+// ===================================================================
+// PSExtentBasedOnPExtent
+// ===================================================================
+   [Association, Deprecated { "CIM_ProtectedExtentBasedOn",
+       "CIM_CompositeExtentBasedOn" }, Version ( "2.7.0" ), 
+    Description (
+       "Covered by ProtectedExtentBasedOn or CompositeExtentBasedOn, "
+       "since PhysicalExtent itself is deprecated in lieu of these "
+       "associations. ProtectedSpaceExtents are BasedOn a "
+       "PhysicalExtent. This relationship is made explicit by this "
+       "association.")]
+class CIM_PSExtentBasedOnPExtent : CIM_BasedOn {
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.Antecedent",
+          "CIM_ProtectedExtentBasedOn.Antecedent" },
+          Override ( "Antecedent" ), Description (
+          "The PhysicalExtent.")]
+   CIM_PhysicalExtent REF Antecedent;
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.Dependent",
+          "CIM_ProtectedExtentBasedOn.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The ProtectedSpaceExtent which is built on the Physical "
+          "Extent.")]
+   CIM_ProtectedSpaceExtent REF Dependent;
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.StartingAddress",
+          "CIM_ProtectedExtentBasedOn.StartingAddress" },
+          Override ( "StartingAddress" ), Description (
+          "The starting logical block address of the PhysicalExtent "
+          "from which this ProtectedSpaceExtent is derived."), 
+       MappingStrings { "MIF.DMTF|Protected Space Extent|001.2" }]
+   uint64 StartingAddress;
+};
+
+
+// ===================================================================
+// VolumeSet
+// ===================================================================
+   [Deprecated { "CIM_CompositeExtent" }, Version ( "2.7.0" ), 
+    Description (
+       "VolumeSet is deprecated in lieu of CompositeExtent, which "
+       "removes the restriction that the Set must be exported. A "
+       "VolumeSet can be used to model an SCC RAID implementation. "
+       "VolumeSets represent a contiguous range of logical blocks "
+       "presented to the operating environment. VolumeSets may "
+       "overlap. However, the underlying PhysicalExtents within the "
+       "overlap shall not contain any check data. They are BasedOn one "
+       "or more ProtectedSpaceExtents. These BasedOn associations "
+       "should be instantiated or subclassed as needed.")]
+class CIM_VolumeSet : CIM_StorageVolume {
+
+      [Deprecated { "CIM_CompositeExtent.NumberOfBlocks" },
+          Override ( "NumberOfBlocks" ), 
+       MappingStrings { "MIF.DMTF|Volume Set|001.3" }]
+   uint64 NumberOfBlocks;
+
+      [Deprecated { "CIM_CompositeExtent.ExtentStripeLength" }, 
+       Description (
+          "Number of contiguous ProtectedSpaceExtents counted before "
+          "looping back to the first ProtectedSpaceExtent of the "
+          "current stripe. It is the number of Extents forming the "
+          "user data stripe."), 
+       MappingStrings { "MIF.DMTF|Volume Set|001.4" }]
+   uint64 PSExtentStripeLength;
+
+      [Deprecated { "CIM_CompositeExtent.ExtentInterleaveDepth" }, 
+       Description (
+          "Number of ProtectedSpaceExtents to stripe as a collective "
+          "set. In SCC, this value is defined as the number of stripes "
+          "to count before continuing to map into the next contiguous "
+          "set of Extents, beyond the current stripe."), 
+       MappingStrings { "MIF.DMTF|Volume Set|001.5" }]
+   uint64 PSExtentInterleaveDepth;
+
+      [Deprecated { "No value" }, Description (
+          "VolumeSets in SCC have additional status information beyond "
+          "that captured in the Availability and other properties, "
+          "inherited from ManagedSystemElement. This additional "
+          "information (for example, \"Protection Disabled\", value=9) "
+          "is captured in the VolumeStatus property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14" }, 
+       Values { "Other", "Unknown", "None/Not Applicable", "Broken",
+          "Data Lost", "Dynamic Reconfig", "Exposed",
+          "Fractionally Exposed", "Partially Exposed",
+          "Protection Disabled", 
+          // 10               
+          "Readying", "Rebuild", "Recalculate", "Spare in Use",
+          "Verify In Progress" }]
+   uint16 VolumeStatus;
+};
+
+
+// ===================================================================
+// VolumeSetBasedOnPSExtent
+// ===================================================================
+   [Association, Deprecated { "CIM_CompositeExtentBasedOn" },
+       Version ( "2.7.0" ), Description (
+       "This association is deprecated in lieu of "
+       "CompositeExtentBasedOn, since VolumeSets and "
+       "ProtectedSpaceExtents are themselves deprecated. The "
+       "relationship describes that VolumeSets are BasedOn on one or "
+       "more ProtectedSpaceExtents.")]
+class CIM_VolumeSetBasedOnPSExtent : CIM_BasedOn {
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.Antecedent" },
+       Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The ProtectedSpaceExtent.")]
+   CIM_ProtectedSpaceExtent REF Antecedent;
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.Dependent" },
+       Override ( "Dependent" ), Description (
+          "The VolumeSet which is built on the ProtectedSpace Extent.")]
+   CIM_VolumeSet REF Dependent;
+
+      [Deprecated { 
+          "CIM_CompositeExtentBasedOn.LBAsMappedByDecrementing" }, 
+       Description (
+          "True if logical blocks in the ProtectedSpaceExtent are "
+          "mapped in decrementing order. This property corresponds to "
+          "the INCDEC value in the SCC-2 Volume Set PS_Extent "
+          "Descriptor.")]
+   boolean LBAsMappedByDecrementing;
+
+      [Deprecated { 
+          "CIM_CompositeExtentBasedOn.LBAMappingIncludesCheckData" }, 
+       Description (
+          "True if the logical block mapping algorithm includes check "
+          "data bytes. This property corresponds to the NOCHKSKIP "
+          "attribute in the SCC-2 Volume Set PS_Extent Descriptor.")]
+   boolean LBAMappingIncludesCheckData;
+};
+
+
+// ===================================================================
+// LogicalDiskBasedOnVolumeSet
+// ===================================================================
+   [Association, Deprecated { "CIM_BasedOn" }, Version ( "2.7.0" ), 
+    Description (
+       "This association describes that LogicalDisks can be BasedOn a "
+       "VolumeSet. However, there is no need for the specificity of "
+       "this association. It is deprecated in lieu of the generic "
+       "BasedOn relationship.")]
+class CIM_LogicalDiskBasedOnVolumeSet : CIM_LogicalDiskBasedOnVolume {
+
+      [Deprecated { "CIM_BasedOn.Antecedent" },
+       Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The VolumeSet.")]
+   CIM_VolumeSet REF Antecedent;
+};
+
+
+// ===================================================================
+// AggregatePExtent
+// ===================================================================
+   [Deprecated { "CIM_StorageExtent", "CIM_CompositeExtentBasedOn" },
+    Version ( "2.7.0" ), Description (
+       "This class is deprecated in lieu of the generic StorageExtent "
+       "object and the ProtectedExtentBasedOn association. An "
+       "AggregatePExtent is used to model an SCC RAID implementation. "
+       "AggregatePExtents provide summary information about the "
+       "addressable logical blocks which are in the same "
+       "StorageRedundancyGroup and reside on the same storage device. "
+       "This is an alternative grouping for PhysicalExtents, when only "
+       "summary information is needed or when automatic configuration "
+       "is used.")]
+class CIM_AggregatePExtent : CIM_StorageExtent {
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.NumberOfBlocks",
+          "CIM_StorageExtent.NumberOfBlocks" },
+          Override ( "NumberOfBlocks" ), Description (
+          "Total number of blocks (including the check data blocks) "
+          "contained in this AggregatePExtent. The block size (an "
+          "inherited property) should be set to the same value as for "
+          "the MediaAccessDevice associated with this Extent."), 
+       MappingStrings { "MIF.DMTF|Aggregate Physical Extent|001.2" }]
+   uint64 NumberOfBlocks;
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.UnitsOfCheckData" }, 
+       Description (
+          "The number of blocks contained in this AggregatePExtent to "
+          "be used as check data. If this AggregatePExtent is "
+          "available, then this value shall be zero."), 
+       MappingStrings { "MIF.DMTF|Aggregate Physical Extent|001.3" }]
+   uint64 BlocksOfCheckData;
+};
+
+
+// ===================================================================
+// AggregatePSExtent
+// ===================================================================
+   [Deprecated { "CIM_StorageExtent", "CIM_CompositeExtentBasedOn" },
+    Version ( "2.7.0" ), Description (
+       "Similar to AggregatePExtent, this class is deprecated in lieu "
+       "of the generic StorageExtent object and the "
+       "ProtectedExtentBasedOn association. An AggregatePSExtent is "
+       "used to model an SCC RAID implementation. AggregatePSExtents "
+       "define the number of addressable logical blocks on a single "
+       "storage device, excluding any logical blocks mapped as check "
+       "data. This is an alternative grouping for ProtectedSpace "
+       "Extents, when only summary information is needed or when "
+       "automatic configuration is used.")]
+class CIM_AggregatePSExtent : CIM_StorageExtent {
+
+      [Deprecated { "CIM_CompositeExtentBasedOn.NumberOfBlocks",
+          "CIM_StorageExtent.NumberOfBlocks" },
+          Override ( "NumberOfBlocks" ), Description (
+          "Total number of user data blocks that are contained in this "
+          "Extent."), 
+       MappingStrings { "MIF.DMTF|Aggregate Protected Space " 
+          "Extent|001.2" }]
+   uint64 NumberOfBlocks;
+};
+
+
+// ===================================================================
+// AggregatePSExtentBasedOnPExtent
+// ===================================================================
+   [Association, Deprecated { "CIM_ProtectedExtentBasedOn" },
+       Version ( "2.8.0" ), Description (
+       "This association is deprecated in lieu of "
+       "ProtectedSpaceBasedOn, since PhysicalExtents and "
+       "AggregatePSExtents are themselves deprecated. The association "
+       "describes that AggregatePSExtents are BasedOn a single "
+       "PhysicalExtent.")]
+class CIM_AggregatePSExtentBasedOnPExtent : CIM_BasedOn {
+
+      [Deprecated { "CIM_ProtectedExtentBasedOn.Antecedent" },
+       Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The PhysicalExtent.")]
+   CIM_PhysicalExtent REF Antecedent;
+
+      [Deprecated { "CIM_ProtectedExtentBasedOn.Dependent" },
+       Override ( "Dependent" ), Description (
+          "The AggregatePSExtent which is built on the PhysicalExtent.")]
+   CIM_AggregatePSExtent REF Dependent;
+};
+
+
+// ===================================================================
+// AggregatePSExtentBasedOnAggregatePExtent
+// ===================================================================
+   [Association, Deprecated { "CIM_ProtectedExtentBasedOn" },
+       Version ( "2.8.0" ), Description (
+       "This association is deprecated in lieu of "
+       "ProtectedSpaceBasedOn, since AggregatePExtents and "
+       "AggregatePSExtents are themselves deprecated. The association "
+       "describes that AggregatePSExtents are BasedOn a single "
+       "AggregatePExtent.")]
+class CIM_AggregatePSExtentBasedOnAggregatePExtent : CIM_BasedOn {
+
+      [Deprecated { "CIM_ProtectedExtentBasedOn.Antecedent" },
+       Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The AggregatePExtent.")]
+   CIM_AggregatePExtent REF Antecedent;
+
+      [Deprecated { "CIM_ProtectedExtentBasedOn.Dependent" },
+       Override ( "Dependent" ), Description (
+          "The AggregatePSExtent which is built on the Aggregate "
+          "PExtent.")]
+   CIM_AggregatePSExtent REF Dependent;
+};
+
+
+// ===================================================================
+// PExtentRedundancyComponent
+// ===================================================================
+   [Association, Deprecated { "CIM_ExtentRedundancyComponent" },
+    Aggregation, Version ( "2.7.0" ), Description (
+       "Describes the PhysicalExtents participating in a Storage "
+       "RedundancyGroup. However, there is no need for the specificity "
+       "of this association. It is deprecated in lieu of the generic "
+       "ExtentRedundancyComponent relationship, its superclass.")]
+class CIM_PExtentRedundancyComponent : CIM_ExtentRedundancyComponent {
+
+      [Deprecated { "CIM_ExtentRedundancyComponent.GroupComponent" },
+       Aggregate, Override ( "GroupComponent" ), Description (
+          "The StorageRedundancyGroup.")]
+   CIM_StorageRedundancyGroup REF GroupComponent;
+
+      [Deprecated { "CIM_ExtentRedundancyComponent.PartComponent" },
+       Override ( "PartComponent" ), Description (
+          "The PhysicalExtent participating in the RedundancyGroup.")]
+   CIM_PhysicalExtent REF PartComponent;
+};
+
+
+// ===================================================================
+// AggregateRedundancyComponent
+// ===================================================================
+   [Association, Deprecated { "CIM_ExtentRedundancyComponent" },
+    Aggregation, Version ( "2.7.0" ), Description (
+       "Describes the AggregatePExtent in a StorageRedundancyGroup. "
+       "However, there is no need for the specificity of this "
+       "association. It is deprecated in lieu of the generic "
+       "ExtentRedundancyComponent relationship, its superclass.")]
+class CIM_AggregateRedundancyComponent : CIM_ExtentRedundancyComponent {
+
+      [Deprecated { "CIM_ExtentRedundancyComponent.GroupComponent" },
+       Aggregate, Override ( "GroupComponent" ), Description (
+          "The StorageRedundancyGroup.")]
+   CIM_StorageRedundancyGroup REF GroupComponent;
+
+      [Deprecated { "CIM_ExtentRedundancyComponent.PartComponent" },
+       Override ( "PartComponent" ), Description (
+          "The AggregatePExtent participating in the RedundancyGroup.")]
+   CIM_AggregatePExtent REF PartComponent;
+};
+
+
+// ===================================================================
+// RealizesPExtent
+// ===================================================================
+   [Association, Deprecated { "CIM_RealizesExtent" },
+    Version ( "2.7.0" ), Description (
+       "PhysicalExtents are realized on a PhysicalMedia. This is "
+       "described by RealizesPExtent. However, there is no need for "
+       "the specificity of this association. It is deprecated in lieu "
+       "of the generic RealizesExtent relationship.")]
+class CIM_RealizesPExtent : CIM_RealizesExtent {
+
+      [Deprecated { "CIM_RealizesExtent.Antecedent" },
+          Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The PhysicalMedia on which the Extent is realized.")]
+   CIM_PhysicalMedia REF Antecedent;
+
+      [Deprecated { "CIM_RealizesExtent.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The PhysicalExtent that is located on the Media.")]
+   CIM_PhysicalExtent REF Dependent;
+};
+
+
+// ===================================================================
+// RealizesAggregatePExtent
+// ===================================================================
+   [Association, Deprecated { "CIM_RealizesExtent" },
+    Version ( "2.7.0" ), Description (
+       "AggregatePExtents are realized on a PhysicalMedia. This is "
+       "described by RealizesAggregatePExtent. However, there is no "
+       "need for the specificity of this association. It is deprecated "
+       "in lieu of the generic RealizesExtent relationship.")]
+class CIM_RealizesAggregatePExtent : CIM_RealizesExtent {
+
+      [Deprecated { "CIM_RealizesExtent.Antecedent" },
+          Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The PhysicalMedia on which the Extent is realized.")]
+   CIM_PhysicalMedia REF Antecedent;
+
+      [Deprecated { "CIM_RealizesExtent.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The AggregatePExtent that is located on the Media.")]
+   CIM_AggregatePExtent REF Dependent;
+};
+
+
+// ===================================================================
+// Snapshot
+// ===================================================================
+   [Deprecated { "No Value" }, Version ( "2.7.0" ), Description (
+       "Deprecated. Snapshots are now modeled in a more abstrct way "
+       "using StorageExtent and StorageSynchronized. \n"
+       "The Snapshot class is an optional construct. It can be used to "
+       "represent an Extent that contains a full copy of another "
+       "Extent, or the changes to that Extent when performing a "
+       "delta-based (delta before or delta after) copy. \n"
+       "Snapshot's definition in CIM is not equivalent to the act of "
+       "creating a volume or file-based snapshot, or a point in time "
+       "copy. It is at a much lower level and represents the use of "
+       "storage to hold a copied image of an Extent, or to hold "
+       "changes to an Extent. Use of the Snapshot object when making a "
+       "full copy is only recommended if the purpose is to describe "
+       "the existence of a copy. (This use will be very infrequent.) "
+       "The problem with describing an Extent solely as a 'snapshot' "
+       "is that when the snapshot/copy is broken, the object must be "
+       "destroyed. Typically, this object still holds valid data, and "
+       "would have to be reinstantiated. If the 'full copy' object is "
+       "to be treated as a StorageVolume or more general Extent, then "
+       "it should be modeled as such from the beginning - i.e., not as "
+       "an instance of Snapshot but as an instance of a generic "
+       "StorageExtent or StorageVolume. In this case, the Synchronized "
+       "association would be used to describe that one StorageExtent "
+       "is synchronized with another. \n"
+       "When describing a delta-based snapshot/point in time copy, the "
+       "Snapshot object represents the store holding the before/after "
+       "image changes to the original Extent. For example, when doing "
+       "a 'delta before' Snapshot, the resultant target would be "
+       "modeled as a StorageExtent that is BasedOn the original Extent "
+       "and the instance of Snapshot (that holds the changes to the "
+       "original Extent).")]
+class CIM_Snapshot : CIM_StorageExtent {
+
+      [Deprecated { "CIM_Synchronized.SyncMaintained" }, Description (
+          "True indicates that the snapshot is synced.")]
+   boolean IsSynced;
+
+      [Deprecated { "CIM_Synchronized.WhenSynced" }, Description (
+          "The time stamp indicating when the sync occurred.")]
+   datetime SyncTime;
+};
+
+
+// ===================================================================
+// SnapshotOfExtent
+// ===================================================================
+   [Association, Deprecated { "No Value" }, Version ( "2.7.0" ), 
+    Description (
+       "Deprecated. Snapshots are now modeled in a more abstract way "
+       "using StorageExtent and CIM_StorageSynchronized. \n"
+       "SnapshotOfExtent is an association between an Extent and its "
+       "Snapshot. This relationship is made explicit in this "
+       "association.")]
+class CIM_SnapshotOfExtent : CIM_Dependency {
+
+      [Deprecated { "No Value" }, Override ( "Antecedent" ), Max ( 1 ), 
+       Description (
+          "The StorageExtent.")]
+   CIM_StorageExtent REF Antecedent;
+
+      [Deprecated { "No Value" }, Override ( "Dependent" ), 
+       Description (
+          "The Snapshot.")]
+   CIM_Snapshot REF Dependent;
+
+      [Deprecated { "CIM_StorageSynchronized.CopyType" }, Description (
+          "The type of snapshot."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Other", "Unknown", "Copy", "Before Delta",
+          "After Delta" }]
+   uint16 SnapshotType;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

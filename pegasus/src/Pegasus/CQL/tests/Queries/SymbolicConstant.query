@@ -1,0 +1,62 @@
+#####################################
+# Symbolic Constant testing queries.#
+#####################################
+#Query on fully qualified symbolic constant comparison with integer. Result is TRUE
+select * from CIM_ComputerSystem where CIM_ComputerSystem.EnabledState#'Enabled' = 2
+
+#Query on fully qualified symbolic constant comparison with integer. Result is TRUE
+select * from CIM_ComputerSystem where 2 = CIM_ComputerSystem.EnabledState#'Enabled'
+
+#Query on 2 fully qualified symbolic constants comparison. Result is FALSE
+select * from CIM_ComputerSystem where CIM_ComputerSystem.EnabledState#'Enabled' = CIM_ComputerSystem.EnabledState#'Disabled'
+
+#Query on fully qualified symbolic constant comparison with SC qualified with property name. Result is FALSE
+select * from CIM_ComputerSystem where CIM_ComputerSystem.EnabledState#'Enabled' = EnabledState#'Disabled'
+
+#Query on fully qualified symbolic constant comparison with SC qualified with property name. Result is FALSE
+select * from CIM_ComputerSystem where EnabledState#'Enabled' = CIM_ComputerSystem.EnabledState#'Disabled'
+
+#Query on fully qualified symbolic constant comparison with unqualified SC. Result is FALSE
+select * from CIM_ComputerSystem where CIM_ComputerSystem.EnabledState#'Enabled' = #'Disabled'
+
+#Query on fully qualified symbolic constant comparison with unqualified SC. Result is FALSE
+select * from CIM_ComputerSystem where #'Enabled' = CIM_ComputerSystem.EnabledState#'Disabled'
+
+#Query on symbolic constant qualified with property name comparison with unqualified SC. Result is FALSE
+select * from CIM_ComputerSystem where EnabledState#'Enabled' = #'Disabled'
+
+#Query on symbolic constant qualified with property name comparison with unqualified SC. Result is FALSE
+select * from CIM_ComputerSystem where #'Enabled' = EnabledState#'Disabled'
+
+#Query on symbolic constant qualified with scope comparison with unqualified SC. Result is FALSE
+#Note that the scope of the SC is not related to the FROM.
+select * from CIM_ComputerSystem where CIM_LogicalDevice::OperationalStatus#'Error' = 6
+
+#Query on symbolic constant qualified with scope comparison with unqualified SC. Result is FALSE
+#Note that the scope of the SC is not related to the FROM.
+select * from CIM_ComputerSystem where #'OK' = CIM_LogicalDevice::OperationalStatus#'Error'
+
+#Query on 2 fully qualified symbolic constants comparison with an invalid SC name. Result Exception.
+select * from CIM_ComputerSystem where CIM_ComputerSystem.EnabledState#'Enabled' = CIM_ComputerSystem.EnabledState#'Bogus'
+
+#Query on symbolic constant in chain with more than 1 element.
+#First chain element is a property on the FROM.
+#Result Exception since the scope is missing on the second chain element.
+select * from CIM_ComputerSystem where EnabledState.EnabledState#'Enabled' = 2
+
+#Query on symbolic constant in chain with more than 1 element.
+#First chain element is a class <>  FROM.  Result is TRUE
+#Note that 'error' is lowercase to test case insensitivity.
+select * from CIM_ComputerSystem where CIM_LogicalDevice.OperationalStatus#'error' = 6
+
+#Query on symbolic constant in chain with more than 1 element.
+#The FROM class doesn't exist. Result Exception.
+select * from CIM_Bogus where CIM_ComputerSystem.EnabledState#'Enabled' = 2
+
+#Query on 2 unqualified symbolic Constants. Result Exception
+select * from CIM_ComputerSystem where #'Enabled' = #'Disabled'
+
+#Query on standalone symbolic constant, with other side having a chain.  Result is TRUE.
+SELECT * FROM CIM_ComputerSystem WHERE CIM_ComputerSystem.EnabledState = #'Enabled'
+
+

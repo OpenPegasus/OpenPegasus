@@ -1,0 +1,32 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_ChassisInRack
+// ==================================================================
+   [Association, UMLPackagePath ( "CIM::Physical::Package" ),
+    Aggregation, Version ( "2.6.0" ), Description (
+       "Racks, as simple enclosures, contain Chassis that provide the "
+       "physical componentry realizing processing nodes, storage "
+       "devices, UPSs, etc. The ChassisInRack association makes "
+       "explicit the 'containing' relationship between the Rack and "
+       "the Chassis.")]
+class CIM_ChassisInRack : CIM_Container {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The Rack that contains the Chassis.")]
+   CIM_Rack REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The Chassis which is mounted in the Rack.")]
+   CIM_Chassis REF PartComponent;
+
+      [Description (
+          "An integer indicating the lowest or 'bottom' U in which the "
+          "Chassis is mounted. A 'U' is a standard unit of measure for "
+          "the height of a Rack or rack-mountable component. It is "
+          "equal to 1.75 inches or 4.445 cm."), 
+       Units ( "Us" )]
+   uint16 BottomU;
+};

@@ -1,0 +1,28 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_SubUoWDef
+// ==================================================================
+   [Association, UMLPackagePath ( "CIM::Metrics::UnitOfWork" ),
+    Version ( "2.6.0" ), Description (
+       "This association defines the sub-UnitsOfWork (the sub- "
+       "transactions) for a particular UnitOfWorkDefinition. For "
+       "example, an 'AddOrder' UnitOfWork could have sub-Units of "
+       "'ValidateCustomer', 'ValidatePartNumber', 'UpdateDatabase', "
+       "etc. This is a Dependency relationship since the sub-UnitsOf "
+       "Work are put in context relative to the parent Unit. It is not "
+       "an aggregation relationship - since (using another example) a "
+       "'DatabaseWrite' transaction is likely to be dependent upon a "
+       "'DiskWrite', but the two transactions are separate concepts "
+       "and one is not 'contained' by the other.")]
+class CIM_SubUoWDef : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The parent UnitOfWorkDefinition.")]
+   CIM_UnitOfWorkDefinition REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The sub-UnitOfWorkDefinition.")]
+   CIM_UnitOfWorkDefinition REF Dependent;
+};

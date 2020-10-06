@@ -1,0 +1,138 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+This directory contains the source programs implementing the Sample Provider
+for testing the UserIdentity change from inside the provider method.
+
+CIMOMHandle Testcase Sample Provider
+------------------------------------
+
+The provider calling the CIMOMHandle sets a UserIdentity into the
+OperationContext. It is possible for a provider to call the CIMOMHandle with a
+user name that is different than the end-user on the client who sent in the
+original request.For example, a provider could set "root" into the
+UserIdentity, effectively promoting itself to root authority when calling the
+CIMOMHandle. Nothing in the current Pegasus design checks the authority of the
+caller to CIMOMHandle, so having this testcase now would be to set up for the
+future.
+
+Provider Module Name = CIMOMSampleProviderModule
+Provider Class = CIMOMSampleProviderClass
+
+Scripts
+-------
+
+1. rebuild
+
+This script performs the following operations:
+Cleaning the provider lib., provider compilation, populating the repository,
+provider registration, and finally restarting the cimserver.
+
+2. clitests <Auth-Flag>
+
+It runs the CLI command for the following CIM operations without any kind of
+namespace authorization: [By Default its NoAuth execution]
+enumerateInstances,
+enumerateInstanceNames,
+enumerateClasses,
+enumerateClassNames
+
+If its invoked as: clitests 1	(The arg. 1 is nothing but to tell the script
+that I need authentication to be enabled and namespace authorization to be
+enbaled)
+It runs the CLI command for the following CIM operations, with the different
+combinations of valid and invalid users (specifying user= and password=)
+enumerateInstances,
+enumerateInstanceNames,
+enumerateClasses,
+enumerateClassNames
+
+3. cli_select
+CLI is run for different users authentication and user specifies CIM operation
+to be executed, as an argument to the script.
+
+CIMOMHandle Authentication Test [when Namespace authorization is enabled]
+-------------------------------
+
+The following commands were run to check the authentication while running the
+CLI test program. There are 2 users who are given the 'read' permission for the
+namespace root/SampleProvider by running the following:
+
+cimauth -a subodh -n root/SampleProvider
+cimauth -a guest -n root/SampleProvider
+
+Pre-requisites:
+1. The user for whom authentication is being added should be a valid CIM user
+   [added by running cimuser -a .....]
+2. The configuration parameter "enableAuthentication" should be set to TRUE.
+   If we restart cimserver after configuring it for no authentication all the
+   following cases will execute successfully
+   [run "cimserver enableAuthentication=true]
+
+The results of running testclient "CLI enumerateinstances" on the CIMOMSample
+Class are:
+
+#1. CLI ni -n root/SampleProvider CIMOMSample
+
+Output:
+CLI Pegasus Exception: Authentication failed.. Cmd = ni Object = CIMOMSample
+Reason:
+[No user information]
+
+#2. CLI ni -n root/SampleProvider CIMOMSample -u subodh -p soni
+
+Output:
+Entry to CIMOMSampleProvider
+ CIMOMSampleProvider::initialize
+ CIMOMSampleProvider::enumerateInstanceNames
+ className = CIMOMSample
+ CIMOMSample.Id=187
+Reason: [User name and password valid]
+
+#3. CLI ni -n root/SampleProvider CIMOMSample -u guest -p guest
+
+Output:
+ Entry to CIMOMSampleProvider
+  CIMOMSampleProvider::initialize
+  CIMOMSampleProvider::enumerateInstanceNames
+  className = CIMOMSample
+  CIMOMSample.Id=187
+Reason: [User name and password valid]
+
+#4. CLI ni -n root/SampleProvider CIMOMSample -u guest -p nothing
+
+Output:
+CLI Pegasus Exception: Authentication failed.. Cmd = ni Object = CIMOMSample
+Reason: [User name is valid but password is wrong]
+
+Miscellaneous
+-------------
+Logfiles for all the cim operations executed are also generated. The naming
+convention of the log files is <CIM Operation abbr>-auth.log (for example
+ni-auth.log).
+The file "expected.out" contains the correct results on test being successful.

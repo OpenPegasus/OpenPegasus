@@ -1,0 +1,542 @@
+// ===================================================================
+// Title: Device_CoolingAndPower
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_CoolingAndPower.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines
+//              the concepts and classes to manage cooling and
+//              supply power to devices.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change log for 2.8 Final.
+// CR1223 - SysDev Omnibus CR - Minor MOF corrections.
+// 
+// Change Log for v2.7
+// CR621 - Deprecate PackageCooling
+// CR622 - Fix the DMI mapping string to include the attribute number
+//         for Battery.BatteryStatus, .EstimatedRunTime, .Chemistry,
+//           .DesignCapacity, .FullChargeCapacity, .DesignVoltage,
+//           .SmartBatteryVersion, & .TimeToFullCharge,
+//         PowerSupply.Range1InputVoltageLow, .Range1InputVoltageHigh,
+//           .Range1InputFrequencyLow, .Range1InputFrequencyHigh,
+//           .Range2InputVoltageLow, .Range2InputVoltageHigh,
+//           .Range2InputFrequencyLow, .Range2InputFrequencyHigh,
+//           .ActiveInputVoltage, .TypeOfRangeSwitching, &
+//           .TotalOutputPower
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// CoolingDevice
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of CoolingDevices.")]
+class CIM_CoolingDevice : CIM_LogicalDevice {
+
+      [Description (
+          "ActiveCooling is a boolean indicating that the Cooling "
+          "Device provides active (as opposed to passive) cooling.")]
+   boolean ActiveCooling;
+};
+
+
+// ===================================================================
+// Refrigeration
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of a Refrigeration CoolingDevice.")]
+class CIM_Refrigeration : CIM_CoolingDevice {
+};
+
+
+// ===================================================================
+// HeatPipe
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of a HeatPipe CoolingDevice.")]
+class CIM_HeatPipe : CIM_CoolingDevice {
+};
+
+
+// ===================================================================
+// Fan
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of a Fan CoolingDevice.")]
+class CIM_Fan : CIM_CoolingDevice {
+
+      [Description (
+          "Indication of whether the fan supports variable speeds.")]
+   boolean VariableSpeed;
+
+      [Description (
+          "DesiredSpeed is the currently requested fan speed, defined "
+          "in Revolutions per Minute, when a variable speed fan is "
+          "supported (VariableSpeed boolean = TRUE). The current speed "
+          "is determined via a sensor (CIM_Tachometer) that is "
+          "associated with the Fan using the CIM_AssociatedSensor "
+          "relationship."), 
+       Units ( "Revolutions per Minute" )]
+   uint64 DesiredSpeed;
+
+      [Description (
+          "Requests that the Fan speed be set to the value specified "
+          "in the method's input parameter. The return value should be "
+          "0 if the request was successfully executed, 1 if the "
+          "request is not supported and some other value if an error "
+          "occurred. In a subclass, the set of possible return codes "
+          "could be specified, using a ValueMap qualifier on the "
+          "method. The strings to which the ValueMap contents are "
+          "'translated' may also be specified in the subclass as a "
+          "Values array qualifier.")]
+   uint32 SetSpeed ( 
+         [IN, Description (
+             "The desired speed for the fan.")]
+      uint64 DesiredSpeed); 
+};
+
+
+// ===================================================================
+// AssociatedCooling
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Many Devices, such as processors or power supplies, require "
+       "their own cooling devices. This association indicates where "
+       "fans or other CoolingDevices are specific to a Device, versus "
+       "providing enclosure or cabinet cooling.")]
+class CIM_AssociatedCooling : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The CoolingDevice.")]
+   CIM_CoolingDevice REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDevice being cooled.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+
+// ===================================================================
+// Battery
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Capabilities and management of the Battery LogicalDevice. This "
+       "class applies to both batteries in Laptop Systems and other "
+       "internal/external batteries, such as used in, or as UPSs.")]
+class CIM_Battery : CIM_LogicalDevice {
+
+      [Description (
+          "Description of the Battery's charge status. Values such as "
+          "\"Fully Charged\" (value=3) or \"Partially Charged\" (11) "
+          "can be specified. The value, 10, is not valid in the CIM "
+          "Schema since in DMI it represents that no battery is "
+          "installed. In this case, this object should not be "
+          "instantiated."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11" }, 
+       Values { "Other", "Unknown", "Fully Charged", "Low", "Critical",
+          "Charging", "Charging and High", "Charging and Low",
+          "Charging and Critical", 
+          // 10               
+          "Undefined", "Partially Charged" }, 
+       MappingStrings { "MIF.DMTF|Portable Battery|003.14" }]
+   uint16 BatteryStatus;
+
+      [Description (
+          "TimeOnBattery indicates the elapsed time in seconds since "
+          "the ComputerSystem, UPS, ... last switched to battery "
+          "power, or the time since the System or UPS was last "
+          "restarted, whichever is less. Zero shall be returned if the "
+          "Battery is 'on line'."), 
+       Units ( "Seconds" )]
+   uint32 TimeOnBattery;
+
+      [Description (
+          "EstimatedRunTime is an estimate in minutes of the time to "
+          "battery charge depletion under the present load conditions "
+          "if the utility power is off, or lost and remains off, or a "
+          "Laptop is disconnected from a power source."), 
+       Units ( "Minutes" ), 
+       MappingStrings { "MIF.DMTF|Portable Battery|003.15" }]
+   uint32 EstimatedRunTime;
+
+      [Description (
+          "An estimate of the percentage of full charge remaining."), 
+       Units ( "Percent" ), Gauge]
+   uint16 EstimatedChargeRemaining;
+
+      [Description (
+          "An enumeration that describes the Battery's chemistry."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Other", "Unknown", "Lead Acid", "Nickel Cadmium",
+          "Nickel Metal Hydride", "Lithium-ion", "Zinc air",
+          "Lithium Polymer" }, 
+       MappingStrings { "MIF.DMTF|Portable Battery|003.7" }]
+   uint16 Chemistry;
+
+      [Description (
+          "The design capacity of the battery in mWatt-hours. If this "
+          "property is not supported, enter 0."), 
+       Units ( "MilliWattHours" ), 
+       MappingStrings { "MIF.DMTF|Portable Battery|003.8" }]
+   uint32 DesignCapacity;
+
+      [Description (
+          "The full charge capacity of the battery in mWatt-hours. "
+          "Comparison of this value to the Battery DesignCapacity "
+          "determines when the Battery requires replacement. A "
+          "Battery's end of life is typically when the FullCharge "
+          "Capacity falls below 80% of the DesignCapacity. If this "
+          "property is not supported, enter 0."), 
+       Units ( "MilliWattHours" ), 
+       MappingStrings { "MIF.DMTF|Portable Battery|003.11" }]
+   uint32 FullChargeCapacity;
+
+      [Description (
+          "The design voltage of the battery in mVolts. If this "
+          "attribute is not supported, enter 0."), 
+       Units ( "MilliVolts" ), 
+       MappingStrings { "MIF.DMTF|Portable Battery|003.9" }]
+   uint64 DesignVoltage;
+
+      [Description (
+          "The Smart Battery Data Specification version number "
+          "supported by this Battery. If the Battery does not support "
+          "this function, the value should be left blank."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|Portable Battery|003.10" }]
+   string SmartBatteryVersion;
+
+      [Description (
+          "The remaining time to charge the battery fully in minutes "
+          "at the current charging rate and usage."), 
+       Units ( "Minutes" ), 
+       MappingStrings { "MIF.DMTF|Portable Battery|003.16" }]
+   uint32 TimeToFullCharge;
+
+      [Description (
+          "Indicates the Battery's expected lifetime in minutes, "
+          "assuming that the Battery is fully charged. This property "
+          "represents the total expected life of the Battery, not its "
+          "current remaining life, which is indicated by the "
+          "EstimatedRunTime property."), 
+       Units ( "Minutes" )]
+   uint32 ExpectedLife;
+
+      [Description (
+          "MaxRechargeTime indicates the maximum time, in minutes, to "
+          "fully charge the Battery. This property represents the time "
+          "to recharge a fully depleted Battery, not the current "
+          "remaining charging time, which is indicated in the "
+          "TimeToFullCharge property."), 
+       Units ( "Minutes" )]
+   uint32 MaxRechargeTime;
+};
+
+
+// ===================================================================
+// AssociatedBattery
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A LogicalDevice may use or require one or more Batteries. This "
+       "relationship is described by the AssociatedBattery dependency. "
+       "It is also possible to model the individual Batteries that "
+       "comprise a UPS, using this association.")]
+class CIM_AssociatedBattery : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Battery.")]
+   CIM_Battery REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDevice needing or associated with the Battery.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+
+// ===================================================================
+// PowerSupply
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Capabilities and management of the PowerSupply LogicalDevice.")]
+class CIM_PowerSupply : CIM_LogicalDevice {
+
+      [Description (
+          "Boolean indicating that the PowerSupply is a switching (vs "
+          "linear) supply.")]
+   boolean IsSwitchingSupply;
+
+      [Description (
+          "The low voltage of Input Voltage Range 1 for this Power "
+          "Supply, in millivolts. A value of 0 denotes 'unknown'."), 
+       Units ( "MilliVolts" ), 
+       MappingStrings { "MIF.DMTF|Power Supply|004.7" }]
+   uint32 Range1InputVoltageLow;
+
+      [Description (
+          "The high voltage of Input Voltage Range 1 for this Power "
+          "Supply, in millivolts. A value of 0 denotes 'unknown'."), 
+       Units ( "MilliVolts" ), 
+       MappingStrings { "MIF.DMTF|Power Supply|004.8" }]
+   uint32 Range1InputVoltageHigh;
+
+      [Description (
+          "The frequency (in Hertz) at the low end of this Power "
+          "Supply's Input Frequency Range 1. A value of zero implies "
+          "DC."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Power Supply|004.17" }]
+   uint32 Range1InputFrequencyLow;
+
+      [Description (
+          "The frequency (in Hertz) at the high end of this Power "
+          "Supply's Input Frequency Range 1. A value of zero implies "
+          "DC."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Power Supply|004.18" }]
+   uint32 Range1InputFrequencyHigh;
+
+      [Description (
+          "The low voltage of Input Voltage Range 2 for this Power "
+          "Supply, in millivolts. A value of 0 denotes 'unknown'."), 
+       Units ( "MilliVolts" ), 
+       MappingStrings { "MIF.DMTF|Power Supply|004.11" }]
+   uint32 Range2InputVoltageLow;
+
+      [Description (
+          "The high voltage of Input Voltage Range 2 for this Power "
+          "Supply, in millivolts. A value of 0 denotes 'unknown'."), 
+       Units ( "MilliVolts" ), 
+       MappingStrings { "MIF.DMTF|Power Supply|004.12" }]
+   uint32 Range2InputVoltageHigh;
+
+      [Description (
+          "The frequency (in Hertz) at the low end of this Power "
+          "Supply's Input Frequency Range 2. A value of zero implies "
+          "DC."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Power Supply|004.19" }]
+   uint32 Range2InputFrequencyLow;
+
+      [Description (
+          "The frequency (in Hertz) at the high end of this Power "
+          "Supply's Input Frequency Range 2. A value of zero implies "
+          "DC."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Power Supply|004.20" }]
+   uint32 Range2InputFrequencyHigh;
+
+      [Description (
+          "ActiveInputVoltage indicates which input voltage range is "
+          "currently in use. Range 1, 2 or both can be specified using "
+          "the values 3, 4 or 5, respectively. If the Supply is not "
+          "currently drawing power, the value 6 (\"Neither\") can be "
+          "specified. This information is necessary in the case of a "
+          "UPS, a subclass of PowerSupply."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "Range 1", "Range 2", "Both",
+          "Neither" }, 
+       MappingStrings { "MIF.DMTF|Power Supply|004.15" }]
+   uint16 ActiveInputVoltage;
+
+      [Description (
+          "TypeOfRangeSwitching describes the kind of input voltage "
+          "range switching implemented in this PowerSupply. For "
+          "example, autoswitching can be specified (value=4)."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "Manual", "Autoswitch",
+          "Wide Range", "Not Applicable" }, 
+       MappingStrings { "MIF.DMTF|Power Supply|004.16" }]
+   uint16 TypeOfRangeSwitching;
+
+      [Description (
+          "Represents the total output power of the PowerSupply in "
+          "milliWatts. 0 denotes 'unknown'."), 
+       Units ( "MilliWatts" ), 
+       MappingStrings { "MIF.DMTF|Power Supply|004.21" }]
+   uint32 TotalOutputPower;
+};
+
+
+// ===================================================================
+// SuppliesPower
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The SuppliesPower relationship indicates that a Device is in "
+       "the power domain of the referenced PowerSupply or UPS. It "
+       "indicates which Device(s) are dependent on the PowerSupply, "
+       "and hence, which Devices are affected if the Supply is lost.")]
+class CIM_SuppliesPower : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Supply providing power.")]
+   CIM_PowerSupply REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "A LogicalDevice in the power domain of the Supply.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+
+// ===================================================================
+// UninterruptiblePowerSupply
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of an UninterruptiblePowerSupply. "
+       "The properties of the UPS Device indicate when incoming power "
+       "is trimmed or boosted, and the aggregated information of the "
+       "batteries, generators, etc. that comprise the Device. These "
+       "individual components (for example, multiple batteries) can "
+       "also be independently modeled and associated with the UPS.")]
+class CIM_UninterruptiblePowerSupply : CIM_PowerSupply {
+
+      [Override ( "Range1InputVoltageLow" ), Description (
+          "If the voltage (in millivolts) drops below the value "
+          "specified by Range1InputVoltageLow, the UPS will compensate "
+          "by boosting the voltage using its power source(s). A value "
+          "of 0 indicates that the voltage at which boosting occurs is "
+          "'unknown'."), 
+       Units ( "MilliVolts" )]
+   uint32 Range1InputVoltageLow;
+
+      [Override ( "Range1InputVoltageHigh" ), Description (
+          "If the voltage (in millivolts) rises above the value "
+          "specified by Range1InputVoltageHigh, the UPS will "
+          "compensate by trimming the voltage. A value of 0 indicates "
+          "that the voltage at which trimming occurs is 'unknown'."), 
+       Units ( "MilliVolts" )]
+   uint32 Range1InputVoltageHigh;
+
+      [Override ( "Range2InputVoltageLow" ), Description (
+          "If the voltage (in millivolts) drops below the value "
+          "specified by Range2InputVoltageLow, the UPS will compensate "
+          "by boosting the voltage using its power source(s). A value "
+          "of 0 indicates that the voltage at which boosting occurs is "
+          "'unknown'."), 
+       Units ( "MilliVolts" )]
+   uint32 Range2InputVoltageLow;
+
+      [Override ( "Range2InputVoltageHigh" ), Description (
+          "If the voltage (in millivolts) rises above the value "
+          "specified by Range2InputVoltageHigh, the UPS will "
+          "compensate by trimming the voltage. A value of 0 indicates "
+          "that the voltage at which trimming occurs is 'unknown'."), 
+       Units ( "MilliVolts" )]
+   uint32 Range2InputVoltageHigh;
+
+      [Description (
+          "The indication of the capacity remaining in the UPS' "
+          "batteries, generator, ... A value of \"Normal\" (2) "
+          "indicates that the remaining estimated minutes of run-time "
+          "is greater than the UPS' defined 'low power' state "
+          "(typically two minutes). A value of \"Low\" (3) indicates "
+          "that the remaining estimated minutes of run-time is less "
+          "than or equal to the UPS' defined 'low power' state. A "
+          "value of \"Depleted\" (4) indicates that the UPS will be "
+          "unable to sustain the present load when and if the utility "
+          "power is lost (including the possibility that the utility "
+          "power is currently absent)."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Unknown", "Normal", "Low", "Depleted" }, 
+       MappingStrings { "MIF.DMTF|UPS Battery|001.1" }]
+   uint16 RemainingCapacityStatus;
+
+      [Description (
+          "TimeOnBackup indicates the elapsed time in seconds since "
+          "the UPS last switched to battery power, generator, ... Or, "
+          "the time since the UPS was last restarted, whichever is "
+          "less. Zero shall be returned if the UPS is 'on line'."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIF.DMTF|UPS Battery|001.2" }]
+   uint32 TimeOnBackup;
+
+      [Description (
+          "EstimatedRunTime is an estimate in minutes of the time to "
+          "battery, generator, ... depletion under the present load "
+          "conditions if the utility power is off, or lost and remains "
+          "off."), 
+       Units ( "Minutes" ), 
+       MappingStrings { "MIF.DMTF|UPS Battery|001.3" }]
+   uint32 EstimatedRunTime;
+
+      [Description (
+          "An estimate of the percentage of full charge remaining for "
+          "a UPS (that uses battery technology)."), 
+       Units ( "Percent" ), Gauge, 
+       MappingStrings { "MIF.DMTF|UPS Battery|001.4" }]
+   uint16 EstimatedChargeRemaining;
+};
+
+// ==================================================================
+// PackageCooling
+// ==================================================================
+   [Association, Deprecated { "CIM_PackageDependency" },
+       Version ( "2.7.0" ), Description (
+       "Often, a CoolingDevice is installed in a Package such as a "
+       "Chassis or a Rack, not for a specific Device, but to assist in "
+       "the cooling of the Package in general. The use of this "
+       "association has been deprecated. Instead, the more generic "
+       "PackageDependency relationship should be used.")]
+class CIM_PackageCooling : CIM_PackageDependency {
+
+      [Deprecated { "CIM_PackageDependency.Antecedent" },
+          Override ( "Antecedent" ), Description (
+          "The CoolingDevice for the Package.")]
+   CIM_CoolingDevice REF Antecedent;
+
+      [Deprecated { "CIM_PackageDependency.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The PhysicalPackage whose environment is cooled.")]
+   CIM_PhysicalPackage REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

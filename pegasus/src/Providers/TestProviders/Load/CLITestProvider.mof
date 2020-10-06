@@ -1,0 +1,354 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+[Version ("2.5.0"), Description(
+    "Class to test input and output of all property types that can "
+    "be handled by cimcli. Does not cover embedded types. See other "
+    "classes in this file for handling of the embedded entity classes. "
+    "The REF data type in methods is also covered in other classes today.") ]
+class Test_CLITestProviderClass
+{
+    [key]
+    String Id;
+
+    String Name;
+
+    [Description ("Return name value pair defining input parameters "
+    "for the operation received by the provider such as propertylist.")]
+    String requestInputParameters;
+
+   // scalar properties
+   Boolean scalBool;
+   Uint8   scalUint8;
+   Sint8   scalSint8;
+   Uint16  scalUint16;
+   Sint16  scalSint16;
+   Uint32  scalUint32;
+   Sint32  scalSint32;
+   Uint64  scalUint64;
+   Sint64  scalSint64;      
+
+   Real32  scalReal32;
+   Real64  scalReal64;
+   String  scalString;
+   Datetime scalDateTime;
+
+   // Scalar properties with default values
+   // scalar property tests
+   Boolean defaultBool = true;
+   Uint8   defaultUint8 = 4;
+   Sint8   defaultSint8 = 4;
+   Uint16  defaultUint16 = 4;
+   Sint16  defaultSint16 = 4;
+   Uint32  defaultUint32 = 4;
+   Sint32  defaultSint32 = 4;
+   Uint64  defaultUint64 = 4;
+   Sint64  defaultSint64 = 4;
+   Real32  defaultReal32;
+   Real64  defaultReal64;
+   String  defaultString = "test\"embedded\"quote";
+   Datetime defaultDateTime;
+
+   // Array Properties
+   Boolean arrayBool[];
+   Uint8   arrayUint8[];
+   Sint8   arraySint8[];
+   Uint16  arrayUint16[];
+   Sint16  arraySint16[];
+   Uint32  arrayUint32[];
+   Sint32  arraySint32[];
+   Uint64  arrayUint64[];
+   Sint64  arraySint64[];
+   Real32  arrayReal32[];
+   Real64  arrayReal64[];
+   String  arrayString[];
+   Datetime arrayDateTime[];
+
+   uint32 ReferenceParamTest(
+        [in] Test_CLITestProviderClass REF InParam1,
+        [in] Test_CLITestProviderClass REF InParam2[],
+        [out] Test_CLITestProviderClass REF OutParam1,
+        [out] Test_CLITestProviderClass REF OutParam2[]);
+
+	[ Description("Method to test input and output of all "
+	"parameter types except REF and embedded entity. Provider "
+    "is expected to return all parameters input.") ]
+    uint32 InOutParamTest(
+    [in, out] Boolean scalBool,
+	[in, out] Uint8   scalUint8,
+	[in, out] Sint8   scalSint8,
+	[in, out] Uint16  scalUint16,
+	[in, out] Sint16  scalSint16,
+	[in, out] Uint32  scalUint32,
+	[in, out] Sint32  scalSint32,
+	[in, out] Uint64  scalUint64,
+	[in, out] Real32  scalReal32,
+	[in, out] Real64  scalReal64,
+	[in, out] String  scalString,
+	[in, out] Datetime scalDateTime,
+	[in, out] Boolean arrayBool[],
+	[in, out] Uint8   arrayUint8[],
+	[in, out] Sint8   arraySint8[],
+	[in, out] Uint16  arrayUint16[],
+	[in, out] Sint16  arraySint16[],
+	[in, out] Uint32  arrayUint32[],
+	[in, out] Sint32  arraySint32[],
+	[in, out] Uint64  arrayUint64[],
+	[in, out] Real32  arrayReal32[],
+	[in, out] Real64  arrayReal64[],
+	[in, out] String  arrayString[],
+	[in, out] Datetime arrayDateTime[],
+	[in, out] Uint32 returnValue
+	);
+	  
+   // Test input and output of all parameter types
+   uint32 FullParamTest(
+        [in] Boolean inScalBool,
+	[in] Uint8   inScalUint8,
+	[in] Sint8   inScalSint8,
+	[in] Uint16  inScalUint16,
+	[in] Sint16  inScalSint16,
+	[in] Uint32  inScalUint32,
+	[in] Sint32  inScalSint32,
+	[in] Uint64  inScalUint64,
+	[in] Real32  inScalReal32,
+	[in] Real64  inScalReal64,
+	[in] String  inScalString,
+	[in] Datetime inScalDateTime,
+
+    [out] Boolean outScalBool,
+	[out] Uint8   outScalUint8,
+	[out] Sint8   outScalSint8,
+	[out] Uint16  outScalUint16,
+	[out] Sint16  outScalSint16,
+	[out] Uint32  outScalUint32,
+	[out] Sint32  outScalSint32,
+	[out] Uint64  outScalUint64,
+	[out] Real32  outScalReal32,
+	[out] Real64  outScalReal64,
+	[out] String  outScalString,
+	[out] Datetime outScalDateTime
+	);
+
+       [ Description("Method to set parameters to modify provider behavior"),
+       static ]
+   uint32 setProviderParameters(
+        [in, out, Description("Sets a string to be used as the host name "
+        "for responses that require a host name")]
+        String substituteHostName
+	);
+
+       [ Description("Method to reset all parameters that control provider "
+       "behavior "), static ]
+   uint32 resetProviderParameters();
+
+       [ Description("Method to reset provider to initial state. Resets "
+       "parameters same as resetProviderParameters and also restores "
+       "internal instance cache to initial state. "), static ]
+   uint32 reset();
+
+       [Description ("Method to set or reset debug mode for the provider. "
+       "In debug mode, the provider displays information when called. "
+       "Parameter is new state. Returns 0 if state changed. Rtn 1 if "
+       "same state.  Else return 2, as error "), static ]
+   uint32 debugMode(Boolean newState);
+};
+
+[Association, Version("1.0.0"), Description (
+    "Defines the relationship between parents and children. "
+    "Used to test Ref/Assoc functions and creation/modification of "
+    "instances in cimli") ]
+class Test_CLITestProviderLinkClass
+{
+        [key]
+    Test_CLITestProviderClass ref parent;
+
+        [key]
+    Test_CLITestProviderClass ref child;
+
+        [Description ("This property returns a String defining the input "
+	"parameters the provider saw on any operation involving this "
+	"class." ) ]
+    String requestInputParameters;
+};
+
+class Test_CLITestProviderEmpty
+{
+    [key] uint32 id;
+    string name;
+};
+
+// Classes to test embedded instance operation with cimcli. These classes
+// define an embedded instance class, and a class that contains a
+// property that is an embedded instance type as well as a method that contains
+// an embedded instance
+
+// Simple class to embed
+[Version ("2.5.0"), Description(
+    "Class to test handling of embedded instances and objects by "
+    "cimcli. This class is to be embedded but cannot be "
+    "directly accessed(enumerated, etc.)") ]
+class Test_CLITestEmbedded1
+{
+    [Key] string Id;
+    string name;
+    string comment;
+};
+
+// third Class to Embed. Defined before the second one because it is defined
+// to be embedded in Test_CLITestEmbedded2. Before embedded2 in file because
+// compiler only looks forward.
+[Version ("2.5.0"), Description(
+    "Class to test handling of embedded instances and objects by "
+    "cimcli. This class is to be embedded but cannot be "
+    "directly accessed(enumerated, etc.)") ]
+class Test_CLITestEmbedded3
+{
+    [Key] string Id;
+    string name;
+    string comment;
+};
+
+// Second Class to Embed that contains a recursive embedded instance
+[Version ("2.5.0"), Description(
+    "Class to test handling of embedded instances and objects by "
+    "cimcli. This class is to be embedded but cannot be "
+    "directly accessed(enumerated, etc. This one includes a recursive "
+    "embedded instance and object and corresponding array properties)") ]
+class Test_CLITestEmbedded2
+{
+    [Key] string Id;
+
+    string name;
+
+    // Note that there is an issue in the compiler with recursive embedded
+    // instances in that it is still defining the class when it hits the
+    // className in the EmbeddedInstance qualifier.
+        [EmbeddedInstance("Test_CLITestEmbedded3"),
+	Description("Property containing embedded Instance")]
+    string recursiveEmbeddedInst;
+
+        [EmbeddedObject,
+	    Description("Property containing embedded Instance")]
+    string recursiveEmbeddedObj;
+     
+        [EmbeddedInstance("Test_CLITestEmbedded3"),
+	Description("Property containing embedded Instance Array")]
+    string recursiveEmbeddedInstArray[];
+
+        [EmbeddedObject, Description (
+	"Property containing embedded Object Array defined "
+	"with the EmbeddedObject qualifier")]
+    string recursiveEmbeddedObjArray[];
+           
+    string comment;
+};
+
+[Version ("2.5.0"), Description(
+    "Class to test handling of embedded instances and objects by "
+    "cimcli. This class embeds objects and instances") ]
+class Test_CLITestEmbeddedClass
+{
+    [Key] string Id;
+
+        [EmbeddedInstance("Test_CLITestEmbedded1"),Description (
+	"Property containing embedded Instance")]
+    string embeddedInst;
+    
+        [EmbeddedInstance("Test_CLITestEmbedded2"), Description (
+	"Property containing embedded Instance" ) ]
+    string embeddedInst2;
+
+        [EmbeddedObject, Description (
+	"Property containing embedded Instance defined with "
+	"the EmbeddedObject qualifier")]
+    string embeddedObj;
+    
+	[EmbeddedInstance("Test_CLITestEmbedded1"),
+	Description("Property containing embedded Instance Array")]
+    string embeddedInstArray[];
+
+        [EmbeddedObject, Description (
+	"Property containing embedded Object Array defined with "
+	"with the EmbeddedObject qualifier")]
+    string embeddedObjArray[];
+
+    string comment;
+
+    string requestInputParameters;
+
+        [Description("Method contains parameters with embedded instance and "
+	"embeddedObject, both arrays and scalars Implementation is "
+	"expected to return all parameters input in exactly the "
+	"same form") ]
+    uint32 embeddedInstParamMethod(
+	
+                [In, Out ]
+	    string firstArg,
+
+                [In, Out, EmbeddedInstance ("Test_CLITestEmbedded1"),
+		Description (
+		"Property containing embedded Instance defined with "
+	        "the EmbeddedObject qualifier.") ]
+	    string EmbedInstArg,
+
+                [In, Out, EmbeddedObject, Description (
+		"Property containing embedded Object defined with "
+	        "the EmbeddedObject qualifier.") ]
+	    string embedObjArg,
+	
+                [In, Out, EmbeddedInstance("Test_CLITestEmbedded1"),
+		Description (
+		"Property containing embedded Instance Array defined with "
+	        "the EmbeddedInstance qualifier.")]
+	    string embedInstArrayArg[],
+
+                [In, Out, EmbeddedObject, Description (
+		"Property containing embedded Object Array defined with "
+	        "the EmbeddedInstance qualifier.") ]
+            string embedObjArrayArg[],
+	
+                [In, Out]
+	    string lastArg,
+
+	        [In, Out, Description (
+		"Property containing reference data type for "
+	        "the Test_CLITestProviderClass class.") ]
+	    Test_CLITestProviderClass REF referenceParam,
+
+	        [In, Out,  Description (
+		"Property containing array of reference data type for "
+	        "the Test_CLITestProviderClass class.") ]
+	    Test_CLITestProviderClass REF referenceParamArray[]
+	);
+};
+
+
+
+

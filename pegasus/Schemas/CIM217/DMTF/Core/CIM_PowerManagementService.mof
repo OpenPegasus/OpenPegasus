@@ -1,0 +1,60 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_PowerManagementService 
+// ==================================================================
+   [Version ( "2.7.0" ), 
+    UMLPackagePath ( "CIM::Core::PowerMgmt" ), 
+    Description ( 
+       "A class derived from Service that describes power management "
+       "functionality, hosted on a System. The fact that this service "
+       "may be used to affect the power state of a particular element "
+       "is defined by the CIM_ServiceAvailable ToElement association." )]
+class CIM_PowerManagementService : CIM_Service {
+
+
+      [Description ( 
+          "SetPowerState defines the desired power state of the "
+          "managed element, and when the element should be put into "
+          "that state. The SetPowerState method has three input "
+          "parameters, no output parameters, and a result. \n"
+          "- PowerState indicates the desired power state. \n"
+          "- ManagedElement indicates the element whose state is "
+          "set. This element SHOULD be associated to the service "
+          "using the ServiceAvailableToElement relationship. \n"
+          "- Time indicates when the power state should be set, "
+          "either as a regular date-time value or as an interval "
+          "value (where the interval begins when the method "
+          "invocation is received). \n"
+          "Note that when the PowerState parameter is equal to 5, "
+          "\"Power Cycle\", the Time parameter indicates when the "
+          "managed element should powered on again. Power off is "
+          "immediate. \n"
+          "SetPowerState should return 0 if successful, 1 if the "
+          "specified State and Time request is not supported for "
+          "the element, and some other value if any other error "
+          "occurred. In a subclass, the set of possible return "
+          "codes could be specified, using a ValueMap qualifier on "
+          "the method. The strings to which the ValueMap contents "
+          "are \'translated\' may also be specified in the subclass "
+          "as a Values array qualifier." )]
+   uint32 SetPowerState(
+         [IN, Description ( "The power state for ManagedElement." ), 
+          ValueMap { "1", "2", "3", "4", "5", "6", "7", "8" }, 
+          Values { "Full Power", "Power Save - Low Power Mode", 
+             "Power Save - Standby", "Power Save - Other", 
+             "Power Cycle", "Power Off", "Hibernate", "Soft Off" }]
+      uint16 PowerState, 
+         [IN, Description ( 
+             "ManagedElement indicates the element whose state is set."
+              )]
+      CIM_ManagedElement REF ManagedElement, 
+         [IN, Description ( 
+             "Time indicates when the power state should be set, "
+             "either as a regular date-time value or as an "
+             "interval value (where the interval begins when the "
+             "method invocation is received." )]
+      datetime Time);
+
+};

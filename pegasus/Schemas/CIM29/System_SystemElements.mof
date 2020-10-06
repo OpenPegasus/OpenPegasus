@@ -1,0 +1,690 @@
+// ===================================================================
+// Title: System_SystemElements
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: System_SystemElements.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The System Model defines system related management
+//              concepts. This file defines the specific concepts for
+//              ComputerSystems (Virtual Systems,
+//              UnitaryComputerSystems,
+//              Clusters, etc.).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1206 - Add NAA to ComputerSystem.NameFormat
+// CR1223 - Omnibus SysDev CR - minor MOF fixes
+// CR1210 - Remove Experimental qualifier
+// 
+// Change Log for v2.8 Preliminary
+// CR949  - Add ArrayType{"Indexed"} to ComputerSystem.Dedicated[]
+// CR1039 - Add additional System dedicated values in the System Model.
+// CR1099 - Deprecate UnitaryComputerSystem.PowerState
+// CR1128  - Addition of HostedDependency
+// 
+// Change Log for v2.7 Final
+// CR963 - Update description for ComputerSystem.
+// CR969 - Remove the experimental qualifier
+// 
+// Change Log for v2.7
+// CR640 - Add ComputerSystem.OtherDedicatedDescriptions
+//       - Add corresponding model correspondence to ComputerSystem.
+//         Dedicated
+// CR717 - Extend ComputerSystem.NameFormat to include "WWN"
+//       - Extend ComputerSystem.Dedicated to include "Block Server"
+//         and "File Server"
+//       - Clean up the description of ComputerSystem.ResetCapability
+//         to refer to ComptuerSystem vs. UnitaryComputerSystem
+// CR718 - Remove the Abstract qualifier from ComputerSystem making
+//         it a concrete class
+//       - Promote ComputerSystemPackage.Dependent from
+//         UnitaryComputerSystem to ComputerSystem
+// CR720 - Deprecate the use of ComputerSystem.PowerManagement
+//         Capabilities & ComputerSystem.SetPowerState()
+//         Deprecate the use of UnitaryComputerSystem.PowerManagement
+//         Supported
+// CR767 - Add the Compostion qualifer to ComponentCS, SystemPartition
+// CR773 - Update the description ComputerSystem.Dedicated
+//         Extend the values of ComputerSystem.Dedicated to include
+//         "Mobile User Device"
+// CR822 - Change the subclassing of ComputerSystemPackage from
+//         Dependency to SystemPackaging
+// CR865 - Add ComputerSystemNodeCapabilities
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// ComputerSystem
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "A class derived from System that is a special collection of "
+       "ManagedSystemElements. This collection provides compute "
+       "capabilities and serves as aggregation point to associate one "
+       "or more of the following elements: FileSystem, "
+       "OperatingSystem, Processor and Memory (Volatile and/or "
+       "NonVolatile Storage).")]
+class CIM_ComputerSystem : CIM_System {
+
+      [Override ( "NameFormat" ), Description (
+          "The ComputerSystem object and its derivatives are Top Level "
+          "Objects of CIM. They provide the scope for numerous "
+          "components. Having unique System keys is required. The "
+          "NameFormat property identifies how the ComputerSystem Name "
+          "is generated. The NameFormat ValueMap qualifier defines the "
+          "various mechanisms for assigning the name. Note that "
+          "another name can be assigned and used for the "
+          "ComputerSystem that better suit a business, using the "
+          "inherited ElementName property."), 
+       ValueMap { "Other", "IP", "Dial", "HID", "NWA", "HWA", "X25",
+          "ISDN", "IPX", "DCC", "ICD", "E.164", "SNA", "OID/OSI",
+          "WWN", "NAA" }]
+   string NameFormat;
+
+      [Description (
+          "OtherIdentifyingInfo captures additional data, beyond "
+          "System Name information, that could be used to identify a "
+          "ComputerSystem. One example would be to hold the Fibre "
+          "Channel World-Wide Name (WWN) of a node. Note that if only "
+          "the Fibre Channel name is available and is unique (able to "
+          "be used as the System key), then this property would be "
+          "NULL and the WWN would become the System key, its data "
+          "placed in the Name property."), 
+       MaxLen ( 256 ), ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_ComputerSystem.IdentifyingDescriptions" }]
+   string OtherIdentifyingInfo[];
+
+      [Description (
+          "An array of free-form strings providing explanations and "
+          "details behind the entries in the OtherIdentifying Info "
+          "array. Note, each entry of this array is related to the "
+          "entry in OtherIdentifyingInfo that is located at the same "
+          "index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ComputerSystem.OtherIdentifyingInfo" 
+          }]
+   string IdentifyingDescriptions[];
+
+      [Description (
+          "Enumeration indicating whether the ComputerSystem is a "
+          "special-purpose System (ie, dedicated to a particular use), "
+          "versus being 'general purpose'. For example, one could "
+          "specify that the System is dedicated to \"Print\" "
+          "(value=11) or acts as a \"Hub\" (value=8). \n"
+          "A clarification is needed with respect to the value 17 "
+          "(\"Mobile User Device\"). An example of a dedicated user "
+          "device is a mobile phone or a barcode scanner in a store "
+          "that communicates via radio frequency. These systems are "
+          "quite limited in functionality and programmability, and are "
+          "not considered 'general purpose' computing platforms. "
+          "Alternately, an example of a mobile system that is 'general "
+          "purpose' (i.e., is NOT dedicated) is a hand-held computer. "
+          "Although limited in its programmability, new software can "
+          "be downloaded and its functionality expanded by the user."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20" }, 
+       Values { "Not Dedicated", "Unknown", "Other", "Storage",
+          "Router", "Switch", "Layer 3 Switch",
+          "Central Office Switch", "Hub", "Access Server", "Firewall",
+          "Print", "I/O", "Web Caching", "Management", "Block Server",
+          "File Server", "Mobile User Device", "Repeater",
+          "Bridge/Extender", "Gateway" }, 
+       MappingStrings { "MIB.IETF|MIB-II.sysServices" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_ComputerSystem.OtherDedicatedDescriptions" }]
+   uint16 Dedicated[];
+
+      [Description (
+          "A string describing how or why the system is dedicated when "
+          "the Dedicated array includes the value 2, \"Other\"."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ComputerSystem.Dedicated" }]
+   string OtherDedicatedDescriptions[];
+
+      [Description (
+          "If enabled (value = 4), the ComputerSystem can be reset via "
+          "hardware (e.g. the power and reset buttons). If disabled "
+          "(value = 3), hardware reset is not allowed. In addition to "
+          "Enabled and Disabled, other Values for the property are "
+          "also defined - \"Not Implemented\" (5), \"Other\" (1) and "
+          "\"Unknown\" (2)."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Disabled", "Enabled",
+          "Not Implemented" }, 
+       MappingStrings { "MIF.DMTF|System Hardware Security|001.4" }]
+   uint16 ResetCapability;
+
+      [Deprecated { "CIM_PowerManagementCapabilities.PowerCapabilities" 
+          }, Description (
+          "An enumerated array describing the power management "
+          "capabilities of the ComputerSystem. The use of this "
+          "property has been deprecated. Instead, the Power "
+          "Capabilites property in an associated PowerManagement "
+          "Capabilities class should be used."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Not Supported", "Disabled", "Enabled",
+          "Power Saving Modes Entered Automatically",
+          "Power State Settable", "Power Cycling Supported",
+          "Timed Power On Supported" }, 
+       MappingStrings { "MIF.DMTF|System Power Controls|001.2" }]
+   uint16 PowerManagementCapabilities[];
+
+      [Deprecated { "CIM_PowerManagementService.SetPowerState" }, 
+       Description (
+          "Sets the power state of the computer. The use of this "
+          "method has been deprecated. Instead, use the SetPowerState "
+          "method in the associated PowerManagementService class.")]
+   uint32 SetPowerState( 
+         [IN, Description (
+             "The Desired state for the COmputerSystem."), 
+          ValueMap { "1", "2", "3", "4", "5", "6", "7", "8" }, 
+          Values { "Full Power", "Power Save - Low Power Mode",
+             "Power Save - Standby", "Power Save - Other",
+             "Power Cycle", "Power Off", "Hibernate", "Soft Off" }]
+      uint32 PowerState, 
+         [IN, Description (
+             "Time indicates when the power state should be set, "
+             "either as a regular date-time value or as an interval "
+             "value (where the interval begins when the method "
+             "invocation is received.")]
+      datetime Time); 
+};
+
+
+// ==================================================================
+// ComputerSystemNodeCapabilities
+// ==================================================================
+   [Version ( "2.7.2" ), Description (
+       "Indicates general capabilities of a ComputerSystem node, such "
+       "as the ability to support a battery (and be portable), and ECC "
+       "memory. To tie these capabilities to a ComputerSystem "
+       "instance, the ElementCapabilities association is used.")]
+class CIM_ComputerSystemNodeCapabilities : CIM_Capabilities {
+
+      [Required, Description (
+          "Enumeration indicating whether a battery is installable/ "
+          "supportable on this System. This is independent of whether "
+          "one is currently installed. The latter is indicated by an "
+          "instance of the CIM_Battery class associated using the "
+          "SystemDevice relationship."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "Battery Supported",
+       "Battery Not Supported" }]
+   uint16 BatterySupported;
+
+      [Required, Description (
+          "Enumeration indicating whether ECC single or multi-bit "
+          "memory is supported on this node. This is independent of "
+          "whether ECC memory is actually installed. The latter is "
+          "indicated by an instance of CIM_PhysicalMemory that "
+          "'Realizes' the CIM_Memory of the System (associated using "
+          "SystemDevice)."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "Single-bit ECC", "Multi-bit ECC" }, 
+       MappingStrings { "MIF.DMTF|Physical Memory|002.10" }]
+   uint16 ECCSupported;
+};
+
+
+// ===================================================================
+// ComponentCS
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "A ComputerSystem can aggregate another ComputerSystem. This "
+       "association can be used to model MPP Systems with workstation "
+       "frontends, an I2O subsystem embedded in a Unitary "
+       "ComputerSystem, or a System that splits functionality between "
+       "two processors, potentially running different Operating "
+       "Systems. For example, if a CISC Processor and its associated "
+       "OperatingSystem, are used for user interface and file support, "
+       "and a RISC Processor and its OS are used for complex "
+       "mathematical operations, this could be modeled as two "
+       "ComputerSystems where one aggregates the other. In some cases, "
+       "this could be modeled as a Cluster. The difference is the "
+       "focus of the relationship. ComponentCS represents that unique "
+       "and distinct ComputerSystems are aggregated by a higher level "
+       "CS object. However, each of the component CSs are still "
+       "distinguishable entities and are only viewed as such. "
+       "Alternately, with a Cluster, the ComputerSystems that "
+       "participate in it are inconsequential, when viewed through the "
+       "'Cluster System'. \n"
+       "\n"
+       "When instantiating or subclassing the ComponentCS "
+       "relationship, care should be taken that the component "
+       "ComputerSystem meets the definitional requirements of a "
+       "ComputerSystem - ie, a functional whole that provides compute "
+       "capabilities and aggregates System Devices, an "
+       "OperatingSystem, etc.")]
+class CIM_ComponentCS : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The ComputerSystem that contains and/or aggregates other "
+          "Systems.")]
+   CIM_ComputerSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The contained (Sub)ComputerSystem.")]
+   CIM_ComputerSystem REF PartComponent;
+};
+
+
+// ===================================================================
+// UnitaryComputerSystem
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "A class derived from ComputerSystem that represents a Desktop, "
+       "Mobile, NetPC, Server or other type of a single node Computer "
+       "System.")]
+class CIM_UnitaryComputerSystem : CIM_ComputerSystem {
+
+      [Description (
+          "This object contains the data needed to find either the "
+          "initial load device (its key) or the boot service to "
+          "request the operating system to start up. In addition, the "
+          "load parameters (ie, a pathname and parameters) may also be "
+          "specified.")]
+   string InitialLoadInfo[];
+
+      [Description (
+          "This object contains the data identifying either the "
+          "initial load device (its key) or the boot service that "
+          "requested the last operating system load. In addition, the "
+          "load parameters (ie, a pathname and parameters) may also be "
+          "specified."), 
+       MappingStrings { 
+          "MIB.IETF|HOST-RESOURCES-MIB.hrSystemInitialLoadDevice",
+          "MIB.IETF|HOST-RESOURCES-MIB.hrSystemInitialLoadParameters",
+          "MIF.DMTF|Host System|001.3" }]
+   string LastLoadInfo;
+
+      [Deprecated { "CIM_PowerManagementCapabilities" }, Description (
+          "When TRUE, indicates that the computer can be power "
+          "managed. The use of this property has been deprecated. "
+          "Instead, the existence of an associated "
+          "PowerManagementCapabilities class (associated using the "
+          "ElementCapabilites relationship) indicates that power "
+          "management is supported.")]
+   boolean PowerManagementSupported;
+
+      [Description (
+          "Indicates the current power state of the ComputerSystem and "
+          "its associated OperatingSystem. Regarding the Power Save "
+          "states, these are defined as follows: Value 4 (\"Power Save "
+          "- Unknown\") indicates that the System is known to be in a "
+          "power save mode, but its exact status in this mode is "
+          "unknown; \n"
+          "Value 2 (\"Power Save - Low Power Mode\") indicates that "
+          "the System is in a power save state but still functioning, "
+          "and may exhibit degraded performance; \n"
+          "Value 3 (\"Power Save - Standby\") describes that the "
+          "System is not functioning but could be brought to full "
+          "power 'quickly'; value 7 (\"Power Save - Warning\") "
+          "indicates that the ComputerSystem is in a warning state, "
+          "though also in a power save mode. \n"
+          "Values 8 and 9 describe the ACPI \"Hibernate\" and \"Soft "
+          "Off\" states."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Unknown", "Full Power", "Power Save - Low Power Mode",
+          "Power Save - Standby", "Power Save - Unknown",
+          "Power Cycle", "Power Off", "Power Save - Warning",
+          "Power Save - Hibernate", "Power Save - Soft Off" }]
+   uint16 PowerState;
+
+      [Description (
+          "The event that caused the System to power up. This "
+          "information is available in SMBIOS, in the Type 1 "
+          "structure, the Wake Up Type attribute."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Reserved", "Other", "Unknown", "APM Timer",
+          "Modem Ring", "LAN Remote", "Power Switch", "PCI PME#",
+          "A/C Power Restored" }]
+   uint16 WakeUpType;
+};
+
+
+// ===================================================================
+// SystemPartition
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "A Partition is an instance of a UnitaryComputerSystem (with "
+       "its own OperatingSystem and Devices dedicated to the "
+       "Partition) that is supported by underlying hardware and "
+       "software. A Partition is not a virtualization of a Computer "
+       "System, but the segmentation of the System's compute "
+       "capabilities. Partitions can run independent copies of "
+       "possibly different OperatingSystems and have dedicated "
+       "Devices. The 'real', underlying System (perhaps a Cluster or "
+       "another UnitaryComputerSystem) aggregates its Partitions. "
+       "These semantics are described by the System Partition "
+       "association.")]
+class CIM_SystemPartition : CIM_ComponentCS {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The 'underlying' ComputerSystem that hosts a Partition.")]
+   CIM_ComputerSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The System Partition.")]
+   CIM_UnitaryComputerSystem REF PartComponent;
+};
+
+
+// ===================================================================
+// VirtualComputerSystem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A class derived from ComputerSystem that represents the "
+       "ability to virtualize or emulate another ComputerSystem.")]
+class CIM_VirtualComputerSystem : CIM_ComputerSystem {
+
+      [Description (
+          "A string describing the type of System or hardware platform "
+          "that is virtualized. OperatingSystem information is "
+          "obtained via the RunningOS inherited from ComputerSystem.")]
+   string VirtualSystem;
+};
+
+
+// ===================================================================
+// HostingCS
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "A VirtualComputerSystem is hosted on another ComputerSystem. "
+       "This association makes that relationship explicit.")]
+class CIM_HostingCS : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The hosting ComputerSystem.")]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The VirtualComputerSystem.")]
+   CIM_VirtualComputerSystem REF Dependent;
+};
+
+
+// ===================================================================
+// Cluster
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A class derived from ComputerSystem that 'is made up of' two "
+       "or more ComputerSystems which operate together as an atomic, "
+       "functional whole to increase the performance, resources and/or "
+       "RAS (Reliability, Availability and Serviceability) of the "
+       "component ComputerSystems, related to some aspects of these "
+       "ComputerSystems.")]
+class CIM_Cluster : CIM_ComputerSystem {
+
+      [Description (
+          "Interconnect is a free form string that describes the "
+          "interconnection mechanism for the Cluster.")]
+   string Interconnect;
+
+      [Description (
+          "InterconnectAddress indicates the address of the Cluster "
+          "System, which is dependent on the interconnection scheme. "
+          "If no address is available or applicable, a null string "
+          "should be used.")]
+   string InterconnectAddress;
+
+      [Description (
+          "The cluster types. This specifies whether the cluster is "
+          "for failover (value=2), performance (3), etc. The values "
+          "which can be specified are not mutually exclusive. Thus, "
+          "Types is an array."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Other", "Failover", "Performance",
+          "Distributed OS", "Node Grouping", "SysPlex" }]
+   uint16 Types[];
+
+      [Description (
+          "Indicates the maximum number of nodes that may participate "
+          "in the Cluster. If unlimited, enter 0.")]
+   uint32 MaxNumberOfNodes;
+
+      [Description (
+          "Indicates the state of the Cluster. The cluster can be "
+          "defined to be on-line (value=2), off-line (3), in a "
+          "degraded mode of operation (4) or unavailable (5)."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "On-line", "Off-line", "Degraded",
+          "Unavailable" }]
+   uint16 ClusterState;
+};
+
+
+// ===================================================================
+// ParticipatingCS
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A Cluster is composed of two or more ComputerSystems, "
+       "operating together. A ComputerSystem may participate in "
+       "multiple Clusters. \n"
+       "\n"
+       "When first establishing or bringing up a Cluster, only one "
+       "ComputerSystem may be defined as participating in it. "
+       "Therfore, the cardinality of the association for the "
+       "ComputerSystem reference is Min (1).")]
+class CIM_ParticipatingCS : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The ComputerSystem which participates in the Cluster.")]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Cluster.")]
+   CIM_Cluster REF Dependent;
+
+      [Description (
+          "StateOfNode indicates the condition of the participating "
+          "ComputerSystem in the Cluster. For example, one value is "
+          "\"Joining\" (2)."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Other", "Joining", "Paused", "Available",
+          "Unavailable", "Degraded" }]
+   uint16 StateOfNode;
+
+      [Description (
+          "RoleOfNode indicates whether the Cluster nodes are peers "
+          "(value = 2), connected in a master-slave/primary- secondary "
+          "relationship (values = 3 for primary, 4 for secondary), "
+          "available in a standby configuration (5) or of some other "
+          "(1) or unknown (0) relationship. In a System/390 "
+          "environment, the nodes are identified as \"Base Plex\" "
+          "(value=6) or \"Enhanced Plex\" (value=7)."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "Peer", "Primary", "Secondary",
+          "Standby", "Base Plex", "Enhanced Plex" }]
+   uint16 RoleOfNode;
+};
+
+
+// ===================================================================
+// ClusteringService
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "ClusteringService represents the functionality provided by a "
+       "Cluster. For example, failover functionality may be modeled as "
+       "a Service of a failover Cluster.")]
+class CIM_ClusteringService : CIM_Service {
+
+      [Description (
+          "AddNode brings a new ComputerSystem into a Cluster. The "
+          "node to be added is specified as a parameter to the method. "
+          "The return value should be 0 if the Computer System is "
+          "successfully added, 1 if the method is not supported and "
+          "any other number if an error occurred. In a subclass, the "
+          "set of possible return codes could be specified, using a "
+          "ValueMap qualifier on the method. The strings to which the "
+          "ValueMap contents are 'translated' may also be specified in "
+          "the subclass as a Values array qualifier.")]
+   uint32 AddNode ( 
+         [IN, Description (
+             "The node to add to the cluster.")]
+      CIM_ComputerSystem ref CS); 
+
+      [Description (
+          "EvictNode removes a ComputerSystem from a Cluster. The node "
+          "to be evicted is specified as a parameter to the method. "
+          "The return value should be 0 if the ComputerSystem is "
+          "successfully evicted, 1 if the method is not supported and "
+          "any other number if an error occurred. In a subclass, the "
+          "set of possible return codes could be specified, using a "
+          "ValueMap qualifier on the method. The strings to which the "
+          "ValueMap contents are 'translated' may also be specified in "
+          "the subclass as a Values array qualifier.")]
+   uint32 EvictNode ( 
+         [IN, Description (
+             "The node to remove from the cluster.")]
+      CIM_ComputerSystem ref CS); 
+};
+
+
+// ===================================================================
+// ClusteringSAP
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A representation of the access points of a ClusteringService.")]
+class CIM_ClusteringSAP : CIM_ServiceAccessPoint {
+};
+
+
+// ===================================================================
+// ClusterServiceAccessBySAP
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "ClusterServiceAccessBySAP is the relationship between a "
+       "ClusteringService and its access points.")]
+class CIM_ClusterServiceAccessBySAP : CIM_ServiceAccessBySAP {
+
+      [Override ( "Antecedent" ), Description (
+          "The ClusteringService.")]
+   CIM_ClusteringService REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "An access point for the ClusteringService.")]
+   CIM_ClusteringSAP REF Dependent;
+};
+
+
+// ===================================================================
+// HostedClusterService
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "HostedClusterService defines the hosting Cluster for a "
+       "ClusteringService. Since this relationship is subclassed from "
+       "HostedService, it inherits the scoping/naming scheme defined "
+       "for Service - where a Service is weak to its hosting System. "
+       "In this case, a ClusteringService must be weak to its hosting "
+       "Cluster System.")]
+class CIM_HostedClusterService : CIM_HostedService {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The Cluster.")]
+   CIM_Cluster REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The ClusteringService that is hosted on the Cluster.")]
+   CIM_ClusteringService REF Dependent;
+};
+
+
+// ===================================================================
+// HostedClusterSAP
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "HostedClusterSAP defines the hosting ComputerSystem for a "
+       "ClusteringSAP. Since this relationship is subclassed from "
+       "HostedAccessPoint, it inherits the scoping/naming scheme "
+       "defined for AccessPoint - where an AccessPoint is weak to its "
+       "hosting System. In this case, a ClusteringSAP must be weak to "
+       "its hosting ComputerSystem.")]
+class CIM_HostedClusterSAP : CIM_HostedAccessPoint {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The ComputerSystem.")]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The ClusteringSAP that is hosted on the ComputerSystem.")]
+   CIM_ClusteringSAP REF Dependent;
+};
+
+
+// ==================================================================
+// ComputerSystemPackage
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "Similar to the way that LogicalDevices are 'Realized' by "
+       "PhysicalElements, UnitaryComputerSystems are realized in one "
+       "or more PhysicalPackages. The ComputerSystemPackage "
+       "association explicitly defines this relationship.")]
+class CIM_ComputerSystemPackage : CIM_SystemPackaging {
+
+      [Override ( "Antecedent" ), Description (
+          "The PhysicalPackage(s) that realize a Unitary "
+          "ComputerSystem.")]
+   CIM_PhysicalPackage REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The UnitaryComputerSystem.")]
+   CIM_ComputerSystem REF Dependent;
+
+      [Description (
+          "A Gloabally Unique Identifier for the System's Package.")]
+   string PlatformGUID;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

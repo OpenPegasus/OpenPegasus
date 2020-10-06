@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# If its already built
+# 	- remove it first
+# 	- compile it.
+# 	- compile the repository from scratch
+make clean
+make
+make repository
+
+# Build the TimingClient.cpp program
+make -f Makefile.Client
+
+# Unregister the provider if its already there and then Re-register it
+make unregister
+make regprovider
+
+# Restart the cimserver
+cimserver -s; cimserver

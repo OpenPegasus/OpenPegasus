@@ -1,0 +1,202 @@
+.\" .TA w \" lowercase initial letter of .TH name
+.TH "osinfo" "1" "" "" ""
+.SH "NAME"
+.PP 
+osinfo \- gather information regarding the running operating system
+.SH "SYNOPSIS"
+\fBosinfo\fP [ \fB\-s\fP ] [ \fB\-h\fP hostname ] [ \fB\-p\fP portnumber ]
+       [ \fB\-u\fP username ] [ \fB\-w\fP password ] [ \fB\-t\fP timeout ]
+       [ \fB\-c\fP ] [ \fB\-\-help\fP ] [ \fB\-\-version\fP ]
+.SH "DESCRIPTION"
+.PP 
+The 
+.B osinfo 
+command displays information regarding the operating system,
+gathered via WBEM using the PG_OperatingSystem class supported by the
+OperatingSystem Provider (bundled with OpenPegasus).
+.B osinfo
+requires the CIM Server to be installed and running.
+.PP 
+By default, the information is formatted for display, converting
+CIMDateTime strings into a more user\-readable format (see Examples),
+and converting the total number of seconds of uptime into the 
+appropriate number of days, hours, minutes, and seconds.
+.PP 
+If a property value is unavailable, it will be shown as "Unknown"
+.SS Options
+.B osinfo
+recognizes the following options:
+.RS
+.TP 15
+.B \-c
+Use the CIM formats for DateTime and SystemUpTime values (not
+the formatting done by default).
+As specified by the DMTF, the CIMDateTime format is 
+yyyymmddhhmmss.mmmmmmsutc, where yyyy is
+a 4\-digit year, mm is the month, dd is the day, hh is the hour on a 24\-hour
+clock, mm is the minute, ss is the second, mmmmmm is the number of
+microseconds, s is a "+" or "\-" indicating the sign of the UTC
+(Universal Time Code) correction field (since the DateTime is returned in
+the local time zone of the system), and utc is the offset from UTC in
+minutes.
+.TP 
+\fB\-h\fP hostname
+Connect to the CIM Server on the specified host.
+If this option is not specified, 
+.B osinfo 
+connects to the localhost.
+.TP 
+.B \-\-help
+Display command usage information.
+.TP 
+\fB\-p\fP portnumber
+Connect to the CIM Server on the specified port number.  
+If this option is not specified, 
+.B osinfo
+connects to the default port for the wbem\-http service, or if the 
+.B \-s
+option is specified, to the default port for the wbem\-https service.
+.TP 
+.B \-s
+Enable the use of the SSL protocol between 
+.B osinfo 
+and the CIM server.
+The 
+.B \-s
+option should be specified if the CIM Server 
+on the specified hostname/portnumber expects clients to connect using HTTPS.
+.TP 
+\fB\-t\fP timeout
+Wait the specified number of milliseconds on sending a request, before timing out if no response has been received.  The 
+.I timeout 
+value must be an integer value greater than 0.
+.TP 
+\fB\-u\fP username
+Connect as the specified 
+.I R username . 
+If 
+.I username 
+is not specified, the current logged in user is used for authentication.
+This option is ignored if neither
+.I hostname 
+nor 
+.I portnumber 
+is specified.
+.TP 
+\fB\-\-version\fP 
+Display CIM Server version.
+.TP 
+\fB\-w\fP password
+Authenticate the connection using the specified 
+.I password .
+This option is ignored if neither
+.I hostname 
+nor 
+.I portnumber 
+is specified.
+WARNING: A password should not be specified on the command line on a
+multi-user system, since command-line options are typically world-readable
+for a short window of time.  If the remote host requests authentication and
+this option is not specified,
+.B osinfo 
+will prompt for the password.
+.RE
+.SH "EXIT STATUS"
+.PP 
+When an error occurs, an error message is written to stderr and an
+appropriate value is returned.  The following values are returned:
+.RS
+.TP 
+.B 0 
+Success
+.PD 0
+.TP 
+.B 1
+Error
+.PD
+.RE
+.SH "USAGE NOTE"
+.PP 
+The 
+.B osinfo 
+command requires that the CIM Server is running.
+.SH "DIAGNOSTICS"
+.PP 
+.B "osinfo error: Cannot connect"
+.IP 
+The CIMOM is not running.  Start the CIMOM with the
+.B cimserver
+command and re\-run
+.B osinfo .
+.SH "EXAMPLES"
+.PP 
+Run the default 
+.B osinfo 
+command.
+.TP 
+.PD 0
+.C osinfo
+
+.TP 
+.B "OperatingSystem Information"
+.TP 
+.B "  Host: myserver.hp.com "
+.TP 
+.B "  Name: HP\-UX "
+.TP 
+.B "  Version: B.11.00 "
+.TP 
+.B "  UserLicense: Unlimited user license "
+.TP 
+.B "  OSCapability: 32 bit "
+.TP 
+.B "  LastBootTime: Sep 24, 2001  9:16:18 (\-0700) "
+.TP 
+.B "  LocalDateTime: May 23, 2002  10:55:54 (\-0700) "
+.TP 
+.B "  SystemUpTime: 20828377 seconds = 241 days, 1 hr, 39 mins, 37 secs  "
+.PD
+.PP 
+The system myserver.hp.com is running version B.11.00 of HP\-UX,
+has an unlimited user license, and is 32\-bit capable.  The Operating
+System was last booted on Sept 24, 2001 and the local date and time
+are given.  All time values are offset from GMT by \-7 hours.
+.PP 
+Run 
+.B osinfo ,
+with the values displayed in their CIM format
+.TP 
+.PD 0
+.B "osinfo \-c"
+
+.TP 
+.B "OperatingSystem Information"
+.TP 
+.B "  Host: rushmore.cup.hp.com"
+.TP 
+.B "  Name: HP\-UX"
+.TP 
+.B "  Version: B.11.00"
+.TP 
+.B "  UserLicense: Unlimited user license"
+.TP 
+.B "  OSCapability: 32 bit"
+.TP 
+.B "  LastBootTime: 20010924091618.000000\-420"
+.TP 
+.B "  LocalDateTime: 20020523105801.000000\-420"
+.TP 
+.B "  SystemUpTime: 20828504"
+.PD
+.PP 
+The same rushmore.cup.hp.com system is displayed, but in this output the
+LastBootTime and LocalDateTime values are in the CIM format.  The SystemUpTime
+value is in total seconds (as specified by CIM).  Other fields do not change,
+as their CIM specification is the strings themselves.
+.SH "SEE ALSO"
+.PP 
+cimserver(1).
+.SH "STANDARDS CONFORMANCE"
+.PP 
+\fBosinfo\fP : DMTF WBEM (Web\-Based Enterprise Management) and CIM 
+(Common Information Model)

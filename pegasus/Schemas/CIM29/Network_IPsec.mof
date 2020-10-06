@@ -1,0 +1,695 @@
+// ===================================================================
+// Title: Network_IPsec
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_IPsec.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines the classes to manage
+//              an IPsec security association.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// This model was originally introduced in CIM V2.6 Preliminary and
+// was not promoted to Final status.  The following CR updates the
+// V2.6 MOF and better aligns it with the IETF I-D from the IPSP
+// Working Group.
+// CR1026 - Modifications to the V2.6 MOF for IPsec management
+// Change Log CIM V2.8
+// CR1194 - Promote all classes to final
+// CR1238 - Fix model correspondece reference problems in final version
+// 
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// Security Association Endpoints
+// ==================================================================
+
+// ==================================================================
+// SecurityAssociationEndpoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "SecurityAssociationEndpoint (SAEndpoint) represents the "
+       "endpoint of a secure connection. This is typically an IP "
+       "connection, although the model allows more flexibility than "
+       "just IP. The SecurityAssociationEndpoint is tied to an "
+       "IPProtocolEndpoint (or possibly other endpoint) using the "
+       "LogicalIdentity association. Note that an endpoint is defined "
+       "at both ends of the connection.")]
+class CIM_SecurityAssociationEndpoint : CIM_ProtocolEndpoint {
+
+      [Override ( "InstallDate" ), Description (
+          "InstallDate records when the SA (and its endpoint) was "
+          "created.")]
+   datetime InstallDate;
+
+      [Description (
+          "LifetimeSeconds specifies the maximum time that the SA will "
+          "be considered valid after it has been created. A value of "
+          "zero indicates that the default of 8 hours be used. A "
+          "non-zero value indicates the seconds lifetime."), 
+       Units ( "Seconds" )]
+   uint64 LifetimeSeconds = 0;
+
+      [Write, Description (
+          "RefreshThresholdSecondsPercentage is the lifetime "
+          "percentage after which a new SA should be acquired, before "
+          "the existing SA expires. A random period may be added to a "
+          "calculated threshold to reduce network thrashing."), 
+       Units ( "Percent" ), MinValue ( 0 ), MaxValue ( 100 )]
+   uint8 RefreshThresholdSecondsPercentage;
+
+      [Description (
+          "IdleDurationSeconds specifies how long the SA can be idle "
+          "before it is deleted. The default value, 0, indicates that "
+          "there is no idle timeout period."), 
+       Units ( "Seconds" )]
+   uint64 IdleDurationSeconds = 0;
+
+      [Description (
+          "LifetimeKilobytes specifies the maximum number of kilobytes "
+          "of data traffic to be protected by the SA. A value of zero "
+          "(the default) indicates that there should be no maximum "
+          "kilobyte lifetime. A non-zero value specifies the desired "
+          "kilobyte lifetime. The SA is deleted when the "
+          "LifetimeKilobyte value is exceeded."), 
+       Units ( "KiloBytes" )]
+   uint64 LifetimeKilobytes = 0;
+
+      [Write, Description (
+          "RefreshThresholdKbytesPercentage is the lifetime percentage "
+          "of kilobytes processed, at which a new SA should be "
+          "acquired. A random value may be added to the calculated "
+          "threshold to reduce network thrashing."), 
+       Units ( "Percent" ), MinValue ( 0 ), MaxValue ( 100 )]
+   uint8 RefreshThresholdKbytesPercentage;
+
+      [Write, Description (
+          "PacketLoggingActive causes a log to be kept of traffic "
+          "processed by the SAEndpoint.")]
+   boolean PacketLoggingActive;
+};
+
+
+// ==================================================================
+// FilterOfSecurityAssociation
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "FilterOfSecurityAssociation associates a network traffic "
+       "specification (i.e., a FilterList) with a SecurityAssociation "
+       "Endpoint, to which the filter list applies.")]
+class CIM_FilterOfSecurityAssociation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "FilterList describing the traffic to be selected/matched.")]
+   CIM_FilterList REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "SecurityAssociation using the FilterList as its traffic "
+          "selector.")]
+   CIM_SecurityAssociationEndpoint REF Dependent;
+};
+
+
+// ==================================================================
+// SAEndpointConnectionStatistics
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "This class captures statistical and time-related information "
+       "about the use of the IPsec or IKE Security Associations, "
+       "through their IPsecSAEndpoint or IKESAEndpoint. The relevant "
+       "SAEndpoint is determined by traversing the "
+       "ElementStatisticalData association.")]
+class CIM_SAEndpointConnectionStatistics : CIM_StatisticalData {
+
+      [Description (
+          "Number of bytes that have been protected by the associated "
+          "SAEndpoint."), 
+       Units ( "Bytes" ), Counter]
+   uint64 ByteCount;
+
+      [Description (
+          "LastAccessed indicates when the SAEndpoint was last used. "
+          "This property is helpful in determining if the SA (and its "
+          "endpoint) will be deleted due to sitting idle.")]
+   datetime LastAccessed;
+};
+
+
+// ==================================================================
+// SAEndpointRefreshSettings
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "SAEndpointRefreshSettings hold the refresh thresholds for the "
+       "SecurityAssociationEndpoint. Since these settings may change "
+       "for an SA, the properties are defined both in this class and "
+       "in SecurityAssociationEndpoint.")]
+class CIM_SAEndpointRefreshSettings : CIM_SettingData {
+
+      [Write, Description (
+          "RefreshThresholdSecondsPercentage is the lifetime "
+          "percentage after which a new SA should be acquired, before "
+          "the existing SA expires."), 
+       Units ( "Percent" ), MinValue ( 0 ), MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_SecurityAssociationEndpoint." 
+          "RefreshThresholdSecondsPercentage" }]
+   uint8 RefreshThresholdSecondsPercentage;
+
+      [Write, Description (
+          "RefreshThresholdKbytesPercentage is the lifetime percentage "
+          "of kilobytes processed, at which a new SA should be "
+          "acquired."), 
+       Units ( "Percent" ), MinValue ( 0 ), MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_SecurityAssociationEndpoint." 
+          "RefreshThresholdKbytesPercentage" }]
+   uint8 RefreshThresholdKbytesPercentage;
+};
+
+
+// ==================================================================
+// IPsecSAEndpoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "IPsecSAEndpoints are types of SecurityAssociationEndpoints "
+       "representing both negotiated and static SAs that correspond to "
+       "AH, ESP, or IPCOMP transforms.")]
+class CIM_IPsecSAEndpoint : CIM_SecurityAssociationEndpoint {
+
+      [Description (
+          "SPI contains the Security Parameter Index of the SA. This "
+          "value in string form may also be used in the key field "
+          "'Name' inherited from ServiceAccessPoint.")]
+   uint32 SPI;
+
+      [Description (
+          "InboundDirection specifies whether the SA applies to "
+          "inbound (TRUE) or outbound (FALSE) traffic.")]
+   boolean InboundDirection;
+
+      [Description (
+          "EncapsulationMode indicates whether the IPsecSAEndpoint "
+          "uses transport or tunnel encapsulation."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "Tunnel", "Transport" }]
+   uint16 EncapsulationMode;
+
+      [Description (
+          "DFHandling controls how the 'Don't Fragment' bit is managed "
+          "by the IPsecSAEndpoint."), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Copy from Internal to External IP Header",
+          "Set DF Bit in External Header to 1",
+          "Set DF Bit in External Header to 0" }]
+   uint16 DFHandling;
+
+      [Description (
+          "PFSInUse indicates whether perfect forward secrecy is "
+          "required when refreshing keys.")]
+   boolean PFSInUse;
+};
+
+
+// ==================================================================
+// PeerOfIPsecSAEndpoint
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "PeerOfIPsecSAEndpoint identifies the peer of the "
+       "IPsecSAEndpoint.")]
+class CIM_PeerOfSAEndpoint : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The peer for the SAEndpoint.")]
+   CIM_RemoteServiceAccessPoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The IPsecSAEndpoint which has a peer.")]
+   CIM_IPsecSAEndpoint REF Dependent;
+};
+
+
+// ==================================================================
+// IKESAEndpoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "IKESAEndpoint is created in the first phase of SA negotiation "
+       "and protects the key negotiation traffic. This endpoint is "
+       "only created when IKE is the key exchange protocol. Other "
+       "protocols and their endpoints will be defined in a future "
+       "release.")]
+class CIM_IKESAEndpoint : CIM_SecurityAssociationEndpoint {
+
+      [Description (
+          "Identifier of the IKE phase 1 negotiation initiator. "
+          "Combined with the ResponderCookie, this value, in string "
+          "form, may be used to construct the value of the key field "
+          "'Name', inherited from ServiceAccessPoint.")]
+   uint64 InitiatorCookie;
+
+      [Description (
+          "Identifier of the IKE phase 1 negotiation responder. "
+          "Combined with the InitiatorCookie, this value, in string "
+          "form, may be used to construct the value of the key field "
+          "'Name', inherited from ServiceAccessPoint.")]
+   uint64 ResponderCookie;
+
+      [Description (
+          "CipherAlgorithm is an enumeration that specifies the "
+          "encryption algorithm used by the IKESAEndpoint. The list of "
+          "algorithms was generated from Appendix A of RFC2409. Note "
+          "that the enumeration is different than the RFC list, since "
+          "the values of Unknown and Other are taken into account."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8..65000",
+          "65001..65535" }, 
+       Values { "Unknown", "Other", "DES", "IDEA", "Blowfish", "RC5",
+          "3DES", "CAST", "DMTF/IANA Reserved", "Vendor Reserved" }, 
+       MappingStrings { "RFC2409.IETF|Appendix A" }, 
+       ModelCorrespondence { "CIM_IKESAEndpoint.OtherCipherAlgorithm" }]
+   uint16 CipherAlgorithm;
+
+      [Description (
+          "Description of the encryption algorithm when the value 1 "
+          "(\"Other\") is specified for the property, CipherAlgorithm."), 
+       ModelCorrespondence { "CIM_IKESAEndpoint.CipherAlgorithm" }]
+   string OtherCipherAlgorithm;
+
+      [Description (
+          "HashAlgorithm is an enumeration that specifies the hash "
+          "function used by the IKESAEndpoint. The list of algorithms "
+          "was generated from Appendix A of RFC2409. Note that the "
+          "enumeration is different than the RFC list, since the "
+          "values of Unknown and Other are taken into account."), 
+       ValueMap { "0", "1", "2", "3", "4", "5..65000", "65001..65535" }, 
+       Values { "Unknown", "Other", "MD5", "SHA-1", "Tiger",
+          "DMTF/IANA Reserved", "Vendor Reserved" }, 
+       MappingStrings { "RFC2409.IETF|Appendix A" }, 
+       ModelCorrespondence { "CIM_IKESAEndpoint.OtherHashAlgorithm" }]
+   uint16 HashAlgorithm;
+
+      [Description (
+          "Description of the hash function when the value 1 "
+          "(\"Other\") is specified for the property, HashAlgorithm."), 
+       ModelCorrespondence { "CIM_IKESAEndpoint.HashAlgorithm" }]
+   string OtherHashAlgorithm;
+
+      [Description (
+          "AuthenticationMethod is an enumeration that specifies the "
+          "operation of the IKESAEndpoint. The list of methods was "
+          "generated from Appendix A of RFC2409. Note that the "
+          "enumeration is different than the RFC list, since the "
+          "values of Unknown and Other are taken into account."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7..65000",
+          "65001..65535" }, 
+       Values { "Unknown", "Other", "Pre-Shared Key", "DSS Signatures",
+          "RSA Signatures", "Encryption with RSA",
+          "Revised Encryption with RSA", "DMTF/IANA Reserved",
+          "Vendor Reserved" }, 
+       MappingStrings { "RFC2409.IETF|Appendix A" }, 
+       ModelCorrespondence { 
+          "CIM_IKESAEndpoint.OtherAuthenticationMethod" }]
+   uint16 AuthenticationMethod;
+
+      [Description (
+          "Description of the method when the value 1 (\"Other\") is "
+          "specified for the property, AuthenticationMethod."), 
+       ModelCorrespondence { "CIM_IKESAEndpoint.AuthenticationMethod" }]
+   string OtherAuthenticationMethod;
+
+      [Description (
+          "GroupId specifies the key exchange group ID. If the GroupID "
+          "number is from the vendor-specific range (32768-65535), the "
+          "VendorID qualifies the group number. Well-known group "
+          "identifiers from RFC2412, Appendix E, are: Group 1='768 bit "
+          "prime', Group 2='1024 bit prime', Group 3= 'Elliptic Curve "
+          "Group with 155 bit field element', Group 4= 'Large Elliptic "
+          "Curve Group with 185 bit field element', and Group 5='1536 "
+          "bit prime'."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "No Group/Non-Diffie-Hellman Exchange",
+          "DH-768 bit prime", "DH-1024 bit prime",
+          "EC2N-155 bit field element", "EC2N-185 bit field element",
+          "DH-1536 bit prime", "Standard Group - Reserved",
+          "Vendor Reserved" }, 
+       MappingStrings { "RFC2412.IETF|Appendix E" }, 
+       ModelCorrespondence { "CIM_IKESAEndpoint.VendorID" }]
+   uint16 GroupId;
+
+      [Description (
+          "VendorID identifies the vendor when the value of GroupID is "
+          "in the vendor-specific range, 32768 to 65535."), 
+       ModelCorrespondence { "CIM_IKESAEndpoint.GroupId" }]
+   string VendorID;
+};
+
+
+// ==================================================================
+// Phase1SAUsedForPhase2
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "Phase1SAUsedForPhase2 associates a phase 1 endpoint (such as "
+       "an IKESAEndpoint) with an IPsecSAEndpoint that was negotiated "
+       "using that phase 1 Security Association.")]
+class CIM_Phase1SAUsedForPhase2 : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "Phase 1 SAEndpoint that protected the negotiation of the "
+          "phase 2 Security Association. An example of a phase 1 "
+          "endpoint is an IKESAEndpoint.")]
+   CIM_SecurityAssociationEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The phase 2 SAEndpoint.")]
+   CIM_IPsecSAEndpoint REF Dependent;
+};
+
+
+// ==================================================================
+// Security Association Transforms
+// ==================================================================
+
+// ==================================================================
+// SATransform
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "SATransform is the base class for the various types of "
+       "transforms that are in effect for an existing IPsecSAEndpoint, "
+       "or aggregated into phase 2 proposals used during the IPsec "
+       "negotiation process. This class is defined as a kind of "
+       "ScopedSettingData, since it describes the set of transform "
+       "properties that MUST be applied together, if negotiated. This "
+       "subclassing is different than that defined in IETF's IPSP "
+       "Policy draft - where it is subclassed from Policy. The "
+       "definition as SettingData is more consistent with the "
+       "application of the properties as a set, to the negotiated "
+       "Security Association. \n"
+       "\n"
+       "Note that an instance of this class is 'scoped' or contained "
+       "by a System (either a ComputerSystem or AdminDomain), rather "
+       "than by a SecurityAssociationEndpoint. This is indicated by "
+       "instantiating the ScopedSetting association, and is necessary "
+       "since the transform data is used in IPsec negotiation policies "
+       "(also scoped by Systems) before ever being associated with a "
+       "SecurityAssociationEndpoint. The latter semantics (i.e., that "
+       "'this' transform is negotiated for 'this' Security "
+       "Association) is conveyed via a subclass of ElementSettingData, "
+       "TransformOfSecurityAssociation."), 
+    MappingStrings { "IPSP Model.IETF|SATransform" }]
+class CIM_SATransform : CIM_ScopedSettingData {
+
+      [Override ( "ElementName" ), 
+       MappingStrings { "IPSP Model.IETF|SATransform.CommonName" }]
+   string ElementName;
+
+      [Description (
+          "MaxLifetimeSeconds specifies the maximum time that the "
+          "Security Association should be considered valid after it "
+          "has been created. A value of 0, the default, indicates that "
+          "8 hours should be used. A non-zero value indicates the "
+          "maximum lifetime in seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "IPSP " 
+          "Model.IETF|SATransform.MaxLifetimeSeconds" }]
+   uint64 MaxLifetimeSeconds = 0;
+
+      [Description (
+          "MaxLifetimeKilobytes specifies the maximum kilobyte "
+          "lifetime for a Security Association. Different lifetimes "
+          "are used, depending on the strength of the encryption "
+          "algorithm. A value of 0, the default, indicates that no "
+          "maximum should be defined. A non-zero value specifies the "
+          "desired kilobyte lifetime."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "IPSP " 
+          "Model.IETF|SATransform.MaxLifetimeKilobytes" }]
+   uint64 MaxLifetimeKilobytes = 0;
+
+      [Description (
+          "VendorID identifies vendor-defined transforms. If this "
+          "field is empty (the default), then this is a standard "
+          "transform."), 
+       MappingStrings { "IPSP Model.IETF|SATransform.VendorID" }]
+   string VendorID = "";
+};
+
+
+// ==================================================================
+// TransformOfSecurityAssociation
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "TransformOfSecurityAssociation maps a SecurityAssociation "
+       "Endpoint with the transform that it uses. For security, no "
+       "keying material of the SA is exposed.")]
+class CIM_TransformOfSecurityAssociation : CIM_ElementSettingData {
+
+      [Override ( "SettingData" ), Min ( 1 ), Max ( 1 ), Description (
+          "Transform of the IPsecSAEndpoint.")]
+   CIM_SATransform REF SettingData;
+
+      [Override ( "ManagedElement" ), Description (
+          "The IPsecSAEndpoint that uses the transform.")]
+   CIM_IPsecSAEndpoint REF ManagedElement;
+};
+
+
+// ==================================================================
+// AHTransform
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "AHTransform defines the parameters used for a phase 2 AH "
+       "(Authentication Header) Security Association."), 
+    MappingStrings { "IPSP Model.IETF|AHTransform" }]
+class CIM_AHTransform : CIM_SATransform {
+
+      [Description (
+          "AHTransformId is an enumeration that specifies the hash "
+          "algorithm to be used. The list of values was generated from "
+          "RFC2407, Section 4.4.3."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "MD5", "SHA-1", "DES" }, 
+       MappingStrings { "IPSP Model.IETF|AHTransform.AHTransformID",
+          "RFC2407.IETF|Section 4.4.3" }, 
+       ModelCorrespondence { "CIM_AHTransform.OtherAHTransformId" }]
+   uint16 AHTransformId;
+
+      [Description (
+          "Description of the hash algorithm when the value 1 "
+          "(\"Other\") is specified for the property, AHTransformId."), 
+       ModelCorrespondence { "CIM_AHTransform.AHTransformId" }]
+   string OtherAHTransformId;
+
+      [Description (
+          "UseReplayPrevention causes the local peer to enable replay "
+          "prevention detection. This can be accomplished by using a "
+          "sequence number when sending a packet or checking the "
+          "sequence number upon receipt of a packet."), 
+       MappingStrings { "IPSP " 
+          "Model.IETF|AHTransform.UseReplayPrevention" }]
+   boolean UseReplayPrevention;
+
+      [Description (
+          "ReplayPreventionWindowsSize specifies, in bits, the length "
+          "of the sliding window used by the replay prevention "
+          "mechanism. The value of this property is meaningless if "
+          "UseReplayPrevention is false. The window size MUST be a "
+          "power of 2."), 
+       Units ( "Bits" ), 
+       MappingStrings { "IPSP " 
+          "Model.IETF|AHTransform.ReplayPreventionWindowSize" }]
+   uint32 ReplayPreventionWindowSize;
+};
+
+
+// ==================================================================
+// ESPTransform
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "ESPTransform defines the parameters used for a phase 2 ESP "
+       "(Encapsulating Security Protocol) Security Association."), 
+    MappingStrings { "IPSP Model.IETF|ESPTransform" }]
+class CIM_ESPTransform : CIM_SATransform {
+
+      [Description (
+          "IntegrityTransformId is an enumeration that specifies the "
+          "ESP integrity algorithm to be used. The list of values is "
+          "generated from the enumeration defined in RFC2407, Section "
+          "4.5. Note that the enumeration is different than the RFC "
+          "list, since the values of Other and None are taken into "
+          "account. Also, note that 2 (\"None\") is used when ESP is "
+          "negotiated without authentication."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7..61439",
+          "61440..65535" }, 
+       Values { "Other", "None", "MD5", "SHA-1", "DES", "KPDK",
+          "DMTF/IANA Reserved", "Vendor Reserved" }, 
+       MappingStrings { "IPSP " 
+          "Model.IETF|ESPTransform.IntegrityTransformId",
+          "RFC2407.IETF|Section 4.5" }, 
+       ModelCorrespondence { 
+          "CIM_ESPTransform.OtherIntegrityTransformId" }]
+   uint16 IntegrityTransformId;
+
+      [Description (
+          "Description of the integrity algorithm when the value 1 "
+          "(\"Other\") is specified for the property, "
+          "IntegrityTransformId."), 
+       ModelCorrespondence { "CIM_ESPTransform.IntegrityTransformId" }]
+   string OtherIntegrityTransformId;
+
+      [Description (
+          "CipherTransformId is an enumeration that specifies the ESP "
+          "encrypion algorithm to be used. The list of values is "
+          "defined in RFC2407, Section 4.4.4, where the RFC's NULL "
+          "value maps to 2-\"None\". Note that the enumeration is "
+          "different than the RFC list, since 'Other' is added to the "
+          "enumeration."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12" }, 
+       Values { "Other", "None", "DES_IV64", "DES", "3DES", "RC5",
+          "IDEA", "CAST", "Blowfish", "3-IDEA", "DES_IV32", "RC4" }, 
+       MappingStrings { "IPSP " 
+          "Model.IETF|ESPTransform.CipherTransformId",
+          "RFC2407.IETF|Section 4.4.4" }, 
+       ModelCorrespondence { "CIM_ESPTransform.OtherCipherTransformId" 
+          }]
+   uint16 CipherTransformId;
+
+      [Description (
+          "Description of the encryption algorithm when the value 1 "
+          "(\"Other\") is specified for the property, "
+          "CipherTransformId."), 
+       ModelCorrespondence { "CIM_ESPTransform.CipherTransformId" }]
+   string OtherCipherTransformId;
+
+      [Description (
+          "CipherKeyLength specifies, in bits, the key length for the "
+          "encryption algorithm. For algorithms with fixed key "
+          "lengths, this value is ignored."), 
+       Units ( "Bits" ), 
+       MappingStrings { "IPSP Model.IETF|ESPTransform.CipherKeyLength" 
+          }]
+   uint16 CipherKeyLength;
+
+      [Description (
+          "CipherKeyRounds specifies the key rounds for the encryption "
+          "algorithm. For algorithms with a fixed number of key "
+          "rounds, this value is ignored. Currently, key rounds are "
+          "NOT defined for any ESP encryption algorithms."), 
+       MappingStrings { "IPSP Model.IETF|ESPTransform.CipherKeyRounds" 
+          }]
+   uint16 CipherKeyRounds;
+
+      [Description (
+          "UseReplayPrevention causes the local peer to enable replay "
+          "prevention detection. This can be accomplished by using a "
+          "sequence number when sending a packet or checking the "
+          "sequence number upon receipt of a packet."), 
+       MappingStrings { "IPSP " 
+          "Model.IETF|ESPTransform.UseReplayPrevention" }]
+   boolean UseReplayPrevention;
+
+      [Description (
+          "ReplayPreventionWindowsSize specifies, in bits, the length "
+          "of the sliding window used by the replay prevention "
+          "mechanism. The value of this property is meaningless if "
+          "UseReplayPrevention is false. The window size MUST be a "
+          "power of 2."), 
+       Units ( "Bits" ), 
+       MappingStrings { "IPSP " 
+          "Model.IETF|ESPTransform.ReplayPreventionWindowSize" }]
+   uint32 ReplayPreventionWindowSize;
+};
+
+
+// ==================================================================
+// IPCOMPTransform
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The IPCOMPTransform specifies the IP compression algorithm to "
+       "use for payload of the Security Association."), 
+    MappingStrings { "IPSP Model.IETF|IPCOMPTransform" }]
+class CIM_IPCOMPTransform : CIM_SATransform {
+
+      [Description (
+          "The Algorithm is an enumeration that designates the IPCOMP "
+          "compression algorithm to use. Its values are generated from "
+          "RFC2407, Section 4.4.5. Note that the values are modified "
+          "from the RFC, since 'Other' must be taken into account."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Vendor Algorithm/OUI", "DEFLATE", "LZS" }, 
+       MappingStrings { "IPSP Model.IETF|IPCOMPTransform.Algorithm",
+          "RFC2407.IETF|Section 4.4.5" }, 
+       ModelCorrespondence { "CIM_IPCOMPTransform.PrivateAlgorithm",
+          "CIM_IPCOMPTransform.OtherAlgorithm" }]
+   uint16 Algorithm;
+
+      [Description (
+          "Description of the compression algorithm when the value 1 "
+          "(\"Other\") is specified for the property, Algorithm."), 
+       ModelCorrespondence { "CIM_IPCOMPTransform.Algorithm" }]
+   string OtherAlgorithm;
+
+      [Description (
+          "A private compression algorithm, used when the Algorithm "
+          "property is set to 2, \"Vendor Algorithm/OUI\"."), 
+       MappingStrings { "IPSP " 
+          "Model.IETF|IPCOMPTransform.PrivateAlgorithm" }, 
+       ModelCorrespondence { "CIM_IPCOMPTransform.Algorithm" }]
+   uint32 PrivateAlgorithm;
+
+      [Description (
+          "DictionarySize is an optional field that specifies the log2 "
+          "maximum size of the dictionary for the compression "
+          "algorithm. For dictionaries that have a fixed size, this "
+          "value is ignored."), 
+       MappingStrings { "IPSP " 
+          "Model.IETF|IPCOMPTransform.DictionarySize" }]
+   uint16 DictionarySize;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

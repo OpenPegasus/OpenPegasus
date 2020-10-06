@@ -1,0 +1,112 @@
+.TA c \" lowercase initial letter of .TH name
+.TH cimcrl 8 
+.SH NAME
+cimcrl \- Add, remove or list X509 Certificate Revocation Lists in a PEM format CRL store.
+.SH SYNOPSIS
+
+.B cimcrl
+-a -f file 
+
+.B cimcrl 
+-r -i issuer 
+
+.B cimcrl 
+-l [ -i issuer ]
+
+.B cimcrl 
+--help
+
+.B cimcrl
+--version
+
+.SS Remarks
+The cimcrl command requires that the cimserver is running. This command operates on a CRL store on the local system only.
+
+.SH DESCRIPTION
+The cimcrl command provides a command line interface to manage X509 CRLs in the CRL store. The CRL store contains the CRLs used to revoke certificates in the CIM Server truststore. For more information on truststore operations see the cimtrust(8)  command.
+
+The add option of the cimcrl command adds an X509 CRL from the specified 
+\fPfile \fP to the CRL store. If a CRL for the specified issuer already exists in the CRL store, the CRL is replaced with the specified CRL.
+
+.PP
+The remove option of the cimcrl command removes the X509 CRL matching the specified 
+.B issuer 
+from the CRL store. 
+.PP
+The list option of the cimcrl command lists the X509 CRLs 
+in the CRL store. The list can be filtered by 
+.B issuer. 
+.SS Options
+.B cimcrl 
+recognizes the following options:
+.RS
+.TP 15
+.B -a
+Adds a CRL to the  truststore. If the specified 
+.B file 
+does not contain a valid X509 CRL an error message is returned 
+and no action is taken. If the CRL for the specified issuer already exists 
+in the CRL store, it is replaced with the CRL in the specified
+.B file
+.TP
+.B -r
+Removes a CRL from the truststore. If no CRL exists for the specified 
+.B issuer 
+, an error message is returned and no action is taken.  
+.TP
+.B -l
+Displays the X509 CRLs in the truststore.
+.TP
+.B -f file
+Specifies a PEM format file containing an X509 CRL. 
+.TP
+.B -i issuer
+Specifies the issuer name of the CRL.
+.TP
+.B --help
+Displays the command help message.  
+.TP
+.B --version
+Displays the CIM Server version.
+.SH EXIT STATUS
+When an error occurs, an error message is written to the standard error
+stream and a non-zero exit status value is returned. The following exit
+status values are defined:
+.RS
+.TP
+.B 0
+Success
+.PD
+.TP
+.B 1
+General error
+.PD
+.TP
+.B 2
+Connection failed
+.PD
+.TP
+.B 3
+Connection timed out
+.PD
+.TP
+.B 4
+CRL does not exist
+.PD
+.RE
+.SH EXAMPLES
+Add the CRL in class1crl.pem to the CRL store:
+
+cimcrl -a -f class1crl.pem 
+
+Remove the CRL for a specified issuer:
+
+cimcrl -r -i "/C=US/ST=California/L=Cupertino/O=Smart & Secure/OU=Secure Software Division/CN=dev.admin.ss.com"               
+
+List all the X509 CRLs in the trust store: 
+
+cimcrl -l 
+
+.SH SEE ALSO
+.PP
+cimserver(8), cimtrust(8), cimconfig(8).

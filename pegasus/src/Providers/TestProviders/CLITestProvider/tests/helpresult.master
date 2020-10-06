@@ -1,0 +1,626 @@
+17. +++++ test Help Output
+Usage: cimcli <command> <CIMObject> <Options> *<extra parameters>
+    -hc    for <command> set and <CimObject> for each command
+    -ho    for <Options> set
+    -h xx  for <command> and <Example> for <xx> operation 
+    -h     for this summary
+    --help for full help
+Version 2.14.1
+The options for this command are:
+
+This command executes single CIM Operations.
+
+ -count  count. Expected count of objects returned if summary set.
+    Tests this count and displays difference.
+    Return nonzero status code if test fails. Default(29346)
+ -d  debug. More detailed debug messages. Default(false)
+ -delay  delay. Delay between connection and request. Default(0)
+ -p  Password. Defines password for authentication. Default()
+ -l  location. Specifies system and port (HostName:port).
+    Port is optional. Default()
+ -u  User. Defines User Name for authentication. Default()
+ -n  namespace. Specifies namespace to use for operation. Default(root/cimv2)
+ -ic  includeClassOrigin. If set includeClassOrigin  parameter
+    set true on requests that honor this parameter. Default(false)
+ -di  deepInheritance. If set deepInheritance parameter
+    set true. Default(false)
+ -lo  localOnly. DEPRECATED. This was used to set LocalOnly.
+    However, default should be true and we cannot use True
+    as default. See -nlo. Default(true)
+ -nlo  notLocalOnly. When set, sets LocalOnly = false on
+    operations. Default(false)
+ -iq  includeQualifiers. DEPRECATED. Sets includeQualifiers = True.
+    Useful for instance operations where default is false. Default(false)
+ -niq  notIncludeQualifiers. Sets includeQualifiers = false
+    on operations. Useful for class operations where 
+    the default is true.. Default(false)
+ -pl  propertyList. Defines a propertyNameList. Format is p1,p2,p3
+    (without spaces). Use "" for empty. Default(###!###)
+ -ac  assocClass. Defines a assocation Class string for Associator calls. Default()
+ -ar  assocRole. Defines a role string for Associators. AssocRole
+    parameter. Default()
+ -r  role. Defines a role string for reference role parameter. Default()
+ -rc  resultClass. Defines a resultClass string for References and
+    Associatiors. Default()
+ -rr  resultRole. Defines a role string for associators operation resultRole
+    parameter. Default()
+ -ip  inputParameters. This option deprecated and removed. Replaced by use of
+    the same name/value pair syntax as properties in create
+    and modify instance.. Default()
+ -f  filter. Defines a filter to use for query. Single String input. Default()
+ -ql  queryLanguage. Defines a Query Language to be used with a query filter.
+. Default(WQL)
+ -o  outputformats. Output in xml, mof, txt, table. Default(mof)
+ -x  xmlOutput. Output objects in xml format. Default(false)
+ --version  version. Displays software Version. Default(false)
+ -v  verbose. Verbose Display. Outputs detailed parameter input
+    display and other request processing information. Default(false)
+ --sum  summary. Displays only summary count for enumerations,
+    associators, etc.. Default(false)
+ -h  help. Prints help usage message. Default(false)
+ --help  full help. Prints full help message with commands, options,
+    examples. Default(false)
+ -ho  help options. Prints list of options. Default(false)
+ -hc  help commands. Prints CIM Operation command list. Default(false)
+ --timeout  connecttimeout. Set the connection timeout in seconds.. Default(0)
+ -i  interactive. Interactively ask user to select instances.
+    Used with associator and reference operations. Default(false)
+ --setRtnHostNames  setRtnHostNames. Set namespace component of reference and path outputs parameter.
+    Used to allow comparison of paths and instances without involving the variable of host namespaces.. Default()
+ -trace  trace. Set Pegasus Common Components Trace. Sets the Trace level.
+    0 is off. Default(0)
+ --r  repeat. Number of times to repeat the operation.
+    Zero means one time. Default(0)
+ --t  time. Measure time for the operation and present results. Default(false)
+ -pt  pullTimeout. Pull interoperation timeout in seconds. . Default(10)
+ -mo  maxObjectCount. Maximum number of objects in a single Pull . Default(100)
+ -mr  maxObjectsToReceive. Maximum objects to Receive in a pull sequence. Will Close when this number received.. Default(0)
+ -pullDelay  pullDelay. Delay in Seconds between pull Operations. Default zero, no delay.. Default(0)
+ --sort  sort. Sort the returned entities for multi-object responses (ex. enumerations, associators, etc.). Default(false)
+ --expExit  expectedExitCode. Set the exit code that cimcli expects for this operation. cimcli exits code = 0 if expectedExitCode matches pgm exit code.. Default(0)
+
+Options vary by command consistent with CIM Operations
+
+ni    enumerateInstanceNames Enumerate instancenames of <classname>
+niall enumallInstanceNames  Enumerate all instance names and count of
+                            instances of [ <classname> ] in <namespace>.
+                            Classname optional and default is to enumerate
+                            instances of entire namespace
+ei    enumerateInstances    Enumerate instances of <classname>
+nc    enumerateClassNames   Enumerate Class Names of [ <classname> ].
+                            Classname optional
+ec    enumerateClasses      Enumerate classes of [ <classname> ]. Classname
+                            optional
+gc    getClass              Get class of <classname>
+gi    getInstance           Get instance of <objectname> | <classname>
+                            (interactive) | <classname>  *<PropertyName=value>
+                            defining key property values.
+ci    createInstance        Create instance of a class. Input Format is:
+                              <className> [<propertyDef>]*
+                           where propertyDef is:
+                             | <propName>=<value>      //property with value
+                             | <propName>="<value>"    //string with space
+                                                       //in string
+                             | <propName>=             //NULL value
+                             | <propName>!             //empty string value
+                             | <propName>=<arrayVal>   //Arrayinput
+                                 where: arrayVal=<value>[,<value>]*
+                           
+                             | <propName>{<classname> [<propertyDef>]* }
+                             | <propName>={<classname> [<propertyDef>]* }
+                                defines embedded instance or 
+                                         embedded objectPath  where:
+                                  -classname - embedded class
+                                  -propertyDef - embedded instance property
+ti    testInstance          Test instance  of <objectname>  [<propertyDef>]* |
+                            <classname>  [<propertyDef>]* for equal property
+                            values.where propertyDef is:
+                             | <propName>=<value>      //property with value
+                             | <propName>="<value>"    //string with space
+                                                       //in string
+                             | <propName>=             //NULL value
+                             | <propName>!             //empty string value
+                             | <propName>=<arrayVal>   //Arrayinput
+                                 where: arrayVal=<value>[,<value>]*
+                           
+                             | <propName>{<classname> [<propertyDef>]* }
+                             | <propName>={<classname> [<propertyDef>]* }
+                                defines embedded instance or 
+                                         embedded objectPath  where:
+                                  -classname - embedded class
+                                  -propertyDef - embedded instance property
+di    deleteInstance        Delete Instance of <objectname> | <classname>
+                            *<keyPropertyName=value> | interactive of
+                            <className>
+cc    createClass           Not supported
+mi    modifyInstance        Modify Instance of a class. Input formats are:
+                           <objectname> [<propertyDef>]*
+                           | <classname> [<propertyDef>]*
+                           where propertyDef is:
+                             | <propName>=<value>      //property with value
+                             | <propName>="<value>"    //string with space
+                                                       //in string
+                             | <propName>=             //NULL value
+                             | <propName>!             //empty string value
+                             | <propName>=<arrayVal>   //Arrayinput
+                                 where: arrayVal=<value>[,<value>]*
+                           
+                             | <propName>{<classname> [<propertyDef>]* }
+                             | <propName>={<classname> [<propertyDef>]* }
+                                defines embedded instance or 
+                                         embedded objectPath  where:
+                                  -classname - embedded class
+                                  -propertyDef - embedded instance property
+dc    deleteClass           Delete Class of <classname>
+gp    getProperty           get single property of <object name>
+sp    setProperty           set a single property of <object-name>
+gq    getQualifier          Get Qualifier of <qualifiername>
+sq    setQualifier          Not suported
+eq    enumerateQualifiers   Enumerate all Qualifiers
+dq    deleteQualifier       Delete qualifer of <qualifiername>
+a     associators           Enumerate Associators of <classname> |
+                            <instancename>.
+an    associatorNames       Enumerate Associator Names of <classname> |
+                            <instancename>
+r     references            Enumerate References of <classname> |
+                            <instancename>
+rn    referenceNames        Enumerate Reference Names <classname> |
+                            <instancename>
+im    invokeMethod          Invoke Method for <object> <method>
+                            {*<inputParam>} where inputParms can be defined
+                            as:
+                             <paramName>=<value>
+                             <paramName>{<embeddedClassName> *[<paramName> }
+xq    execQuery             ExecQuery <query-expresssion> [<query-language>]
+ns    enumerateNamespaces   Enumerate all namespaces on the server.
+son   StatisticsOn          Turn on CIM Server Statistics Gathering
+soff  StatisticsOff         Turn off CIM Server Statistics Gathering
+cci   countInstances        Count all Instances in Namespace and sort by
+                            ClassName.
+                            Warning: Could request large number of instances
+                            from Server
+ct    classTree             Display graphic tree of classes in a namespace
+?     showOptions           Show List of Commands
+pei   pullEnumerateInstances Execute EnumerateInstances using the Pull
+                            Operations
+pni   pullEunumerateInstancePaths Execute EnumerateInstances Paths using the
+                            Pull Operations
+pr    pullReferenceInstances Execute Open and Pull References
+prn   pullReferencesInstancePaths Execute Open,Pull ReferenceInstancePaths
+                            using the Pull Operations
+pa    pullAssociatorInstances Execute Open and Pull Associations
+pan   pullAssociatorInstancePaths Execute Open,Pull AssociatorInstancePaths
+                            using the Pull Operations
+pxq   pullExecQuery         Execute query operation using pull Operations
+                           pzq <querylanguage> <query> <pull parameters> -h for all help, -hc for commands, -ho for options
+
+Examples : 
+cimcli ni -n test/TestProvider TST_Person
+    -- Enumerate Instance Names of class TST_Person
+
+cimcli niall
+    -- Enumerate Instance Names and count instances of all classes
+       in the default namespace
+cimcli niall CIM_ComputerSystem -n root/interop
+    -- Enumerate Instance Names and count instances of all classes
+       in namespace root/interop starting at CIM_ComputerSystem
+cimcli ei PG_ComputerSystem   -- Enumerate Instances of class
+
+cimcli nc -- Enumerate class names from root/cimv2.
+
+cimcli ec -n root/cimv2
+    -- Enumerate classes from namespace root/cimv2.
+
+cimcli gc CIM_door -u guest -p guest
+    -- Get class user = guest and password = guest.
+
+cimcli gi -n test/TestProvider TST_Person
+    -- Get Instance of class
+
+cimcli ci -n test/TestProvider TST_Person Name=Mike SSN=333
+    -- Create Instance of  class TST_Person with properties:
+       Name = Mike
+       SSN = 333
+
+cimcli ci -n test/TestProvider C1 id=3 name=fred 
+    embed{C2 p1=3 p2="ab cd" }
+
+    -- Create instance of class C1 with properties:
+       id with value 3
+       name with string value "fred"
+       embed embedded instance property with instance of class
+
+cimcli ti -n test/TestProvider TST_Person Name=Mike SSN=333
+    -- Test Instance of  class for equality of Name and SSN
+       properties. Returns error code if instance in server
+       does not have same properties and values as the
+       instance built from input
+
+cimcli di -n test/TestProvider TST_Person
+    -- Delete Instance of class TST_Person interactively
+or
+ cimcli di -n test/TestProvider TST_Person name=Mike
+    -- Delete Instance of class TEST_Persion with key property
+       name equal Mike using instance builder format to
+       define object path
+or
+ cimcli di -n test/TestProvider TST_Person.name=\"Mike\"
+    -- Delete Instance of class TST_Persion with object path
+       TST_Person.name="Mike" using object path input format
+
+Operation Not supported..
+
+cimcli mi -n test/TestProvider TST_Person.Id=\"Mike\" SSN=444
+    -- Modifies the Instance if it exists using rules of DMTF 
+       modifyInstance operation.
+
+cimcli dc -n test/TestProvider TST_Person
+    -- Deletes the Class when there are no instances and
+       sub-classes for this class
+
+cimcli gp -n test/TestProvider TST_Person.Id=\"Mike\" SSN 
+    -- Get the property named SSN from the instance
+       defined by TST_Person.Id="Mike"
+cimcli sp -n test/TestProvider TST_Person.Id=\"Mike\" SSN=333 
+    -- Set the property named SSS in the instance
+       defined by TST_Person.Id="Mike")
+cimcli gq Association
+    -- Get the qualifier named Association in mof output
+       in the default namespace (normally root/cimv2)
+Operation Not supported..
+
+cimcli eq -n test/TestProvider
+    -- Enumerate Qualifiers of namespace test/TestProvider
+
+cimcli dq -n test/TestProvider ASSOCIATION
+    -- Delete Qualifier named ASSOCIATION in namespace
+       test/TestProvider
+
+cimcli a TST_Person.name=\"Mike\" -n test/TestProvider  -ac TST_Lineage
+ -rc TST_Person
+    -- get associations for instances of association class
+       TST_Lineage and result class TST_Person
+       associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli a TST_Person -n test/TestProvider -ac TST_Lineage
+    -- get associated classes for all instances of classes
+       associated with class TST_person and with
+       association class TST_Lineage
+or
+ cimcli a TST_Person -n test/TestProvider -ac TST_Lineage -i
+    -- get associated instances by selecting interactively for
+       classes  associated with class TST_person and with
+       association class TST_Lineage
+
+cimcli an TST_Person.name=\"Mike\" -n test/TestProvider -ac TST_Lineage
+or
+ cimcli an TST_Person -n test/TestProvider -ac TST_Lineage
+
+cimcli r TST_Person.name=\"Mike\" -n test/TestProvider -rc TST_Lineage
+    -- get references for instances association class TST_Lineage
+       associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli r TST_Person.name=\"Mike\" -n test/TestProvider
+    -- get references for all instances of classes
+       associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli r TST_Person -n test/TestProvider -rc TST_Lineage
+    -- get reference classes for TST_Lineage association class and
+       subclasses in namespace test/TestProvider
+
+cimcli rn TST_Person.name=\"Mike\" -n test/TestProvider -rc TST_Lineage
+    -- get referenceNames for instances association class
+       TST_Lineage associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli rn TST_Person.name=\"Mike\" -n test/TestProvider
+    -- get referenceNames for all instances of classes
+       associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli rn TST_Person -n test/TestProvider -rc TST_Lineage
+    -- get referenceNames for Class TST_Lineage in namespace
+       test/TestProvider
+
+cimcli im Sample_MethodProviderClass.Name=\"mooo\" SayHello
+    -n root/SampleProvider -ip p1=fred
+
+cimcli xq "select * from CIM_ComputerSystem"
+    -- This command will work when the code is compiled with
+       ExecQuery enabled
+
+cimcli ns  -- Enumerate all Namespaces in repository
+
+cimcli son  -- Switch On's the statistical information on CIMServer
+
+cimcli soff  -- Switch OFF's the statistical information on CIMServer
+
+cimcli cci  -- Display count of instances in namespace
+
+cimcli ct CIM_ManagedElement -- Displays tree of class hiearchy
+     Starting at CIM_ManagedElement.
+
+cimcli ?  -- Displays help command
+
+cimcli pei PG_ComputerSystem   -- Pull Enumerate Instances of class
+
+cimcli pni -n test/TestProvider TST_Person
+    -- Pull Enumerate Instance Names of class TST_Person
+
+cimcli pr TST_Person.name=\"Mike\" -n test/TestProvider -rc TST_Lineage
+    -- get references for instances association class TST_Lineage
+       associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli pr TST_Person.name=\"Mike\" -n test/TestProvider
+    -- get references for all instances of classes
+       associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli pr TST_Person -n test/TestProvider -rc TST_Lineage
+    -- get reference classes for TST_Lineage association class and
+       subclasses in namespace test/TestProvider
+
+cimcli prn TST_Person.name=\"Mike\" -n test/TestProvider -rc TST_Lineage
+    -- get referenceNames for instances association class
+       TST_Lineage associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli prn TST_Person.name=\"Mike\" -n test/TestProvider
+    -- get referenceNames for all instances of classes
+       associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli prn TST_Person -n test/TestProvider -rc TST_Lineage
+    -- get referenceNames for Class TST_Lineage in namespace
+       test/TestProvider
+
+cimcli pa TST_Person.name=\"Mike\" -n test/TestProvider  -ac TST_Lineage
+ -rc TST_Person
+    -- get associations for instances of association class
+       TST_Lineage and result class TST_Person
+       associated with instance of TST_person with key
+       "Mike" in namespace test/TestProvider
+or
+ cimcli pa TST_Person -n test/TestProvider -ac TST_Lineage
+    -- get associated classes for all instances of classes
+       associated with class TST_person and with
+       association class TST_Lineage
+or
+ cimcli pa TST_Person -n test/TestProvider -ac TST_Lineage -i
+    -- get associated instances by selecting interactively for
+       classes  associated with class TST_person and with
+       association class TST_Lineage
+
+cimcli an TST_Person.name=\"Mike\" -n test/TestProvider -ac TST_Lineage
+or
+ cimcli an TST_Person -n test/TestProvider -ac TST_Lineage
+
+cimcli pxq "select * from CIM_ComputerSystem"
+    -- This command will work when the code is compiled with
+       ExecQuery enabled
+
+
+ni    enumerateInstanceNames Enumerate instancenames of <classname>
+niall enumallInstanceNames  Enumerate all instance names and count of
+                            instances of [ <classname> ] in <namespace>.
+                            Classname optional and default is to enumerate
+                            instances of entire namespace
+ei    enumerateInstances    Enumerate instances of <classname>
+nc    enumerateClassNames   Enumerate Class Names of [ <classname> ].
+                            Classname optional
+ec    enumerateClasses      Enumerate classes of [ <classname> ]. Classname
+                            optional
+gc    getClass              Get class of <classname>
+gi    getInstance           Get instance of <objectname> | <classname>
+                            (interactive) | <classname>  *<PropertyName=value>
+                            defining key property values.
+ci    createInstance        Create instance of a class. Input Format is:
+                              <className> [<propertyDef>]*
+                           where propertyDef is:
+                             | <propName>=<value>      //property with value
+                             | <propName>="<value>"    //string with space
+                                                       //in string
+                             | <propName>=             //NULL value
+                             | <propName>!             //empty string value
+                             | <propName>=<arrayVal>   //Arrayinput
+                                 where: arrayVal=<value>[,<value>]*
+                           
+                             | <propName>{<classname> [<propertyDef>]* }
+                             | <propName>={<classname> [<propertyDef>]* }
+                                defines embedded instance or 
+                                         embedded objectPath  where:
+                                  -classname - embedded class
+                                  -propertyDef - embedded instance property
+ti    testInstance          Test instance  of <objectname>  [<propertyDef>]* |
+                            <classname>  [<propertyDef>]* for equal property
+                            values.where propertyDef is:
+                             | <propName>=<value>      //property with value
+                             | <propName>="<value>"    //string with space
+                                                       //in string
+                             | <propName>=             //NULL value
+                             | <propName>!             //empty string value
+                             | <propName>=<arrayVal>   //Arrayinput
+                                 where: arrayVal=<value>[,<value>]*
+                           
+                             | <propName>{<classname> [<propertyDef>]* }
+                             | <propName>={<classname> [<propertyDef>]* }
+                                defines embedded instance or 
+                                         embedded objectPath  where:
+                                  -classname - embedded class
+                                  -propertyDef - embedded instance property
+di    deleteInstance        Delete Instance of <objectname> | <classname>
+                            *<keyPropertyName=value> | interactive of
+                            <className>
+cc    createClass           Not supported
+mi    modifyInstance        Modify Instance of a class. Input formats are:
+                           <objectname> [<propertyDef>]*
+                           | <classname> [<propertyDef>]*
+                           where propertyDef is:
+                             | <propName>=<value>      //property with value
+                             | <propName>="<value>"    //string with space
+                                                       //in string
+                             | <propName>=             //NULL value
+                             | <propName>!             //empty string value
+                             | <propName>=<arrayVal>   //Arrayinput
+                                 where: arrayVal=<value>[,<value>]*
+                           
+                             | <propName>{<classname> [<propertyDef>]* }
+                             | <propName>={<classname> [<propertyDef>]* }
+                                defines embedded instance or 
+                                         embedded objectPath  where:
+                                  -classname - embedded class
+                                  -propertyDef - embedded instance property
+dc    deleteClass           Delete Class of <classname>
+gp    getProperty           get single property of <object name>
+sp    setProperty           set a single property of <object-name>
+gq    getQualifier          Get Qualifier of <qualifiername>
+sq    setQualifier          Not suported
+eq    enumerateQualifiers   Enumerate all Qualifiers
+dq    deleteQualifier       Delete qualifer of <qualifiername>
+a     associators           Enumerate Associators of <classname> |
+                            <instancename>.
+an    associatorNames       Enumerate Associator Names of <classname> |
+                            <instancename>
+r     references            Enumerate References of <classname> |
+                            <instancename>
+rn    referenceNames        Enumerate Reference Names <classname> |
+                            <instancename>
+im    invokeMethod          Invoke Method for <object> <method>
+                            {*<inputParam>} where inputParms can be defined
+                            as:
+                             <paramName>=<value>
+                             <paramName>{<embeddedClassName> *[<paramName> }
+xq    execQuery             ExecQuery <query-expresssion> [<query-language>]
+ns    enumerateNamespaces   Enumerate all namespaces on the server.
+son   StatisticsOn          Turn on CIM Server Statistics Gathering
+soff  StatisticsOff         Turn off CIM Server Statistics Gathering
+cci   countInstances        Count all Instances in Namespace and sort by
+                            ClassName.
+                            Warning: Could request large number of instances
+                            from Server
+ct    classTree             Display graphic tree of classes in a namespace
+?     showOptions           Show List of Commands
+pei   pullEnumerateInstances Execute EnumerateInstances using the Pull
+                            Operations
+pni   pullEunumerateInstancePaths Execute EnumerateInstances Paths using the
+                            Pull Operations
+pr    pullReferenceInstances Execute Open and Pull References
+prn   pullReferencesInstancePaths Execute Open,Pull ReferenceInstancePaths
+                            using the Pull Operations
+pa    pullAssociatorInstances Execute Open and Pull Associations
+pan   pullAssociatorInstancePaths Execute Open,Pull AssociatorInstancePaths
+                            using the Pull Operations
+pxq   pullExecQuery         Execute query operation using pull Operations
+                           pzq <querylanguage> <query> <pull parameters> -h for all help, -hc for commands, -ho for options
+The options for this command are:
+
+This command executes single CIM Operations.
+
+ -count  count. Expected count of objects returned if summary set.
+    Tests this count and displays difference.
+    Return nonzero status code if test fails. Default(29346)
+ -d  debug. More detailed debug messages. Default(false)
+ -delay  delay. Delay between connection and request. Default(0)
+ -p  Password. Defines password for authentication. Default()
+ -l  location. Specifies system and port (HostName:port).
+    Port is optional. Default()
+ -u  User. Defines User Name for authentication. Default()
+ -n  namespace. Specifies namespace to use for operation. Default(root/cimv2)
+ -ic  includeClassOrigin. If set includeClassOrigin  parameter
+    set true on requests that honor this parameter. Default(false)
+ -di  deepInheritance. If set deepInheritance parameter
+    set true. Default(false)
+ -lo  localOnly. DEPRECATED. This was used to set LocalOnly.
+    However, default should be true and we cannot use True
+    as default. See -nlo. Default(true)
+ -nlo  notLocalOnly. When set, sets LocalOnly = false on
+    operations. Default(false)
+ -iq  includeQualifiers. DEPRECATED. Sets includeQualifiers = True.
+    Useful for instance operations where default is false. Default(false)
+ -niq  notIncludeQualifiers. Sets includeQualifiers = false
+    on operations. Useful for class operations where 
+    the default is true.. Default(false)
+ -pl  propertyList. Defines a propertyNameList. Format is p1,p2,p3
+    (without spaces). Use "" for empty. Default(###!###)
+ -ac  assocClass. Defines a assocation Class string for Associator calls. Default()
+ -ar  assocRole. Defines a role string for Associators. AssocRole
+    parameter. Default()
+ -r  role. Defines a role string for reference role parameter. Default()
+ -rc  resultClass. Defines a resultClass string for References and
+    Associatiors. Default()
+ -rr  resultRole. Defines a role string for associators operation resultRole
+    parameter. Default()
+ -ip  inputParameters. This option deprecated and removed. Replaced by use of
+    the same name/value pair syntax as properties in create
+    and modify instance.. Default()
+ -f  filter. Defines a filter to use for query. Single String input. Default()
+ -ql  queryLanguage. Defines a Query Language to be used with a query filter.
+. Default(WQL)
+ -o  outputformats. Output in xml, mof, txt, table. Default(mof)
+ -x  xmlOutput. Output objects in xml format. Default(false)
+ --version  version. Displays software Version. Default(false)
+ -v  verbose. Verbose Display. Outputs detailed parameter input
+    display and other request processing information. Default(false)
+ --sum  summary. Displays only summary count for enumerations,
+    associators, etc.. Default(false)
+ -h  help. Prints help usage message. Default(false)
+ --help  full help. Prints full help message with commands, options,
+    examples. Default(false)
+ -ho  help options. Prints list of options. Default(false)
+ -hc  help commands. Prints CIM Operation command list. Default(false)
+ --timeout  connecttimeout. Set the connection timeout in seconds.. Default(0)
+ -i  interactive. Interactively ask user to select instances.
+    Used with associator and reference operations. Default(false)
+ --setRtnHostNames  setRtnHostNames. Set namespace component of reference and path outputs parameter.
+    Used to allow comparison of paths and instances without involving the variable of host namespaces.. Default()
+ -trace  trace. Set Pegasus Common Components Trace. Sets the Trace level.
+    0 is off. Default(0)
+ --r  repeat. Number of times to repeat the operation.
+    Zero means one time. Default(0)
+ --t  time. Measure time for the operation and present results. Default(false)
+ -pt  pullTimeout. Pull interoperation timeout in seconds. . Default(10)
+ -mo  maxObjectCount. Maximum number of objects in a single Pull . Default(100)
+ -mr  maxObjectsToReceive. Maximum objects to Receive in a pull sequence. Will Close when this number received.. Default(0)
+ -pullDelay  pullDelay. Delay in Seconds between pull Operations. Default zero, no delay.. Default(0)
+ --sort  sort. Sort the returned entities for multi-object responses (ex. enumerations, associators, etc.). Default(false)
+ --expExit  expectedExitCode. Set the exit code that cimcli expects for this operation. cimcli exits code = 0 if expectedExitCode matches pgm exit code.. Default(0)
+
+Options vary by command consistent with CIM Operations
+mi    modifyInstance        Modify Instance of a class. Input formats are:
+                           <objectname> [<propertyDef>]*
+                           | <classname> [<propertyDef>]*
+                           where propertyDef is:
+                             | <propName>=<value>      //property with value
+                             | <propName>="<value>"    //string with space
+                                                       //in string
+                             | <propName>=             //NULL value
+                             | <propName>!             //empty string value
+                             | <propName>=<arrayVal>   //Arrayinput
+                                 where: arrayVal=<value>[,<value>]*
+                           
+                             | <propName>{<classname> [<propertyDef>]* }
+                             | <propName>={<classname> [<propertyDef>]* }
+                                defines embedded instance or 
+                                         embedded objectPath  where:
+                                  -classname - embedded class
+                                  -propertyDef - embedded instance property
+Example : 
+cimcli mi -n test/TestProvider TST_Person.Id=\"Mike\" SSN=444
+    -- Modifies the Instance if it exists using rules of DMTF 
+       modifyInstance operation.
+
+Valid options for this command are : 
+-n -pl(define properties to be modified) -i (interactive)
+ 
+Common Options are : 
+    -count, -d, -delay, -p, -l, -u, -o, -x, -v, --sum, --timeout, -r, --t 
+Usage: cimcli <command> <CIMObject> <Options> *<extra parameters>
+    -hc    for <command> set and <CimObject> for each command
+    -ho    for <Options> set
+    -h xx  for <command> and <Example> for <xx> operation 
+    -h     for this summary
+    --help for full help

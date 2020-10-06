@@ -1,0 +1,2261 @@
+
+
+Internet Engineering Task Force                  Erik Guttman
+INTERNET DRAFT                                    James Kempf
+Category: Standards Track
+Obsoletes: 2608
+August 4, 2002
+
+
+                  Service Location Protocol, Version 2
+                <draft-guttman-svrloc-rfc2608bis-03.txt>
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Comments on this document should be sent to the SLP discussion list,
+   srvloc-discuss@lists.sourceforge.net.
+
+   Internet-Drafts are draft documents of the Internet Engineering Task
+   valid for a maximum of six months and may be updated, replaced, or
+   obsoleted by other documents at any time.  It is inappropriate to use
+   Internet-Drafts as reference material or to cite them other than as
+   "work in progress."  See http://www.ietf.org/ietf/1id-abstracts.txt.
+   Find shadow directories at http://www.ietf.org/shadow.html.
+
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+Abstract
+
+   The Service Location Protocol provides a scalable framework for the
+   discovery and selection of network services.  Using this protocol,
+   computers using the Internet need little or no static configuration
+   of network services for network based applications.  This is
+   especially important as computers become more portable, and users
+   less tolerant or able to fulfill the demands of network system
+   administration.  This document updates SLPv2, adding clarifications
+   and removing features which were neither widely implemented or deemed
+   useful.
+
+Acknowledgements
+
+   Authors of previous versions of SLP listed alphabetically are Mike
+   Day, Erik Guttman, Scott Kaplan, Charles Perkins and John Veizades.
+   Contributors to this version include (in alphabetical order) Kevin
+   Arnold, Erik Guttman, Evan Hughes, Terry Lambert, Jim Mayer, Ira
+   McDonald, Mikael Pahmp, Matt Peterson and Weibin Zhao.
+
+1. Introduction
+
+   The Service Location Protocol (SLP) provides a flexible and scalable
+   framework for provisioning network nodes with information on the
+
+
+
+Guttman & Kempf         Expires: 3 February 2003                [Page 1]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   existence, location, and configuration of networked services.  Users
+   have had to manually configure the location of services by typing in
+   their domain names or IP addresses.  SLP eliminates this requirement:
+   the user supplies the desired type of service and a set of attributes
+   that describe the service.  Based on that description, SLP returns
+   all required information to communicate with the service.
+
+   SLP is a dynamic configuration mechanism for applications in networks
+   under a common administration.  Client applications using SLP may
+   find available services offered by hosts attached on any network
+   within an enterprise.
+
+   This document obsoletes SLPv2 [RFC2608], correcting protocol errors
+   and removing some requirements.  A separate SLPv2 applicability
+   statement [SLPv2AS] describes both the protocol's domain of
+   applicability as well as the interoperability of this specification
+   with prior versions of the protocol.
+
+2. Terminology and Conventions used in this Document
+
+   Attribute
+      An Attribute consists of a tag and a list of typed values.  An
+      Attribute without a value list, called a "keyword" attribute, may
+      also appear. Attributes are used to describe instances of a
+      service type.
+
+   Directory Agent (DA)
+      A network element that collects and caches service advertisements.
+      There can only be one DA present per host.
+
+   Directory Agent (DA) Service Type
+      The Directory Agent Service Type is the service type
+      "service:directory-agent".  It is used to discover DAs.
+
+   Naming Authority
+      The agency or group that catalogues Service Types and Attributes.
+      The default Naming Authority is IANA.  Except for the default
+      Naming Authority, requires not describing string, a Naming
+      Authority is described by a short string.
+
+   Network Element
+      A software process capable of network communication.
+
+   Scope
+      A named collection of service advertisements, making up a logical
+      administrative group.
+
+   Service Advertisement
+      The set consisting of a Service Type, a Service URL, a list of
+      Scopes, a Language Tag, a List of Attributes and a lifetime,
+      indicating how long the advertisement is valid. This set serves to
+
+
+Guttman & Kempf         Expires: 3 February 2003                [Page 2]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+      describe the service and provide information on its location,
+      availability, and language locale.
+
+   Service Agent (SA)
+      A network element working on the behalf of services to advertise
+      them.
+
+   Service Agent (SA) Service Type
+      The Service Agent Service Type is the service type
+      "service:service-agent". It is used to discover and advertise SAs.
+
+   Service Template
+      A structured description of a service, including the Service Type,
+      Service URL, and Attributes. See [RFC2609].
+
+   Service Type
+      A short string describing the service.  Each type of service has a
+      unique Service Type string.  The default service type for a
+      'generic' URI is its scheme name.  For example, the service type
+      string for "http://www.srvloc.org" is "http".
+
+   Service URL
+      A Service URL serves two functions in SLP.  First, it is a handle
+      to refer to a service advertisement, for purposes of registration,
+      deregistration or requesting associated attributes.  Second, the
+      Service URL may indicate the location of a service.  A service URL
+      may be of the service: scheme [RFC2609] or any other scheme
+      conforming to the URI standard [RFC2396].
+
+   User Agent (UA)
+      A network element working on the user's behalf to establish
+      contact with some service.  The UA retrieves service information
+      from the Service Agents (SAs) or DAs.
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY" and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+   In packet diagrams, an explicit length field may be followed by a
+   variable length field. Variable length fields are terminated by a
+   backslash ('\').  Fields are not aligned to 4 byte boundaries.
+
+3. Protocol Overview
+
+   In SLP, service discovery support for a client application is
+   provided by  a UA.  Service advertising support for a service is
+   provided by an SA.  A third network element, the DA, provides
+   scalability to the protocol.
+
+   To discover a service using SLP, the UA MUST issue a Service Request
+   (SrvRqst) on behalf of a client application.  The SrvRqst specifies
+
+
+Guttman & Kempf         Expires: 3 February 2003                [Page 3]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   the characteristics of a service required by the client.  The UA MUST
+   receive one or more Service Reply (SrvRply) specifying the location
+   of all services in the network that match the conditions supplied in
+   the SrvRqst, if the request was successful.
+
+   The SLP framework allows a UA to directly issue requests to SAs.
+   Such requests SHOULD be multicast.  A SA MUST unicast a reply to the
+   UA, containing a Service URL and other information, if the SA
+   advertises a service matching the request.
+
+      +------------+ ----Multicast SrvRqst----> +---------------+
+      | User Agent |                            | Service Agent |
+      +------------+ <----Unicast SrvRply------ +---------------+
+
+   In larger networks, one or more DAs are used.  A DA functions as a
+   cache.  If DAs are in use, SAs MUST send Service Registration
+   (SrvReg) messages, containing all the services they advertise to DAs.
+   SAs MUST receive Service Acknowledgements (SrvAck) messages in reply.
+   Advertisements registered with DAs MUST be refreshed or they will
+   expire, since each advertisement has a finite lifetime.  If DAs are
+   in use, UAs MUST unicast requests to a DA instead of multicasting.
+   Deploying DAs thereby  helps reduce the amount of multicast datagrams
+   in a network.
+
+ +-------+ -Unicast SrvRqst-> +-----------+ <-Unicast SrvReg- +--------+
+ | User  |                    | Directory |                   |Service |
+ | Agent |                    |   Agent   |                   | Agent  |
+ +-------+ <-Unicast SrvRply- +-----------+ -Unicast SrvAck-> +--------+
+
+   There are three possible ways for UAs and SAs to discover DAs.  In
+   each case, the agent obtains a DA Advertisement (DAAdvert):
+
+    1) Issue a multicast SrvRqst for the DA Service Type when they start
+       up, and receive a unicast advertisement in reply,
+
+    2) Listen for unsolicited advertisements that are  sent periodically
+       by Directory Agents,
+
+    3) Obtain Directory Agent addresses via DHCP or static
+       configuration, issue a unicast SrvRqst for the Directory Agent
+       Service Type, and receive a unicast DAAdvert in reply.
+
+        +---------------+ --Multicast SrvRqst-> +-----------+
+        |    User or    | <--Unicast DAAdvert-- | Directory |
+        | Service Agent |                       |   Agent   |
+        +---------------+ <-Multicast DAAdvert- +-----------+
+
+   Service advertisements are grouped into named sets called 'scopes'.
+   Scope names are expressed as strings. A scope can indicate a
+   location, administrative grouping, proximity in a network topology or
+   some other category. The mapping between service advertisements and
+
+
+Guttman & Kempf         Expires: 3 February 2003                [Page 4]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   scopes is at the discretion of the network administrator.  SAs and
+   DAs MUST be configured with scopes.
+
+   A UA MAY be assigned scopes, in which case the UA is only able to
+   discover that particular grouping of services.  This allows a network
+   administrator to assign services to particular groups of users.
+   Alternatively, the UA MAY be configured with no scope at all.  In
+   that case, the UA MUST discover all available scopes and a client
+   application may issue requests for any service available on the
+   network.
+
+   In the following figure, the UA is configured with scopes X and Y. If
+   a service is sought in scope X, the request MUST be multicast because
+   no DA supports scope X. If a service is sought in scope Y, the
+   request MUST be unicast to the DA.  If the request is made in both
+   scopes, the request MUST be both unicast and multicast.
+
+   +---------+   Multicast  +-----------+   Unicast   +-----------+
+   | Service | <--SrvRqst-- |   User    | --SrvRqst-> | Directory |
+   |  Agent  |              |   Agent   |             |   Agent   |
+   | Scope=X |   Unicast    | Scope=X,Y |   Unicast   |  Scope=Y  |
+   +---------+ --SrvRply--> +-----------+ <-SrvRply-- +-----------+
+
+3.1 SLP Message Types
+
+   Table 1 contains a brief summary of all SLP, along with the
+   requirement level for the SLP agents. SAs MUST accept multicast and
+   unicast SrvRqsts.  SAs SHOULD accept Attribute Requests (AttrRqsts),
+   see Appendix B.  SAs MAY accept Service Type Requests (SrvTypeRqsts).
+   SAs MUST listen for unsolicited multicast DA Advertisements. DAs MUST
+   support all required and optional SLP message types in the table.  In
+   the absence of multicast routing support in a network, broadcast MAY
+   be used.
+
++----------------------+----+----+-----+-----+-------------------------+
+| Message              |CODE| UA | SA  | DA  | Purpose                 |
++----------------------+----+----+-----+-----+-------------------------+
+| Service Register     |  3 |    | MUST| MUST| Register a service (url,|
+| (SrvReg)             |    | NA | send| recv| attrs, etc.) with a DA. |
++----------------------+----+----+-----+-----+-------------------------+
+| Service Deregister   |  4 |    | MAY | MUST| Deregisters a service   |
+| (SrvDereg)           |    | NA | send| recv| from a DA.              |
++----------------------+----+----+-----+-----+-------------------------+
+| Service Acknowledge  |  5 |    | MUST| MUST| Contains a DA's response|
+| (SrvAck)             |    | NA | recv| send| to SrvReg and SrvDereg. |
++----------------------+----+----+-----+-----+-------------------------+
+| Service Request      |  1 |MUST| MUST| MUST| Requests services that  |
+| (SrvRqst)            |    |send|s & r| recv| match query criteria.   |
++----------------------+----+----+-----+-----+-------------------------+
+| Service Reply        |  2 |MUST| MUST| MUST| Returns services that   |
+| (SrvRply)            |    |recv| send| send| match query criteria.   |
+
+
+Guttman & Kempf         Expires: 3 February 2003                [Page 5]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
++----------------------+----+----+-----+-----+-------------------------+
+| DA Advertisement     |  8 |MUST| MUST| MUST| Contains location, DA   |
+| (DAAdvert)           |    |recv| recv| send| attributes and more.    |
++----------------------+----+----+-----+-----+-------------------------+
+| SA Advertisement     | 11 |MAY | MUST|     | Contains location, SA   |
+| (SAAdvert)           |    |recv| send| NA  | attributes and more.    |
++----------------------+----+----+-----+-----+-------------------------+
+| Service Type Request |  9 |MAY | MAY | MUST| Requests available      |
+| (SrvTypeRqst)        |    |send| recv| recv| service types.          |
++----------------------+----+----+-----+-----+-------------------------+
+| Service Type Reply   | 10 |MAY | MAY | MUST| Contains all available  |
+| (SrvTypeRply)        |    |recv| send| send| service types.          |
++----------------------+----+----+-----+-----+-------------------------+
+| Attribute Request    |  6 |MAY |SHOULD MUST| Requests attributes for |
+| (AttrRqst)           |    |send| recv| recv| a particular service.   |
++----------------------+----+----+-----+-----+-------------------------+
+| Attribute Reply      |  7 |MAY |SHOULD MUST| Contains all attributes |
+| (AttrRply)           |    |recv| send| send| of a particular service.|
++----------------------+----+----+-----+-----+-------------------------+
+
+     Table 1 - Summary of Required and Optional SLP Message Types and
+                             Requirement Level
+
+4. Protocol Elements
+
+All integer fields in SLP messages MUST be in network byte order.
+
+4.1 Error Codes
+
+If the Error Code in a SLP reply message is nonzero, the rest of the
+message MAY be truncated.  No data is necessarily transmitted or should
+be expected after the header and the error code, except if some optional
+extensions are sent to clarify the error.
+
+Errors MUST be return for unicast requests.  Multicast requests that
+result in an error MUST BE silently discarded. A reply MUST NOT be sent
+if a multicast request results in an error.
+
+The following is a list of SLP error codes. Error codes marked with a
+'*' can be returned in response to any request message, all others are
+returned only for specific messages. Error codes returned for specific
+messages are described in the sections where the messages are specified.
+
+OK *                    0  The request was successful.
+
+LANGUAGE_NOT_SUPPORTED  1  The request could not be processed
+                           due to the Language Lag.  Resending
+                           the request SHOULD NOT fail if
+                           the default Language Tag 'en' is
+                           used.
+
+
+
+Guttman & Kempf         Expires: 3 February 2003                [Page 6]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+PARSE_ERROR *           2  The message fails to obey SLP syntax.
+                           The error may be due to misalignment
+                           in the binary format of the message, a
+                           missing header Language Tag, a syntax
+                           error in the header Language Tag, or a
+                           syntax error in a message-specific
+                           string such as a service query or
+                           scope string.
+
+INVALID_REGISTRATION    3  A problem occurred with the parameters
+                           of a SrvReg or SrvDereg message, other
+                           than with the syntax of string parameters.
+
+SCOPE_NOT_SUPPORTED *   4  The scope-list lacks a supported scope.
+
+VER_NOT_SUPPORTED *     9  The SLP version number is not supported.
+
+INTERNAL_ERROR *       10  The DA or SA failed for some reason.
+
+DA_BUSY_NOW *          11  The DA is currently busy processing other
+                           requests.  The UA or SA SHOULD retry,
+                           using exponential back off.
+
+OPTION_NOT_UNDERSTOOD *12  The DA or SA received an unknown SLP
+                           option from the mandatory range.
+
+INVALID_UPDATE         13  A SrvReg was received without the
+                           FRESH bit set.
+
+MSG_NOT_SUPPORTED      14  The SA received an unsupported request.
+
+REFRESH_REJECTED       15  The SA sent a SrvReg with too low a lifetime.
+                           The SA SHOULD consult the DA's minimum
+                           refresh interval attribute (Section 9.4)
+                           for the minimum advertisement lifetime.
+
+4.2 SLP Message Header
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |    Version    |     Code      |            Length             |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | Length, contd.|O|F|R|       Reserved          |Next Ext Offset|
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  Next Extension Offset, contd.|              XID              |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |      Language Tag Length      |         Language Tag          \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   All SLP messages begin with this header.
+
+
+Guttman & Kempf         Expires: 3 February 2003                [Page 7]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+    - Version:
+      This field MUST be set to 2.  Else, a VER_NOT_SUPPORTED error
+      results.
+
+    - Code:
+      Identifies the messsage type, see Table 1.  Any value outside
+      those defined in Table 1 or standards track protocols extending
+      SLP MUST be treated as a PARSE_ERROR result.
+
+    - Length:
+      Three byte unsigned integer containing the number of bytes in the
+      SLP message including the header.
+
+    - Flags:
+      O     Field is (0x80).  "OVERFLOW" MUST be set to 1 when a message
+            length exceeds the path MTU and the message contents doesn't
+            fit into a datagram.  See Section 5.1.3.  Otherwise, MUST be
+            0.
+
+      F     Field is (0x40).  "FRESH" MUST be set to 1 on every SrvReg.
+            Otherwise, MUST be 0.
+
+      R     Field is (0x20).  "REQUEST MCAST" MUST be set when
+            multicasting or broadcasting requests.  Otherwise, MUST be
+            0.
+
+      Reserved
+            This bits MUST be set to zero on transmission and ignored on
+            reception. See Section 4.5.
+
+    - Next Extension Offset:
+      MUST be set to 0 unless the message has any extensions.  If the
+      message has extensions, MUST contain the offset from the beginning
+      of the message, in bytes, to the first extension header.
+      Extensions SHOULD come after the message body.  See Section 7.1.
+
+    - XID:
+      The Transaction Identifier MUST be set to a unique value for each
+      unique request.  See Section 9 for the special case of unsolicited
+      DAAdverts.
+
+    - Lang Tag Length:
+      Two byte unsigned integer giving the length in bytes of the
+      Language Tag field.  MUST NOT be zero.
+
+    - Language Tag:
+      MUST contain a variable length field, RFC 3066 [RFC3066] language
+      local string.  This specifies the language locale for all human
+      readable strings in the message.  See Section 14.
+
+   A PARSE_ERROR results if the header is syntactically incorrect.
+
+
+Guttman & Kempf         Expires: 3 February 2003                [Page 8]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+4.3 Strings
+
+   Strings in SLP messages MUST be encoded using UTF-8 [RFC2279].
+   Strings MUST not be null terminated and MUST always be preceded by a
+   two byte unsigned length field indicating the number of bytes that
+   follow.  Optional strings MAY be omitted.  In this case, the Length
+   field is set to zero and the string MUST be absent.
+
+   The specifications for the syntax of string-based protocol elements
+   in this document conform to ABNF [RFC2234].
+
+4.3.1 General String Comparisons
+
+   String comparisons MUST NOT be case sensitive. For example "STRING1"
+   is equal to "String1" and is also equal to "string1".  This
+   corresponds to the LDAPv3 string matching rule caseIgnoreMatch.
+   [RFC2252]
+
+   WARNING! SPECIAL CASE: caseIgnoreMatch specifies that leading and
+   trailing spaces in strings are elided before string comparison is
+   performed.  This feature is not supported in SLPv2.  White spaces in
+   strings MUST NOT be elided for the purposes of string comparison.
+   For example, "string1 " is not equal " string1" nor is it equal to
+   "string1".
+
+   In practice this means that (a) UTF-8 based strings are converted to
+   Unicode, (b) comparisons are done on the basis of numerical magnitude
+   ordering except that (c) case folding occurs according to specific
+   code page rules.  'a' (0x0041) and 'A' (0x0061) are equivalent, as
+   are "u umlaut" (0x00db) and "U umlaut" (0x00fb), both offset by 0x20.
+   Note that on other code pages the offset is different - as Cyrillic
+   "e accent aigue" (0x4400) and "E accent aigue" (0x4450) are offset by
+   0x50!
+
+4.3.2 Lists
+
+   A List is a comma delimited set of strings, which can be of zero
+   length.  Since the list is comma delimited, the comma is a reserved
+   character in string list items.  A comma must be escaped to be
+   considered as a data item.  For example "a\2Cb,c\2Cd" is a string
+   list with two items "a\2Cb" and "c\2Cd".  These items include escaped
+   commas; un-escaped they are "a,b" and "c,d" respectively.
+
+4.3.3 Previous Responder List
+
+   The Previous Responder List (PR List) is a List of dotted decimal
+   notation IPv4 addresses.
+
+   When SLP messages are unicast, PR lists MUST be ignored.  When SLP
+   SrvRqst, SrvTypeRqst, and AttrRqst messages are multicast, they
+   SHOULD contain a PR List (see Section 4.3.1) indicating all
+
+
+Guttman & Kempf         Expires: 3 February 2003                [Page 9]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   responders from which the sender has received replies.  Each
+   responder's IP address (in dotted decimal form) SHOULD be added to
+   form the new List before the request is multicast again.
+
+   Any DA or SA that sees its address in the PR List SHOULD NOT respond
+   to the request. PR Lists MUST NOT be used with unicast requests.
+
+   A multicast request message with a PR List SHOULD be retransmitted
+   until either: a) no further responses are elicited, b) the PR List
+   and the request will not fit into a single datagram, or: c)
+   CONFIG_MC_MAX seconds have elapsed.
+
+   A syntax error in a PR List results in a PARSE_ERROR, and the
+   response is suppressed because PR Lists are only be used with
+   multicast requests.
+
+4.3.4 Service Type
+
+   The Service Type is a string parameter in SrvRqst and SrvReg
+   messages. The syntax of the Service Type is:
+
+      service-type       = generic-uri-scheme / service-scheme
+      generic-uri-scheme = ALPHA *( alpha / digit / '+' / '-' / '.' )
+      service-scheme     = "service:" type ['.' na ] [':' type ]
+      type               = 1*(alpha / digit / '+' / '-' )
+      na                 = 1*(alpha / digit / '+' / '-' )
+                          ; The naming authority field SHOULD have the
+                          ; form described in [vendorext]
+
+   Service Types MUST match with case insensitive string comparison.
+
+   WARNING! SPECIAL CASE:  If the "service:" scheme [RFC2609] is used,
+   special matching rules apply.
+
+   A service type string which begins with "service:" is followed by
+   either one or two "type" fields.
+
+   The first type field after the "service:" scheme MAY have a naming
+   authority string associated with it.  If so, the type is considered
+   unique.  Example: "service:a" does not match "service:a.93439".  This
+   naming authority field allows for vendor extension and is NOT
+   RECOMMENDED. [vendorext] The default Naming Authority is IANA. A
+   Service Type that is registered with IANA MUST NOT contain a Naming
+   Authority string.
+
+   A service type string beginning with "service:" followed by one type
+   field will match service type strings of that form, whether they have
+   one or two type fields which follow.  Example: "service:a" matches
+   "service:a" and "service:a:b".  And: "service:a.1234" matches
+   "service:a.1234:b" but it does not match "service:a:b".
+
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 10]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   A syntax error in a Service Type name MUST result in the return of a
+   PARSE ERROR to the sending agent, if the request was unicast.
+
+4.3.5 Scope List
+
+   With two exceptions, all requests, service advertisement
+   registrations, and service advertisement deregistrations MUST contain
+   a Scope List.  SLP messages that fail to contain a Scope list or that
+   contain a Scope List having no Scopes for which the receiving agent
+   is configured MUST BE either dropped, if the request was multicast,
+   or result in a SCOPE_NOT_SUPPORTED error in reply, if the request was
+   unicast.
+
+   The two exceptions are SrvRqsts for the DA Service Type and for the
+   SA Service Type. These MAY be transmitted without a Scope List if the
+   transmitting agent is interested in obtaining a list of all
+   configured Scopes supported by the replying DA or SA.
+
+   Scope Lists in SLPv2 are a comma delimited list of scope strings.
+   Scope strings have reserved characters which must be expressed as
+   escape values if they are to be included in the scope name.
+
+      reserved   = '(' / ')' / ',' / '\' / '!'  / '<' / '=' / '>' /
+                  '~' /CTL / ';' / '*' / '+'
+      escape-val = '\' HEXDIG HEXDIG
+
+   For example the scope name "ou=sales,o=examplecorp" would have to be
+   represented "ou\3Dsales\2Co\3Dexamplecorp" to escape the "=" and ","
+   characters in the name.
+
+   If a syntax error in a Scope List or Scope name is encountered, the
+   receiving agent MUST return a PARSE ERROR if the request was unicast.
+
+   The default value for the Scope List is the Scope name "DEFAULT".
+   Scope configuration rules are described in Section 8.0.
+
+4.3.6 Attribute List
+
+   A service advertisement is often accompanied by Attributes.  A UA
+   formulates a service query containing Attributes in order to select
+   particular service advertisements.
+
+   A Service Type MAY specify allowable Attributes through a defined
+   service template [RFC2609]. The allowable Attributes for such a
+   service are defined in the service template. Services that are
+   advertised according to a standard template SHOULD register all
+   service Attributes required by the standard template. If no service
+   template is available for a Service Type, then any Attributes are
+   allowed. Support for service templates is optional.
+
+   An Attribute List is a string encoding of the Attributes for a
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 11]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   service advertisement.  The following grammar defines the Attribute
+   list syntax:
+
+      attr-list  = attribute / attribute ',' attr-list
+      attribute  = '(' attr-tag '=' val-list ')' / attr-tag
+      val-list   = attr-val / attr-val ',' val-list
+      attr-tag   = 1*safe-tag / nonstd-tag
+      nonstd-tag = "x-" enum '-' 1*safe-tag
+      enum       = 1*DIGIT
+                     ; The <enum> field corresponds to an Enterprise
+                     ; Number registered with IANA. [IANA] Using this
+                     ; prefix avoids collisions in interpretation of
+                     ; nonstandard attribute name.
+      attr-val   = intval / strval / boolval / opaque
+      intval     = [-]1*DIGIT
+      strval     = 1*safe-val
+      boolval    = "true" / "false"
+      opaque     = "\FF" 1*escape-val
+      safe-val   = ; Any character except reserved.
+      safe-tag   = ; Any character except reserved, '*' and bad-tag.
+      reserved   = '(' / ')' / ',' / '\' / '!'  / '<' / '=' / '>' / '~' / CTL
+      escape-val = '\' HEXDIG HEXDIG
+      bad-tag    = CR / LF / HTAB / '_'
+
+   An Attribute List MUST be scanned prior to evaluation for all
+   occurrences of the escape character '\'.  Reserved characters MUST be
+   escaped while other characters MAY be escaped.  All escaped
+   characters MUST be restored to their value before attempting string
+   matching.  Escaped Opaque values are converted into bytes, not into
+   characters.
+
+   The following list contains more detail on the various types of
+   Attributes:
+
+      Boolean      A Boolean Attribute MUST have a value list that is
+                   one of the Boolean constants "true" or "false". A
+                   Boolean value list MUST only have a single value and
+                   MUST only be compared with '='.  As with all
+                   strings, the Boolean constants are case insensitive.
+
+      Integer      An Integer Attribute MUST have a value list
+                   consisting of Integer constants. Integer constants
+                   MUST be strings that take the form [-] 1*DIGIT and
+                   fall in the range "-2147483648" to "2147483647",
+                   that is, the range of 32 bit signed integers.
+                   Integer values MUST be compared using integer
+                   comparison.
+
+      Opaque       An Opaque Attribute MUST have a value list
+                   consisting of opaque values. Opaque values are
+                   sequences of bytes.  These MUST be distinguished
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 12]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+                   from strings since they begin with the sequence
+                   "\FF".  Unescaping this sequence results in an
+                   illegal UTF-8 encoding, indicating that what follows
+                   is a sequence of escaped bytes and not a UTF-8
+                   string.  For example, a '0' byte is encoded
+                   "\FF\00" and "\ff\00\00\30\39" is a
+                   bigendian representation of 12345.  Opaque values
+                   MUST only be compared with '='.
+
+      String       All other string values are String type. String
+                   values MUST be matched using strict lexical
+                   ordering.   Example of string values with
+                   escaped characters: "Hello\0a" (Hello with
+                   a newline) and "\48\65\6c\6c\6f\0a"
+                   (the same string, entirely escaped).  To
+                   include reserved characters as string data
+                   they must be escaped.  Example "a,b" is "a\40b".
+                   Illegal UTF-8 characters MUST NOT be included
+                   in Strings, ie. "a\ff" is illegal.
+
+      Keyword      A Keyword Attribute has only a tag. A Keyword
+                   Attribute MUST be designated by attr-tag in the
+                   Attribute List, and it MUST have no values.
+
+   Syntax errors in the Attribute List MUST result in a PARSE ERROR,
+   which is returned if the request was unicast.
+
+   When values are advertised by a SA or are registered in a DA, they
+   MUST take on implicit typing rules for matching incoming requests,
+   according to the types described above. Stored value types in
+   Attribute Lists MUST be consistent, i.e., x=4,true,sue,\ff\00\00 is
+   in error. Inconsistent stored value types in a SrvReg MUST result in
+   a PARSE ERROR returned to the SA.
+
+   A DA MUST consolidate multiple instances of the same Attribute within
+   an Attribute List before storing and an SA MUST consolidate multiple
+   instances before sending the Attribute in an AttrRply. For example,
+   if the Attribute List received by a DA is:
+
+      "(x=5,6,7),(y=a,b,c),(x=6,7,8)"
+
+   one Attribute, "x", is stored having value list "5,6,7,8".
+
+   Embedded blanks in Attribute tags and value lists MUST be processed
+   as part of the tags or values in which they appear, embedded blanks
+   MUST NOT be ignored. For example, in the Attribute List "(attra =
+   -345)", the Attribute tag is "attra " and the value is the String "
+   -345". The value is not an Integer due to the embedded blank.
+
+
+
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 13]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+4.3.7 Search Filter
+
+   A SrvRqst message MAY include a LDAPv3 Search Filter [RFC2254], with
+   certain restrictions. RFC 2254 describes the syntax of LDAPv3 Search
+   Filters.
+
+   A DA MUST accept any LDAPv3 query, excluding those with extensible
+   matching rules.  A SA MAY accept only simple queries; otherwise, it
+   MUST accept service queries as a DA would.  A UA SHOULD send only
+   simple queries.
+
+   The syntax for a simple query is:
+
+         simple-query  =  conjoin / term
+         conjoin       =  "(&" term-list ')'
+         term-list     =  term term-list / term
+         term          =  '(' tag querytype item ')' / '(' tag "=*)"
+                          ; The "=*" term tests if the Attribute is
+                          ; present.
+         tag           =  1*tag-safe
+         querytype     =  '='  / "~=" / ">=" / "<="
+                          ; These correspond to equal, approx,
+                          ; greater than or equal, less than or
+                          ; equal.
+         item          =  value / substring
+                          ; Only substring matching is supported.
+         value         =  1*val-safe
+         substring     =  [ value ] any [ value ]
+         any           =  '*' *(value "*")
+         tag-unsafe    =  val-unsafe / CR / LF / HTAB / '_'
+         tag-safe      =  ; All UTF-8 characters are included except
+                          ; those in tag-unsafe.  Tag-unsafe must be
+                          ; escaped.
+         val-unsafe    =  '(' / ')' / ',' / '´ / '!'  / '<' / '=' /
+                          '>' / '~' / CTL
+         val-safe      =  ; All UTF-8 characters are included
+                          ; except those in val-unsafe. Val-unsafe
+                          ; must be escaped.
+         escaped       =  '´ HEXDIG HEXDIG
+
+   Attribute tags and String values MUST be case-folded before
+   performing string matching, as per Section 4.3.1.   Matching rules
+   for other types are as described in 4.3.6.
+
+   If a Service Template [RFC2609] is available, the Service Template
+   SHOULD be used to guide matching of types. If no Service Template is
+   available, for ordered string matching, values MUST be matched using
+   an implicit type system.
+
+   If the Attribute in the query has been registered with multiple
+   values, the query MUST be compared to each value and the results MUST
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 14]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   be combined with logical 'OR', i.e., "(x=\ff\00)" matches an
+   advertisement of (x=\ff\33,\ff\00); "(Y<=0)" matches (y=0,-1).
+   Keywords (i.e., Attributes without values) MUST be matched with a
+   "presence" query, as in "(keyword=*)".
+
+   WARNING! SPECIAL CASE:  Ordering comparisons with strings and
+   integers is subtle.  Integer comparison is only used if both values
+   are integers.  Since implicit type matching is done, this can lead to
+   unexpected results.
+
+   Values of ['-']1*DIGIT MUST be treated as integers, so a service
+   advertisement with Attribute List "(x=12),(y=-55)" would match the
+   query "(&(x>=6)(y<=-44))".  Note that integers MUST NOT match
+   strings, for example, the search query "(x=34*)" matches an Attribute
+   List "(x=34foo)", but not "(x=3432)" since the first value is a
+   String while the second value is an Integer. Embedded blanks MUST NOT
+   be ignored. For example, the query "(&(x= -345)(y=7))" matches the
+   service advertisement with Attribute List "(x= -345)" but not the
+   service advertisement with Attribute List "(x=-345)".  See Section
+
+   Examples: Given an attribute list "(a=12),(b=10,100),(c=100foo)", the
+   query "(a<=16)" is a match.  The query "(a<=100 )" is not a match,
+   since "100 " is a string, so the value "12" must be treated as a
+   string and "100 " is less than "12" by string ordering.  The filter
+   "(b<=20)" matches, because y can be 10, but "(b<= 1000)" does not
+   match: " 1000" begins with a string and space (0x20) is less than
+   "1", the first character of "10" and "100" values of b.  The filter
+   "(c<=2)" matches because c is a string, starting with "1".
+
+   A syntax error in a service query results in a PARSE_ERROR.
+
+4.3.8 Attribute Tag List
+
+   This is a List of Attribute tags, defined as attr-tag the grammar of
+   Section 4.3.4 above. In addition, an member of the list may contain a
+   wild-card according to the following grammar:
+
+         wild-card = ['*'] attr-tag ['*']
+
+4.4 URL Entry
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |   Reserved    |          Lifetime             |   URL Length  |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |URL len, contd.|            URL (variable length)              \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |     BC-0      |
+     +-+-+-+-+-+-+-+-+
+
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 15]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   SLP stores URLs in protocol elements called URL Entries, which
+   associate a URL with a lifetime.
+
+Lifetime
+   An unsigned two byte integer giving the lifetime during which the URL
+   is valid (that is, may be cached), in seconds.
+
+URL Length, URL String
+   The Length MUST NOT be zero, the URL MUST NOT be omitted.
+
+4.5 Reserved and Backward Compatibility
+
+Fields marked as Reserved in protocol messages MUST be set to zero on
+transmission and ignored on reception. Fields marked Backward
+Compatibility (or BC with a number) MUST be treated similarly, except
+where compatibility with previous specifications of SLP is being
+provided. [SLPv2AS] provides more details on backward compatibility.
+
+5. Required Features
+
+This section lists requirements for any conforming implementation of
+SLP.  All requirements are identified by a letter (U, S or D, for UA, SA
+or DA requirement) and a number, throughout this specification.
+
+A minimal implementation may consist of either a UA or SA or both.  A DA
+is not required for SLP to function, but if it is present, the UA and SA
+MUST interact with it as defined below.
+
+A UA MUST be able to [U1] issue SrvRqst messages and [U2] interpret
+SrvRply messages.  These messages are transported via either [U3]
+unicast requests to DAs if one is available (in the desired Scope) using
+UDP or [U4] multicast requests if no DA is available (in the desired
+Scope).  A UA MUST [U5] perform DA discovery initially, then either
+periodically or passively if no DA is known, interpreting DAAdvert
+messages.  A UA MUST also [U6] be configurable with a Scope list and DA
+locations.
+
+A SA MUST be able to [S1] advertise a set of services, [S2] receive and
+process unicast and multicast SrvRqsts.  A SA MUST process Search
+Filters unless it only ever advertises services without Attributes.  A
+[S3] SrvRply message is sent in reply to all SrvRqst messages, except a
+[S4] SAAdvert is returned for requests for the SA Service Type.  A SA
+MUST perform [S5] active DA discovery initially, then either
+periodically or passively, interpreting DAAdvert messages.  A SA MUST
+[S6] register all currently advertised services with DAs as they are
+discovered, then periodically if appropriate, before they expire.  A SA
+MUST be [S7] be configurable with a Scope List and DA locations.
+
+A DA MUST receive and process unicast requests [D1] SrvRqst, [D2]
+SrvTypeRqst and [D3] AttrRqst, for which they MUST send replies [D4]
+SrvRply, [D5] SrvTypeRply and [D6] AttrRply, respectively.  The only
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 16]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+exception is a SrvRqst for the DA Service Type, to which the DA responds
+with a [D7] DAAdvert.  These same DAAdverts are [D8] multicast initially
+and periodically.  A DA MUST [D9] process SrvReg messages and cache
+service advertisements registered, [D10] expire cached services when
+lifetimes expire and [D11] process SrvDereg messages to remove specified
+cached services.  A DA MUST be [D12] configurable with a Scope List.
+
+5.1 Transport of SLP Messages
+
+SLP messages MUST be sent using one of four different transport
+algorithms:
+
+(1) Multicast requests soliciting unicast replies
+(2) Unicast UDP requests soliciting unicast UDP replies
+(3) TCP requests soliciting TCP replies
+(4) Multicast unsolicited announcements
+
+The reserved listening port for SLP is 427, for both UDP and TCP.  This
+is the destination port for all SLP messages.  SLP messages MAY be
+transmitted on an ephemeral port by UAs.  DAs and SAs MUST send replies
+and acknowledgement messages from port 427 to the port from which the
+request was issued.
+
+The PR List SHOULD be used to provide a very limited form of reliable
+multicast.  By default, the PR List is empty.
+
+Retransmitted requests use the same XID. This allows a DA or SA to
+briefly cache the reply to the original request and then send the cached
+reply again, should a duplicate request arrive.  XIDs SHOULD be randomly
+chosen to avoid duplicate XIDs in requests if UAs restart frequently.
+
+5.1.1 UDP Message Transmission
+
+Requests sent using UDP MUST NOT exceed the maximum transmission unit.
+The default maximum transmission unit for UDP messages is 1400 bytes
+excluding UDP and other headers. If a SLP reply message does not fit
+into a UDP datagram it MUST be truncated to fit, and the OVERFLOW flag
+is set in the reply message.
+
+A UA receiving a truncated message MAY open a TCP connection (see
+section 5.1.3) with the DA or SA and retransmit the request, using the
+same XID.  The UA MAY also attempt to make use of the truncated reply or
+it MAY reformulate a more restrictive request which will result in a
+smaller reply.
+
+UDP requests to a DA or SA SHOULD be retransmitted until either a
+response (which might be an error) has been obtained, or for
+CONFIG_RETRY_MAX seconds.  The initial retransmission MUST occur after a
+CONFIG_RETRY wait period.  Retransmissions MUST occur after
+exponentially increasing wait intervals; that is, by doubling the wait
+each time, or the range of a uniformly distributed random wait interval.
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 17]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+5.1.1.1 Multicast UDP Transmission
+
+SLP messages are multicast to the administratively scoped SLP multicast
+[RFC 2365] address, which is 239.255.255.253.  The default TTL to use
+for multicast is 255.  In isolated networks, broadcasts MAY be used on
+the all hosts broadcast address, 255.255.255.255, in place of multicast.
+To that end, SAs SHOULD and DAs MUST listen for broadcast SLP messages
+at port 427.
+
+5.1.1.2 Multicast Requests
+
+Multicast requests MUST set the RQST Flag in the SLP header.
+
+Multicast requests are used in three cases:
+
+ - Active DA Discovery (UAs and SAs MUST support this).
+ - Active SA Discovery (UAs MAY support this).
+ - Multicast Requests (UAs MUST be able to multicast SrvRqst messages to
+   SAs, who MUST be prepared to receive and process them.)
+
+One or more replies MAY be returned via unicast UDP.  Errors MUST NOT be
+returned in response to multicast messages, only non-error, non-zero
+results.  The one exception to this is a multicast AttrRqst for a
+service registered without any Attributes.  A multicast AttrRqst for
+such a service MUST result in a unicast AttrRply with a zero length
+Attribute List.
+
+SAs MUST accept both multicast requests and unicast requests, although
+UAs SHOULD use multicast when contacting SAs directly.  The SA can
+distinguish between multicast and unicast requests by whether the
+REQUEST MCAST flag is set in the SLP message header.  DAs MUST accept
+multicast requests as part of DA discovery (see Section 9); otherwise,
+DAs MUST ignore multicast requests.
+
+Multicast requests SHOULD be reissued over CONFIG_MC_MAX seconds until a
+result has been obtained.  Retransmission is not required if the
+requesting agent is prepared to use the first reply instead of as many
+replies as possible within a bounded time interval.  An initial
+retransmission MUST occur after a CONFIG_RETRY wait period.
+Retransmissions MUST be made with exponentially increasing wait
+intervals; that is,(doubling the wait each time, or the range of the
+uniformly distributed random wait interval.
+
+The message SHOULD be retransmitted until no further responses are
+elicited (see Section 4.3.1) or until CONFIG_MC_MAX seconds elapse.
+
+5.1.1.3 Unicast UDP Requests
+
+Unicast requests to a DA or SA SHOULD be retransmitted until either a
+response (which might be an error) has been obtained, or for
+CONFIG_RETRY_MAX seconds.  An initial retransmission MUST occur after a
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 18]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+CONFIG_RETRY wait period.  Retransmissions MUST be made with
+exponentially increasing wait intervals, doubling the wait each time.
+
+5.1.2 TCP Requests
+
+If a SrvReg or SrvDeReg is too large to fit into a datagram, a TCP
+connection MUST be established by the SA to transmit the message.  In
+addition, a UA MAY initiate a TCP connection with a DA or SA to send an
+initial request which is too large for a datagram or to resend a request
+if the return to a UDP or multicast transmitted request has the OVERFLOW
+flag set in the SLP header.
+
+DAs MUST be able to respond to UDP and TCP requests, as well as
+multicast DA Discovery SrvRqsts.  SAs MUST be able to respond to TCP
+unless the SA will NEVER receive a request or send a reply which will
+exceed a datagram in size (e.g., some embedded systems).
+
+A TCP connection MAY be used for a single SLP transaction, or for
+multiple transactions.  Since there are length fields in the message
+headers, SLP Agents can send multiple requests along a connection and
+read the return stream for acknowledgments and replies.
+
+The initiating agent SHOULD close the TCP connection.  The DA SHOULD
+wait at least CONFIG_CLOSE_CONN seconds before closing an idle
+connection.  DAs and SAs SHOULD close an idle TCP connection after
+CONFIG_CLOSE_CONN seconds to ensure robust operation, even when the
+initiating agent neglects to close it.  See Section 13 for timing rules.
+
+To avoid the need to implement TCP in UAs and SAs, their implementations
+and deployment MUST be constrained such that:
+
+ - UAs never issue requests larger than the Path MTU, so SAs never have
+   to receive TCP requests longer than the path MTU.
+
+ - UAs can accept replies with the 'OVERFLOW' flag set, and make use of
+   the first result included, or reformulate the request for a smaller
+   reply.
+
+ - The SA can send all SrvRply, SrvReg, and SrvDeReg messages in a
+   single datagram.  This means limiting the size of URLs, and the
+   length of Attribute Lists and Scope Lists transmitted.
+
+5.1.3 Multicast Announcement
+
+Unsolicited DAAdvert messages are sent initially and periodically sent
+by DAs via multicast to announce DA availability.  The XID is set to 0.
+See Section 9.1.4.
+
+
+
+
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 19]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+6. Required Messages
+
+6.1 Service Request
+
+This is the primary request message in SLP.
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |       Service Location header (function = SrvRqst = 1)        |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |      length of <PRList>       |  <PRList> (Section 4.3.1)     \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |   length of <service-type>    | <service-type> (Section 4.3.2)\
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |    length of <scope-list>     |  <scope-list> (Section 4.3.3) \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |   length of <filter> string   |   <filter> (Section 4.3.7)    \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |            BC-1               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Length of PRList, PRList String
+      The PRList SHOULD be included. See Section 4.3 if the PRList is
+      omitted.
+
+   Length of Service Type, Service Type String
+      A Service Type String MUST be included.
+
+   Length of Scope List, Scope List String
+      A Scope List MUST be included, unless the Service Type String is
+      either the DA or SA Service Type.  In this case the Scope List MAY
+      be omitted (see Section 4.3).
+
+   Length of Filter, Filter String
+      A Filter string is OPTIONAL (see Section 4.3 on omitted strings).
+
+   Response messages differ depending on the Service Type field.  If the
+   Service Type field is set to DA Service Type, DAs MUST respond to the
+   SrvRqst with a DAAdvert  (see Section 9.2.1).  If the Service Type
+   field is set to the SA Service Type, SAs MUST respond with a SAAdvert
+   (see Section 10).  All other SrvRqst messages elicit a SrvRply (see
+   Section 6.2).
+
+   Requests that elicit a SrvRply are processed as follows.  The Service
+   Type field, Scope List field, and Language Tag field of the header
+   MUST establish the base set of service advertisements over which the
+   Filter is applied. If the Filter field is absent, the request MUST
+   match all service advertisements having the indicated Service Type,
+   Scopes, and language locale. If the Filter field is present, the
+   Filter MUST be compared to each registered service, such that the
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 20]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   Language Tag of the request matches the the language locale of the
+   advertised service.  See Sections 4.2.6 and 4.2.7 for how to apply
+   the Filter and Section 14 for how to apply Language Tags.  Matching
+   services are returned in the SrvRply message.
+
+   Requests that elicit a DAAdvert response are processed as described
+   in Section 9.2.1.  Requests that elicit a SAAdvert response are
+   processed as described in Section 10.
+
+   Possible error results returned in SrvRply or DAAdvert, in addition
+   to those listed in Section 4.1 with a '*' are:
+
+   LANGUAGE_NOT_SUPPORTED
+      Returned when the Service Type field and at least one Scope from
+      the Scope List field match, the Filter field is not absent, but no
+      services are advertised in the language specified in the Language
+      Tag field of the header, though there are service advertisements
+      registered under the default language locale, namely 'en'. MUST
+      NOT be returned if there are no service advertisements for the
+      Service Type advertised under the default language locale.
+   MSG_NOT_SUPPORTED
+      Returned when an SA that only accepts simple service queries
+      receives a unicast SrvRqst including a complex search query.
+
+6.2 Service Reply
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |        Service Location header (function = SrvRply = 2)       |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |        Error Code             |        URL Entry count        |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |       <URL Entry 1>          ...       <URL Entry N>          \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Error Code
+      Status Code of the message (see Section 4.1 and 6.1).
+
+   URL Entry Count
+      The number of URL entry blocks following.  MAY be zero.
+
+   URL Entry 1 ... URL Entry N
+      The URL Entry blocks.  MUST be absent if URL Entry Count is 0.
+
+   The SrvRply contains zero or more URL Entries (see Section 4.4).  A
+   SrvRply with zero URL entries MUST be returned in response to a
+   unicast Service Reply if no matching service advertisements are
+   present.
+
+   If a SrvRply is sent by UDP, a URL Entry MUST NOT be included unless
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 21]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   it fits entirely without truncation.  If the reply overflows a
+   datagram and the 'O' flag in the header is set, the UA MAY simply use
+   the URL entries in the list.
+
+   A URL obtained by SLP MUST NOT be cached longer than the number of
+   seconds in the Lifetime field of the URL Entry.
+
+6.3 Service Registration
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |         Service Location header (function = SrvReg = 3)       |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                  <URL-Entry> (Section 4.3.4)                  \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | length of service type string | <service-type> (Section 4.3.1)\
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |     length of <scope-list>    | <scope-list> (Section 4.3.2)  \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  length of attr-list string   | <attr-list> (Section 4.3.4)   \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |      BC-2     |
+     +-+-+-+-+-+-+-+-+
+
+   URL-Entry
+      A URL Entry corresponding to the service advertisement MUST be
+      present.
+
+   Length of Service Type, Service Type String
+      The Service Type of the service advertisement MUST be present.
+
+   Length of Scope List, Scope List
+      The Scope List of the service advertisement MUST be present.
+
+   Length of Attribute List, Attribute List
+      The Attribute List of the service advertisement MAY be omitted.
+      See Section 4.3 concerning omitted strings.
+
+      The Lifetime field of the URL Entry defines how long a DA can
+      cache the registration.  SAs SHOULD reregister before this
+      lifetime expires but SHOULD NOT reregister more often than once
+      per second or more often than the maximum reregistration interval
+      advertised by the DA (see Section 9.3).  The lifetime MAY be set
+      to any value between 0 and 0xffff (maximum, around 18 hours).
+      Long-lived registrations remain stale longer if the service fails
+      and the SA does not deregister the service.
+
+      The Service Type defines the service type of the URL to be
+      registered, regardless of the scheme of the URL. The Scope List
+      MUST contain the names of all Scopes configured for the SA.  If
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 22]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+      the same URL is registered under different Service Types and/or
+      with different Language Tags, the Scope List MUST be identical for
+      all registrations so that deregistration functions properly, see
+      Section 7.6; otherwise, if the Scope List differs from a prior
+      registration for the same URL, a SCOPE_NOT_SUPPORTED error is
+      returned.
+
+      The Attribute List, if present, specifies the Attributes and
+      values to be associated with the URL in the service advertisement.
+
+      The header FRESH flag MUST be set on all registrations.  A new
+      registration received for an existing service advertisement in
+      which the header Language Tag, URL, and Service Type, all match
+      MUST replace the previous advertisement.
+
+6.4 Service Acknowledgment
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |          Service Location header (function = SrvAck = 5)      |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |          Error Code           |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Error Code
+      Status code of the message.
+
+   A DA MUST return a SrvAck to an SA after a SrvReg or SrvDereg.  The
+   SrvAck carries only a two byte Error Code.
+
+   In addition to the errors listed in Section 4.1 with a '*', the
+   following error codes apply to SrvReg and SrvDereg messages:
+
+   REFRESH_REJECTED
+      If the header FRESH flag is not set, or if the SrvReg lifetime is
+      less than the DA's advertised minimum refresh interval (see
+      Section 9.3), the DA MAY reject the advertisement. If a SrvDereg
+      includes an Attribute tag list, the DA SHOULD reject it.
+   INVALID_REGISTRATION
+      Returned if the SrvReg has problems with a non-string parameter,
+      like a zero URL Entry Lifetime field,, or if a SrvDereg was sent
+      for a nonexisting service advertisement, or an attempt was made to
+      delete a service advertisement and the SrvDereg Scope List
+      contains only a partial list of the Scopes in which the
+      advertisement is registered.
+
+6.5 DA Advertisement
+
+   The DAAdvert is used for DA Discovery (see Section 9).
+
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 23]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |        Service Location header (function = DAAdvert = 8)      |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |          Error Code           |  DA Stateless Boot Timestamp  |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |DA Stateless Boot Time, contd. |         Length of URL         |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                              URL                              \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |     Length of <scope-list>    |  <scope-list> (Section 4.3.2) \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |     Length of <attr-list>     |  <attr-list> (Section 4.3.4)  \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |           BC-3                |      BC-4       |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Error Code
+      Status code of the message.  See Section 4.1 and 6.1 for values.
+      The Error Code is set to 0 when the DAAdvert is multicast.
+
+   DA Stateless Boot Timestamp
+      Indicates DA boot time and state.  See Section 9.2 for details.
+
+   Length of URL, URL
+      The DA URL MUST NOT be omitted.
+
+   Length of Scope List, Scope List
+      The Scope List string.  MUST NOT be absent.  This list contains
+      the Scope List of the DA, though it MAY include only the Scope
+      List present in the SrvRqst which solicited the DAAdvert.  If
+      multicast, the Scope List MUST be the DA's entire configured Scope
+      List.
+
+   Length of Attribute List, Attribute List
+      The DA Attribute List string MAY be omitted.  See Section 9.2 for
+      possible DA Attributes.
+
+   The returned URL is "service:directory-agent://"<addr> of the DA,
+   where <addr> is the dotted decimal numeric IP address of the DA.
+
+6.6. SA Advertisement
+
+   The SAAdvert is used by UAs to accumulate information about SAs, see
+   Section 10. Since the SAAdvert is only returned in response to a
+   multicast request, it contains no error code field because errors on
+   multicast requests are silently dropped.
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 24]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |        Service Location header (function = SAAdvert = 11)     |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |         Length of URL         |              URL              \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |     Length of <scope-list>    |         <scope-list>          \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |     Length of <attr-list>     |          <attr-list>          \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |     BC-5      |
+     +-+-+-+-+-+-+-+-+
+
+   Length of URL, URL
+      The SA's URL MUST NOT be omitted.
+
+   Length of Scope List, Scope List
+      The SA's Scope List MUST NOT be omitted.
+
+   Length of Attribute List, Attribute List
+      The Attribute List MAY be omitted only if the SA advertises no
+      services (see Section 10).  On omitted strings, see Section 4.3.
+
+   The SA responds only to multicast SA discovery requests which:
+    - have an empty <scope-list> or the <scope-list> includes one of the
+      SA's Scopes,
+    - have <service-type> set to "service:service-agent".
+    - if a <filter> is included in the request, the SA MUST match the
+      Filter against the SA's Attributes.
+
+   The SAAdvert MUST include a list of Attributes the SA supports.  This
+   Attribute List SHOULD be kept short so that the SAAdvert will not
+   exceed the path MTU in size.  The Attribute 'service-type' MUST be
+   included in the Attribute List.  The value of this Attribute is a
+   list of string values, each value of which is a Service Type the SA
+   is advertising (not including "service:service-agent").
+
+   The URL is "service:service-agent://"<addr> of the SA, where <addr>
+   is the dotted decimal numeric address of the SA.
+
+7. Optional Features
+
+   A UA or SA can be fully compliant without implementing any features
+   from this section.  A SA SHOULD, however, support responding to
+   AttrRqst unless the SA will never be used to advertise services with
+   Attributes (see Appendix B).
+
+7.1 SLP Extensions
+
+   SLP extensions provide growth capability to the basic set of SLP
+   messages.
+
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 25]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |         Extension ID          |       Next Extension Offset   |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     | Offset, contd.|                Extension Data                 \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Extension ID
+      The extension identifier.
+
+   Next Extension Offset
+      Number of bytes to the next extension as an offset from the
+      beginning of the SLP message. If the Next Extension Offset field
+      is zero, there are no extensions following the current extension,
+      and the length of the current extension MUST be calculated by
+      subtracting the offset of the current extension from the total
+      length of the SLP message as given in the header.
+
+   Extension Data
+      The contents of the extension.
+
+   If an extension offset is specified, and an extension is not included
+   in the request, the receiver MUST respond with a PARSE_ERROR, if the
+   request was unicast.
+
+   Extension IDs are assigned in the following way:
+
+   0x0000-0x3FFF   Standardized:    Optional to implement.
+      Ignore if unrecognized.
+   0x4000-0x7FFF   Standardized:    Mandatory to implement.
+      A UA or SA which receives this option in a reply and does not
+      understand it MUST silently discard the reply.  A DA or SA which
+      receives this option in a request and does not understand it MUST
+      return an OPTION_NOT_UNDERSTOOD error.
+   0x8000-0x8FFF  For private use:  Optional to implement.
+      Ignore if unrecognized.
+   0x9000-0xFFFF  Reserved:         Do not use.
+
+   Section 13 defines procedures for specifying new SLP extensions.
+
+7.2 Service Type Request
+
+   The Service Type Request (SrvTypeRqst) allows a UA to discover all
+   types of services on a network.
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |      Service Location header (function = SrvTypeRqst = 9)     |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 26]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+     |        length of PRList       |    <PRList> (Section 4.3.1)   \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |   length of Naming Authority  |      <na> (Section 4.3.2)     \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |     length of <scope-list>    |  <scope-list> (Section 4.3.3) \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Length of PRList, PRList
+      The PRList MAY be omitted.  See Section 4.3.3 and 4.3.
+
+   Length of Naming Authority, Naming Authority
+      The naming authority string MAY be zero length, in which case
+      service types in the default naming authority (IANA) are returned.
+
+      WARNING! SPECIAL CASE: If the length field is set to 0xFFFF: (1)
+      the naming authority string is zero length, (2) all service types
+      in all naming authorities are returned.  THIS FIELD IS AN
+      EXCEPTION TO HOW STRING LENGTHS ARE ENCODED IN SLP!
+
+      Otherwise, if a naming authority string is included, only service
+      types in that naming authority are returned.
+
+   Length of Scope List, Scope List
+      Only Service Types advertised in a Scope included in the Scope
+      List are returned.
+
+   The Naming Authority string determines which Service Types will be
+   returned in the reply, as described above.
+
+   Possible error returns, aside from those in Section 4.1 with a '*':
+
+   MSG_NOT_SUPPORTED
+      An SA that does not support SrvTypeRqst returns this error if a it
+      receives a unicast SrvTypeRqst.
+
+7.3 Service Type Reply
+
+   The return message for SrvTypeRqst is the SrvTypeRply.
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |      Service Location header (function = SrvTypeRply = 10)    |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |           Error Code          |    length of <srvtype> List   |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                 <srvtype> List (Section 4.3.2)                \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Error Code
+      Status code of the messages.  See section 4.1 and 7.3.
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 27]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   Length of Service Type List, Service Type List
+      The list of Service Types.  The Service Type names MUST include
+      the naming authority string, if any.  This string MUST be absent
+      if the Service Type List result is zero (see Section 4.3).
+
+7.4 Attribute Request
+
+   The Attribute Request (AttrRqst) allows a UA to discover Attributes
+   of a given service by supplying its URL.  This information is also
+   available by using the Attrlist Extension to the SrvRqst [RFC 3059].
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |       Service Location header (function = AttrRqst = 6)       |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |       length of PRList        |        <PRList> String        \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |         length of URL         |              URL              \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |    length of <scope-list>     |  <scope-list> (Section 4.3.3) \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |  length of <tag-list> string  |    <tag-list> (Section 4.5)   \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |             BC-6              |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Length of PRList, PRList
+      The PRList MAY be omitted.  See Section 4.3.3 and 4.3.
+
+   Length of URL, URL
+      The URL of the service whose Attributes are being requested.  MUST
+      NOT be absent.
+
+   Length of Scope List, Scope List
+      The Scope List of the service whose Attributes are being
+      requested.  MUST NOT be absent.
+
+   Length of Attribute Tag List, Attribute Tag List
+      This string MAY be omitted, see Section 4.3.  If present, only
+      those Attributes whose tags are present in the list are returned
+      in the AttrRply.
+
+   The <tag-list> indicates the Attributes to return in the AttrRply.
+   Wild card values in <tag-list> match Attributes any part of whose tag
+   matches the <attr-val> part of the wild card.
+
+   Possible error returns when the request is unicast, aside from those
+   in Section 4.1 with a '*', are:
+
+   LANGUAGE_NOT_SUPPORTED
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 28]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+      Returned when the URL field and at least one Scope from the Scope
+      List field match, but no services are advertised in the language
+      specified in the Language Tag field of the header, though there is
+      a service advertisements for the URL registered under the default
+      language locale, namely 'en'. MUST NOT be returned if there is no
+      service advertisement for the URL advertised under the default
+      language locale.
+
+   MSG_NOT_SUPPORTED
+      Returned when a SA that does not support AttrRqst receives a
+      unicast AttrRqst.
+
+   INVALID_REGISTRATION
+      The URL in the AttrRqst does not correspond to a service that the
+      SA or DA is advertising.
+
+7.5 Attribute Reply
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |       Service Location header (function = AttrRply = 7)       |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |         Error Code            |      length of <attr-list>    |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                  <attr-list> (Section 4.3.4)                  \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |     BC-7      |
+     +-+-+-+-+-+-+-+-+
+
+   Error Code
+      Status code of the message.  See section 4.1 and 7.5.
+
+   Length of Attribute List, Attribute List
+      The requested Attribute List.  These field is omitted if the
+      status code of the result is not 0 or the service advertisement
+      has no Attributes associated with it.
+
+   WARNING! SPECIAL CASE: A SA that supports AttrRqst MUST return an
+      AttrRply in response to a multicast AttrRqst that matches a
+      service advertisement with no Attributes.  THIS IS UNLIKE
+      SrvTypeRply AND SrvRply WHERE ONLY NONZERO RESULTS ARE RETURNED IN
+      RESPONSE TO MULTICAST QUERIES.
+
+      Attribute replies SHOULD be returned with the original case of
+      registered string tags and values intact, in case they must be
+      displayed to users.
+
+      Only one copy of each Attribute tag or String value SHOULD be
+      returned, arbitrarily choosing one version with respect to upper
+      and lower case and white space internal to the strings.  Duplicate
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 29]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+      Attributes and values SHOULD be removed.  An arbitrary version of
+      the string value and tag name is chosen for the merge.  For
+      example: "(A=a a,b)" merged with "(a=A A,B)" may yield "(a=a
+      a,B)".
+
+7.6 Service Deregistration
+
+      A DA deletes a service registration when its lifetime expires.
+      Services SHOULD be deregistered when they are no longer available,
+      rather than leaving the registrations to time out.
+
+      0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |         Service Location header (function = SrvDeReg = 4)     |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |    Length of <scope-list>     |  <scope-list> (Section 4.3.2) \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                   URL Entry (Section 4.4)                     \
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |   Length of <tag-list> = 0    |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+   Length of Scope List, Scope List
+      MUST NOT be omitted.
+
+   URL Entry
+      The URL of the service to deregister.  The URL in the entry MUST
+      NOT be omitted.  The lifetime in the URL Entry is ignored.
+
+   Length of Attribute Tag List
+      This field MUST be 0.  See Section 4.3 on omitted strings.
+
+   The URL indicates which service advertisement to deregister.   The
+   deregistration MUST remove all service advertisements associated with
+   the URL, for all Scopes, language locales, and Service Types under
+   which service advertisements for the URL were registered.
+
+   The SA MUST issue the SrvDeReg with the same Scope List used to
+   register the service. If this is not done, the DA MUST return a
+   SCOPE_NOT_SUPPORTED error.
+
+   The DA acknowledges a SrvDereg with a SrvAck.  Once the SA receives
+   an acknowledgment indicating success, the service is no longer
+   advertised by the DA.
+
+   Possible error codes beyond those in Section 4.1 marked with a '*':
+
+   INVALID_REGISTRATION
+      A DA sends this error if the SrvDeReg seeks to deregister a
+      service that has not been registered with the DA.
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 30]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   INVALID_UPDATE
+      A DA sends this error in response to a non-zero Attribute Tag List
+      Length.
+
+8. Scope List Configuration
+
+   The default Scope List configuration for any agent is the string
+   "DEFAULT".  The chart below contains a prioritized list of options
+   for Scope List configuration. Higher priority options override lower
+   priority options.  For example, if a static Scope List exists, DHCP
+   option 79 is ignored. All SLP Agents MUST support static
+   configuration of a Scope List.  Other mechanisms are optional.
+
+   Preference   Mechanism                           Requirement level
+   (1)          Static configuration of Scope List  MUST
+   (2)          Static configuration of DAs *       MUST
+   (3)          DHCP SLP Scope configuration        SHOULD
+   (4)          DHCP SLP DA configuration *         SHOULD
+   (5)          Dynamic discovery (DAAdverts) **    MAY
+   (6)          Dynamic discovery (SAAdverts) **    MAY
+   (7)          Use of the Scope "DEFAULT"          MUST
+
+   (2) A SA or UA with a static configured list of DAs will unicast DA
+   Discovery messages (see Section 9) to the DAs on the list and create
+   a list of all Scopes those DAs support.  This forms the agent's Scope
+   List.
+
+   (3) DHCP option 79 can explicitly configure a UA or SA's Scope list.
+   [RFC 2610]
+
+   (4) DHCP option 78 can supply a list of DA locations.  The UA or SA
+   acquires their Scope List, as per (2), above.  [RFC 2610]
+
+   (5) A UA or SA can use active and passive DA Discovery (see Section
+   9) to acquire a list of DAs.  The combined list of their Scopes forms
+   the agent's Scope List.
+
+   (6) A UA can use active SA discovery (see Section 10) to obtain
+   SAAdverts from SAs on the network.  The combined list becomes the
+   UA's Scope List.
+
+   UAs can issue requests with any subset of Scopes with which they are
+   configured.  It is left up to the implementor whether to allow UAs to
+   synthesize Scope Lists by using DA and SA discovery or only to
+   support static and DHCP discovery.
+
+9. DA Discovery
+
+   UAs and SAs MUST attempt to discover DAs unless specifically
+   configured not to do so.  UAs and SAs MUST perform active DA
+   discovery initially, upon initialization.  SAs MUST and UAs SHOULD
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 31]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   perform passive DA discovery (UAs MAY instead periodically perform
+   active DA discovery, for example, before requests are made, after
+   [CONFIG_DA_FIND] seconds).
+
+9.1 Active DA discovery
+
+   DAs are discovered by sending a SrvRqst with the Service Type set to
+   the DA Service Type.  If a Filter is included in the SrvRqst, the DA
+   SHOULD respond only if the Filter matches the DA's Attributes.
+
+   If the requesting UA or SA is configured with a Scope List, the
+   request MUST contain all configured scopes in the list.  If the UA or
+   SA is not configured with a Scope List, however, the <scope-list>
+   field of the SrvRqst used in active DA discovery MAY be empty.  This
+   allows the UA or SA to derive a Scope List from DAAdverts it
+   receives.
+
+9.2 Passive DA discovery
+
+   A DA MUST multicast (or broadcast) an unsolicited DAAdvert every
+   CONFIG_DA_BEAT seconds.  CONFIG_DA_BEAT SHOULD be specified to
+   prevent DAAdverts from using more than 1% of the available network
+   bandwidth.  An unsolicited DAAdvert has an XID of 0.
+
+   All UAs and SAs that receive the unsolicited DAAdvert SHOULD examine
+   the DAAdvert DA Stateless Boot Timestamp.  If the Stateless Boot
+   Timestamp is zero, the DA is going down and no further messages
+   should be sent to it.
+
+   If a SA detects a DAAdvert with a nonzero DA Stateless Boot Timestamp
+   but the SA has never encountered the DA before, the SA MUST send
+   SrvRegs for all its advertised services if examination of the
+   DAAdvert indicates that the SA must register.  The SA MUST examine
+   the DAAdvert's timestamp to determine if the DA has had a stateless
+   reboot since the SA last registered with it.  If so, and if the DA
+   supports some set of Scopes with which the SA is configured, the SA
+   registers with the DA. SAs MUST wait a random interval between 0 and
+   CONFIG_REG_PASSIVE before beginning DA registration.
+
+   If a UA with a configured scope list receives a DAAdvert that
+   supports any Scope on its configured Scope List, it adds this DA to
+   its list of DAs.
+
+9.3 DA Attributes
+
+   DAs MAY advertise Attributes.  One Attribute is defined by SLPv2, the
+   'min-refresh-interval' attribute.
+
+   A potential scaling problem occurs in SLPv2 if SAs choose too low a
+   lifetime.  In this case, an onerous amount of reregistration occurs
+   as more services are deployed.  SLPv2 allows DAs to control the
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 32]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   frequency of registration by advertising the "min-refresh-interval"
+   attribute.  A DA MAY reissue a DAAdvert with a new set of Attributes
+   at any time, to change the reregistration behavior of SAs.  These
+   apply only to subsequent registrations; existing service
+   registrations with the DA retain their registered lifetimes.
+
+   If the DAAdvert includes the Attribute 'min-refresh-interval' it MUST
+   be set to a single Integer value indicating a number of seconds.  If
+   this Attribute is present SAs MUST NOT issue registrations with
+   lifetimes less than this value or refresh any particular service
+   advertisement more frequently than this value.  If SrvReg or SrvDereg
+   for a particular service is received more frequently than or with the
+   lifetime less than the DA's advertised 'min-refresh-interval'
+   attribute the DA SHOULD reject the message and return a
+   REFRESH_REJECTED error in the SrvAck.
+
+10. SA Discovery
+
+   A UA MAY, in the absence of knowledge of DAs, and other Scope list
+   configuration, obtain SAAdverts from SAs on the network.  This allows
+   the UA to synthesize a Scope List it can use to issue requests.
+
+   A SA MAY be configured with Attributes, and MUST support the
+   Attribute 'service-type' whose value is all the Service Types of
+   services represented by the SA.  Further, SAs which support only
+   simple Search Filters MUST include the Attribute definition "simple-
+   query-only=true" in their Attribute List. A query for this Attribute
+   can be included in the Filter to exclude SAs that do not accept
+   simple queries.
+
+   SAs MUST NOT respond if the SrvRqst Filter is not satisfied.  For
+   example, only SAs advertising 'nfs' services MUST respond with a
+   SAAdvert to a SrvRqst for Service Type "service:service-agent" that
+   includes a Filter "(service-type=nfs)".
+
+11. Protocol Timing Defaults
+
+Interval name        Section  Default Value   Meaning
+-------------------  -------  -------------   ------------------------
+CONFIG_MC_MAX        6.3      15 seconds      Max time to wait for a
+                                              complete multicast query
+                                              response (all values.)
+CONFIG_START_WAIT    12.2.1   3 seconds       Wait to perform DA
+                                              discovery on reboot.
+CONFIG_RETRY         12.3     2 seconds       Wait interval before
+                                              initial retransmission
+                                              of multicast or unicast
+                                              requests.
+CONFIG_RETRY_MAX     12.3     15 seconds      Give up on unicast
+                                              request retransmission.
+CONFIG_DA_BEAT       12.2.2   3 hours         DA Heartbeat, so that SAs
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 33]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+                                              passively detect new DAs.
+CONFIG_DA_FIND       12.3     900 seconds     Minimum interval to wait
+                                              before repeating Active
+                                              DA discovery.
+CONFIG_REG_PASSIVE   12.2     1-3 seconds     Wait to register services
+                                              on passive DA discovery.
+CONFIG_REG_ACTIVE    8.3      1-3 seconds     Wait to register services
+                                              on active DA discovery.
+CONFIG_CLOSE_CONN    6.2      5 minutes       DAs and SAs close idle
+                                              connections.
+
+12. Optional Configuration
+
+   Broadcast Only
+      Any SLP agent SHOULD be configurable to use broadcast only.
+   Predefined DA
+      A UA or SA SHOULD be configurable to use a predefined DA.
+   No DA Discovery
+      The UA or SA SHOULD be configurable to ONLY use predefined and
+      DHCP-configured DAs and perform no active or passive DA discovery.
+   Multicast TTL
+      The default multicast TTL is 255.  Agents SHOULD be configurable
+      to use other values.  A lower value may result in UAs obtaining
+      different results for the identical requests depending on where
+      they are connected to the network.
+   Timing Values
+      Time values in Section 11 MAY be configurable.
+   Scopes
+      The Scope List string MUST be configurable.
+   DHCP Configuration
+      DHCP options 78 and 79 MAY be used to configure SLP. [RFC 2610]
+   Service Templates
+      Service Template UAs and SAs MAY be configured by using Service
+      Templates.  These allow language translation, setting default
+      values and API error checking.
+
+13. IANA Considerations
+
+   SLP includes four sets of identifiers which may be registered with
+   IANA. The policies for these registrations (See [RFC 2434]) are noted
+   in each case.
+
+   New SLP Extensions with types in the range 2-65535 may be registered
+   following review by a Designated Expert.
+
+   New error numbers in the range 15-65535 are assigned on the basis of
+   a Standards Action.
+
+   Protocol elements used with Service Location Protocol may also
+   require IANA registration actions.  SLP is used in conjunction with
+   "service:" URLs and Service Templates [RFC 2609].  These are
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 34]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   standardized by review of a Designated Expert and a mailing list (See
+   [RFC 2609].)
+
+14. Internationalization Considerations
+
+   SLP supports service advertisements in multiple languages by
+   providing a Language Tag field in the SLP message header (see Section
+   8).
+
+   Services MAY be registered under multiple Language Tags.  This
+   provides Attributes so that users with different language skills can
+   select services interactively.  Services SHOULD be registered under
+   the Language Tag 'en', the default Language Tag (English), to provide
+   for a fallback in case the services are not registered under any
+   another Language Tag.  When processing requests, the Language Tag in
+   the request MUST be compared using case insensitive equality to the
+   Language Tag of the service advertisement. If the service
+   advertisement's Language Tag doesn't match that in the request, the
+   two MUST NOT match; otherwise, the two MUST match.
+
+   A URL that is registered with multiple Language Tags may be queried
+   under all Language Tags for which it is registered.  The Language Tag
+   of the SrvRqst or AttrRqst is used to perform the match.  If the
+   requested language is not supported, a LANGUAGE_NOT_SUPPORTED error
+   MUST be returned for a SrvRqst if there are any service
+   advertisements registered under the default Language Tag, or for an
+   AttrRqst if there is an advertisement for the URL under the default
+   Language Tag.  If there is no advertisement registered under the
+   default language tag, the LANGUAGE_NOT_SUPPORTED error MUST NOT be
+   returned, and the request MUST be considered to have yielded no
+   matches. SrvRply and AttrRply messages MUST contain the same Language
+   Tag as that of the request.
+
+   RFC 2609 [RFC 2609] provides more information about how language tags
+   can be used in Service Templates.
+
+15. Security Considerations
+
+   The threats posed to clients using SLP to locate services and to
+   services that use SLP to advertise themselves are threefold.
+
+   First, a UA may be prevented from discovering a service that is
+   present and should, in fact, be discoverable.  This is a denial of
+   service attack. SLP is vulnerable to denial of service attacks by (a)
+   an attacker posing as a DA that withholds normally available service
+   information, (b) an attacker actively deregistering services with DAs
+   that should otherwise be available at the DAs.
+
+   Second, a UA may discover a service that is not 'trustworthy'
+   according to some policy of trust in an administered network.  This
+   is a masquerading attack.  A user could be fooled into revealing
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 35]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   confidential information in interactions with a service registered by
+   an attacker.
+
+   Third, by observing and issuing SLP queries, an attacker could use
+   SLP to catalogue either clients or services on a network.  The threat
+   here is breach of confidentiality.  An attacker can learn what
+   services the user prefers and what services are present on the
+   network.  This information could be useful to an attacker, for
+   example, to inform how to launch future attacks.
+
+   Previous versions of SLP provided for authentication of service URLs
+   and Attribute Lists [SLPv2AS].  This scheme was not adopted, as it
+   required SLP-specific key management, and it has been deprecated in
+   this version of SLP.  Instead, SLP agents use IPsec security
+   associations [IPSEC] for unicast messages to protect against the
+   above threats. Multicast requests are considered to be insecure and
+   SHOULD NOT be used if the above attacks are considered likely.
+
+   The following policies protect unicast SLP traffic:
+
+1.  Messages unicast from port 427 by SAs and DAs  SHOULD initiate an
+    IKE establishment of a security association [IKE] when:
+    - An SA or DA responds to a UA request
+    - An SA registers or deregisters with a DA
+
+2.  Those hosts which receive unicast SLP messages from port 427 SHOULD
+    have a policy requiring the initiation of a IPsec security
+    association when:
+    - A UA receives a reply from a DA or SA
+    - A SA receives a SrvAck from a DA
+    - A DA receives a SrvReg or SrvDereg from a SA
+
+3.  IKE security association establishment MUST be
+    predicated on possession of a certificate indicating that a host
+    is a legitimate source of SLP messages.  This requires
+    distribution of certificates to all SLP agents, signed by a
+    certificate authority operated by a trusted administration.
+    During IKE security association establishment, certificates are
+    verified versus the certificate authority's public key.  If
+    verified, the security association can be established and
+    messages transmitted are
+    be protected against the attacks listed above.
+
+4.  SLP messages that cannot be validated against an IPsec
+    Authentication Header [AH] SHOULD be silently discarded.
+
+5.  For environments where confidentiality is desired, SLP messages
+    MAY be protected by an IPsec Encapsulating Security Payload [ESP].
+
+   The security provided by the above policy is no replacement for
+   application level security.  That is, even if SLP is protected
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 36]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   against the above list of threats, it is not a substitute for client-
+   server protocol security appropriate to satisfy the application's own
+   security requirements.
+
+   SLP is useful as a bootstrap protocol.  It may be used in
+   environments in which no preconfiguration is possible.  In such
+   situations, a certain amount of "blind faith" is required:  Without
+   any prior configuration it is impossible to secure SLP.
+
+Appendix A:  Changes to SLPv2 compared to RFC 2608
+
+   [SLPv2AS] presents the details and backward compatibility issues
+   concerning this specification compared to previous versions of SLP.
+
+Appendix B:  SA support for Attributes
+
+   Some special purpose SAs which will only ever advertise services
+   without Attributes need not implement SrvRqst Search Filters or
+   respond to AttrRqst with an AttrRply.  All other SAs need to.  This
+   is the meaning of the statement SAs SHOULD reply to AttrRqst
+   messages.
+
+Normative References
+
+   [AH] Kent, S., and Atkinson, R., "IP Authentication Header," RFC
+      2402, November, 1998.
+
+   [ESP] Kent, S., and Atkinson, R., "IP Encapsulating Security Payload
+      (ESP)," RFC 2406, November, 1998.
+
+   [IANA] http://www.iana.org/numbers.html
+
+   [IPSEC] Kent, S., and Atkinson, R., "Security Architecture for the
+      Internet Protocol," RFC 2401, November, 1998.
+
+   [RFC 2119] Bradner, S., "Key words for use in RFCs to Indicate
+      Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC 2131] Droms, R., "Dynamic Host Configuration Protocol", RFC
+      2131, March 1997.
+
+   [RFC 2234] Crocker, D. and P. Overell, "Augmented BNF for Syntax
+      Specifications: ABNF", RFC 2234, November 1997.
+
+   [RFC 2252] Wahl, M., et. al., "Lightweight Directory Access Protocol
+      (v3): Attribute Syntax Definitions", RFC 2252, December 1997.
+
+   [RFC 2254] Howes, T., "The String Representation of LDAP Search
+      Filters", RFC 2254, December 1997.
+
+   [RFC 2279] Yergeau, F., "UTF-8, a transformation format of unicode
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 37]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+      and ISO 10646", RFC 2279, October 1998.
+
+   [RFC 2365]  Meyer, D., "Administratively Scoped IP Multicast", RFC
+      2365, July 1998.
+
+   [RFC 2396]  Berners-Lee, T., Fielding, R. and L. Masinter, "Uniform
+      Resource Identifiers (URI): Generic Syntax", RFC 2396, August
+      1998.
+
+   [RFC 2434] Narten, T. and H. Alvestrand, "Guidelines for Writing an
+      IANA Considerations Section in RFCs, BCP 26, RFC 2434, October
+      1998.
+
+   [RFC 2608] E. Guttman, C. Perkins, J. Veizades, and M. Day, "Service
+      Location Protocol version 2", RFC 2608, July 1999.
+
+   [RFC 2609]  Guttman, E., Perkins, C. and J. Kempf, "Service Templates
+      and service: Schemes", RFC 2609, June 1999.
+
+   [RFC 2610] Guttman, E., "DHCP Options for Service Location", draft-
+      guttman-svrloc-rfc2610bis-01.txt, September 2001.  A work in
+      progress.
+
+   [RFC 3066] Alvestrand, H., "Tags for the Identification of
+      Languages", RFC 1766, March 1995.
+
+   [SLPv2AS] Guttman, E., "Applicability Statement for Service Location
+      Protocol, Version 2," draft-guttman-svrloc-as-00.txt, a work in
+      progress.
+
+   [vendorext] Guttman, E., "Vendor Extensions for Service Location
+      Protocol, Version 2", draft-guttman-svrloc-vendor-ext-04.txt, a
+      work in progress.
+
+Editors' Contact Information
+
+   Erik Guttman                   James Kempf
+   Sun Microsystems, Inc.         Docomo Labs, USA
+   Phone: +49 172 865 5497        Phone: +1 408 451 4711
+   Email: Erik.Guttman@Sun.Com    Email: kempf@docomolabs-usa.com
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it or
+   assist in its implementation may be prepared, copied, published and
+   distributed, in whole or in part, without restriction of any kind,
+   provided that the above copyright notice and this paragraph are included
+   on all such copies and derivative works.  However, this document itself
+   may not be modified in any way, such as by removing the copyright notice
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 38]
+
+Internet Draft               SLPv2 Revision                  August 2002
+
+
+   or references to the Internet Society or other Internet organizations,
+   except as needed for the purpose of developing Internet standards in
+   which case the procedures for copyrights defined in the Internet
+   Standards process must be followed, or as required to translate it into
+   languages other than English.  The limited permissions granted above are
+   perpetual and will not be revoked by the Internet Society or its
+   successors or assigns.  This document and the information contained
+   herein is provided on an "AS IS" basis and THE INTERNET SOCIETY AND THE
+   INTERNET ENGINEERING TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
+   INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
+
+Table of Contents
+
+     Abstract . . . . . . . . . . .  1    6.2 Service Reply  . . . . . . 21
+     Acknowledgements . . . . . . .  1    6.3 Service Registration . . . 22
+     1. Introduction  . . . . . . .  1    6.4 Service Acknowledgment . . 23
+     2. Terminology and Conventions  2    6.5 DA Advertisement . . . . . 23
+     3. Protocol Overview . . . . .  3    6.6 SA Advertisement  . . . .  24
+     3.1 SLP Message Types  . . . .  5    7. Optional Features . . . . . 25
+     4. Protocol Elements . . . . .  6    7.1 SLP Extensions . . . . . . 25
+     4.1 SLP Message Header . . . .  6    7.2 Service Type Request . . . 26
+     4.2 Error Codes  . . . . . . .  7    7.3 Service Type Reply . . . . 27
+     4.3 Strings  . . . . . . . . .  9    7.4 Attribute Request  . . . . 28
+     4.3.1 General String Comparison 9    7.5 Attribute Reply  . . . . . 29
+     4.3.2 Lists  . . . . . . . . .  9    7.6 Service Deregistration . . 30
+     4.3.3 Previous Responder List   9    8. Scope List Configuration  . 31
+     4.3.4 Service Type String  . . 10    9. DA Discovery  . . . . . . . 31
+     4.3.5 Scope List . . . . . . . 11    9.1 Active Discovery . . . . . 32
+     4.3.6 Attribute List . . . . . 11    9.2 Passive Discovery  . . . . 32
+     4.3.7 Search Filter  . . . . . 14    9.3 DA Attributes  . . . . . . 32
+     4.3.8 Attribute Tag List . . . 15    10. SA Discovery . . . . . .   33
+     4.3.9 SLP SPI  . . . . . . . . 15    11. Protocol Timing Defaults . 33
+     4.4 URL Entry  . . . . . . . . 15    12. Optional Configuration . . 34
+     4.5 Required and Backward            13. IANA Considerations  . . . 34
+         Compatibility  . . . . . . 16    14. Internationalization
+     5. Required Features . . . . . 16        Considerations . . . . . . 35
+     5.1 Transport of SLP Messages  17    15. Security Considerations  . 35
+     5.1.1 UDP Message Transmission 17    Appendix A:  Changes to SLPv2
+     5.1.1.1 Multicast Transmission 18        compared to RFC 2608 . . . 37
+     5.1.1.2 Multicast Requests . . 18    Appendix B:  SA support for
+     5.1.1.3 Unicast Requests . . . 18        Attributes . . . . . . . . 37
+     5.1.2 TCP Requests . . . . . . 19    Normative References . . . . . 37
+     5.1.3 Multicast Announcement . 19    Editors' Contact Information . 38
+     6. Required Messages . . . . . 20    Full Copyright Statement . . . 38
+     6.1 Service Request  . . . . . 20
+
+
+
+
+
+
+Guttman & Kempf         Expires: 3 February 2003               [Page 39]

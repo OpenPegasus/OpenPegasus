@@ -1,0 +1,289 @@
+Grammar
+
+    0 $accept: filter_list $end
+
+    1 filter_list: filter
+    2            | filter_list filter
+
+    3 filter: filter_open filter_op filter_list filter_close
+    4       | filter_open expression filter_close
+
+    5 filter_open: L_PAREN
+
+    6 filter_close: R_PAREN
+
+    7 filter_op: OP_AND
+    8          | OP_OR
+    9          | OP_NOT
+
+   10 expression: OPERAND OP_PRESENT
+   11           | OPERAND exp_operator VAL_INT
+   12           | OPERAND exp_operator VAL_BOOL
+   13           | OPERAND exp_operator OPERAND
+
+   14 exp_operator: OP_EQU
+   15             | OP_GT
+   16             | OP_LT
+   17             | OP_APPROX
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+L_PAREN (258) 5
+R_PAREN (259) 6
+OP_AND (260) 7
+OP_OR (261) 8
+OP_NOT (262) 9
+OP_EQU (263) 14
+OP_GT (264) 15
+OP_LT (265) 16
+OP_PRESENT (266) 10
+OP_APPROX (267) 17
+VAL_INT (268) 11
+VAL_BOOL (269) 12
+OPERAND (270) 10 11 12 13
+
+
+Nonterminals, with rules where they appear
+
+$accept (16)
+    on left: 0
+filter_list (17)
+    on left: 1 2, on right: 0 2 3
+filter (18)
+    on left: 3 4, on right: 1 2
+filter_open (19)
+    on left: 5, on right: 3 4
+filter_close (20)
+    on left: 6, on right: 3 4
+filter_op (21)
+    on left: 7 8 9, on right: 3
+expression (22)
+    on left: 10 11 12 13, on right: 4
+exp_operator (23)
+    on left: 14 15 16 17, on right: 11 12 13
+
+
+state 0
+
+    0 $accept: . filter_list $end
+
+    L_PAREN  shift, and go to state 1
+
+    filter_list  go to state 2
+    filter       go to state 3
+    filter_open  go to state 4
+
+
+state 1
+
+    5 filter_open: L_PAREN .
+
+    $default  reduce using rule 5 (filter_open)
+
+
+state 2
+
+    0 $accept: filter_list . $end
+    2 filter_list: filter_list . filter
+
+    $end     shift, and go to state 5
+    L_PAREN  shift, and go to state 1
+
+    filter       go to state 6
+    filter_open  go to state 4
+
+
+state 3
+
+    1 filter_list: filter .
+
+    $default  reduce using rule 1 (filter_list)
+
+
+state 4
+
+    3 filter: filter_open . filter_op filter_list filter_close
+    4       | filter_open . expression filter_close
+
+    OP_AND   shift, and go to state 7
+    OP_OR    shift, and go to state 8
+    OP_NOT   shift, and go to state 9
+    OPERAND  shift, and go to state 10
+
+    filter_op   go to state 11
+    expression  go to state 12
+
+
+state 5
+
+    0 $accept: filter_list $end .
+
+    $default  accept
+
+
+state 6
+
+    2 filter_list: filter_list filter .
+
+    $default  reduce using rule 2 (filter_list)
+
+
+state 7
+
+    7 filter_op: OP_AND .
+
+    $default  reduce using rule 7 (filter_op)
+
+
+state 8
+
+    8 filter_op: OP_OR .
+
+    $default  reduce using rule 8 (filter_op)
+
+
+state 9
+
+    9 filter_op: OP_NOT .
+
+    $default  reduce using rule 9 (filter_op)
+
+
+state 10
+
+   10 expression: OPERAND . OP_PRESENT
+   11           | OPERAND . exp_operator VAL_INT
+   12           | OPERAND . exp_operator VAL_BOOL
+   13           | OPERAND . exp_operator OPERAND
+
+    OP_EQU      shift, and go to state 13
+    OP_GT       shift, and go to state 14
+    OP_LT       shift, and go to state 15
+    OP_PRESENT  shift, and go to state 16
+    OP_APPROX   shift, and go to state 17
+
+    exp_operator  go to state 18
+
+
+state 11
+
+    3 filter: filter_open filter_op . filter_list filter_close
+
+    L_PAREN  shift, and go to state 1
+
+    filter_list  go to state 19
+    filter       go to state 3
+    filter_open  go to state 4
+
+
+state 12
+
+    4 filter: filter_open expression . filter_close
+
+    R_PAREN  shift, and go to state 20
+
+    filter_close  go to state 21
+
+
+state 13
+
+   14 exp_operator: OP_EQU .
+
+    $default  reduce using rule 14 (exp_operator)
+
+
+state 14
+
+   15 exp_operator: OP_GT .
+
+    $default  reduce using rule 15 (exp_operator)
+
+
+state 15
+
+   16 exp_operator: OP_LT .
+
+    $default  reduce using rule 16 (exp_operator)
+
+
+state 16
+
+   10 expression: OPERAND OP_PRESENT .
+
+    $default  reduce using rule 10 (expression)
+
+
+state 17
+
+   17 exp_operator: OP_APPROX .
+
+    $default  reduce using rule 17 (exp_operator)
+
+
+state 18
+
+   11 expression: OPERAND exp_operator . VAL_INT
+   12           | OPERAND exp_operator . VAL_BOOL
+   13           | OPERAND exp_operator . OPERAND
+
+    VAL_INT   shift, and go to state 22
+    VAL_BOOL  shift, and go to state 23
+    OPERAND   shift, and go to state 24
+
+
+state 19
+
+    2 filter_list: filter_list . filter
+    3 filter: filter_open filter_op filter_list . filter_close
+
+    L_PAREN  shift, and go to state 1
+    R_PAREN  shift, and go to state 20
+
+    filter        go to state 6
+    filter_open   go to state 4
+    filter_close  go to state 25
+
+
+state 20
+
+    6 filter_close: R_PAREN .
+
+    $default  reduce using rule 6 (filter_close)
+
+
+state 21
+
+    4 filter: filter_open expression filter_close .
+
+    $default  reduce using rule 4 (filter)
+
+
+state 22
+
+   11 expression: OPERAND exp_operator VAL_INT .
+
+    $default  reduce using rule 11 (expression)
+
+
+state 23
+
+   12 expression: OPERAND exp_operator VAL_BOOL .
+
+    $default  reduce using rule 12 (expression)
+
+
+state 24
+
+   13 expression: OPERAND exp_operator OPERAND .
+
+    $default  reduce using rule 13 (expression)
+
+
+state 25
+
+    3 filter: filter_open filter_op filter_list filter_close .
+
+    $default  reduce using rule 3 (filter)

@@ -1,0 +1,908 @@
+// ===================================================================
+// Title: Device_Modems
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_Modems.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines the
+//              classes that represent both call and connection-
+//              oriented modems.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 - None
+// 
+// Change Log for v2.7 - None
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// Modem
+// ===================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "CIM_Modem is the superclass for grouping the numerous types of "
+       "Modems.")]
+class CIM_Modem : CIM_LogicalDevice {
+};
+
+
+// ===================================================================
+// ConnectionBasedModem
+// ===================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "CIM_ConnectionBasedModem is the superclass for grouping the "
+       "numerous types of connection-based Modems. A CableModem is a "
+       "type of connection-based Modem.")]
+class CIM_ConnectionBasedModem : CIM_Modem {
+
+      [Description (
+          "VendorID information is reported via Modem-specific "
+          "requests. For example, for ADSLModem Devices the VendorID "
+          "is assigned by T1E1.4 according to T1.413, Appendix D. The "
+          "correct place in the CIM Schema for this information is in "
+          "PhysicalElement (the Manufacturer property) for hardware "
+          "and Product (the Vendor property) if the information is "
+          "related to Product acquisition. This data is also reported "
+          "here since it is part of the standard output from the "
+          "Device, and as an optimization.")]
+   string VendorID;
+};
+
+
+// ===================================================================
+// DSLModem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The DSLModem class represents the superclass for Digital "
+       "Subscriber Line (DSL) Devices. Properties will be defined in a "
+       "future release of the model.")]
+class CIM_DSLModem : CIM_ConnectionBasedModem {
+};
+
+
+// ===================================================================
+// ADSLModem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The ADSLModem class represents Modems of the DSL type = ADSL, "
+       "Asymmetric Digital Subscriber Line.")]
+class CIM_ADSLModem : CIM_DSLModem {
+
+      [Description (
+          "Noise Margin of this Modem with respect to its received "
+          "signal, in tenths of dB."), 
+       Units ( "Tenths of Decibels" )]
+   uint32 NoiseMargin;
+
+      [Description (
+          "Measured difference in the total power transmitted by the "
+          "peer Modem and the total power received by this Modem. This "
+          "is measured in tenths of dB."), 
+       Units ( "Tenths of Decibels" ), Gauge]
+   uint32 LineAttenuation;
+
+      [Description (
+          "Status indicates the current state of the connection "
+          "(line). The property holds a bitmap describing the possible "
+          "conditions. For example, \n"
+          "1) No Defect - There no defects on the line; \n"
+          "2) Loss Of Framing - ATUR failure due to not receiving "
+          "valid frame; \n"
+          "4) Loss Of Signal - ATUR failure due to not receiving "
+          "signal; \n"
+          "8) Loss Of Power - ATUR failure due to loss of power; \n"
+          "32) Loss Of Signal Quality - Loss of Signal Quality is "
+          "declared when the NoiseMargin falls below the minimum "
+          "NoiseMargin, or the bit-error-rate exceeds 10^-7."), 
+       ValueMap { "1", "2", "4", "8", "32" }, 
+       Values { "No Defect", "Loss Of Framing", "Loss Of Signal",
+          "Loss Of Power", "Loss Of Signal Quality" }]
+   uint32 LineState;
+
+      [Description (
+          "Measured total output power (in tenths of dB) transmitted "
+          "by this Modem."), 
+       Units ( "Tenths of Decibels" ), Gauge]
+   uint32 TotalOutputPower;
+
+      [Description (
+          "Indicates the maximum currently attainable data rate for "
+          "the Modem. This value will be equal or greater than the "
+          "current line rate."), 
+       Units ( "Bits per Second" )]
+   uint32 MaxDataRate;
+};
+
+
+// ===================================================================
+// CableModem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The CableModem class represents a device for transmission "
+       "across a cable infrastructure.")]
+class CIM_CableModem : CIM_ConnectionBasedModem {
+};
+
+
+// ===================================================================
+// HDSLModem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The HDSLModem class represents Modems of the DSL type = HDSL, "
+       "High data rate Digital Subscribe Line, capable of delivering "
+       "T1 or E1 speeds. Properties will be defined in a future "
+       "release of the model.")]
+class CIM_HDSLModem : CIM_DSLModem {
+};
+
+
+// ===================================================================
+// SDSLModem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The SDSLModem class represents Modems of the DSL type = SDSL, "
+       "Symmetric Digital Subscriber Line. Properties will be defined "
+       "in a future release of the model.")]
+class CIM_SDSLModem : CIM_DSLModem {
+};
+
+
+// ===================================================================
+// VDSLModem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The VDSLmodem class represents Modems of the DSL type = VDSL, "
+       "Very high data rate Digital Subscriber Line. Properties will "
+       "be defined in a future release of the model.")]
+class CIM_VDSLModem : CIM_DSLModem {
+};
+
+
+// ===================================================================
+// CallBasedModem
+// ===================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "CIM_CallBasedModem is the superclass for grouping the numerous "
+       "types of call-based modems. The POTSModem is a type of call- "
+       "based Modem.")]
+class CIM_CallBasedModem : CIM_Modem {
+
+      [Description (
+          "Indicates whether online fallback is enabled, to be "
+          "negotiated by the Modem.")]
+   boolean FallbackEnabled;
+
+      [Description (
+          "An array enumerating all the compression protocols "
+          "supported by the Modem."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Unknown", "Other", "No Compression", "MNP 5",
+          "V.42bis", "MNP 3", "MNP 4", "V.58", "PEP", "HST" }, 
+       ModelCorrespondence { 
+          "CIM_CallBasedModem.OtherCompressionDescription" }]
+   uint16 CompressionSupported[];
+
+      [Description (
+          "Description of the compression type when \"Other \" "
+          "(value=1) is defined in the CompressionSupported array. If "
+          "there are multiple \"Other\" types, then combine their "
+          "descriptions into a single string."), 
+       ModelCorrespondence { "CIM_CallBasedModem.CompressionSupported" 
+          }]
+   string OtherCompressionDescription;
+
+      [Description (
+          "Describes the current data compression characteristics of "
+          "the Modem."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Unknown", "Other", "No Compression", "MNP 5",
+          "V.42bis", "MNP 3", "MNP 4", "V.58", "PEP", "HST" }, 
+       ModelCorrespondence { "CIM_CallBasedModem.CompressionSupported",
+          "CIM_CallBasedModem.OtherCompressionInfoDescription" }]
+   uint16 CompressionInfo;
+
+      [Description (
+          "Description of the current compression type when \"Other\" "
+          "(value=1) is specified in the CompressionInfo property."), 
+       ModelCorrespondence { "CIM_CallBasedModem.CompressionInfo" }]
+   string OtherCompressionInfoDescription;
+
+      [Description (
+          "An array enumerating all the modulation protocols supported "
+          "by the Modem. The beginning entries in the Values qualifier "
+          "array are mapped from the CIM_POTSModem ModulationScheme "
+          "property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29" }, 
+       Values { "Unknown", "Other", "Not Supported", "Bell 103",
+          "Bell 212A", "V.22bis", "V.32", "V.32bis", "V.terbo", "V.FC",
+          "V.34", "V.34bis", "V.17 (G3 Fax Call)", "V.21", "V.22",
+          "V.23 Constant Carrier (1200/75)",
+          "V.23 Switched Carrier (Half Duplex)", "V.26bis", "V.26ter",
+          "V.27ter (G3 Fax Call)", "V.29 HD (G3 Fax Call)",
+          "V.34 HD (G3 Fax Call)", "V.90 Issue 1 (Asymmetric)",
+          "V.90 Issue 2 (Symmetric)", "V.58", "X2", "K56FLEX",
+          "V.Fast", "PEP", "HST" }, 
+       ModelCorrespondence { 
+          "CIM_CallBasedModem.OtherModulationDescription" }]
+   uint16 ModulationSupported[];
+
+      [Description (
+          "Description of the current modulation type when \"Other\" "
+          "(value=1) is specified in the ModulationSupported property. "
+          "If there are multiple \"Other\" types, then combine their "
+          "descriptions into a single string."), 
+       ModelCorrespondence { "CIM_CallBasedModem.ModulationSupported" }]
+   string OtherModulationDescription;
+
+      [Description (
+          "Describes the current modulation scheme of the Modem."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29" }, 
+       Values { "Unknown", "Other", "Not Supported", "Bell 103",
+          "Bell 212A", "V.22bis", "V.32", "V.32bis", "V.terbo", "V.FC",
+          "V.34", "V.34bis", "V.17 (G3 Fax Call)", "V.21", "V.22",
+          "V.23 Constant Carrier (1200/75)",
+          "V.23 Switched Carrier (Half Duplex)", "V.26bis", "V.26ter",
+          "V.27ter (G3 Fax Call)", "V.29 HD (G3 Fax Call)",
+          "V.34 HD (G3 Fax Call)", "V.90 Issue 1 (Asymmetric)",
+          "V.90 Issue 2 (Symmetric)", "V.58", "X2", "K56FLEX",
+          "V.Fast", "PEP", "HST" }, 
+       ModelCorrespondence { "CIM_CallBasedModem.ModulationSupported",
+          "CIM_CallBasedModem.OtherSchemeDescription" }]
+   uint16 ModulationScheme;
+
+      [Description (
+          "Description of the current modulation type when \"Other\" "
+          "(value=1) is specified in the ModulationScheme property."), 
+       ModelCorrespondence { "CIM_CallBasedModem.ModulationScheme" }]
+   string OtherSchemeDescription;
+
+      [Description (
+          "An array enumerating the error control protocols supported "
+          "by the Modem. The beginning entries in the Values qualifier "
+          "array are mapped from the CIM_POTSModem ErrorControlInfo "
+          "property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13" }, 
+       Values { "Unknown", "Other", "No Error Correction", "MNP 4",
+          "LAPM", "V.58", "ECP Enhanced Cellular Protocol",
+          "ETC Enhanced Throughput Cellular", "MNP 1", "MNP 2",
+          "MNP 3", "MNP10", "PEP", "HST" }, 
+       ModelCorrespondence { 
+          "CIM_CallBasedModem.OtherErrorControlDescription" }]
+   uint16 ErrorControlSupported[];
+
+      [Description (
+          "Description of the error control type when \"Other\" "
+          "(value= 1) is specified in the ErrorControlSupported "
+          "property. If there are multiple \"Other\" types, then "
+          "combine their descriptions into a single string."), 
+       ModelCorrespondence { "CIM_CallBasedModem.ErrorControlSupported" 
+          }]
+   string OtherErrorControlDescription;
+
+      [Description (
+          "Describes the current error correction characteristics of "
+          "the Modem."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13" }, 
+       Values { "Unknown", "Other", "No Error Correction", "MNP 4",
+          "LAPM", "V.58", "ECP Enhanced Cellular Protocol",
+          "ETC Enhanced Throughput Cellular", "MNP 1", "MNP 2",
+          "MNP 3", "MNP10", "PEP", "HST" }, 
+       ModelCorrespondence { 
+          "CIM_CallBasedModem.ErrorControlSupported",
+          "CIM_CallBasedModem.OtherErrorControlInfoDescription" }]
+   uint16 ErrorControlInfo;
+
+      [Description (
+          "Description of the error control when \"Other\" (value=1) "
+          "is defined as the value of the ErrorControlInfo property."), 
+       ModelCorrespondence { "CIM_CallBasedModem.ErrorControlInfo" }]
+   string OtherErrorControlInfoDescription;
+
+      [Description (
+          "Time of last reset of the Modem.")]
+   datetime TimeOfLastReset;
+
+      [Description (
+          "The rate at which the receiver and transmitter are or were "
+          "last cooperating, on a call, before disconnection."), 
+       Units ( "Bits per Second" )]
+   uint32 CallSpeed;
+
+      [Description (
+          "Status of the Modem. For example, information regarding "
+          "modem negotiation or whether the modem is connected (values "
+          "8 and 9, respectively) can be conveyed in this property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10" }, 
+       Values { "Unknown", "Other", "Offline", "On Hook", "Dialing",
+          "Waiting for Answer", "Ringing", "Modem Detected",
+          "Negotiating", "Online", "Error" }]
+   uint16 CallStatus;
+
+      [Description (
+          "Total number of characters sent by the Device on the last "
+          "or current call. That a call is in-progress is indicated by "
+          "the CallStatus property."), 
+       Counter]
+   uint32 CharsSent;
+
+      [Description (
+          "Total number of characters received by the Device on the "
+          "last or current call. That a call is in-progress is "
+          "indicated by the CallStatus property."), 
+       Counter]
+   uint32 CharsReceived;
+
+      [Description (
+          "Total number of characters lost by the Device on the last "
+          "or current call. That a call is in-progress is indicated by "
+          "the CallStatus property."), 
+       Counter]
+   uint32 CharsLost;
+
+      [Description (
+          "Total number of blocks sent by the Device on the last or "
+          "current call. That a call is in-progress is indicated by "
+          "the CallStatus property."), 
+       Counter]
+   uint32 BlocksSent;
+
+      [Description (
+          "Total number of blocks resent by the Device on the last or "
+          "current call. That a call is in-progress is indicated by "
+          "the CallStatus property."), 
+       Counter]
+   uint32 BlocksResent;
+
+      [Description (
+          "Total number of blocks received by the Device on the last "
+          "or current call. That a call is in-progress is indicated by "
+          "the CallStatus property."), 
+       Counter]
+   uint32 BlocksReceived;
+
+      [Description (
+          "Total number of block errors seen by the Device on the last "
+          "or current call. That a call is in-progress is indicated by "
+          "the CallStatus property."), 
+       Counter]
+   uint32 BlockErrors;
+
+      [Description (
+          "Length of the last or current call. That a call is "
+          "in-progress is indicated by the CallStatus property. The "
+          "'interval' format of the datetime data type should be used "
+          "for the property value.")]
+   datetime CallLength;
+
+      [Description (
+          "Last or current number dialed to which the statistics "
+          "apply, or NULL if the call was incoming.")]
+   string NumberDialed;
+};
+
+
+// ===================================================================
+// ISDNModem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The ISDNModem class, a kind of call-based Modem. Properties "
+       "will be defined in a future release of the model.")]
+class CIM_ISDNModem : CIM_CallBasedModem {
+};
+
+
+// ===================================================================
+// POTSModem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The POTSModem class represents a Device that translates binary "
+       "data into wave modulations for sound based transmission. It "
+       "connects to the POTS (Plain Old Telephone System) network.")]
+class CIM_POTSModem : CIM_CallBasedModem {
+
+      [Description (
+          "Capabilities of the POTSModem. For example, the Device may "
+          "support distinctive ring, caller ID, fax, voice, etc."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12" }, 
+       Values { "Unknown", "Other", "Distinctive Ring", "Caller ID",
+          "Voice", "Fax Class 1", "Fax Class 2", "WakeOnRing",
+          "Fax Group 3", "GSM Support", "AMPS Support", "OOB Alerting",
+          "Worldwide Country Support" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_POTSModem.CapabilityDescriptions" }]
+   uint16 Capabilities[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the POTSModem features indicated in "
+          "the Capabilities array. Note, each entry of this array is "
+          "related to the entry in the Capabilities array that is "
+          "located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_POTSModem.Capabilities" }]
+   string CapabilityDescriptions[];
+
+      [Description (
+          "Specifies which capabilities are enabled from the list of "
+          "ones supported, defined in the Capabilities array."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12" }, 
+       Values { "Unknown", "Other", "Distinctive Ring", "Caller ID",
+          "Voice", "Fax Class 1", "Fax Class 2", "WakeOnRing",
+          "Fax Group 3", "GSM Support", "AMPS Support", "OOB Alerting",
+          "Worldwide Country Support" }, 
+       ModelCorrespondence { "CIM_POTSModem.Capabilities" }]
+   uint16 EnabledCapabilities[];
+
+      [Description (
+          "Defines the maximum settable communication speed to the COM "
+          "Port for an external modem. Enter 0 if not applicable."), 
+       Units ( "Bits per Second" )]
+   uint32 MaxBaudRateToSerialPort;
+
+      [Description (
+          "Defines the maximum settable communication speed for "
+          "accessing the phone system."), 
+       Units ( "Bits per Second" )]
+   uint32 MaxBaudRateToPhone;
+
+      [Description (
+          "Boolean indicating that synchronous, as well as "
+          "asynchronous, communication is supported.")]
+   boolean SupportsSynchronousConnect;
+
+      [Description (
+          "DialType is an integer indicating whether tone (value=1) or "
+          "pulse dialing (value=2) is used. \"Unknown\" (0) can also "
+          "be defined."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "Tone", "Pulse" }]
+   uint16 DialType;
+
+      [Description (
+          "InactivityTimeout defines the time limit (in seconds) for "
+          "automatic disconnection of the phone line, if no data is "
+          "exchanged. A value of 0 indicates that this feature is "
+          "present but not enabled."), 
+       Units ( "Seconds" )]
+   uint32 InactivityTimeout;
+
+      [Description (
+          "Describes the volume level of the audible tones from the "
+          "Modem. For example, high, medium or low volume can be "
+          "reported (values 3, 4 or 5, respectively)."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "Not Supported", "High", "Medium",
+          "Low", "Off", "Auto" }]
+   uint16 SpeakerVolumeInfo;
+
+      [Description (
+          "CountriesSupported is an array of strings defining the "
+          "countries in which the POTSModem operates."), 
+       MaxLen ( 64 )]
+   string CountriesSupported[];
+
+      [Description (
+          "CountrySelected is a string value defining the country for "
+          "which the Modem is currently programmed. When multiple "
+          "countries are supported, this property defines which one is "
+          "currently selected for use."), 
+       MaxLen ( 64 )]
+   string CountrySelected;
+
+      [Description (
+          "Number of rings before the Modem answers an incoming call.")]
+   uint8 RingsBeforeAnswer;
+
+      [Description (
+          "MaxNumberOfPasswords specifies the number of passwords "
+          "definable in the Modem itself. If this feature is not "
+          "supported, enter 0.")]
+   uint16 MaxNumberOfPasswords;
+
+      [Description (
+          "CurrentPasswords is an array containing the currently "
+          "defined passwords for the Modem. This array may be left "
+          "blank for security reasons."), 
+       MaxLen ( 24 )]
+   string CurrentPasswords[];
+
+      [Description (
+          "Indication of whether the Modem supports call-back.")]
+   boolean SupportsCallback;
+
+      [Description (
+          "AnswerMode defines the current auto-answer/call-back "
+          "setting for the Modem."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Disabled", "Manual Answer",
+          "Auto Answer", "Auto Answer with Call-Back" }]
+   uint16 AnswerMode;
+
+      [Description (
+          "The current equalization setting for the Modem."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "Long", "Short" }]
+   uint16 Equalization;
+
+      [Description (
+          "List of black-listed numbers for the Modem.")]
+   string BlackListedNumbers[];
+};
+
+
+// ===================================================================
+// Unimodem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Unimodem is a POTSModem that supports the Unimodem 1.0 "
+       "Specification.")]
+class CIM_Unimodem : CIM_POTSModem {
+
+      [Description (
+          "Current call setup result code."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11" }, 
+       Values { "No Previous Call", "No Dial Tone Detected",
+          "Reorder Signal Detected, Network Busy",
+          "Busy Signal Detected", "No Recognized Signal Detected",
+          "Voice Detected", "Text Telephone Detected",
+          "Data Answering Signal Detected",
+          "Data Calling Signal Detected",
+          "Fax Answering Signal Detected",
+          "Fax Calling Signal Detected", "V.8bis Signal Detected" }]
+   uint16 CallSetupResultCode;
+
+      [Description (
+          "Current multi-media mode of the Unimodem."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10" }, 
+       Values { "Data Only", "Fax Only", "Voice Only", "Voice View",
+          "ASVD V.61", "ASVD V.34Q", "DSVD Multi-Tech", "DSVD 1.2",
+          "DSVD V.70", "Video Telephony H.324", "Other V.80 Call" }]
+   uint16 MultiMediaMode;
+
+      [Description (
+          "Current DTE-DCE interface mode of the Unimodem, such as "
+          "asynchronous, v.80 transparent or framed synchronous modes."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Async Data", "V.80 Transparent Synchronous Mode",
+          "V.80 Framed Synchronous Mode" }]
+   uint16 DTEDCEInterfaceMode;
+
+      [Description (
+          "The active transmit modulation scheme."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23..65535" }, 
+       Values { "V.17 (G3 Fax Call)", "V.21", "V.22", "V.22bis",
+          "V.23 Constant Carrier (1200/75)",
+          "V.23 Switched Carrier (Half Duplex)", "V.26bis", "V.26ter",
+          "V.27ter (G3 Fax Call)", "V.29 HD (G3 Fax Call)", "V.32",
+          "V.32bis", "V.34", "V.34 HD (G3 Fax Call)",
+          "V.90 Issue 1 (Asymmetric)", "V.90 Issue 2 (Symmetric)",
+          "Reserved (V.58)", "X2", "K56FLEX", "V.FC", "V.32terbo",
+          "Bell 212A", "Bell 103", "Reserved for Mfgs" }]
+   uint16 TransmitCarrierNegotiation;
+
+      [Description (
+          "The active receive modulation scheme."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23..65535" }, 
+       Values { "V.17 (G3 Fax Call)", "V.21", "V.22", "V.22bis",
+          "V.23 Constant Carrier (1200/75)",
+          "V.23 Switched Carrier (Half Duplex)", "V.26bis", "V.26ter",
+          "V.27ter (G3 Fax Call)", "V.29 HD (G3 Fax Call)", "V.32",
+          "V.32bis", "V.34", "V.34 HD (G3 Fax Call)",
+          "V.90 Issue 1 (Asymmetric)", "V.90 Issue 2 (Symmetric)",
+          "Reserved (V.58)", "X2", "K56FLEX", "V.FC", "V.32terbo",
+          "Bell 212A", "Bell 103", "Reserved for Mfgs" }]
+   uint16 ReceiveCarrierNegotiation;
+
+      [Description (
+          "Initial transmit carrier data rate for the current or last "
+          "call, in bits per second."), 
+       Units ( "Bits per Second" )]
+   uint32 InitialTransmitCarrierDataRate;
+
+      [Description (
+          "Initial receive carrier data rate for the current or last "
+          "call, in bits per second."), 
+       Units ( "Bits per Second" )]
+   uint32 InitialReceiveCarrierDataRate;
+
+      [Description (
+          "The number of carrier retrains requested during the current "
+          "or last call."), 
+       Counter]
+   uint8 CarrierRetrainsRequested;
+
+      [Description (
+          "The number of carrier retrains granted during the current "
+          "or last call."), 
+       Counter]
+   uint8 CarrierRetrainsGranted;
+
+      [Description (
+          "Final transmit carrier data rate of the current or last "
+          "call, in bits per second."), 
+       Units ( "Bits per Second" )]
+   uint32 FinalTransmitCarrierDataRate;
+
+      [Description (
+          "Final receive carrier data rate of the current or last "
+          "call, in bits per second."), 
+       Units ( "Bits per Second" )]
+   uint32 FinalReceiveCarrierDataRate;
+
+      [Description (
+          "Cause of last call termination."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50" }, 
+       Values { "Cause Unidentified", "No Previous Call",
+          "Call Is Still in Progress", "Call Waiting Signal Detected",
+          "Delayed", "NMS Initiated Dial Call",
+          "NMS Initiated Leased Line Restoral", "NMS Initiated Redial",
+          "NMS Initiated Dial Disconnect", "Power Loss", 
+          // 10               
+          "Equipment Failure", "Front Panel Disconnect Requested",
+          "Front Panel Leased Line Restoral",
+          "Automatic Leased Line Restoral", "Inactivity Timer Expired",
+          "cct116 Restoral Request", "cct108 Is Off Inhibits Dial",
+          "cct108 Turned Off", "No Number Provided",
+          "Blacklisted Number", 
+          // 20               
+          "Call Attempts Limit Exceeded", "Extension Phone Off Hook",
+          "Call Setup Fail Timer Expired", "Incoming Call Detected",
+          "Loop Current Interrupted", "No Dial Tone", "Voice Detected",
+          "Reorder Tone", "Sit Tone", "Engaged Tone", 
+          // 30               
+          "Long Space Disconnect", "Carrier Lost", "Training Failed",
+          "No Modulation in Common", "Retrain Failed",
+          "Retrain Attempt Count Exceeded", "GSTN Cleardown Received",
+          "Fax Detected", "In Test Mode",
+          "Intrusive Self Test Initiated", 
+          // 40               
+          "Any Key Abort", "DTE Hangup Command", "DTE Reset Command",
+          "Frame Reject", "No Error Control Established",
+          "Protocol Violation", "n400 Exceeded", "Negotiation Failed",
+          "Disconnect Frame Received", "Sabme Frame Received", 
+          // 50               
+          "Loss Of Synchronization" }]
+   uint16 TerminationCause;
+
+      [Description (
+          "Diagnostic Command Specification, Unimodem revision number.")]
+   string UnimodemRevision;
+
+      [Description (
+          "Estimated noise level for the last or current call in -dBm. "
+          "Values are in the range of 0-100."), 
+       Units ( "-dBm" ), Gauge]
+   uint32 EstimatedNoiseLevel;
+
+      [Description (
+          "Normalized mean squared error for the last or current call.")]
+   uint32 NormalizedMeanSquaredError;
+
+      [Description (
+          "Temporary carrier loss event count for the last or current "
+          "call."), 
+       Counter]
+   uint8 TemporaryCarrierLossEventCount;
+
+      [Description (
+          "Carrier Rate re-negotiation event count for the last or "
+          "current call."), 
+       Counter]
+   uint8 CarrierRenegotiationEventCount;
+
+      [Description (
+          "Error Control frame size in bytes for the last or current "
+          "call."), 
+       Units ( "Bytes" )]
+   uint16 ErrorControlFrameSize;
+
+      [Description (
+          "Error control link timeouts in transmission for the last or "
+          "current call."), 
+       Counter]
+   uint8 ErrorControlLinkTimeouts;
+
+      [Description (
+          "Error control link NAKs received for the last or current "
+          "call."), 
+       Counter]
+   uint8 ErrorControlLinkNAKs;
+
+      [Description (
+          "The flow control mechanism used in transmitting data."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Off", "DC1/DC3", "V.24 ckt 106/133" }]
+   uint16 TransmitFlowControl;
+
+      [Description (
+          "The flow control mechanism used in receiving data."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Off", "DC1/DC3", "V.24 ckt 106/133" }]
+   uint16 ReceiveFlowControl;
+
+      [Description (
+          "Number of transmit chars sent from the DTE for the last or "
+          "current call. A continuous connection may exceed this "
+          "value, given enough time. Typically these counters are "
+          "implemented as 32 bit counters, but additional bits may be "
+          "provided and are accounted for in this property. If these "
+          "counters hit maximum value, the DCE manufacturer may roll "
+          "over to 0."), 
+       Counter]
+   uint64 TransmitCharsSentFromDTE;
+
+      [Description (
+          "Number of receive chars sent to the DTE for the last or "
+          "current call. A continuous connection may exceed this "
+          "value, given enough time. Typically these counters are "
+          "implemented as 32 bit counters, but additional bits may be "
+          "provided and are accounted for in this property. If these "
+          "counters hit maximum value, the DCE manufacturer may roll "
+          "over to 0."), 
+       Counter]
+   uint64 ReceiveCharsSentToDTE;
+
+      [Description (
+          "Number of transmit characters lost for the last or current "
+          "call. A DCE may limit this counter to 16 bits, but "
+          "additional bits may be provided and are accounted for in "
+          "this property."), 
+       Counter]
+   uint64 TransmitCharsLost;
+
+      [Description (
+          "Number of receive characters lost for the last or current "
+          "call. A DCE may limit this counter to 16 bits, but "
+          "additional bits may be provided and are accounted for in "
+          "this property."), 
+       Counter]
+   uint64 ReceiveCharsLost;
+
+      [Description (
+          "Number of I-Frames transmitted for the last or current "
+          "call. A continuous connection may exceed this value, given "
+          "enough time. Typically these counters are implemented as 32 "
+          "bit counters, but additional bits may be provided and are "
+          "accounted for in this property. If these counters hit "
+          "maximum value, the DCE manufacturer may roll over to 0."), 
+       Counter]
+   uint64 TransmitIFrameCount;
+
+      [Description (
+          "Number of I-Frames received for the last or current call. A "
+          "continuous connection may exceed this value, given enough "
+          "time. Typically these counters are implemented as 32 bit "
+          "counters, but additional bits may be provided and are "
+          "accounted for in this property. If these counters hit "
+          "maximum value, the DCE manufacturer may roll over to 0."), 
+       Counter]
+   uint64 ReceiveIFrameCount;
+
+      [Description (
+          "Number of I-Frame errors detected for the last or current "
+          "call, if error control protocol is running. A DCE may limit "
+          "this counter to 16 bits, but additional bits may be "
+          "provided and are accounted for in this property."), 
+       Counter]
+   uint64 TransmitIFrameErrorCount;
+
+      [Description (
+          "Number of I-Frame errors detected for the last or current "
+          "call, if error control protocol is running. A DCE may limit "
+          "this counter to 16 bits, but additional bits may be "
+          "provided and are accounted for in this property."), 
+       Counter]
+   uint64 ReceivedIFrameErrorCount;
+
+      [Description (
+          "Number of Call waiting events detected for the last or "
+          "current call."), 
+       Counter]
+   uint8 CallWaitingEventCount;
+};
+
+
+// ===================================================================
+// OOBAlertServiceOnModem
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "OOBAlertServiceOnModem defines where the out of band alerting "
+       "Service is implemented. The Service can either employ a Modem "
+       "or NetworkAdapter to send alerts.")]
+class CIM_OOBAlertServiceOnModem : CIM_DeviceServiceImplementation {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The Modem which implements the alerting Service.")]
+   CIM_Modem REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The alerting Service provided on the Modem.")]
+   CIM_OOBAlertService REF Dependent;
+};
+
+
+// ===================================================================
+// WakeUpServiceOnModem
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "WakeUpServiceOnModem defines where the WakeUpService is "
+       "implemented. The Service can either employ a Modem or "
+       "NetworkAdapter to receive a wakeup signal.")]
+class CIM_WakeUpServiceOnModem : CIM_DeviceServiceImplementation {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The Modem which implements the WakeUpService.")]
+   CIM_Modem REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The wakeup Service provided on the Modem.")]
+   CIM_WakeUpService REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

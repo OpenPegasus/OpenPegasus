@@ -1,0 +1,679 @@
+// ===================================================================
+// Title: System_Processing
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: System_Processing.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The System Model defines system related management
+//              concepts. This file defines the specific concepts to
+//              manage processes, threads, and jobs.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.9 Final
+// CR1549 - Finalize JobSettingData
+// 
+// Change Log for v2.8 Preliminary
+//  CR1204 - Removal of Experimental Qualifier for System.
+// 
+// Change Log for v2.8 Preliminary
+//  CR933  - ExecutionState additions
+//  CR989  - Remove the Abstract qualifier from ScheduledJob,
+//           clarify the class and several property Descriptions,
+//           and fix the class and a property name
+//  CR1016 - Job Updates
+//  CR1048 - Add JobQueue & QueueStatisticalData
+//  CR1081 - Move CIM_Job & Concrete to Core
+//  CR1128  - Addition of HostedDependency
+//  CR1135  - Job Recovery Properties and the RecoveryJob association
+//  CR1137 - Change NumberOnQueue property (to two new properties)
+//           in QueueStatisticalData and add MaxJobCPUTime to
+//           JobQueue
+// 
+// Change Log for v2.7 Final
+// CR988 - Update description and change subclassing of JobDestination
+// CR994 - Update the description of InstanceID
+// CR989 - Updates to the description and name of ScheduledJob
+// CR969 - Remove the experimental qualifier
+//       - Remove JobScheduleSettingData so it can remain experimental
+//         in 2.8.
+// 
+// Change Log for v2.7
+// CR757 - Change the subclassing of Process, Thread and Job from
+//         LogicalElement to EnabledLogicalElement
+// CR767 - Add the Compostion qualifer to OSProcess and ProcessThread
+// CR768 - Add ScheduledJob
+//       - Update class description and all property descriptions of
+//         Job, and Add a new property ScheduledStartTime to Job
+//       - Add OwningJobElement
+//       - Add AffectedJobElement
+//       - Add ConcreteJob
+//       - Add ProcessOfJob
+// CR875 - Clarify description of Process .KernelModeTime and
+//         .UserModeTime
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// Process
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Each instance of the CIM_Process class represents a single "
+       "instance of a running program. A user of the OperatingSystem "
+       "will typically see a Process as an application or task. Within "
+       "an OperatingSystem, a Process is defined by a workspace of "
+       "memory resources and environmental settings that are allocated "
+       "to it. On a multitasking System, this workspace prevents "
+       "intrusion of resources by other Processes. Additionally, a "
+       "Process can execute as multiple Threads, all which run within "
+       "the same workspace.")]
+class CIM_Process : CIM_EnabledLogicalElement {
+
+      [Key, Propagated ( "CIM_OperatingSystem.CSCreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string CSCreationClassName;
+
+      [Key, Propagated ( "CIM_OperatingSystem.CSName" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string CSName;
+
+      [Key, Propagated ( "CIM_OperatingSystem.CreationClassName" ), 
+       Description (
+          "The scoping OperatingSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string OSCreationClassName;
+
+      [Key, Propagated ( "CIM_OperatingSystem.Name" ), Description (
+          "The scoping OperatingSystem's Name."), 
+       MaxLen ( 256 )]
+   string OSName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "A string used to identify the Process. A Process ID is a "
+          "kind of Process Handle."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.1" }]
+   string Handle;
+
+      [Override ( "Name" ), Description (
+          "The name of the process."), 
+       MappingStrings { "MIF.DMTF|Process Information|001.6" }]
+   string Name;
+
+      [Description (
+          "Priority indicates the urgency or importance of execution "
+          "of a Process. If a priority is not defined for a Process, a "
+          "value of 0 should be used."), 
+       MappingStrings { "MIF.DMTF|Process Information|001.10" }]
+   uint32 Priority;
+
+      [Description (
+          "Indicates the current operating condition of the Process. "
+          "Values include ready (2), running (3), and blocked (4), "
+          "among others. The majority of the enumerated values are "
+          "obvious. However, a few require additional explanation: \n"
+          "7 (Terminated) describes that a process has naturally "
+          "completed \n"
+          "8 (Stopped) describes that a process has been prematurely "
+          "'stopped' by a user or other request \n"
+          "10 (Ready but Relinquished Processor) describes that a "
+          "process is in the Ready state, but has voluntarily "
+          "relinquished execution time to other processes. For "
+          "example, this state may indicate a problem when the "
+          "relinquishing process is not handling items on its queues. "
+          "If these semantics cannot be detected, the process should "
+          "report its state as 2 (\"Ready\"). \n"
+          "11 (Hung) indicates that a process is not responding and "
+          "should therefore not be given further execution time."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11" }, 
+       Values { "Unknown", "Other", "Ready", "Running", "Blocked",
+          "Suspended Blocked", "Suspended Ready", "Terminated",
+          "Stopped", "Growing", "Ready But Relinquished Processor",
+          "Hung" }, 
+       MappingStrings { "MIF.DMTF|Process Information|001.9",
+          "MIF.UNIX|Process Information|13.9" }]
+   uint16 ExecutionState;
+
+      [Description (
+          "A string describing the state - used when the instance's "
+          "ExecutionState property is set to 1 (\"Other\"). Other "
+          "ExecutionDescription should be set to NULL when the "
+          "Execution State property is any value other than 1.")]
+   string OtherExecutionDescription;
+
+      [Description (
+          "Time that the Process began executing.")]
+   datetime CreationDate;
+
+      [Description (
+          "Time that the Process was stopped or terminated.")]
+   datetime TerminationDate;
+
+      [Description (
+          "Time in kernel mode, in milliseconds. If this information "
+          "is not available, or if the operating system does not "
+          "distinguish between time in kernel and in user mode, a "
+          "value of 0 should be used."), 
+       Units ( "MilliSeconds" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.13" }]
+   uint64 KernelModeTime;
+
+      [Description (
+          "Time in user mode, in milliseconds. If this information is "
+          "not available, a value of 0 should be used. If the "
+          "operating system does not distinguish between time in "
+          "kernel mode and user mode, the time should be returned in "
+          "this property."), 
+       Units ( "MilliSeconds" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.14" }]
+   uint64 UserModeTime;
+
+      [Description (
+          "The amount of memory in bytes that a Process needs to "
+          "execute efficiently, for an OperatingSystem that uses "
+          "page-based memory management. If an insufficient amount of "
+          "memory is available (< working set size), thrashing will "
+          "occur. If this information is not known, NULL or 0 should "
+          "be entered. If this data is provided, it could be monitored "
+          "to understand a Process' changing memory requirements as "
+          "execution proceeds."), 
+       Units ( "Bytes" ), Gauge]
+   uint64 WorkingSetSize;
+};
+
+
+// ===================================================================
+// OSProcess
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "A link between the OperatingSystem and Process(es) running in "
+       "the context of this OperatingSystem.")]
+class CIM_OSProcess : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The OperatingSystem.")]
+   CIM_OperatingSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Weak, Description (
+          "The Process running in the context of the OperatingSystem.")]
+   CIM_Process REF PartComponent;
+};
+
+
+// ===================================================================
+// ProcessExecutable
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A link between a Process and a DataFile indicating that the "
+       "File participates in the execution of the Process.")]
+class CIM_ProcessExecutable : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The DataFile participating in the execution of the Process.")]
+   CIM_DataFile REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Process.")]
+   CIM_Process REF Dependent;
+};
+
+
+// ==================================================================
+// ServiceProcess
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_ServiceProcess is an association used to establish "
+       "relationships between Services and Processes. It is used to "
+       "indicate if a Service is running in a particular Process. It "
+       "is also used to indicate, via the ExecutionType property, if "
+       "the Service started and is wholly responsible for the Process, "
+       "or if the Service is running in an existing Process, perhaps "
+       "with other unrelated Services, which is owned or started by a "
+       "different entity. This association relates a Service with an "
+       "externally visible system signature.")]
+class CIM_ServiceProcess {
+
+      [Key, Description (
+          "The Service whose Process is described by this association.")]
+   CIM_Service REF Service;
+
+      [Key, Description (
+          "The Process which represents or hosts the executing "
+          "Service.")]
+   CIM_Process REF Process;
+
+      [Description (
+          "Enumeration indicating how the Service runs in the context "
+          "of, or owns the Process. \"Unknown\" indicates that the "
+          "ExecutionType is not known. \"Other\" indicates that the "
+          "ExecutionType does not match any of the values in the "
+          "ExecutionType enumeration. \"Executes in Existing Process\" "
+          "indicates that the Service is hosted in a Process that "
+          "already exists in the system. The lifecycle of the Service "
+          "is separate from that of the Process. \"Exeutes as "
+          "Independent Process\" indicates that the Service is "
+          "responsible for the lifecycle of the Process. When the "
+          "Service is started, the Process is created. For example, "
+          "ServletEngines can run \"InProcess\" within the existing "
+          "Apache processes or \"OutOfProcess\" in its own servlet "
+          "engine process. In this case the Apache process would "
+          "communicate with the servlet engine process based on the "
+          "content of the request. The association may be many to "
+          "many."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "Executes in Existing Process",
+          "Executes as Independent Process" }]
+   uint16 ExecutionType;
+};
+
+// ===================================================================
+// Thread
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Threads represent the ability to execute units of a Process or "
+       "task in parallel. A Process can have many Threads, each of "
+       "which is weak to the Process.")]
+class CIM_Thread : CIM_EnabledLogicalElement {
+
+      [Key, Propagated ( "CIM_Process.CSCreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string CSCreationClassName;
+
+      [Key, Propagated ( "CIM_Process.CSName" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string CSName;
+
+      [Key, Propagated ( "CIM_Process.OSCreationClassName" ), 
+       Description (
+          "The scoping OperatingSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string OSCreationClassName;
+
+      [Key, Propagated ( "CIM_Process.OSName" ), Description (
+          "The scoping OperatingSystem's Name."), 
+       MaxLen ( 256 )]
+   string OSName;
+
+      [Key, Propagated ( "CIM_Process.CreationClassName" ), 
+       Description (
+          "The scoping Process' CreationClassName."), 
+       MaxLen ( 256 )]
+   string ProcessCreationClassName;
+
+      [Key, Propagated ( "CIM_Process.Handle" ), Description (
+          "The scoping Process' Handle."), 
+       MaxLen ( 256 )]
+   string ProcessHandle;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allow all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "A string used to identify the Thread."), 
+       MaxLen ( 256 )]
+   string Handle;
+
+      [Description (
+          "Priority indicates the urgency or importance of execution "
+          "of a Thread. A Thread may have a different priority than "
+          "its owning Process. If this information is not available "
+          "for a Thread, a value of 0 should be used.")]
+   uint32 Priority;
+
+      [Description (
+          "Indicates the current operating condition of the Thread. "
+          "Values include ready (2), running (3), and blocked (4), "
+          "among others. The majority of the enumerated values are "
+          "obvious. However, a few require additional explanation: \n"
+          "7 (Ready but Relinquished Processor) describes that a "
+          "thread is in the Ready state, but has voluntarily "
+          "relinquished execution time to other threads. For example, "
+          "this state may indicate a problem when the relinquishing "
+          "thread is not handling items on its queues. If these "
+          "semantics cannot be detected, the thread should report its "
+          "state as 2 (\"Ready\"). \n"
+          "8 (Hung) indicates that a thread is not responding."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Ready", "Running", "Blocked",
+          "Suspended Blocked", "Suspended Ready",
+          "Ready But Relinquished Processor", "Hung" }]
+   uint16 ExecutionState;
+
+      [Description (
+          "Time in kernel mode, in milliseconds. If this information "
+          "is not available, a value of 0 should be used."), 
+       Units ( "MilliSeconds" )]
+   uint64 KernelModeTime;
+
+      [Description (
+          "Time in user mode, in milliseconds. If this information is "
+          "not available, a value of 0 should be used."), 
+       Units ( "MilliSeconds" )]
+   uint64 UserModeTime;
+};
+
+
+// ===================================================================
+// ProcessThread
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "A link between a Process and the Thread(s) running in the "
+       "context of this Process.")]
+class CIM_ProcessThread : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The Process.")]
+   CIM_Process REF GroupComponent;
+
+      [Override ( "PartComponent" ), Weak, Description (
+          "The Thread running in the context of the Process.")]
+   CIM_Thread REF PartComponent;
+};
+
+// ===================================================================
+// JobSettingData
+// ===================================================================
+   [Version ( "2.9.0" ), Description (
+       "JobSettingData represents job characteristics and scheduling "
+       "information for a CIM_Job. The settings may be applied to a "
+       "job handling Service, a JobQueue or other destination to which "
+       "jobs are submitted, and/or to individual CIM_Jobs. The "
+       "applicability of the settings are defined using the "
+       "ElementSettingData relationship. Since the Settings may be "
+       "defined in several contexts and applied to many types of "
+       "elements, this class is defined as a subclass of SettingData, "
+       "versus ScopedSettingData.")]
+class CIM_JobSettingData : CIM_SettingData {
+
+
+      [Write, Description (
+          "Indicates whether or not the Job should be automatically "
+          "deleted upon completion. Note that the 'completion' of a "
+          "recurring job is defined by its JobRunTimes or UntilTime "
+          "properties, OR when the Job is terminated by manual "
+          "intervention."), 
+       ModelCorrespondence { "CIM_Job.DeleteOnCompletion" }]
+   boolean DeleteOnCompletion;
+
+      [Description (
+          "Describes the recovery setting if the Job does not "
+          "successfully complete. The possible values are: \n"
+          "0 = \"Unknown\", meaning it is unknown as to what recovery "
+          "action to take \n"
+          "1 = \"Other\", indicating that the recovery action will be "
+          "specified in the property, OtherRecoveryAction \n"
+          "2 = \"Do Not Continue\", meaning stop the execution of the "
+          "job and appropriately update its status \n"
+          "3 = \"Continue With Next Job\", meaning continue with the "
+          "next job in the queue \n"
+          "4 = \"Re-run Job\", indicating that the job should be "
+          "re-run \n"
+          "5 = \"Run Recovery Job\", meaning run the Job associated "
+          "using the RecoveryJob relationship. Note that the recovery "
+          "Job MUST already be on the queue from which it will run."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Do Not Continue",
+          "Continue With Next Job", "Re-run Job", "Run Recovery Job" }, 
+       ModelCorrespondence { "CIM_JobSettingData.OtherRecoveryAction",
+          "CIM_Job.RecoveryAction" }]
+   uint16 RecoveryAction;
+
+      [Description (
+          "A string describing the recovery action when the instance's "
+          "RecoveryAction property is 1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_JobSettingData.RecoveryAction",
+          "CIM_Job.OtherRecoveryAction" }]
+   string OtherRecoveryAction;
+};
+
+
+// ===================================================================
+// OwningJobElement
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "OwningJobElement represents an association between a Job and "
+       "the ManagedElement responsible for the creation of the Job. "
+       "This association may not be possible, given that the execution "
+       "of jobs can move between systems and that the lifecycle of the "
+       "creating entity may not persist for the total duration of the "
+       "job. However, this can be very useful information when "
+       "available. This association defines a more specific 'owner' "
+       "than is provided by the CIM_Job.Owner string."), 
+    ModelCorrespondence { "CIM_Job.Owner" }]
+class CIM_OwningJobElement {
+
+      [Key, Max ( 1 ), Description (
+          "The ManagedElement responsible for the creation of the Job.")]
+   CIM_ManagedElement REF OwningElement;
+
+      [Key, Description (
+          "The Job created by the ManagedElement.")]
+   CIM_Job REF OwnedElement;
+};
+
+
+// ===================================================================
+// AffectedJobElement
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "AffectedJobElement represents an association between a Job and "
+       "the ManagedElement(s) that may be affected by its execution. "
+       "It may not be feasible for the Job to describe all of the "
+       "affected elements. The main purpose of this association is to "
+       "provide information when a Job requires exclusive use of the "
+       "'affected' ManagedElment(s) or when describing that side "
+       "effects may result.")]
+class CIM_AffectedJobElement {
+
+      [Key, Description (
+          "The ManagedElement affected by the execution of the Job.")]
+   CIM_ManagedElement REF AffectedElement;
+
+      [Key, Description (
+          "The Job that is affecting the ManagedElement.")]
+   CIM_Job REF AffectingElement;
+
+      [Description (
+          "An enumeration describing the 'effect' on the "
+          "ManagedElement. This array corresponds to the "
+          "OtherElementEffectsDescriptions array, where the latter "
+          "provides details related to the high-level 'effects' "
+          "enumerated by this property. Additional detail is required "
+          "if the ElementEffects array contains the value 1, "
+          "\"Other\"."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Exclusive Use",
+          "Performance Impact", "Element Integrity" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_AffectedJobElement.OtherElementEffectsDescriptions" }]
+   uint16 ElementEffects[];
+
+      [Description (
+          "Provides details for the 'effect' at the corresponding "
+          "array position in ElementEffects. This information is "
+          "required whenever ElementEffects contains the value 1 "
+          "(\"Other\")."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_AffectedJobElement.ElementEffects" }]
+   string OtherElementEffectsDescriptions[];
+};
+
+
+// ===================================================================
+// ProcessOfJob
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "ProcessOfJob describes that the referenced Process is the "
+       "result of the execution of the Job. A Job may cause multiple "
+       "Processes to run, perhaps on different operating systems. This "
+       "is allowed by the '*' cardinality of the Process reference. "
+       "Note that a Process can result from only one Job - hence, the "
+       "'0..1' cardinality on Job.")]
+class CIM_ProcessOfJob : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "Execution of the Job results in the creation of the Process "
+          "referenced as PartComponent. The Job aggregates the "
+          "Process(es) that are created when it is executed.")]
+   CIM_Job REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The Process that results from the execution of the Job.")]
+   CIM_Process REF PartComponent;
+};
+
+
+// ===================================================================
+// JobDestination
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "JobDestination is an EnabledLogicalElement representing where "
+       "a Job is submitted for processing. It can refer to a queue "
+       "that contains zero or more Jobs, such as a print queue "
+       "containing print Jobs. JobDestinations are hosted on Systems, "
+       "similar to the way that Services are hosted on Systems. Also, "
+       "they may be enabled/disabled similar to Services.")]
+class CIM_JobDestination : CIM_EnabledLogicalElement {
+
+      [Key, Propagated ( "CIM_System.CreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_System.Name" ), Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "The inherited Name serves as key of a JobDestination "
+          "instance in a System."), 
+       MaxLen ( 256 )]
+   string Name;
+};
+
+
+// ===================================================================
+// HostedJobDestination
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "An association between a JobDestination and a System on which "
+       "it resides. The cardinality of this association is 1-to-many. "
+       "A System may host many Job queues. Job Destinations are weak "
+       "with respect to their hosting System. Heuristic: A "
+       "JobDestination is hosted on the System where the "
+       "LogicalDevices, SoftwareFeatures or Services that implement/ "
+       "provide the JobDestination are located.")]
+class CIM_HostedJobDestination : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The hosting System.")]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The JobDestination hosted on the System.")]
+   CIM_JobDestination REF Dependent;
+};
+
+
+// ===================================================================
+// JobDestinationJobs
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "An association describing where a Job is submitted for "
+       "processing, ie to which JobDestination.")]
+class CIM_JobDestinationJobs : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The JobDestination, possibly a queue.")]
+   CIM_JobDestination REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Job that is in the Job queue/Destination.")]
+   CIM_Job REF Dependent;
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

@@ -1,0 +1,444 @@
+#!/bin/bash
+##
+## Script that runs a set of predefined client and indication tests for
+## open pegasus extended testing
+## There are variables to
+##    - define which group of tests is run
+##    - define the time to stopping the tests
+##    - define config parameters for some of the tests    
+
+## TODO
+## - Add more tests.
+## - More sophisticated way to output data from the clients called
+##   in the test. Today everything just splashes on the screen
+## - Catch client failures
+## 
+##
+
+usage()
+{
+cat << EOF
+Usage: $(basename $0) - Run a selected number of pegasus cim client
+    commands in parallel against a running cim server. if the -t
+    option is set, execute the set of clients repeatedly until
+    the number of minutes defined for -t has passed.
+    Thus you can run a 24 hour test with
+        $(basename $0) -t 1440
+        or
+        $(basename $0) -t 24h
+
+    The commands to be executed are fixed defined in the script
+    $PEGASUS_ROOT must exist to run this command
+
+    $(basename $0) [OPTIONS]
+
+    OPTIONS
+    -r count   Number of times to repeat the certain commands.
+               This passes directly to the command (cimcli, etc.) repeat options.
+               While the separate threads continue to run until shutdown time
+               or ctrl-c is entered, this defines how many times a particular
+               command is repeated before the loop within the run loop for
+               that process is executed.
+    -p         Pull only. Run only the pull operations. Default is to run
+               Pull operations.
+    -n         Non-Pull only. Run only non-pull tests Default is to run
+               non-pull operations
+    -i         Run Indication tests. Default is to NOT run indication tests
+    -v         Verbose display.
+    -s         Start server before starting client tests.
+    -t min(h,d) Terminate min minutes/hours/days after starting the test
+               If the last character is h or d, this represents
+               hours or days. (i.e 3d will run the test for 3 days).
+               Does not accumulate multiple uses of the -t option.
+    -V         Running server under valgrind.  Used to determine if server
+               is running since process names is different.
+               NOTE: This only works because we ignore the check on process
+               running when this flag set.
+    -l         Log individual tests to separate log files, <test_name>.log.
+    -d         delete old log files
+
+    NOTE: It takes several minutes (ex. 3 - 5) to run a single loop of the
+        client commands.
+EOF
+}
+##########################################################
+## Class and instance defining variables used in tests
+## these are as defined in the Client/tests/pullop Makefile but
+## are extracted to allow for repeated tests in this script
+
+NStressCxx=test/testProvider
+CStressCxx=TST_ResponseStressTestCxx
+CXXASSOC_INST_ID="Test_CLITestProviderClass.Id=\"Mike\" -n test/TestProvider"
+CMPIASSOCOBJ_INST_ID="CMPI_TEST_Person.name=\"Melvin\" -n test/TestProvider"
+
+CIMCLIHOSTID="-l localhost"
+HOSTID="-H localhost"
+
+######################################################################
+## Configuration variables
+TEST_END_SEC=0
+STOPTIME=0
+REPEAT=3
+STARTSERVER=0
+
+RUN_UNDER_VALGRIND=0
+CIMSERVERNAME=cimserver
+
+## default is to run pull and nonpull but not indications
+## These flags are reset from the command line options
+RUN_NONPULL_OPERATIONS=1
+RUN_PULL_OPERATIONS=1
+
+## default is to not run indications test. Set to run by
+## cmd line option
+RUN_INDICATIONS=0
+
+## default is no logging of each command output
+LOG=0
+
+## Number of parallel clients to run in TestClient
+TEST_CLIENT_PARALLEL_CLIENTS=1
+
+###############################################################
+##  Capture if user ctrl-cs out of program. Report current status and
+##  set program exit flag.
+##
+EXIT_PGM=0
+# run if user hits control-c
+control_c()
+{
+  echo -en "\n*** will end  at end of this loop ***\n"
+  EXIT_PGM=1
+}
+ 
+function displayTrueFalse()
+{
+    if [[ $1 -eq 0 ]]; then
+        echo "false"
+    else
+        echo "true"
+    fi
+}
+
+# trap keyboard interrupt (control-c)
+trap control_c SIGINT
+
+######################################################################
+## Test to be sure PEGASUS_ROOT exists and get input parameters
+##
+if [ -z "$PEGASUS_ROOT" ]; then
+   echo PEGASUS_ROOT not set. Terminating and end of this client loop
+   exit 1
+fi 
+
+##if [[ $(basename $PWD) != "pegasus" ]]; then
+##   echo Must be run from pegasus directory
+##   exit 1
+##fi
+
+while getopts "dhvt:r:pslin-" OPTION
+do 
+ case $OPTION in 
+     h)  usage 
+         exit 1 
+         ;; 
+     v)  VERBOSE=true
+         ;;
+     s)  STARTSERVER=1
+         ;;
+     d)  rm -f *.log
+         ;;
+
+     t)  STOPTIME=$OPTARG
+         case "$STOPTIME" in
+
+            *m ) STOPTIME=${STOPTIME%%"m"}
+            ;;
+
+            *h ) STOPTIME=${STOPTIME%%"h"}
+            STOPTIME=$((STOPTIME*60))
+            ;;
+
+            *d ) STOPTIME=${STOPTIME%%"d"}
+            STOPTIME=$((STOPTIME*1440))
+            ;;
+
+            *[0-9] )
+            ;;
+
+            * ) echo ERROR: Option -t $STOPTIME incorrect
+            exit 1
+           ;;
+        esac
+
+        TEST_END_SEC=$(date +%s --date="now + $STOPTIME min")
+        ;;
+
+     V) RUN_UNDER_VALGRIND=1
+        ;;
+     r) REPEAT=$OPTARG
+        ;;
+     i) RUN_INDICATIONS=1
+        ;;
+     p) RUN_NON_PULL_OPERATIONS=0
+        ;;
+     n) RUN_PULL_OPERATIONS=0
+        ;;
+     l) LOG=1
+        ;;
+     -) usage   ## used to allow --help option
+         exit 
+         ;;
+     ?) usage 
+         exit 
+         ;;
+     *) usage 
+        exit 
+        ;;
+     esac 
+done
+
+NOW=$(date +"%m-%d-%Y:%H-%M")
+if [[ -e $(basename $0).txt ]]; then
+   mv $(basename $0).txt $(basename $0).txt.prev
+fi
+echo ++++++ $(basename $0) Start +++++++ at $NOW 2>&1 | tee $(basename $0).txt
+
+## If verbose, display results of command line options
+if [ -n $VERBOSE ]; then
+   echo VERBOSE on
+   echo REPEAT:  $REPEAT count
+   echo STOPTIME to run: $STOPTIME minutes
+   echo STARTSERVER = $(displayTrueFalse $STARTSERVER)
+   echo RUN_PULL_OPERATIONS = $(displayTrueFalse $RUN_PULL_OPERATIONS)
+   echo RUN_NONPULL_OPERATIONS = $(displayTrueFalse $RUN_NONPULL_OPERATIONS)
+   echo LOG = $LOG
+   echo RUN INDICATIONS = $(displayTrueFalse $RUN_INDICATIONS)
+   if [ $STOPTIME -ne 0 ]; then
+      echo Client test will end at $(date -d @$TEST_END_SEC)
+   else
+	echo test for one loop
+   fi
+fi
+echo Stop in $STOPTIME minutes. >> $(basename $0).txt
+if [ $STOPTIME -ne 0 ]; then
+      echo Client test will end at $(date -d @$TEST_END_SEC). >> $(basename $0).txt
+else
+	echo test for one loop. >> $(basename $0).txt
+fi
+echo RUN_PULL_OPERATIONS=$(displayTrueFalse $RUN_PULL_OPERATIONS) \
+ RUN_NONPULL_OPERATIONS=$(displayTrueFalse $RUN_NONPULL_OPERATIONS) \
+ RUN INDICATIONS=$(displayTrueFalse $RUN_INDICATIONS) >> $(basename $0).txt
+
+## get the server pid and test to see if it is running
+CIMSERVER_PID=$(ps -C $CIMSERVERNAME -o pid|grep -v PID | sed 's/^ *//')
+PROCFILE=/proc/$CIMSERVER_PID
+
+if [ ! -e $PROCFILE ]; then
+    ##  If specified, start the server
+    if [ $STARTSERVER -eq 1 ]; then
+       echo start CIM Server
+       cimserver
+       ## Just to be sure it is started and running, sleep
+       sleep 3
+    else
+       echo cimserver not running and you did not spec start.
+       if [[[ "$RUN_UNDER_VALGRIND" -ne "1" ]]; then
+           echo Terminating since there is no server
+           exit 1
+       fi
+    fi
+else
+    echo CIM Server already running
+fi
+
+## get cimserver pid if it exists.
+CIMSERVER_PID=$(ps -C $CIMSERVERNAME -o pid|grep -v PID | sed 's/^ *//')
+
+if [ -n $VERBOSE ]; then
+    echo CIMSERVER_PID "\"$CIMSERVER_PID\""
+fi
+
+PROCFILE=/proc/$CIMSERVER_PID
+
+#############################################################
+## execute a loop of the tests.  If -t was not used
+## execute once.
+
+STARTTIME=$(date +%s)
+
+## turn on statistics gathering for the server.  Without this
+## we get no statistics capture.
+##cimcli son
+
+## Loop to execute the client commands defined below. Each loop
+## runs all the client commands to completion.
+LOOPCOUNT=0
+
+run_loop()
+{
+    ### allow all parallel processes to get started
+    sleep 1
+
+    NAME="$1"
+    LOGFILE=$NAME.log
+    shift
+
+    if [ $LOG == 1 ]; then
+        # Clear any old log file by creating a new one.
+        echo "Starting test $NAME" > $LOGFILE
+        LOGGER="tee -a $LOGFILE"
+    else
+        LOGGER="cat"
+    fi
+
+    # prepare a subshell, we will send all its stdout/stderr to $LOGGER
+    (
+    while true; do
+        LOOPSTARTTIME=$(date +"%s")
+        let LOOPCOUNT++
+
+        if [ ! -e $PROCFILE ]; then
+            echo $NAME: cimserver $PROCFILE not running. Terminate test on loop $LOOPCOUNT
+            exit 1
+        fi
+
+        if [[ $EXIT_PGM -eq 1 ]]; then
+            echo $NAME: Exit Client loop immediatly on loop $LOOPCOUNT. Sigint terminated pgm
+            exit 1
+        fi
+
+        echo $NAME: executing "$@"
+        "$@"
+
+        ## compute time in minutes since started
+        CURTIME=$(date +%s)
+        RUNTIME=$(($CURTIME-$STARTTIME))
+        RUNTIME_MIN=$(($RUNTIME/60))
+
+        ## if the -t was set test to see if we want to shut down script
+        if [[ $TEST_END_SEC -ne 0 ]]; then
+            if [[ $TEST_END_SEC -lt $(date +%s) ]]; then
+               echo $NAME: Stopped at defined end time after running $RUNTIME_MIN minutes
+               exit 0
+            else
+               echo $NAME: Start new client loop. Loop number $LOOPCOUNT after running $RUNTIME_MIN min
+            fi
+        else
+            echo $NAME: Test executed for one loop and is terminating
+        fi
+
+        if [[ $TEST_END_SEC -ne 0 ]]; then
+            if [[ $TEST_END_SEC -lt $(date +%s) ]]; then
+                echo $NAME: Stopped at defined end time after running $RUNTIME_MIN minutes and $LOOPCOUNT loops
+                exit 0
+            else
+                echo $NAME: Start new client loop. Loop number $LOOPCOUNT after running $RUNTIME_MIN min
+            fi
+        else
+            echo $NAME: Test executed for one loop and is terminating
+            exit 0
+        fi
+
+        LOOPENDTIME=$(date +"%s")
+        diff=$(($LOOPENDTIME-$LOOPSTARTTIME))
+        LOOPTIME_MIN=$(($diff % 60))
+        echo $NAME: $(basename $0) running $RUNTIME_MIN minutes loop $LOOPCOUNT $LOOPTIME_MIN
+
+        # give cimserver some rest
+        sleep 1
+    done ) 2>&1 | $LOGGER
+}
+
+###########################################################################
+## The following initiates each test. The tests should run until this script
+## reaches the end of its defined run time or it intrupted (ex. Ctrl-c)
+##
+
+############################################################################
+## Collection of non-pull tests.  execute only if the -p flag not
+## set.
+if [[ $RUN_NONPULL_OPERATIONS == 1 ]]; then
+    ## This command typically takes a couple of minutes to execute
+    ## so use basic REPEAT. 
+    run_loop "01_TestClient" TestClient -t $TEST_CLIENT_PARALLEL_CLIENTS -r $REPEAT &
+
+    ## execute number of client operations repeatedly
+    run_loop "02_cimcli_ei" cimcli ei CIM_ManagedElement --r $REPEAT --sum &
+    run_loop "03_cimcli_ni" cimcli ni CIM_ManagedElement --r $REPEAT --sum &
+    run_loop "04_cimcli_gc" cimcli gc CIM_ManagedElement --r $REPEAT --sum &
+    run_loop "05_cimcli_cci" cimcli cci --r $REPEAT &
+    run_loop "06_cimcli_ec" cimcli ec -di --r $REPEAT --sum &
+    run_loop "07_cimcli_ei" cimcli ei $CStressCxx -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+    run_loop "08_cimcli_ni" cimcli ni $CStressCxx -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+fi
+
+###############################################################
+##  Tests defining the operation to run
+##
+
+## Execute the general tests for pull operations
+## can only run this test once because it sets parameters in
+## provider and uses the results. Thus, the size of the response
+## from the provider will change over the test. This test takes
+## minutes to execute so execute once in each cycle. Note
+## that this test uses TST_ResponseStressTestCxx2, the second class that uses
+## the ResponseStressCxx provider but which has an independent set of config
+## options.
+
+if [[ $RUN_PULL_OPERATIONS == 1 ]]; then
+run_loop "10_make_pull_poststarttests" make  \
+    -C $PEGASUS_ROOT/src/Pegasus/Client/tests/pullop poststarttests \
+    CStressCxx=TST_ResponseStressTestCxx2 &
+
+## The remainder of these tests run against TST_ResponseStressTestCxx
+## Note that only tests that DO NOT modify the ResponseStress Client should
+## be run in this test.  We set it once for Cxx and leave it at that for
+## the life of the tests.
+cimcli im $CStressCxx set -n $NStressCxx Size=10000 \
+        ResponseCount=10000 $CIMCLIHOSTID
+
+run_loop "31_Make_PullSimpleTests" make -C $PEGASUS_ROOT/src/Pegasus/Client/tests/pullop simpleTests &
+
+## pull operations direct. Use only cimcli here because we cannot
+## trust the size of the return from the StressCxx provider since we are
+## also executing one set of the pullop makefile which changes the
+## the provider parameters.
+run_loop "11_cimcli_pei" cimcli pei $CStressCxx -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+run_loop "12_cimcli_pni" cimcli pni $CStressCxx -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+run_loop "13_cimcli_pei" cimcli pei $CStressCxx -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+run_loop "14_cimcli_pni" cimcli pni $CStressCxx -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+run_loop "15_cimcli_pr" cimcli pr $CXXASSOC_INST_ID -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+run_loop "16_cimcli_pa" cimcli pa $CXXASSOC_INST_ID  -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+run_loop "17_cimcli_pan" cimcli pan $CXXASSOC_INST_ID  -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+run_loop "18_cimcli_pa" cimcli pa $CMPIASSOCOBJ_INST_ID  -n $NStressCxx --sum --t --r $REPEAT $CIMCLIHOSTID &
+
+## The following is just a subset of the tests and
+## does not modify the provider runtime characteristics
+## since we also run the complete poststarttest for pullop
+run_loop "19_pullop_r" pullop r $CXXASSOC_INST_ID -C $HOSTID -v 1  -r $REPEAT &
+run_loop "20_pullop_a" pullop a $CXXASSOC_INST_ID -C $HOSTID -v 1 -r $REPEAT &
+run_loop "21_pullop_an" pullop an $CXXASSOC_INST_ID -C $HOSTID -v 1 -r $REPEAT &
+run_loop "22_pullop_a" pullop a $CMPIASSOCOBJ_INST_ID -M 1 -N 1 -C -T $HOSTID -v 1 -r $REPEAT &
+fi
+
+## Run an indication test. Today this is optional
+if [[ $RUN_INDICATIONS == 1 ]]; then
+    run_loop "40_indication" \
+        make - C $PEGASUS_ROOT/src/Providers/TestProviders/IndicationStressTestProvider/testclient poststarttests &
+fi
+
+echo $(basename $0) wait for all clients to finish
+wait
+echo $(basename $0) All clients done
+
+if [[ $EXIT_PGM -ne 0 ]]; then
+    echo Exit Client loop immediatly. User terminated pgm
+    exit 1
+fi
+
+CURTIME=$(date +%s)
+RUNTIME=$(($CURTIME-$STARTTIME))
+RUNTIME_MIN=$(($RUNTIME/60))
+echo ++++++ $(basename $0) completed. Ran for $RUNTIME_MIN minutes +++++++
+

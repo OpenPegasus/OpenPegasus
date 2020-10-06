@@ -1,0 +1,178 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+
+ROOT = .
+
+include $(ROOT)/env_var.status
+
+export PEGASUS_PLATFORM=$(PEGASUS_PLATFORM_FOR_32BIT_PROVIDER_SUPPORT)
+export PEGASUS_INTERNAL_ENABLE_32BIT_PROVIDER_SUPPORT=true
+ifdef PEGASUS_DEST_LIB_DIR
+  export PEGASUS_DEST_LIB_DIR=$(PEGASUS_DEST_LIB_DIR)32
+else
+  export PEGASUS_DEST_LIB_DIR=lib32
+endif
+
+include $(ROOT)/mak/config.mak
+
+DIRS = \
+   src/Pegasus/Common \
+   src/Pegasus/General \
+   src/Pegasus/Config  \
+   src/Pegasus/Query/QueryCommon \
+   src/Pegasus/Client
+
+ifeq ($(PEGASUS_ENABLE_CQL),true)
+    DIRS +=  src/Pegasus/CQL
+endif
+
+DIRS += \
+   src/Pegasus/WQL \
+   src/Pegasus/Query/QueryExpression \
+   src/Pegasus/Provider \
+   src/Pegasus/Provider/CMPI \
+   src/Pegasus/ProviderManager2 \
+   src/Pegasus/ProviderManager2/Default \
+   src/Pegasus/ProviderManagerRouter \
+   src/Pegasus/ProviderManagerService/ProviderAgent
+
+
+ifeq ($(PEGASUS_ENABLE_CMPI_PROVIDER_MANAGER), true)
+    DIRS += \
+        src/Pegasus/Provider/CMPI \
+        src/Pegasus/ProviderManager2/CMPI
+endif
+
+TEST_DIRS += \
+    src/Providers/TestProviders/MethodTestProvider \
+    src/Providers/TestProviders/InstanceProvider \
+    src/Providers/TestProviders/CMPI \
+    src/Providers/TestProviders/PerformanceTests
+
+include $(ROOT)/mak/recurse.mak
+
+ifeq ($(PEGASUS_USE_RELEASE_DIRS), true)
+PEGASUS_32BIT_LIBRARIES = \
+   libProviderRegistrationProvider \
+   libpegclient \
+   libpeggeneral \
+   libpegcommon \
+   libpegconfig \
+   libpegpmservice \
+   libpegprm \
+   libpegprovider \
+   libpegprovidermanager \
+   libpegrepository \
+   libpegwql \
+   libDefaultProviderManager \
+   libpegqueryexpression \
+   libpegquerycommon \
+   libpegservice \
+   libpegpmrouter
+
+ifeq ($(PEGASUS_ENABLE_CQL),true)
+   PEGASUS_32BIT_LIBRARIES += \
+      libpegcql \
+      libCIMQueryCapabilitiesProvider
+endif
+
+ifeq ($(PEGASUS_ENABLE_CMPI_PROVIDER_MANAGER),true)
+PEGASUS_32BIT_LIBRARIES += \
+   libcmpiCppImpl
+PEGASUS_32BIT_PROVIDER_MANAGERS += \
+   libCMPIProviderManager
+endif
+
+PEGASUS_32BIT_LIBRARY_LINKS = \
+   libpegclient \
+   libpegcommon \
+   libpegprovider \
+   libDefaultProviderManager
+
+PEGASUS_32BIT_ADMIN_CMDS = \
+   cimprovagt32 
+
+ifndef PEGASUS_FLAVOR
+    PEGASUS_FLAVOR = tog
+endif
+
+ifeq ($(PEGASUS_FLAVOR), tog)
+    PEGASUS_PROD_DIR = /usr
+else
+    PEGASUS_PROD_DIR = /usr/local/$(PEGASUS_FLAVOR)-pegasus
+endif
+
+PEGASUS_ARCH_LIB = lib
+PEGASUS_DEST_LIB_DIR = $(PEGASUS_PROD_DIR)/$(PEGASUS_ARCH_LIB)
+PEGASUS_SBIN_DIR = $(PEGASUS_PROD_DIR)/sbin
+PEGASUS_PROVIDER_DIR = $(PEGASUS_PROD_DIR)/$(PEGASUS_ARCH_LIB)/Pegasus
+PEGASUS_PROVIDER_LIB_DIR = $(PEGASUS_PROVIDER_DIR)/providers
+
+PEGASUS_SYSTEM_DIRECTORIES = \
+   $(PEGASUS_PROD_DIR) \
+   $(PEGASUS_SBIN_DIR) \
+   $(PEGASUS_DEST_LIB_DIR) \
+   $(PEGASUS_PROVIDER_DIR) \
+   $(PEGASUS_PROVIDER_LIB_DIR) \
+   $(PEGASUS_PROVIDER_MANAGER_LIB_DIR)
+
+stage: FORCE
+	$(MAKE) --directory=$(ROOT) -f Makefile.cimprovagt32 stage_PegasusDirectories
+	$(MAKE) --directory=$(ROOT) -f Makefile.cimprovagt32 stage_PegasusFiles
+
+stage_PegasusDirectories: FORCE
+	$(foreach i, $(PEGASUS_SYSTEM_DIRECTORIES), $(MKDIRHIER) $(PEGASUS_STAGING_DIR)$(i);)
+
+stage_PegasusFiles: FORCE
+	$(MAKE) --directory=$(ROOT) -f Makefile.cimprovagt32 stage_PegasusLibraryDirectoryFiles
+	$(MAKE) --directory=$(ROOT) -f Makefile.cimprovagt32 stage_PegasusProviderManagerLibraryDirectoryFiles
+	$(MAKE) --directory=$(ROOT) -f Makefile.cimprovagt32 stage_PegasusAdminCmdsDirectoryFiles
+
+stage_PegasusLibraryDirectoryFiles: FORCE
+	$(foreach i, $(PEGASUS_32BIT_LIBRARIES), $(COPY) $(PEGASUS_HOME)/lib32/$(i)$(LIB_SUFFIX) $(PEGASUS_STAGING_DIR)$(PEGASUS_DEST_LIB_DIR)/$(i)$(LIB_SUFFIX);)
+	$(foreach i, $(PEGASUS_32BIT_LIBRARY_LINKS), $(MAKE) --directory=$(ROOT) -f Makefile.cimprovagt32 createlink OBJECT=$(i)$(LIB_SUFFIX) LINKNAME=$(PEGASUS_STAGING_DIR)$(PEGASUS_DEST_LIB_DIR)/$(i)$(LIB_LINK_SUFFIX);)
+
+stage_PegasusProviderLibraryDirectoryFiles: FORCE
+	$(foreach i, $(PEGASUS_PROVIDERS), $(COPY) $(PEGASUS_HOME)/lib32/$(i)$(LIB_SUFFIX) $(PEGASUS_STAGING_DIR)$(PEGASUS_PROVIDER_LIB_DIR)/$(i)$(LIB_SUFFIX);)
+	$(foreach i, $(PEGASUS_PROVIDERS), $(MAKE) --directory=$(ROOT) -f Makefile.cimprovagt32 createlink OBJECT=$(i)$(LIB_SUFFIX) LINKNAME=$(PEGASUS_STAGING_DIR)$(PEGASUS_PROVIDER_LIB_DIR)/$(i)$(LIB_LINK_SUFFIX);)
+
+stage_PegasusProviderManagerLibraryDirectoryFiles: FORCE
+	$(foreach i, $(PEGASUS_32BIT_PROVIDER_MANAGERS), $(COPY) $(PEGASUS_HOME)/lib32/$(i)$(LIB_SUFFIX) $(PEGASUS_STAGING_DIR)$(PEGASUS_PROVIDER_MANAGER_LIB_DIR)/$(i)$(LIB_SUFFIX);)
+	$(foreach i, $(PEGASUS_32BIT_PROVIDER_MANAGERS), $(MAKE) --directory=${ROOT} -f Makefile.cimprovagt32 createlink OBJECT=$(i)$(LIB_SUFFIX) LINKNAME=$(PEGASUS_STAGING_DIR)$(PEGASUS_PROVIDER_MANAGER_LIB_DIR)/$(i)$(LIB_LINK_SUFFIX);)
+
+stage_PegasusAdminCmdsDirectoryFiles: FORCE
+	$(foreach i, $(PEGASUS_32BIT_ADMIN_CMDS), $(COPY) $(PEGASUS_HOME)/bin/$(i)$(EXE) $(PEGASUS_STAGING_DIR)$(PEGASUS_SBIN_DIR)/$(i)$(EXE);)
+
+.PHONY: FORCE
+
+FORCE:
+
+include $(ROOT)/mak/commands.mak
+
+endif

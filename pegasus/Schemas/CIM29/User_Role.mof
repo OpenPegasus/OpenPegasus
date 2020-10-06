@@ -1,0 +1,316 @@
+// ===================================================================
+// Title: User_Role
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: User_Role.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The User Model extends the management concepts that
+//              are related to users and security.
+//              This file defines the concepts and classes for roles.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ===================================================================
+// Change Log for v2.8: None
+// 
+// Change Log for v2.7
+// (ERRATA) CR855 - Change cardinality of the Antecedent from 0..1
+//         to 1 for MoreOrganizationInfo and MoreOrgUnitInfo
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// Role
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The Role object class is used to represent a position or set "
+       "of responsibilities within an organization, organizational "
+       "unit or system administration scope and is filled by a person "
+       "or persons (or non-human entities represented by "
+       "ManagedSystemElement subclasses) that may be explicitly or "
+       "implicitly members of this collection subclass. The class is "
+       "defined so as to incorporate commonly-used LDAP attributes to "
+       "permit implementations to easily derive this information from "
+       "LDAP-accessible directories. The members of a role are "
+       "frequently called role occupants. This class's properties are "
+       "a subset of a related class, OtherRoleInformation, which "
+       "defines all the group properties and in array form for "
+       "directory compatibility.")]
+class CIM_Role : CIM_Collection {
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "The Name property defines the label by which the object is "
+          "known. In the case of an LDAP-derived instance, the Name "
+          "property value may be set to the distinguished name of the "
+          "LDAP-accessed object instance."), 
+       MaxLen ( 1024 )]
+   string Name;
+
+      [Description (
+          "This property may be used to describe the kind of business "
+          "activity performed by the members (role occupants) in the "
+          "position or set of responsibilities represented by the "
+          "Role."), 
+       MaxLen ( 128 )]
+   string BusinessCategory;
+
+      [Required, Description (
+          "A Common Name is a (possibly ambiguous) name by which the "
+          "role is commonly known in some limited scope (such as an "
+          "organization) and conforms to the naming conventions of the "
+          "country or culture with which it is associated.")]
+   string CommonName;
+};
+
+
+// ==================================================================
+// OtherRoleInformation
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The OtherRoleInformation class is used to provide additional "
+       "information about an associated Role instance. This class is "
+       "defined so as to incorporate commonly-used LDAP attributes to "
+       "permit implementations to easily derive this information from "
+       "LDAP-accessible directories.")]
+class CIM_OtherRoleInformation : CIM_ManagedElement {
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "The Name property defines the label by which the object is "
+          "known. In the case of an LDAP-derived instance, the Name "
+          "property value may be set to the distinguished name of the "
+          "LDAP-accessed object instance."), 
+       MaxLen ( 1024 )]
+   string Name;
+
+      [Description (
+          "In the case of an LDAP-derived instance, the ObjectClass "
+          "property value(s) may be set to the objectClass attribute "
+          "values.")]
+   string ObjectClass[];
+
+      [Description (
+          "This property may be used to describe the kind of business "
+          "activity performed by the members (role occupants) in the "
+          "position or set of responsibilities represented by the "
+          "Role."), 
+       MaxLen ( 128 )]
+   string BusinessCategory[];
+
+      [Description (
+          "A CommonName is a (possibly ambiguous) name by which the "
+          "role is commonly known in some limited scope (such as an "
+          "organization) and conforms to the naming conventions of the "
+          "country or culture with which it is associated.")]
+   string CommonName[];
+
+      [Description (
+          "The Descriptions property values may contain human-readable "
+          "descriptions of the object. In the case of an LDAP-derived "
+          "instance, the description attribute may have multiple "
+          "values that, therefore, cannot be placed in the inherited "
+          "Description property."), 
+       MaxLen ( 1024 )]
+   string Descriptions[];
+
+      [Description (
+          "This property is used for the role occupants' telegram "
+          "service."), 
+       MaxLen ( 128 )]
+   string DestinationIndicator[];
+
+      [Description (
+          "The role occupants' facsimile telephone number.")]
+   string FacsimileTelephoneNumber[];
+
+      [Description (
+          "The role occupants' International ISDN number."), 
+       MaxLen ( 16 )]
+   string InternationaliSDNNumber[];
+
+      [Description (
+          "The name of an organizational unit related to the role.")]
+   string OU[];
+
+      [Description (
+          "The PhysicalDeliveryOfficeName property specifies the name "
+          "of the city, village, etc. where a physical delivery office "
+          "is situated."), 
+       MaxLen ( 128 )]
+   string PhysicalDeliveryOfficeName[];
+
+      [Description (
+          "The PostalAddress property values specify the address "
+          "information required for the physical delivery of postal "
+          "messages by the postal authority to the role occupants.")]
+   string PostalAddress[];
+
+      [Description (
+          "The PostalCode property specifies the postal code for the "
+          "role occupants. If this value is present it will be part of "
+          "the object's postal address."), 
+       MaxLen ( 40 )]
+   string PostalCode[];
+
+      [Description (
+          "The PostOfficeBox property specifies the PO box by which "
+          "the role occupants will receive physical postal delivery. "
+          "If present, the property value is part of the object's "
+          "postal address."), 
+       MaxLen ( 40 )]
+   string PostOfficeBox[];
+
+      [Description (
+          "The PreferredDeliveryMethod property specifies the role "
+          "occupants' preferred method to be used for contacting them "
+          "in their role.")]
+   string PreferredDeliveryMethod;
+
+      [Description (
+          "This property specifies a postal address suitable for "
+          "receipt of telegrams or expedited documents, where it is "
+          "necessary to have the recipient accept delivery.")]
+   string RegisteredAddress[];
+
+      [Description (
+          "In the case of an LDAP-derived instance, the SeeAlso "
+          "property specifies distinguished name of other Directory "
+          "objects which may be other aspects (in some sense) of the "
+          "same real world object.")]
+   string SeeAlso[];
+
+      [Description (
+          "The State or Province name property specifies a state or "
+          "province.")]
+   string StateOrProvince[];
+
+      [Description (
+          "The Street address property specifies a site for the local "
+          "distribution and physical delivery in a postal address, "
+          "i.e. the street name, place, avenue, and the number."), 
+       MaxLen ( 128 )]
+   string Street[];
+
+      [Description (
+          "The TelephoneNumber property specifies a telephone number "
+          "of the role occupants, e.g. + 44 582 10101)."), 
+       MaxLen ( 32 )]
+   string TelephoneNumber[];
+
+      [Description (
+          "The TeletexTerminalIdentifier property specifies the "
+          "Teletex terminal identifier (and, optionally, parameters) "
+          "for a teletex terminal associated with the role occupants.")]
+   string TeletexTerminalIdentifier[];
+
+      [Description (
+          "The TelexNumber property specifies the telex number, "
+          "country code, and answerback code of a telex terminal for "
+          "the role occupants.")]
+   string TelexNumber[];
+
+      [Description (
+          "An X.121 address for the role occupants."), 
+       MaxLen ( 15 )]
+   string X121Address[];
+};
+
+
+// ==================================================================
+// MoreRoleInfo
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "CIM_MoreRoleInfo is an association used to extend the "
+       "information in a CIM_Role class instance.")]
+class CIM_MoreRoleInfo : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The Role which has more information.")]
+   CIM_Role REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "Additional data concerning the Role.")]
+   CIM_OtherRoleInformation REF Dependent;
+};
+
+
+// ==================================================================
+// SystemAdministratorRole
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_SystemAdministratorRole is an association used to identify "
+       "a system administrator Role for a CIM_System.")]
+class CIM_SystemAdministratorRole : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The administered system.")]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The system administration role.")]
+   CIM_Role REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

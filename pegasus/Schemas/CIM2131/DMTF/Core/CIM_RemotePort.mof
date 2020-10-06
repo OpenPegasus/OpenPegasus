@@ -1,0 +1,39 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_RemotePort
+// ==================================================================
+   [UMLPackagePath ( "CIM::Core::Service" ), Version ( "2.7.0" ), 
+    Description (
+       "RemotePort adds port information to the access data (such as "
+       "IP Address), specified in and inherited from "
+       "RemoteServiceAccessPoint. For example, using the additional "
+       "properties in this class, one could indicate that UDP Port 123 "
+       "is accessed at IP Address xyz. The IP Address would be "
+       "specified in the inherited AccessInfo property, while the UDP "
+       "Port number would be specified in this class' property, "
+       "PortInfo.")]
+class CIM_RemotePort : CIM_RemoteServiceAccessPoint {
+
+      [Description (
+          "Port information that may further specify the remote access "
+          "information."), 
+       ModelCorrespondence { "CIM_RemotePort.PortProtocol" }]
+   string PortInfo;
+
+      [Description (
+          "An enumerated integer describing the protocol of the port "
+          "addressed by PortInformation."), 
+       ValueMap { "1", "2", "3", "32768..65535" }, 
+       Values { "Other", "TCP", "UDP", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_RemotePort.OtherProtocolDescription" 
+          }]
+   uint16 PortProtocol;
+
+      [Description (
+          "Describes the protocol when the property PortProtocol is "
+          "set to 1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_RemotePort.PortProtocol" }]
+   string OtherProtocolDescription;
+};

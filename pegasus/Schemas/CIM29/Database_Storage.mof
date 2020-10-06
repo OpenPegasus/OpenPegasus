@@ -1,0 +1,373 @@
+// ===================================================================
+// Title: Database_Storage
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Database_Storage.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description:
+//       This file contains the classes and associations that define
+// the manageable entities that are relevant for database storage.
+// 
+// ===================================================================
+// Change Log for V2.8 Preliminary
+// CR929  - Model changes for database storage
+// CR1084 - Remove redundant database segment properties
+// CR1085 - Add InitialExtentSize setting to DatabaseSegmentSettingData
+// CR1086 - Move NumberOfFreeLists to DatabaseSegmentSettingData
+// CR1088 - Refine the description of DatabaseSegmentSettingData
+// CR1121 - Correct the placement for database recovery settings and
+//          capabilities
+// CR1128 - Introduce HostedDependency into the Hierarchy
+// 
+// Change Log for V2.8 Final
+// CR1196 - Change Database Storage Model from Experimental to Final
+// CR1234 - Database model lint issues
+// ==================================================================
+
+// ===================================================================
+// DatabaseSegment
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "A database segment is a logical storage entity composed of one "
+       "or more storage extents, each of which may have one or more "
+       "database blocks. Database segments have various types "
+       "depending on their purpose. Note that the order of extents "
+       "within a DatabaseSegment should be represented in the BasedOn "
+       "dependency of CIM_StorageExtent via the BasedOn.OrderIndex "
+       "attribute.")]
+class CIM_DatabaseSegment : CIM_StorageExtent {
+
+      [Override ( "Purpose" ), Description (
+          "The purpose of this segment within the context of the "
+          "database. A value of \"Data\" indicates that this segment "
+          "contains data for database area. A value of \"Data "
+          "Partition\" indicates this segment contains a portion of a "
+          "partitioned data area. A value of \"Data Cluster\" "
+          "indicates that this segment contains a portion of a "
+          "clustered database area. A value of \"Index\" indicates "
+          "that this segment contains index information. A value of "
+          "\"Index Partition\" indicates that this segment contains a "
+          "portion of a partitioned index. A value of \"LOB\" "
+          "indicates that this segment is used to hold large objects "
+          "such as Binary Large Object (BLOB) or Character Large "
+          "Object (CLOB) entities. A value of \"LOB Index\" indicates "
+          "that this segment is used to hold index information "
+          "relevant to a \"LOB\" segment. A value of \"Undo\" "
+          "indicates that this segment contains undo or rollback "
+          "information that may be used to reverse operations applied "
+          "to a database. A value of \"Snapshot\" indicates that this "
+          "segment is used to represent a portion of the database at a "
+          "previous point-in-time. A value of \"Temp\" indicates that "
+          "this segment is used as temporary space for database "
+          "operations. A value of \"Other\" indicates that the segment "
+          "is used for something other than any of the listed purposes "
+          "and requires further description in the OtherPurpose "
+          "attribute. Using a value of \"Other\" would generally "
+          "indicate a need to extend the model to include an "
+          "additional purpose."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11" }, 
+       Values { "Other", "Data", "Data Partition", "Data Cluster",
+          "Index", "Index Partition", "LOB", "LOB Index", "Undo",
+          "Snapshot", "Temp" }, 
+       ModelCorrespondence { "CIM_DatabaseSegment.OtherPurpose" }]
+   string Purpose;
+
+      [Description (
+          "The purpose of this segment when the Purpose attribute has "
+          "a value of \"Other\". This attribute should be null in all "
+          "other cases."), 
+       ModelCorrespondence { "CIM_DatabaseSegment.Purpose" }]
+   string OtherPurpose;
+};
+
+// ===================================================================
+// DatabaseStorageArea
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "Databases as modeled by instances of the CommonDatabase class "
+       "are comprised of a collection of logical storage areas "
+       "represented by instances of the DatabaseStorageArea class. "
+       "Database storage areas allow the administrator to logically "
+       "organize the content of the database. This class extends from "
+       "FileSystem and uses the inherited associations to represent "
+       "the internal structure of the database.")]
+class CIM_DatabaseStorageArea : CIM_FileSystem {
+
+      [Description (
+          "A Boolean value indicating the ownership of this "
+          "StorageArea. A value of true indicates that this "
+          "StorageArea is owned by the DatabaseSystem and contains "
+          "system information. A value of false indicates that this is "
+          "a user StorageArea containing data.")]
+   boolean IsSystemArea;
+
+      [Description (
+          "A timestamp representing the date and time of the last "
+          "successful backup of the DatabaseStorageArea. This property "
+          "should be set to a value of zero, in interval format, if it "
+          "is not known whether a backup has ever been completed.")]
+   datetime LastBackup;
+};
+
+// ===================================================================
+// DatabaseFile
+// ===================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "DatabaseFile captures the relationship between a database and "
+       "the supporting files that make up the database as well as the "
+       "purpose served by the files within the context of the "
+       "database.")]
+class CIM_DatabaseFile : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The single CommonDatabase instance that uses the referenced "
+          "LogicalFile.")]
+   CIM_CommonDatabase REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "One of any number of LogicalFile instances utilized by the "
+          "referenced CommonDatabase.")]
+   CIM_LogicalFile REF PartComponent;
+};
+
+// ===================================================================
+// DatabaseStorage
+// ===================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "Databases are comprised of a collection of logical storage "
+       "areas represented by instances of the DatabaseStorageArea "
+       "class. The DatabaseStorage class represents the relationship "
+       "between a CommonDatabase and the storage areas which it uses.")]
+class CIM_DatabaseStorage : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The database which makes use of the associated "
+          "DatabaseStorageArea.")]
+   CIM_CommonDatabase REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "A DatabaseStorageArea used by the associated "
+          "CommonDatabase. A DatabaseStorageArea may only be used by a "
+          "single database.")]
+   CIM_DatabaseStorageArea REF PartComponent;
+};
+
+// ===================================================================
+// DatabaseSegmentSettingData
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "This class defines the attributes that affect the growth of a "
+       "DatabaseSegment. The attributes are tied to the "
+       "DatabaseSegment through an ElementSettingData association. "
+       "This class may also be used to specify the default settings "
+       "for all DatabaseSegment instances created within a "
+       "CommonDatabase through an ElementSettingData association to "
+       "the CommonDatabase. Processes that create new instances of "
+       "DatabaseSegment and the associated setting data should check "
+       "for a DatabaseSegmentSettingData instance associated with the "
+       "CommonDatabase and should only create a new instance of "
+       "DatabaseSegmentSettingData specific to the DatabaseSegment if "
+       "the default settings need to be overridden or frozen for the "
+       "specific DatabaseSegment instance.")]
+class CIM_DatabaseSegmentSettingData : CIM_ScopedSettingData {
+
+      [Write, Description (
+          "The size, in bytes, of the first extent to be allocated "
+          "when a database segment is created."), 
+       Units ( "Bytes" )]
+   uint64 InitialExtentSize;
+
+      [Write, Description (
+          "The total number of extents to be allocated when the "
+          "database segment is created. This setting allows for a "
+          "large initial segment allocation at creation time, even if "
+          "contiguous space is not available.")]
+   uint64 MinimumExtents;
+
+      [Write, Description (
+          "The upper limit on the number of extents that can be "
+          "allocated for the segment.")]
+   uint64 MaximumExtents;
+
+      [Write, Description (
+          "The size, in bytes, to be allocated for the next "
+          "incremental extent for the segment. A NextExtentSize of 0 "
+          "indicates that the size of incremental extents will be "
+          "determined based on the value of PercentIncrease."), 
+       Units ( "Bytes" ), MinValue ( 0 ), 
+       ModelCorrespondence { 
+          "CIM_DatabaseSegmentSettingData.PercentIncrease" }]
+   uint64 NextExtentSize;
+
+      [Write, Description (
+          "The percentage by which the next incremental extent will "
+          "grow over the previously allocated size of all extents for "
+          "the segment. A PercentIncrease of 0 indicates that all "
+          "incremental extents will be the same size, as specified by "
+          "NextExtentSize. This value is ignored and should be set to "
+          "0 if NextExtentSize has a value other than 0."), 
+       MinValue ( 0 ), 
+       ModelCorrespondence { 
+          "CIM_DatabaseSegmentSettingData.NextExtentSize" }]
+   uint16 PercentIncrease;
+
+      [Write, Description (
+          "A freelist is a list of the free blocks that are associated "
+          "with a database segment. The freelist is used to determine "
+          "which segments are eligible for accepting data when a new "
+          "insert or update request is processed. The "
+          "NumberOfFreeLists setting identifies the number of "
+          "freelists that are defined for the database segment. This "
+          "value is typically set to the expected number of concurrent "
+          "inserts for the segment.")]
+   uint32 NumberOfFreeLists;
+};
+
+
+// ===================================================================
+// DatabaseControlFile
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_DatabaseControlFile is a specialization of the "
+       "CIM_Dependency association that identifies the LogicalFile(s) "
+       "which provide control information for a Database. As an "
+       "example, some implementations of CommonDatabase assign "
+       "particular significance to a small number of files containing "
+       "database state and configuration information. This association "
+       "is intended to provide an efficient means of identifying these "
+       "files.")]
+class CIM_DatabaseControlFile : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The parent CommonDatabase for the associated control file.")]
+   CIM_CommonDatabase REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalFile that contains control information for the "
+          "associated CommonDatabase.")]
+   CIM_LogicalFile REF Dependent;
+};
+
+
+// ===================================================================
+// CommonDatabaseSettingData
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "This class contains the specific settings that identify the "
+       "degree to which the high-level database capabilities that are "
+       "defined in the CIM_CommonDatabaseCapabilities class are "
+       "supported by a CommonDatabase. Specific values for the "
+       "properties in this class MUST correspond to a valid capability "
+       "that has been defined in the CIM_CommonDatabaseCapabilities "
+       "class. \n"
+       "Instances in the CIM_CommonDatabaseSettingData class are tied "
+       "to the CommonDatabase using the ElementSettingData "
+       "association.")]
+class CIM_CommonDatabaseSettingData : CIM_SettingData {
+
+      [Write, Description (
+          "RecoverabilityOption indicates the specific recoverability "
+          "mode for the associated CommonDatabase."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Recoverable", "Non-Recoverable",
+          "Rebuildable" }, 
+       ModelCorrespondence { 
+          "CIM_CommonDatabaseSettingData.OtherRecoverabilityOption",
+          "CIM_CommonDatabaseCapabilities.RecoverabilityOptions" }]
+   uint16 RecoverabilityOption;
+
+      [Write, Description (
+          "This property contains additional recovery information for "
+          "the CommonDatabase. This property MUST be specified when "
+          "the Recoverability property is \"Other\"."), 
+       ModelCorrespondence { 
+          "CIM_CommonDatabaseSettingData.RecoverabilityOption",
+          "CIM_CommonDatabaseCapabilities.OtherRecoverabilityOptions" }]
+   string OtherRecoverabilityOption;
+};
+
+
+// ===================================================================
+// CommonDatabaseCapabilities
+// ===================================================================
+
+   [Version ( "2.8.0" ), Description (
+       "Properties in this class represent general, high-level "
+       "database capabilities that may be supported by a common "
+       "database. For example, the ability for a database to support "
+       "recoverability, replication, parallelism, or clustering would "
+       "be specified in this class. Detailed settings, such as the "
+       "minimum and maximum number of parallel servers for a database "
+       "that supports parallelism, would be defined in the "
+       "CIM_DatabaseParameter class. \n"
+       "This information is tied to the CommonDatabase using the "
+       "ElementCapabilities association.")]
+class CIM_CommonDatabaseCapabilities : CIM_Capabilities {
+
+      [Description (
+          "This property identifies the supported recoverability modes "
+          "for the associated CommonDatabase."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Recoverable", "Non-Recoverable",
+          "Rebuildable" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_CommonDatabaseCapabilities.OtherRecoverabilityOptions" }]
+   uint16 RecoverabilityOptions[];
+
+      [Description (
+          "This property contains additional recovery information for "
+          "the CommonDatabase. This property MUST be specified when "
+          "the Recoverability property is \"Other\"."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_CommonDatabaseCapabilities.RecoverabilityOptions" }]
+   string OtherRecoverabilityOptions[];
+};
+
+
+
+// ===================================================================
+// end of file
+// ===================================================================

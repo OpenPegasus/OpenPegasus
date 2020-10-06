@@ -1,0 +1,403 @@
+// ===================================================================
+// Title: Device_DeviceElements
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_DeviceElements.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines the
+//              basic concepts that generally apply to all devices,
+//              such as error statistics and connections between
+//              devices.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1202 - Remove Experimental Qualifiers
+// CR1223 - SysDev Omnibus CR - Minor MOF corrections.
+// 
+// Change Log for v2.8 Preliminary
+// CR943  - Move error code data from LogicalDevice to
+//          DeviceErrorCountData
+// CR1049 - Add DeviceSoftwareIdentity
+// CR1092 - Move DeviceSoftwareIdentity to Core28_Device.mof
+// 
+// Change Log for v2.7 Final
+// CR942 - Rename DeviceErrorCountData to DeviceErrorData.
+// CR970 - Removal of the Experimental qualifier.
+// 
+// Change Log for v2.7
+// CR621 - Add PackageDependency
+// CR622 - Fix the DMI mapping string to include the attribute number
+//         DeviceErrorCounts.CriticalErrorCount, .MajorErrorCount, &
+//         .WarningCount
+// CR721 - Add DeviceErrorCountData that is part of the new statistics
+//         hierarchy
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// DeviceConnection
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The DeviceConnection relationship indicates that two or more "
+       "Device are connected together.")]
+class CIM_DeviceConnection : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "A LogicalDevice.")]
+   CIM_LogicalDevice REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "A second LogicalDevice connected to the Antecedent Device.")]
+   CIM_LogicalDevice REF Dependent;
+
+      [Description (
+          "When several bus and/or connection speeds are possible, the "
+          "NegotiatedSpeed property defines the one in use between the "
+          "Devices. Speed is specified in bits per second. If "
+          "connection or bus speeds are not negotiated, or if this "
+          "information is not available/important to Device "
+          "management, the property should be set to 0."), 
+       Units ( "Bits per Second" ), 
+       MappingStrings { "MIF.DMTF|Bus Port Association|001.2" }]
+   uint64 NegotiatedSpeed;
+
+      [Description (
+          "When several bus and/or connection data widths are "
+          "possible, the NegotiatedDataWidth property defines the one "
+          "in use between the Devices. Data width is specified in "
+          "bits. If data width is not negotiated, or if this "
+          "information is not available/important to Device "
+          "management, the property should be set to 0."), 
+       Units ( "Bits" ), 
+       MappingStrings { "MIF.DMTF|Bus Port Association|001.3" }]
+   uint32 NegotiatedDataWidth;
+};
+
+
+// ===================================================================
+// DeviceIdentity
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_DeviceIdentity indicates that two LogicalDevices represent "
+       "different aspects of the same underlying entity. This "
+       "association refines the CIM_LogicalIdentity superclass by "
+       "restricting it to the Device level and defining its use in "
+       "well understood scenarios. One of these scenarios is to "
+       "represent that a Device is both a 'bus' entity and a "
+       "'functional' entity. For example, a Device could be both a PCI "
+       "Device (or a USB Device), as well as a CIM_Keyboard. The other "
+       "scenario is where a Device plays multiple functional roles "
+       "that can not be distinguished by their hardware realization "
+       "alone. For example, a Fibre Channel adapter might have aspects "
+       "of both a NetworkAdapter and a SCSIController.")]
+class CIM_DeviceIdentity : CIM_LogicalIdentity {
+
+      [Override ( "SystemElement" ), Description (
+          "SystemElement represents one aspect of the Device.")]
+   CIM_LogicalDevice ref SystemElement;
+
+      [Override ( "SameElement" ), Description (
+          "SameElement represents an alternate aspect of the System "
+          "entity.")]
+   CIM_LogicalDevice ref SameElement;
+};
+
+
+// ==================================================================
+// PackageDependency
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A LogicalDevice is installed in a Package such as a Chassis or "
+       "a Rack, not for a specific Device, but to function with the "
+       "Package in general. This relationship is described by the "
+       "PackageDependency association.")]
+class CIM_PackageDependency : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Logical Device for the Package.")]
+   CIM_LogicalDevice REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PhysicalPackage whose environment is affected.")]
+   CIM_PhysicalPackage REF Dependent;
+};
+
+
+// ===================================================================
+// DeviceSoftware
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The DeviceSoftware relationship identifies any software that "
+       "is associated with a Device - such as drivers, configuration "
+       "or application software, or firmware.")]
+class CIM_DeviceSoftware : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The SoftwareElement.")]
+   CIM_SoftwareElement REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDevice that requires or uses the software.")]
+   CIM_LogicalDevice REF Dependent;
+
+      [Description (
+          "An enumerated integer to indicate the role this software "
+          "plays in regards to its associated Device. For example, "
+          "this software could be instrumentation (value=5) or "
+          "firmware (6)."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Driver", "Configuration Software",
+          "Application Software", "Instrumentation", "Firmware",
+          "BIOS", "Boot ROM" }, 
+       MappingStrings { "MIF.DMTF|SubComponent Software|001.2" }, 
+       ModelCorrespondence { "CIM_DeviceSoftware.PurposeDescription" }]
+   uint16 Purpose;
+
+      [Description (
+          "A free-form string to provide more information for the "
+          "Purpose property, e.g. \"Application Software\"."), 
+       ModelCorrespondence { "CIM_DeviceSoftware.Purpose" }]
+   string PurposeDescription;
+
+      [Description (
+          "Boolean indicating that the software is 'burned into' or "
+          "otherwise located on the hardware of the LogicalDevice.")]
+   boolean LoadedOnDevice;
+
+      [Description (
+          "Boolean indicating whether the software is upgradeable, "
+          "when it is LoadedOnDevice. Software that is loaded as part "
+          "of the OperatingSystem is typically changeable and "
+          "upgradeable. However, when DeviceSoftware is burned into "
+          "EEPROM or a chip that Realizes the LogicalDevice, then it "
+          "may not be upgradeable. This property indicates the ability "
+          "to update and upgrade DeviceSoftware.")]
+   boolean UpgradeableOnDevice;
+};
+
+
+// ==================================================================
+// DeviceErrorCounts
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "DeviceErrorCounts is a statistical class containing error- "
+       "related counters for a LogicalDevice. The types of errors are "
+       "as defined by CCITT (Rec X.733) and ISO (IEC 10164-4). Note "
+       "that the CIM_DeviceErrorCountData class uses a simplified "
+       "naming/identity algorithm as compared to this class. "
+       "DeviceErrorCounts is not deprecated since its naming algorithm "
+       "is still in use in various implementations.")]
+class CIM_DeviceErrorCounts : CIM_StatisticalInformation {
+
+      [Key, Propagated ( "CIM_LogicalDevice.SystemCreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_LogicalDevice.SystemName" ), 
+       Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Propagated ( "CIM_LogicalDevice.CreationClassName" ), 
+       Description (
+          "The scoping Device's CreationClassName."), 
+       MaxLen ( 256 )]
+   string DeviceCreationClassName;
+
+      [Key, Propagated ( "CIM_LogicalDevice.DeviceID" ), Description (
+          "The scoping Device's ID."), 
+       MaxLen ( 64 )]
+   string DeviceID;
+
+      [Key, Override ( "Name" ), Description (
+          "The inherited Name serves as part of the key for the "
+          "DeviceErrorCounts instance. The object is scoped by the "
+          "LogicalDevice to which the statistics apply."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "Count of the indeterminate errors."), 
+       Counter]
+   uint64 IndeterminateErrorCount;
+
+      [Description (
+          "Count of the critical errors."), 
+       Counter, 
+       MappingStrings { "MIF.DMTF|Operational State|006.7" }]
+   uint64 CriticalErrorCount;
+
+      [Description (
+          "Count of the major errors."), 
+       Counter, 
+       MappingStrings { "MIF.DMTF|Operational State|006.8" }]
+   uint64 MajorErrorCount;
+
+      [Description (
+          "Count of the minor errors."), 
+       Counter]
+   uint64 MinorErrorCount;
+
+      [Description (
+          "Count of the warnings."), 
+       Counter, 
+       MappingStrings { "MIF.DMTF|Operational State|006.9" }]
+   uint64 WarningCount;
+
+      [Description (
+          "Method to reset the error and warning counters. The method "
+          "takes one parameter as input - an integer indicating which "
+          "counter to reset. For this input parameter, 0 indicates "
+          "all, 1 indicates a reset of the indeterminate error "
+          "counter, 2 the critical error counter, 3 the major error "
+          "counter, 4 the minor error counter and 5 the warning "
+          "counter. The method returns 0 if successful, 1 if not "
+          "supported, and any other value if an error occurred. A "
+          "method is specified so that the LogicalDevice's "
+          "instrumentation, which tabulates the errors and warnings, "
+          "can also reset its internal processing and counters. \n"
+          "In a subclass, the set of possible return codes could be "
+          "specified, using a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' may "
+          "also be specified in the subclass as a Values array "
+          "qualifier.")]
+   uint32 ResetCounter ( 
+         [IN, Description (
+             "The counter to reset."), 
+          ValueMap { "0", "1", "2", "3", "4", "5" }, 
+          Values { "All", "Indeterminate Error Counter",
+             "Critical Error Counter", "Major Error Counter",
+             "Minor Error Counter", "Warning Counter" }]
+      uint16 SelectedCounter); 
+};
+
+
+// ==================================================================
+// ErrorCountersForDevice
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "ErrorCountersForDevice relates the DeviceErrorCounts class to "
+       "the LogicalDevice to which it applies.")]
+class CIM_ErrorCountersForDevice : CIM_Statistics {
+
+      [Override ( "Stats" ), Weak, Description (
+          "The statistical object - in this case, the error counter "
+          "class.")]
+   CIM_DeviceErrorCounts REF Stats;
+
+      [Override ( "Element" ), Min ( 1 ), Max ( 1 ), Description (
+          "The Device to which the error counters apply.")]
+   CIM_LogicalDevice REF Element;
+};
+
+
+// ==================================================================
+// DeviceErrorData
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "DeviceErrorData is a statistical class containing error- "
+       "related counters for a LogicalDevice. The types of errors are "
+       "as defined by CCITT (Rec X.733) and ISO (IEC 10164-4). The "
+       "element whose statistics are described is associated using the "
+       "relationship, ElementStatisticalData. Note that this class "
+       "uses a simplified identity/naming algorithm over "
+       "CIM_DeviceErrorCounts.")]
+class CIM_DeviceErrorData : CIM_StatisticalData {
+
+      [Description (
+          "Count of the indeterminate errors."), 
+       Counter]
+   uint64 IndeterminateErrorCount;
+
+      [Description (
+          "Count of the critical errors."), 
+       Counter, 
+       MappingStrings { "MIF.DMTF|Operational State|006.7" }]
+   uint64 CriticalErrorCount;
+
+      [Description (
+          "Count of the major errors."), 
+       Counter, 
+       MappingStrings { "MIF.DMTF|Operational State|006.8" }]
+   uint64 MajorErrorCount;
+
+      [Description (
+          "Count of the minor errors."), 
+       Counter]
+   uint64 MinorErrorCount;
+
+      [Description (
+          "Count of the warnings."), 
+       Counter, 
+       MappingStrings { "MIF.DMTF|Operational State|006.9" }]
+   uint64 WarningCount;
+
+      [Description (
+          "LastErrorCode captures the last error code reported by the "
+          "LogicalDevice. While the device is in this error condition, "
+          "then the LogicalDevice's OperationalStatus should not "
+          "reflect an 'Okay' status. Once this error condition is "
+          "cleared, then the LogicalDevice's OperationalStatus should "
+          "report an 'Okay' status.")]
+   string LastErrorCode;
+
+      [Description (
+          "ErrorDescription is a free-form string supplying more "
+          "information about the error recorded in LastErrorCode, and "
+          "information on any corrective actions that may be taken.")]
+   string ErrorDescription;
+
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

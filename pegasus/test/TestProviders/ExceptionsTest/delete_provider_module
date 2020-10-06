@@ -1,0 +1,17 @@
+#!/bin/bash
+
+provider=$(cimprovider -l | grep ExceptionsTestModule)
+if [ $provider ]; then
+	echo "Provider Module is Registered, Removing ......";
+	cimprovider -r -m ExceptionsTestModule
+	var=$(echo $?)
+	echo "Return from cimprovider remove = $var"
+	if [ $var ]; then
+		./restartcim
+		cimprovider -r -m ExceptionsTestModule
+	fi
+	exit;
+else
+	echo "Provider Module is Not registered";
+	exit;
+fi

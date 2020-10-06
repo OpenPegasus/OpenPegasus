@@ -1,0 +1,242 @@
+Terminals which are not used
+
+   _OPAQUE
+
+
+Grammar
+
+    0 $accept: attr_list $end
+
+    1 attr_list: attr
+    2          | attr_list ',' attr
+
+    3 attr: _TAG
+    4     | '(' _TAG ')'
+    5     | '(' _TAG '=' ')'
+    6     | '(' _TAG '=' attr_val_list ')'
+
+    7 attr_val_list: attr_val
+    8              | attr_val_list _MULTIVAL attr_val
+
+    9 attr_val: _TRUE
+   10         | _FALSE
+   11         | _ESCAPED
+   12         | _STRING
+   13         | _INT
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'(' (40) 4 5 6
+')' (41) 4 5 6
+',' (44) 2
+'=' (61) 5 6
+error (256)
+_TRUE (258) 9
+_FALSE (259) 10
+_MULTIVAL (260) 8
+_INT (261) 13
+_ESCAPED (262) 11
+_TAG (263) 3 4 5 6
+_STRING (264) 12
+_OPAQUE (265)
+
+
+Nonterminals, with rules where they appear
+
+$accept (15)
+    on left: 0
+attr_list (16)
+    on left: 1 2, on right: 0 2
+attr (17)
+    on left: 3 4 5 6, on right: 1 2
+attr_val_list (18)
+    on left: 7 8, on right: 6 8
+attr_val (19)
+    on left: 9 10 11 12 13, on right: 7 8
+
+
+state 0
+
+    0 $accept: . attr_list $end
+
+    _TAG  shift, and go to state 1
+    '('   shift, and go to state 2
+
+    attr_list  go to state 3
+    attr       go to state 4
+
+
+state 1
+
+    3 attr: _TAG .
+
+    $default  reduce using rule 3 (attr)
+
+
+state 2
+
+    4 attr: '(' . _TAG ')'
+    5     | '(' . _TAG '=' ')'
+    6     | '(' . _TAG '=' attr_val_list ')'
+
+    _TAG  shift, and go to state 5
+
+
+state 3
+
+    0 $accept: attr_list . $end
+    2 attr_list: attr_list . ',' attr
+
+    $end  shift, and go to state 6
+    ','   shift, and go to state 7
+
+
+state 4
+
+    1 attr_list: attr .
+
+    $default  reduce using rule 1 (attr_list)
+
+
+state 5
+
+    4 attr: '(' _TAG . ')'
+    5     | '(' _TAG . '=' ')'
+    6     | '(' _TAG . '=' attr_val_list ')'
+
+    ')'  shift, and go to state 8
+    '='  shift, and go to state 9
+
+
+state 6
+
+    0 $accept: attr_list $end .
+
+    $default  accept
+
+
+state 7
+
+    2 attr_list: attr_list ',' . attr
+
+    _TAG  shift, and go to state 1
+    '('   shift, and go to state 2
+
+    attr  go to state 10
+
+
+state 8
+
+    4 attr: '(' _TAG ')' .
+
+    $default  reduce using rule 4 (attr)
+
+
+state 9
+
+    5 attr: '(' _TAG '=' . ')'
+    6     | '(' _TAG '=' . attr_val_list ')'
+
+    _TRUE     shift, and go to state 11
+    _FALSE    shift, and go to state 12
+    _INT      shift, and go to state 13
+    _ESCAPED  shift, and go to state 14
+    _STRING   shift, and go to state 15
+    ')'       shift, and go to state 16
+
+    attr_val_list  go to state 17
+    attr_val       go to state 18
+
+
+state 10
+
+    2 attr_list: attr_list ',' attr .
+
+    $default  reduce using rule 2 (attr_list)
+
+
+state 11
+
+    9 attr_val: _TRUE .
+
+    $default  reduce using rule 9 (attr_val)
+
+
+state 12
+
+   10 attr_val: _FALSE .
+
+    $default  reduce using rule 10 (attr_val)
+
+
+state 13
+
+   13 attr_val: _INT .
+
+    $default  reduce using rule 13 (attr_val)
+
+
+state 14
+
+   11 attr_val: _ESCAPED .
+
+    $default  reduce using rule 11 (attr_val)
+
+
+state 15
+
+   12 attr_val: _STRING .
+
+    $default  reduce using rule 12 (attr_val)
+
+
+state 16
+
+    5 attr: '(' _TAG '=' ')' .
+
+    $default  reduce using rule 5 (attr)
+
+
+state 17
+
+    6 attr: '(' _TAG '=' attr_val_list . ')'
+    8 attr_val_list: attr_val_list . _MULTIVAL attr_val
+
+    _MULTIVAL  shift, and go to state 19
+    ')'        shift, and go to state 20
+
+
+state 18
+
+    7 attr_val_list: attr_val .
+
+    $default  reduce using rule 7 (attr_val_list)
+
+
+state 19
+
+    8 attr_val_list: attr_val_list _MULTIVAL . attr_val
+
+    _TRUE     shift, and go to state 11
+    _FALSE    shift, and go to state 12
+    _INT      shift, and go to state 13
+    _ESCAPED  shift, and go to state 14
+    _STRING   shift, and go to state 15
+
+    attr_val  go to state 21
+
+
+state 20
+
+    6 attr: '(' _TAG '=' attr_val_list ')' .
+
+    $default  reduce using rule 6 (attr)
+
+
+state 21
+
+    8 attr_val_list: attr_val_list _MULTIVAL attr_val .
+
+    $default  reduce using rule 8 (attr_val_list)

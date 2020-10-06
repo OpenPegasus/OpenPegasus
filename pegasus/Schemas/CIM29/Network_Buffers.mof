@@ -1,0 +1,171 @@
+// ===================================================================
+// Title: Network_Buffers
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_Buffers.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines the classes to manage
+//              network buffers.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR790 - Add classes to support MPLS
+// CR982 - MPLS classes remain as Experimental for CIM V2.8
+// Change Log for v2.8
+// CR1061 - Add MPLSBuffers and MPLSBufferEndpointBuffers classes
+// CR1191 - CIM_MPLSBuffers and CIM_MPLSEndpointBuffers remain
+// experimental
+//          in CIM v2.9
+// CR1217 - Deprecate BufferPool.BufferSize in lieu of a larger uint
+// definition.
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ===================================================================
+// BufferPool
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "This class represents the use of buffers by a Queuing Service. "
+       "The existence and management of individual buffers will be "
+       "modeled in a future release. At the current level of "
+       "abstraction, modeling the existence of the BufferPool is "
+       "necessary. Long term, it is not sufficient. \n"
+       "\n"
+       "In implementations where there are multiple buffer sizes, an "
+       "instance of BufferPool should be defined for each set of "
+       "buffers with identical or similar sizes. These instances of "
+       "buffer pools can then be grouped together using the "
+       "CollectedBuffersPool association. \n"
+       "\n"
+       "Note that this class is derived from CollectionOfMSEs, and not "
+       "from Forwarding or ConditioningService. BufferPool is only a "
+       "collection of storage, and is NOT a Service.")]
+class CIM_BufferPool : CIM_CollectionOfMSEs {
+
+      [Key, Override ( "CollectionID" ), Description (
+          "This property is defined in the CollectionOfMSEs class, but "
+          "is overridden here to serve as part of the (composite) key "
+          "that identifies the BufferPool instance."), 
+       MaxLen ( 256 )]
+   string CollectionID;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Description (
+          "The Name property defines the label by which the object is "
+          "known."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Deprecated { "CIM_BufferPool.SizeOfBuffers" }, Description (
+          "This property is a 16-bit unsigned integer, and defines the "
+          "number of bytes in each buffer. It is deprecated in lieu of "
+          "a similar uint32 property."), 
+       Units ( "Bytes" )]
+   uint16 BufferSize;
+
+
+      [Description (
+          "This property is a 32-bit unsigned integer, and defines the "
+          "number of bytes in each buffer."), 
+       Units ( "Bytes" )]
+   uint32 SizeOfBuffers;
+
+
+      [Description (
+          "This property is a 32-bit unsigned integer, and defines the "
+          "total number of buffers in the Pool.")]
+   uint32 TotalBuffers;
+
+      [Description (
+          "This property is a 32-bit unsigned integer, and defines the "
+          "number of buffers in the Pool that are currently not "
+          "allocated to any instance of a QueuingService. Buffers "
+          "allocated to a QueuingService could either be in use "
+          "(containing packet data), or allocated to a Queue pending "
+          "the arrival of new packet data.")]
+   uint32 AvailableBuffers;
+
+      [Description (
+          "This property is a 32-bit unsigned integer, and defines the "
+          "number of buffers in the Pool that have been simultaneously "
+          "allocated to multiple instances of QueuingService.")]
+   uint32 SharedBuffers;
+};
+
+
+// ==================================================================
+// CollectedBufferPool
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "CIM_CollectedBufferPool is an aggregation association "
+       "representing that a Pool may itself be contained in a 'higher "
+       "level' Pool.")]
+class CIM_CollectedBufferPool : CIM_MemberOfCollection {
+
+      [Aggregate, Override ( "Collection" ), Description (
+          "The 'higher level' or parent Pool.")]
+   CIM_BufferPool REF Collection;
+
+      [Override ( "Member" ), Description (
+          "The 'collected' Pool.")]
+   CIM_BufferPool REF Member;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

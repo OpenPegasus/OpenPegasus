@@ -1,0 +1,445 @@
+// ==================================================================
+// Title:  	Metrics MOF Specification 2.5
+// Filename:    CIM_Metrics25.MOF
+// Version      2.5
+// Release:     0
+// Status:      Final
+// Date:        06/12/2001
+// ===================================================================
+// Copyright "2001" Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.  
+// DMTF is a not-for-profit association of industry members dedicated 
+// to promoting enterprise and systems management and interoperability. 
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members, 
+// provided that correct attribution is given. 
+// As DMTF specifications may be revised from time to time, 
+// the particular version and release cited should always be noted.
+// Description: These object classes define the user and security 
+//              model for CIM and includes classes needed to represent
+//              users, groups and organizational entities as well as 
+//              security services and authentication and authorization 
+//              information.
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined 
+//		    by other working groups, are omitted. 
+// ===================================================================
+//         Fixed UnitOfWork.UoWDefId Propagated qualifier class name
+//         Removed the Weak qualifier from the association StartedUoW
+//         Fixed some descriptions
+//         Removed Required qualifier from MetricDefinition.Name,
+//              UnitOfWorkDefinition.Name, UnitOfWorkDefinition.Context
+//         --> (the rest of this list were changes made 01 Feb 2000 but
+//         -->  not incorporated into DAP24.MOF due to an oversight)
+//	   Fixed pragma Locale string
+//         Corrected subclassing of CIM_MetricDefinition and 
+//		CIM_UnitOfWork (now subclassed from CIM_ManagedElement)
+//	   Fixed grammatical and formatting errors in Descriptions
+//	   Provided information in Descriptions on why associations 
+//		were defined as Dependencies 
+//	   Provided Descriptions where they were missing
+//	   Added MaxLen (16) to String Id in UnitOfWorkDefinition
+//		and in MetricDefinition, to enforce the semantics of 
+//		the Description
+//	   Also added MaxLen (16) to UoWDefId, where the UnitOf
+//		WorkDefinition Id property is propagated to UnitOfWork	
+//	   Removed the Weak qualifier from the association, 
+//		UoWMetricDefinition, and also the Max(1) restriction
+//		(the latter allows reuse of Metrics)
+//	   Removed Min(0) from the association, SubUoW, since this
+//		is the default definition
+// ==================================================================
+
+// ==================================================================
+// Pragmas
+// ==================================================================
+#pragma Locale ("en_US")
+
+
+// ================================================================== 
+// UnitOfWorkDefinition
+// ==================================================================
+   [Description (
+       "A LogicalElement that describes units of work (e.g. "
+	 "transactions). This class represents the definitional "
+	 "components of a unit of work, and not the unit itself.")
+   ]
+class CIM_UnitOfWorkDefinition : CIM_LogicalElement
+{
+      [Override ("Name"), 
+       Description (
+           "The name of the Definition. This name does not have to "
+	     "be unique, but should be descriptive. It may "
+	     "contain blanks.")
+      ]
+   string Name;
+      [Description (
+           "A free format string describing the context of the "
+           "defined UnitOfWork. For example an 'Add Order' Unit could "
+           "be defined in the context of a book ordering application, "
+           "whereas another 'Add Order' UnitOfWork could be defined for "
+	   "a computer ordering application. It may contain blanks.")
+      ]
+   string Context;
+      [Key, MaxLen (16),
+       Description (
+          "A 16 byte value that uniquely identifies the UnitOfWork"
+	    "Definition. The use of OSF UUID/GUIDs is recommended.")
+      ]
+   string Id;
+};
+
+// ================================================================== 
+// MetricDefinition
+// ==================================================================
+   [Description (
+       "The metrics that are associated with a UnitOfWork. These "
+	 "metrics usually describe some aspect of a UnitOfWork such "
+	 "as how much work was done, or the size of the UnitOfWork. "
+	 "For example, the size of a print job or the number of pages "
+	 "printed could be metrics of a 'print' UnitOfWork.")
+   ]
+class CIM_MetricDefinition : CIM_ManagedElement
+{
+      [Key, MaxLen (16),
+	 Description (
+          "A 16 byte value that uniquely identifies the Metric"
+	    "Definition. The use of OSF UUID/GUIDs is recommended.")
+      ]
+   string Id;
+      [Description (
+           "The name of the Definition.  This name does not have to "
+	     "be unique, but should be descriptive.  It may "
+	     "contain blanks.")
+      ]
+   string Name;
+      [Description (
+	     "The Metric's data type. For example, \"boolean\" (value=1) "
+	     "or \"datetime\" (=3) may be specified."),  
+	 ValueMap {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+		"11", "12", "13", "14"},
+	 Values {"boolean", "char16", "datetime", "real32", "real64", 
+		"sint16", "sint32", "sint64", "sint8", "string", "uint16", 
+		"uint32", "uint64", "uint8"}
+	]
+   uint16 DataType;
+      [Description (
+           "An enumerated value that describes the characteristics "
+           "of the Metric, for purposes of performing calculations. "
+           "The property can take one of the following values:\n"
+           "1=\"Non-calculable\" -> a string. Arithmetic makes no "
+           "sense.\n"
+           "2=\"Summable\" -> It is reasonable to sum this value over "
+           "many instances of UnitOfWork, such as the number of files "
+           "processed in a backup job. For example, if each backup "
+           "job is a UnitOfWork, and each job backs up 27,000 files on "
+           "average, then it makes sense to say that 100 backup jobs "
+           "processed 2,700,000 files.\n"
+           "3=\"Non-summable\" -> It does not make sense to sum this "
+           "value over many instances of UnitOfWork. An example would be "
+           "a metric that measures the queue length when a job arrives "
+           "at a server. If each job is a UnitOfWork, and the average "
+           "queue length when each job arrives is 33, it does not make "
+           "sense to say that the queue length for 100 jobs is 3300. It "
+           "does make sense to say that the mean is 33."),
+        ValueMap {"1", "2", "3"},
+        Values {"Non-calculable", "Summable", "Non-summable"}
+	]
+   uint16 Calculable;
+      [Description (
+          "Identifies the specific units of the Metric. Examples are "
+          "Bytes, Packets, Jobs, Files, Milliseconds and Amps.")
+	]
+   string Units;
+      [Description (
+	  "An enumerated value describing when the Metric may be "
+          "considered valid. Some metrics are valid only at the "
+          "beginning of a transaction (e.g., bytes to print), while "
+          "the transaction is running (e.g., percent complete), or "
+          "when the transaction is finished (e.g., pages printed). "
+          "If a metric is valid at more than one of the enumerated "
+          "values, such as both when the unit of work starts and "
+          "when it stops, it is recommended to not use Validity."),
+	 ValueMap {"1", "2", "3"},
+	 Values {"atStart","inMiddle","atStop"} 
+	] 
+   uint16 Validity;
+};
+
+// ================================================================== 
+// UoWMetricDefinition
+// ==================================================================
+   [Association,
+    Description (
+       "An association that describes the Metrics related to a "
+	 "UnitOfWorkDefinition. This is a Dependency "
+       "relationship since the MetricDefinition relies on the "
+       "UnitOfWorkDefinition for context. At least one context must "
+       "be defined for a MetricDefinition, hence the Min(1) "
+       "qualifier is placed on the UnitOfWorkDefinition reference.")
+   ]
+class CIM_UoWMetricDefinition : CIM_Dependency
+{
+      [Override ("Antecedent"), Min(1),
+       Description (
+         "The UnitOfWorkDefinition where the Metric applies.")
+      ] 
+   CIM_UnitOfWorkDefinition REF Antecedent;
+      [Override ("Dependent"),
+       Description (
+         "The MetricDefinition for a particular UnitOfWork.")
+      ] 
+   CIM_MetricDefinition REF Dependent;
+};
+
+// ================================================================== 
+// UnitOfWork
+// ==================================================================
+   [Description (
+      "Each instance of UnitOfWork identifies a transaction that is "
+      "either in-process or already completed. Because instances of "
+      "'in-process' UnitsOfWork can be very short-lived and there can "
+      "be a great number of active ones, use of this class as an "
+      "instrumentation source for determining response time may be "
+      "incorrect or inefficient, unless the rate and duration of the "
+      "UnitsOfWork are known. The intended use is to respond to queries "
+      "about currently active or recently completed UnitsOfWork. "
+      "The length of time that a UnitOfWork instance exists after the "
+      "UnitOfWork completes is not defined and should be assumed to be "
+      "implementation-dependent. This class "
+      "is weak to its definition (CIM_UnitOfWorkDefintion).") 
+   ] 
+class CIM_UnitOfWork : CIM_ManagedElement
+{
+	[Override ("Description"),
+       Description (
+         "Since UnitOfWork is designed to be an extremely lightweight "
+         "object, it is recommended that this property not be used. "
+	   "The Description specified for the instance's associated "
+         "CIM_UnitOfWorkDefintion should apply.")
+	] 
+   string Description;
+      [Key, Description (
+        "The identifier of the UnitOfWork, within the context of the "
+	  "UnitOfWorkDefinition.") 
+	] 
+   sint64 Id;
+      [Key, MaxLen (16), 
+	 Propagated ("CIM_UnitOfWorkDefinition.Id"),
+       Description (
+          "A 16 byte value that uniquely identifies the UnitOfWork"
+	    "Definition. The use of OSF UUID/GUIDs is recommended.")
+      ]
+   string UoWDefId;
+      [Description (
+          "The name of the user who initiated the UnitOfWork. This "
+          "may be a real user's login name or a logical name representing "
+          "an application.")
+	] 
+   string UserName;
+      [Description (
+	    "The time that the UnitOfWork was started.") 
+      ] 
+   datetime StartTime;
+      [Description (
+          "The elapsed time since the UnitOfWork was started. "
+          "Upon completion of the UnitOfWork, this property contains "
+	    "the total amount of time taken in processing the entire "
+          "UnitOfWork.") 
+	] 
+   datetime ElapsedTime;
+  	[Description (
+	    "An enumeration identifing the status of the UnitOfWork. "
+	    "Most of the property values are self-explanatory. A few need "
+	    "additional text:\n"
+          "3=\"Completed\" - Should be used to represent a 'completed' "
+          "transaction whose status ('good', 'failed' or 'aborted') is "
+          "unknown.\n"
+          "6=\"Completed Aborted\" - Should be used when a UnitOfWork "
+          "has completed but was not allowed to end normally. An example "
+          "would be when the Stop or Back buttons are selected from a web "
+          "browser, before a page is fully loaded."),
+	   ValueMap {"1", "2", "3", "4", "5", "6"},
+	   Values {"Active", "Suspended", "Completed", "Completed Good",
+                "Completed Failed", "Completed Aborted"}
+	]
+   uint16 Status;
+};
+
+// ================================================================== 
+// UoWMetric
+// ==================================================================
+   [Association,
+    Description (
+       "This association ties a MetricDefinition to an instance of a "
+       "UnitOfWork. Its primary purpose is to specify the value of "
+       "the Metric for the instance of UnitOfWork. It is defined as a "
+       "Dependency since the Metric value relies on the specific "
+       "UnitOfWork for context.")
+   ]
+class CIM_UoWMetric : CIM_Dependency
+{
+	[Override ("Antecedent"),
+       Description (
+         "The UnitOfWork whose Metric value is specified.")
+      ] 
+   CIM_UnitOfWork REF Antecedent;
+      [Override ("Dependent"),
+       Description (
+         "The MetricDefinition for this particular UnitOfWork and "
+         "value. Note that the MetricDefinition must be associated "
+         "(via UoWMetricDefinition) to the same UnitOfWorkDefinition "
+         "to which the UnitOfWork is weakly associated.")
+      ] 
+   CIM_MetricDefinition REF Dependent;
+	[Description (
+	 "The value of the Metric for the referenced UnitOfWork. "
+       "Note that the type of the data and other information are "
+       "defined by the properties of MetricDefinition.")
+	]
+   string Value;
+};
+
+// ================================================================== 
+// StartedUoW
+// ==================================================================
+   [Association,
+    Description (
+       "This association links a UnitOfWork (which is a 'started' "
+       "transaction) to its Definition.")
+   ]
+class CIM_StartedUoW : CIM_Dependency
+{
+	[Override ("Antecedent"),
+       Max (1), Min (1),
+       Description (
+         "The Definition object for the UnitOfWork.")
+      ] 
+   CIM_UnitOfWorkDefinition REF Antecedent;
+      [Override ("Dependent"),
+       Description (
+         "An instance of a UnitOfWork that has started executing.")
+      ] 
+   CIM_UnitOfWork REF Dependent;
+};
+
+// ================================================================== 
+// LogicalElementUnitOfWorkDef
+// ==================================================================
+   [Association,
+    Description (
+       "This association links a LogicalElement to the UnitsOfWork "
+	 "that it can perform.  For example, a Printer Device may have "
+	 "associated UnitOfWorkDefinitions representing PrintJobs. "
+       "This is a Dependency relationship since the Definitions are "
+       "given context by the LogicalElement.")
+   ]
+class CIM_LogicalElementUnitOfWorkDef : CIM_Dependency
+{
+      [Override ("Antecedent"),
+       Description (
+         "The LogicalElement that is providing the UnitOfWork.")
+      ] 
+   CIM_LogicalElement REF Antecedent;
+      [Override ("Dependent"),
+       Description (
+         "The UnitOfWorkDefinition associated with the LogicalElement.")
+      ] 
+   CIM_UnitOfWorkDefinition REF Dependent;
+};
+
+// ================================================================== 
+// SubUoWDef
+// ==================================================================
+   [Association,
+    Description (
+       "This association defines the sub-UnitsOfWork (the sub-"
+       "transactions) for a particular UnitOfWorkDefinition. For "
+       "example, an 'AddOrder' UnitOfWork could have sub-Units of "
+       "'ValidateCustomer', 'ValidatePartNumber', 'UpdateDatabase', "
+       "etc. This is a Dependency relationship since the sub-UnitsOf"
+       "Work are put in context relative to the parent Unit. It is "
+       "not an aggregation relationship - since (using another example) "
+       "a 'DatabaseWrite' transaction is likely to be dependent upon a "
+       "'DiskWrite', but the two transactions are separate concepts "
+       "and one is not 'contained' by the other.")
+   ]
+class CIM_SubUoWDef : CIM_Dependency
+{
+      [Override ("Antecedent"),
+       Description (
+         "The parent UnitOfWorkDefinition.")
+      ] 
+   CIM_UnitOfWorkDefinition REF Antecedent;
+      [Override ("Dependent"),
+       Description (
+         "The sub-UnitOfWorkDefinition.")
+      ] 
+   CIM_UnitOfWorkDefinition REF Dependent;
+};
+
+// ================================================================== 
+// LogicalElementPerformsUoW
+// ==================================================================
+   [Association,
+    Description (
+       "This association identifies a specific execution of a UnitOf"
+       "Work with the specific LogicalElement that is performing/"
+       "has performed it. Where the LogicalElementUnitOfWorkDef "
+       "association describes what an Element can do, this relationship "
+       "describes what a particular Element is doing or has done.")
+   ]
+class CIM_LogicalElementPerformsUoW : CIM_Dependency
+{
+      [Override ("Antecedent"),
+       Description (
+         "The LogicalElement performing the UnitOfWork.")
+      ] 
+   CIM_LogicalElement REF Antecedent;
+      [Override ("Dependent"),
+       Description (
+         "The UnitOfWork being performed.")
+      ] 
+   CIM_UnitOfWork REF Dependent;
+};
+
+// ================================================================== 
+// SubUoW
+// ==================================================================
+   [Association,
+    Description (
+       "Similar to the SubUoWDef association (which describes the "
+       "relationship between definitional UnitsOfWork), this "
+	 "association identifies the executional UnitOfWork "
+       "Dependencies.  It associates executing/executed UnitsOfWork "
+       "with their parent Units. In most cases, the SubUoW reflects "
+       "the execution side of the relationship defined in SubUoWDef. "
+       "However, there may be cases where the SubUoWDef is not defined, "
+       "but for a particular UnitOfWork, the SubUoW relationship is "
+       "valid. Therefore, it is not a requirement (but it is "
+       "desirable) that there be a corresponding SubUoWDef for each "
+       "instance of SubUoW.")
+   ]
+class CIM_SubUoW : CIM_Dependency
+{
+      [Override ("Antecedent"),
+	 Max (1), 
+       Description (
+         "The parent executing/executed UnitOfWork. On the execution "
+         "side, it is expected that a sub-Unit is associated with only "
+         "one parent UnitOfWork.")
+      ] 
+   CIM_UnitOfWork REF Antecedent;
+      [Override ("Dependent"),
+       Description (
+         "The sub-UnitOfWork. On the execution side, it is expected "
+         "that a sub-Unit is associated with only one parent "
+         "UnitOfWork.")
+      ] 
+   CIM_UnitOfWork REF Dependent;
+};
+
+// ===================================================================
+// end of file
+// ===================================================================
+

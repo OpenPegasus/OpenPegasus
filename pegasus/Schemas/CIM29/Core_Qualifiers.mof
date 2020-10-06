@@ -1,0 +1,312 @@
+// ===================================================================
+// Title: Core_Qualifiers
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Core_Qualifiers.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2004 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Core Model defines basic management concepts.
+//              This file defines the CIM qualifiers.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Prerequisite:  none
+// ==================================================================
+// 
+// Change Log for v2.8 Preliminary
+// CR910 - Add Exception qualifier (Scope must be set to both Class
+//         and Indication, since the Indication qualifier is required
+//         when a concrete class is defined without a Key)
+// 
+// Change Log for v2.7
+// CR664 - Change the default value for Version qualifier to NULL.
+//       - Change the default value for Revision qualifier to NULL.
+//       - Add a comment above the Revision qualifier stating that it
+//         has been deprecated
+// CR707 - Add the Composition qualifier
+// CR713 - Clean up of the Scope and Flavors for Abstract, ArrayType,
+//         EmbeddedObject, Experimental and OctetString qualifiers.
+// CR715 - Clean up of the Scope and Flavors for the Deprecated
+//         Qualifier.
+// CR716 - Add the MinLen qualifier
+// CR762 - Clean up of the Scope and Flavors for Association, DN,
+//         OctetString, EmbeddedObject, Expensive, Indication,
+//         MappingString, Modelcorrespondence, Required, and Terminal
+//         qualifiers.
+// 
+// Change Log for v2.7.2 - ERRATA
+// CR1038 - Define the Experimental and Version qualifiers as
+//          Restricted
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// Qualifiers
+// ==================================================================
+Qualifier Abstract : boolean = false, 
+    Scope(class, association, indication), 
+    Flavor(Restricted);
+
+Qualifier Aggregate: boolean = false, 
+    Scope (reference),
+    Flavor(DisableOverride);
+
+Qualifier Aggregation : boolean = false, 
+    Scope(association),
+    Flavor(DisableOverride);
+
+Qualifier Alias : string = null, 
+    Scope(property, reference, method), 
+    Flavor(Translatable);
+
+Qualifier ArrayType : string = "Bag", 
+    Scope(property, parameter),
+    Flavor(DisableOverride);
+
+Qualifier Association : boolean = false, 
+    Scope(association), 
+    Flavor(DisableOverride);
+
+Qualifier BitMap : string[], 
+    Scope(property, method, parameter);
+
+Qualifier BitValues : string[], 
+    Scope(property, method, parameter), 
+    Flavor(Translatable);
+
+Qualifier Composition : boolean = false, 
+    Scope(association),
+    Flavor(DisableOverride);
+
+Qualifier Counter : boolean = false, 
+    Scope(property, method, parameter);
+
+Qualifier Delete : boolean = false, 
+    Scope(association, reference);
+
+Qualifier Deprecated : string [], 
+    Scope(any),
+    Flavor(Restricted);
+
+Qualifier Description : string = null, 
+    Scope(any), 
+    Flavor(Translatable);
+
+Qualifier DisplayName : string = null, 
+    Scope(any),
+    Flavor(Translatable);
+
+Qualifier DN : boolean=false, 
+    Scope(property, method, parameter), 
+    Flavor(DisableOverride); 
+
+Qualifier EmbeddedObject : boolean = false, 
+    Scope(property, method, parameter),
+    Flavor(DisableOverride); 
+
+Qualifier Exception: boolean = false,
+    Scope(class, indication), 
+    Flavor(disableoverride, tosubclass); 
+
+Qualifier Expensive : boolean = false, 
+    Scope(any);
+
+Qualifier Experimental : boolean = false, 
+    Scope(any), 
+    Flavor(Restricted); 
+
+Qualifier Gauge : boolean = false, 
+    Scope(property, method, parameter);
+
+Qualifier Ifdeleted : boolean = false, 
+    Scope(association, reference);
+
+Qualifier In : boolean = true, 
+    Scope(parameter),
+    Flavor(DisableOverride);
+
+Qualifier Indication : boolean = false, 
+    Scope(class, indication), 
+    Flavor(DisableOverride);
+
+Qualifier Invisible : boolean = false,
+    Scope(reference, association, class, property, method);
+
+Qualifier Key : boolean = false, 
+    Scope(property, reference), 
+    Flavor(DisableOverride);
+
+Qualifier Large : boolean = false, 
+    Scope(property, class);
+
+Qualifier MappingStrings : string[],
+    Scope(any);
+
+Qualifier Max : uint32 = null, 
+    Scope(reference);
+
+Qualifier MaxLen : uint32 = null, 
+    Scope(property, method, parameter);
+
+Qualifier MaxValue : sint64 = null, 
+    Scope(property, method, parameter);
+
+Qualifier Min : uint32 = 0, 
+    Scope(reference);
+
+Qualifier MinLen : uint32 = 0,
+    Scope(property, method, parameter);
+
+Qualifier MinValue : sint64 = null, 
+    Scope(property, method, parameter);
+
+Qualifier ModelCorrespondence : string[], 
+    Scope(any);
+
+Qualifier Nonlocal : string = null, 
+    Scope(reference);
+
+Qualifier NonlocalType : string = null, 
+    Scope(reference);
+
+Qualifier NullValue : string = null, 
+    Scope (property),
+    Flavor(DisableOverride);
+
+Qualifier Octetstring : boolean = false, 
+    Scope(property, method, parameter), 
+    Flavor(DisableOverride);
+
+Qualifier Out : boolean = false, 
+    Scope(parameter),
+    Flavor(DisableOverride);
+
+Qualifier Override : string = null, 
+    Scope(property, method, reference), 
+    Flavor(DisableOverride);
+
+Qualifier Propagated : string = null, 
+    Scope(property),
+    Flavor(DisableOverride);
+
+Qualifier PropertyUsage : string = "CurrentContext", 
+    Scope(property); 
+
+Qualifier Provider : string = null, 
+    Scope(any);
+
+Qualifier Read : boolean = true, 
+    Scope(property);
+
+Qualifier Required : boolean = false, 
+    Scope(property, reference, parameter),
+    Flavor(DisableOverride);
+
+//  The Revision qualifer has been deprecated. For the replacement,
+//  see the usage rule for the version qualifer in the CIM
+//  Specification.
+Qualifier Revision : string = null, 
+    Scope(class, association, indication ), 
+    Flavor(Translatable);
+
+Qualifier Schema : string = null, 
+    Scope (property, method), 
+    Flavor(DisableOverride, Translatable);
+
+Qualifier Source : string = null, 
+    Scope(class, association, indication);
+
+Qualifier SourceType : string = null, 
+    Scope(class, association, indication, reference);
+
+Qualifier Static : boolean = false, 
+    Scope(method, property),
+    Flavor(DisableOverride);
+
+Qualifier Syntax : string = null, 
+    Scope(property, reference, method, parameter);
+
+Qualifier SyntaxType : string = null, 
+    Scope(property, reference, method, parameter);
+
+Qualifier Terminal : boolean = FALSE, 
+    Scope(class, association, indication);
+
+Qualifier TriggerType : string = null,
+    Scope(class, property, reference, method, association, indication);
+
+Qualifier Units : string = null, 
+    Scope(property, method, parameter), 
+    Flavor(Translatable);
+
+Qualifier UnknownValues : string[], 
+    Scope(property),
+    Flavor(DisableOverride);
+
+Qualifier UnsupportedValues : string[], 
+    Scope(property),
+    Flavor(DisableOverride);
+
+Qualifier ValueMap : string[], 
+    Scope(property, method, parameter);
+
+Qualifier Values : string[], 
+    Scope(property, method, parameter), 
+    Flavor(Translatable);
+
+Qualifier Version : string = null, 
+    Scope(class, association, indication), 
+    Flavor(Restricted, Translatable);
+
+Qualifier Weak : boolean = false, 
+    Scope(reference), 
+    Flavor(DisableOverride, ToSubclass);
+
+Qualifier Write : boolean = false, 
+    Scope(property);
+
+// ===================================================================
+// end of file
+// ===================================================================

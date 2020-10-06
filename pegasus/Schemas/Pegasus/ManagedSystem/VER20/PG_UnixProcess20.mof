@@ -1,0 +1,667 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+// ===================================================================
+// Title:       UNIX Processes, Threads, and Statistics
+// Filename:    PG_UnixProcess20.mof
+// Version:     2.6 Preliminary +
+// Release:     0
+// Date:        2002/03/14
+// ===================================================================
+// Clipped from:
+//
+//     - CIM_Core26.mof  (Prelimary)
+//		. CIM_ManagedElement
+//		. CIM_ManagedSystemElement
+//		. CIM_LogicalElement
+//		. CIM_Component
+//		. CIM_StatisticalInformation
+//		. CIM_Statistics
+//
+//     - CIM_System26.mof  (Preliminary)
+//		. CIM_Process
+//		. CIM_Thread
+//		. CIM_ProcessThread
+//
+//     - SysDev163e.mof  (CR pending TC approval)
+//		. PG_UnixProcess
+//		. PG_UnixProcessStatisticalInformation
+//		. PG_UnixProcessStatistics
+//		. PG_UnixThread
+//		(Note: This CR creates CIM_Unix* classes.  These classes
+//		will be inserted into the subclass hierarchy once the
+//		CR passes and is incorporated into the DMTF standard --
+//		probably with CIM v2.6 Final.)
+//
+//     - HPUX_Process.mof
+//		. PG_UnixProcessStatisticalInformation.RealSpace
+//
+// ==================================================================
+
+// ===================================================================
+// Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// ===================================================================
+
+// ==================================================================
+// ManagedElement
+// ================================================================== 
+   [Abstract, Description (
+     "ManagedElement is an abstract class that provides a common "  
+     "superclass (or top of the inheritance tree) for the "
+     "non-association classes in the CIM Schema.")]
+class CIM_ManagedElement {  
+      [MaxLen (64), Description (  
+        "The Caption property is a short textual description (one-"    
+        "line string) of the object.") ]   
+   string Caption;  
+      [Description (  
+        "The Description property provides a textual description of "
+        "the object.") ]   
+   string Description;    
+};
+     
+
+// ================================================================== 
+//    ManagedSystemElement
+// ==================================================================
+   [Abstract, Description (
+     "CIM_ManagedSystemElement is the base class for the System "
+     "Element hierarchy. Membership Criteria: Any distinguishable "
+     "component of a System is a candidate for inclusion in this "
+     "class. Examples: software components, such as files; and "
+     "devices, such as disk drives and controllers, and physical "
+     "components such as chips and cards.") ] 
+class CIM_ManagedSystemElement : CIM_ManagedElement {
+      [Description (
+        "A datetime value indicating when the object was installed. "
+        "A lack of a value does not indicate that the object is not "
+        "installed."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.5"} ] 
+   datetime InstallDate;
+      [MaxLen (256), Description (
+        "The Name property defines the label by which the object is "
+        "known. When subclassed, the Name property can be overridden "
+        "to be a Key property.") ] 
+   string Name;
+      [MaxLen (10), Description ( 
+        "  A string indicating the current status of the object. " 
+        "Various operational and non-operational statuses are " 
+        "defined. Operational statuses are \"OK\", \"Degraded\", " 
+        "\"Stressed\" and \"Pred Fail\". \"Stressed\" indicates that " 
+        "the Element is functioning, but needs attention. Examples " 
+        "of \"Stressed\" states are overload, overheated, etc. The " 
+        "condition \"Pred Fail\" (failure predicted) indicates that " 
+        "an Element is functioning properly but predicting a failure " 
+        "in the near future. An example is a SMART-enabled hard " 
+        "drive. \n" 
+        "  Non-operational statuses can also be specified. These " 
+        "are \"Error\", \"NonRecover\", \"Starting\", \"Stopping\", " 
+        " \"Stopped\", " 
+        "\"Service\", \"No Contact\" and \"Lost Comm\". \"NonRecover\" " 
+        "indicates that a non-recoverable error has occurred. " 
+        "\"Service\" describes an Element being configured, maintained, " 
+        "cleaned, or otherwise administered. This status could apply " 
+        "during mirror-resilvering of a disk, reload of a user " 
+        "permissions list, or other administrative task. Not all such " 
+        "work is on-line, yet the Element is neither \"OK\" nor in " 
+        "one of the other states. \"No Contact\" indicates that the " 
+        "current instance of the monitoring system has knowledge of " 
+        "this Element but has never been able to establish " 
+        "communications with it. \"Lost Comm\" indicates that " 
+        "the ManagedSystemElement is known to exist and has been " 
+        "contacted successfully in the past, but is currently unreachable." 
+        "\"Stopped\" indicates that the ManagedSystemElement is known " 
+        "to exist, it is not operational (i.e. it is unable to " 
+        "provide service to users), but it has not failed. It has purposely " 
+        "been made non-operational. The Element " 
+        "may have never been \"OK\", the Element may have initiated its " 
+        "own stop, or a management system may have initiated the stop."), 
+       ValueMap {"OK", "Error", "Degraded", "Unknown", "Pred Fail", 
+                 "Starting", "Stopping", "Service", "Stressed", 
+                 "NonRecover", "No Contact", "Lost Comm", "Stopped"} ] 
+   string Status; 
+};
+
+
+// ==================================================================
+//    LogicalElement
+// ==================================================================
+   [Abstract, Description (
+     "CIM_LogicalElement is a base class for all the components of "
+     "a System that represent abstract system components, such "
+     "as Files, Processes, or system capabilities in the form "
+     "of Logical Devices.") ] 
+class CIM_LogicalElement : CIM_ManagedSystemElement {
+};
+
+     
+// ==================================================================
+//    Component
+// ==================================================================
+   [Association, Abstract, Aggregation, Description (
+     "CIM_Component is a generic association used to establish "
+     "'part of' relationships between Managed System Elements. For "
+     "example, the SystemComponent association defines parts of "
+     "a System.") ] 
+class CIM_Component {
+      [Aggregate, Key, Description (
+        "The parent element in the association.") ] 
+   CIM_ManagedSystemElement REF GroupComponent;
+      [Key, Description (
+        "The child element in the association.") ] 
+   CIM_ManagedSystemElement REF PartComponent;
+};
+
+     
+// ===================================================================
+// Process
+// ===================================================================
+   [Description (
+     "Each instance of the CIM_Process class represents a single "
+     "instance of a running program. A user of the OperatingSystem "
+     "will typically see a Process as an application or task. Within "
+     "an OperatingSystem, a Process is defined by a workspace of "
+     "memory resources and environmental settings that are allocated "
+     "to it. On a multitasking System, this workspace prevents "
+     "intrusion of resources by other Processes. Additionally, a "
+     "Process can execute as multiple Threads, all which run within "
+     "the same workspace.") ]
+class CIM_Process : CIM_LogicalElement {
+      [Propagated("CIM_OperatingSystem.CSCreationClassName"),
+       Key, MaxLen (256),
+       Description ("The scoping ComputerSystem's "
+        "CreationClassName.") ]
+   string CSCreationClassName;
+      [Propagated("CIM_OperatingSystem.CSName"),
+       Key, MaxLen (256),
+       Description ("The scoping ComputerSystem's Name.") ]
+   string CSName;
+      [Propagated("CIM_OperatingSystem.CreationClassName"),
+       Key, MaxLen (256),
+       Description ("The scoping OperatingSystem's CreationClassName.") ]
+   string OSCreationClassName;
+      [Propagated("CIM_OperatingSystem.Name"),
+       Key, MaxLen (256),
+       Description ("The scoping OperatingSystem's Name.") ]
+   string OSName;
+      [Override ("Name"), Description(
+        "The name of the process."),
+       MappingStrings {"MIF.DMTF|Process Information|001.6"}]
+   string Name;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen (256), Description (
+        "A string used to identify the Process. A Process ID is a "
+        "kind of Process Handle."),
+       MappingStrings {"MIF.DMTF|Process Information|001.1"}]
+   string Handle;
+      [Description (
+        "Priority indicates the urgency or importance of execution "
+        "of a Process. If a priority is not defined for a Process, "
+        "a value of 0 should be used."), 
+       MappingStrings {"MIF.DMTF|Process Information|001.10"}]
+   uint32 Priority;
+      [Description (
+        "Indicates the current operating condition of the Process. "
+        "Values include ready (2), running (3), and blocked (4), "
+        "among others."),
+       Values {"Unknown", "Other", "Ready", "Running", 
+               "Blocked", "Suspended Blocked", "Suspended Ready", 
+               "Terminated", "Stopped", "Growing" },
+       MappingStrings {"MIF.DMTF|Process Information|001.9",
+        "MIF.UNIX|Process Information|13.9"}]
+   uint16 ExecutionState;
+      [Description (
+        "A string describing the state - used when the instance's "
+        "ExecutionState property is set to 1 (\"Other\"). Other"
+        "ExecutionDescription should be set to NULL when the Execution"
+        "State property is any value other than 1.") ]
+   string OtherExecutionDescription;
+      [Description ("Time that the Process began executing.") ]
+   datetime CreationDate;
+      [Description (
+        "Time that the Process was stopped or terminated.") ]
+   datetime TerminationDate;
+      [Description (
+        "Time in kernel mode, in milliseconds. If this information "
+        "is not available, a value of 0 should be used."),
+       Units("MilliSeconds"), 
+       MappingStrings {"MIF.DMTF|Process Information|001.13"}]
+   uint64 KernelModeTime;
+      [Description (
+        "Time in user mode, in milliseconds. If this information "
+        "is not available, a value of 0 should be used."),
+       Units("MilliSeconds"), 
+       MappingStrings {"MIF.DMTF|Process Information|001.14"}]
+   uint64 UserModeTime;
+      [Gauge, Description (
+        "The amount of memory in bytes that a Process needs to "
+        "execute efficiently, for an OperatingSystem that uses "
+        "page-based memory management.  If an insufficient amount "
+        "of memory is available (< working set size), thrashing "
+        "will occur.  If this information is not known, NULL or 0 "
+        "should be entered.  If this data is provided, it could be "
+        "monitored to understand a Process' changing memory "
+        "requirements as execution proceeds."),
+       Units ("Bytes") ]
+   uint64 WorkingSetSize;
+};
+
+
+// ==================================================================
+//    StatisticalInformation
+// ================================================================== 
+   [Abstract, Description ( 
+     "CIM_StatisticalInformation is a root class for any arbitrary " 
+     "collection of statistical data and/or metrics applicable to " 
+     "one or more ManagedSystemElements.") ] 
+class CIM_StatisticalInformation : CIM_ManagedElement { 
+      [MaxLen (256), Description ( 
+        "The Name property defines the label by which the statistic " 
+        "or metric is known. When subclassed, the property can be " 
+        "overridden to be a Key property. ") ] 
+   string Name; 
+};
+
+
+// ==================================================================
+//    Statistics
+// ================================================================== 
+   [Association, Description ( 
+     "CIM_Statistics is an association that relates Managed" 
+     "Elements to the StatisticalGroup(s) that apply to them.") ]
+class CIM_Statistics { 
+      [Key, Description (
+        "The statistic information/object.") ] 
+   CIM_StatisticalInformation REF Stats; 
+      [Key, Description ( 
+        "The ManagedElement for which statistical or metric " 
+        "data is defined.") ] 
+   CIM_ManagedElement REF Element;
+};
+
+
+// ===================================================================
+// Thread
+// ===================================================================
+   [Description (
+     "Threads represent the ability to execute units of a Process "
+     "or task in parallel.  A Process can have many Threads, each "
+     "of which is weak to the Process.") ]
+class CIM_Thread : CIM_LogicalElement {
+      [Propagated("CIM_Process.CSCreationClassName"),
+       Key, MaxLen (256),
+       Description ("The scoping ComputerSystem's CreationClassName.") ]
+   string  CSCreationClassName;
+      [Propagated("CIM_Process.CSName"),
+       Key, MaxLen (256),
+       Description ("The scoping ComputerSystem's Name.") ]
+   string CSName;
+      [Propagated("CIM_Process.OSCreationClassName"),
+       Key, MaxLen (256),
+       Description ("The scoping OperatingSystem's CreationClassName.") ]
+   string OSCreationClassName;
+      [Propagated("CIM_Process.OSName"),
+       Key, MaxLen (256),
+       Description ("The scoping OperatingSystem's Name.") ]
+   string OSName;
+      [Propagated("CIM_Process.CreationClassName"),
+       Key, MaxLen (256),
+       Description ("The scoping Process' CreationClassName.") ]
+   string ProcessCreationClassName;
+      [Propagated("CIM_Process.Handle"),
+       Key, MaxLen (256),
+       Description ("The scoping Process' Handle.") ]
+   string ProcessHandle;
+      [Key, MaxLen(256),
+       Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allow all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Key, MaxLen(256),
+       Description ("A string used to identify the Thread.") ]
+   string Handle;
+      [Description (
+        "Priority indicates the urgency or importance of execution "
+        "of a Thread. A Thread may have a different priority than "
+        "its owning Process. If this information is not available "
+        "for a Thread, a value of 0 should be used.") ]
+   uint32 Priority;
+      [Description (
+        "Indicates the current operating condition of the Thread. " 
+        "Values include ready (2), running (3), and blocked (4), "
+        "among others."),
+       Values {"Unknown", "Other", "Ready", "Running", 
+               "Blocked", "Suspended Blocked", "Suspended Ready"}]
+   uint16 ExecutionState;
+      [Description (
+      "Time in kernel mode, in milliseconds. If this information "
+      "is not available, a value of 0 should be used."),
+       Units("MilliSeconds") ]
+   uint64 KernelModeTime;
+      [Description (
+        "Time in user mode, in milliseconds. If this information is "
+        "not available, a value of 0 should be used."),
+       Units("MilliSeconds") ]
+   uint64 UserModeTime;
+};
+
+
+// ===================================================================
+// ProcessThread
+// ===================================================================
+   [Association, Aggregation, Description (
+     "A link between a Process and the Thread(s) running in the "
+     "context of this Process.") ]
+class CIM_ProcessThread : CIM_Component {
+      [Override ("GroupComponent"), Aggregate, Min (1), Max (1),
+       Description ("The Process.") ]
+   CIM_Process REF GroupComponent;
+      [Override ("PartComponent"), Weak,
+       Description (
+        "The Thread running in the context of the Process.") ]
+   CIM_Thread REF PartComponent;
+};
+
+// ==========================================================================
+// End of Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// ==========================================================================
+
+
+// ===================================================================
+//  PG_UnixProcess
+// ===================================================================
+   [Version ("2.2.0"), Description (
+     "Each instance of the PG_UnixProcess class represents a single "
+     "instance of a running program. A user of the Operating System "
+     "will typically see a Process as an application or task. Within "
+     "an OperatingSystem, a Process is defined by a workspace of "
+     "memory resources and environmental settings that are allocated "
+     "to it. On a multitasking System, this workspace prevents "
+     "intrusion of resources by other Processes. Additionally, a "
+     "Process can execute as multiple Threads, all which run within "
+     "the same workspace.") ]
+class PG_UnixProcess : CIM_Process {
+      [Required, Description (
+        "The parent process ID of this executing process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.2"} ]
+   string ParentProcessID;
+      [Required, Description (
+        "The Real User ID of this currently executing process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.4"} ]
+   uint64 RealUserID;
+      [Required, Description (
+        "The Group ID of this currently executing process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.2"} ]
+   uint64 ProcessGroupID;
+      [Description (
+        "If part of a group of processes are under the control "
+        "of a session leader, this property holds the session "
+        "ID for the group.") ]
+   uint64 ProcessSessionID;
+      [Description (
+        "The TTY currently associated with this process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.5"} ]
+   string ProcessTTY;
+      [Description (
+        "The executing process's command path."),
+       MappingStrings{"MIF.DMTF|Process Information|001.7"} ]
+   string ModulePath;
+      [ Description (
+        "The operating system parameters provided to the executing "
+        "process. These are the argv[] values."),
+       MappingStrings{"MIF.DMTF|Process Information|001.8"} ]
+   string Parameters[];
+      [Description (
+        "The process's 'nice' value.  Used to compute its priority."),
+       MappingStrings{"MIF.DMTF|Process Information|001.11"} ]
+   uint32 ProcessNiceValue;
+      [Description (
+        "A description of the event this process is currently "
+        "sleeping for.  The precise nature of this string is "
+        "implementation defined, but is typically the address of a "
+        "system data structure that will be modified when the event "
+        "occurs. This string only has meaning when the ExecutionState "
+        "is \"Blocked\" or  \"SuspendedBlocked\"."),
+        ModelCorrespondence {"CIM_Process.ExecutionState"} ]
+   string ProcessWaitingForEvent;
+
+};
+
+// ===================================================================
+//  PG_UnixProcessStatisticalInformation
+// ===================================================================
+[Version ("2.2.0"), 
+      Description (
+       "The statistics associated with a Unix process. ") ]
+class PG_UnixProcessStatisticalInformation : CIM_StatisticalInformation {
+      [Propagated("CIM_Process.CSCreationClassName"),
+       Key, MaxLen (256),
+       Description (
+        "The scoping Process's ComputerSystem CreationClassName.") ]
+   string CSCreationClassName;
+      [Propagated("CIM_Process.CSName"),
+       Key, MaxLen (256),
+       Description ("The scoping Process's ComputerSystem Name.") ]
+   string CSName;
+      [Propagated("CIM_Process.CreationClassName"),
+       Key, MaxLen (256),
+       Description (
+        "The scoping Process's OperatingSystem CreationClassName.") ]
+   string OSCreationClassName;
+      [Propagated("CIM_Process.Name"),
+       Key, MaxLen (256),
+       Description ("The scoping Process's OperatingSystem Name.") ]
+   string OSName;
+      [Propagated("CIM_Process.Handle"),
+       Key, MaxLen (256),
+       Description ("The scoping Process's Handle.") ]
+   string Handle;
+      [Propagated("CIM_Process.CreationClassName"),
+       Key, MaxLen (256),
+       Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string ProcessCreationClassName;
+      [Key, MaxLen (256), Override ("Name"),
+       Description ("A string used "
+        "to identify the related statistics of a Process. "),
+       MappingStrings {"MIF.DMTF|Process Information|001.1"} ]
+   string Name;
+      [Description (
+        "The percentage of a CPU's time this process is consuming."),
+       MappingStrings{"MIF.DMTF|Process Information|001.12"},
+       Units("Percent") ]
+   uint32 CPUTime;
+      [Description ("The number of KiloBytes of real text space "
+         "used by the process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.15"},
+       Units("KiloBytes") ]
+   uint64 RealText;
+      [Description ("The number of KiloBytes of real data "
+         "space used by the process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.16"},
+       Units("KiloBytes") ]
+   uint64 RealData;
+      [Description ("The number of KiloBytes of real stack space "
+         "used by the process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.17"},
+       Units("KiloBytes") ]
+   uint64 RealStack;
+      [Description (
+        "The number of KiloBytes of virtual text space used by the "
+        "process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.18"},
+       Units("KiloBytes") ]
+   uint64 VirtualText;
+      [Description (
+        "The number of KiloBytes of virtual data space used by the "
+        "process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.19"},
+       Units("KiloBytes") ]
+   uint64 VirtualData;
+      [Description (
+        "The number of KiloBytes of virtual stack space used by the "
+        "process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.20"},
+       Units("KiloBytes") ]
+   uint64 VirtualStack;
+      [Description ("The number of "
+        "KiloBytes of virtual shared memory used by the "
+        "process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.22"},
+       Units("KiloBytes") ]
+   uint64 VirtualMemoryMappedFileSize;
+      [Description ("The number of "
+        "KiloBytes of virtual space used for memory mapped "
+        "files by the process."),
+       MappingStrings{"MIF.DMTF|Process Information|001.21"},
+       Units("KiloBytes") ]
+   uint64 VirtualSharedMemory;
+      [Description (
+        "CPU time of terminated child processes in clock ticks"),
+        Units ("Clock Ticks"), Counter]
+   uint64 CpuTimeDeadChildren;
+      [Description (
+        "System time of terminated child processes in clock ticks"),
+        Units ("Clock Ticks"), Counter]
+   uint64 SystemTimeDeadChildren;
+      [Description (
+	  "The number of Kbytes of real space used by the process"),
+	  Units("Kilobytes") ]
+   uint64 RealSpace;
+};
+
+
+// ==================================================================
+//    PG_UnixProcessStatistics
+// ================================================================== 
+    [Association, Version ("2.2.0"), Description ( 
+     "PG_UnixProcessStatistics is an association that relates a " 
+     "PG_UnixProcess to its StatisticalInformation. ") ]
+class PG_UnixProcessStatistics : CIM_Statistics { 
+ 
+        [Key, Override ("Element"), Min(1), Max(1), Description ( 
+         "The Process for which statistical or metric " 
+         "data is defined.") ] 
+    PG_UnixProcess REF Element;
+ 
+        [Key, Override ("Stats"), Weak, Description (
+         "The UNIX Process statistical information/object.") ] 
+    PG_UnixProcessStatisticalInformation REF Stats; 
+};
+
+
+// ===================================================================
+// PG_UnixThread
+// ===================================================================
+   [Version ("2.2.0"), Description (
+     "Threads represent the ability to execute units of a Process "
+     "or task in parallel. A UnixThread inherits from the "
+     "superclass, CIM_Thread, which is weak to the Process. The "
+     "values used are defined in sched.h and psched.h.")]
+class PG_UnixThread : CIM_Thread {
+      [Description (
+        "Indicates the thread's scheduling policy. Set to \"Other\" "
+        "when using OtherSchedPolicy to specifiy additional values. "
+        "\"Other\" represents SCHED_OTHER as defined in sched.h" ),
+       ValueMap {"0", "1", "2", "3"},
+       Values{"Unknown", "Other", "SCHED_FIFO", "SCHED_RR"},
+       ModelCorrespondence {"CIM_UnixThread.OtherSchedPolicy"} ] 
+   uint16 SchedPolicy;
+      [Description (
+        "Indicates the thread's scheduling policy when SchedPolicy "
+        "is set to \"Other\"."),
+       ModelCorrespondence {"CIM_UnixThread.SchedPolicy"} ] 
+   string OtherSchedPolicy;
+      [Description (
+        "Indicates the size of the guard area for a created thread's "
+        "stack.") ]
+   string GuardSize;
+      [Description (
+        "Indicates the creation state of the thread."),
+       ValueMap {"0", "2", "3"},
+       Values{"Unknown", "PTHREAD_CREATE_DETACHED", 
+        "PTHREAD_CREATE_JOINABLE"} ]
+   uint16 DetachState;
+      [Description (
+        "Indicates how the scheduling attributes are to be set."),
+       ValueMap {"0", "2", "3"},
+       Values{"Unknown", "PTHREAD_INHERIT_SCHED", 
+        "PTHREAD_EXPLICIT_SCHED"} ]
+   uint16 InheritSched;
+      [Description (
+        "Indicates the contention scope of the thread."),
+       ValueMap {"0", "2", "3"},
+       Values{"Unknown", "PTHREAD_SCOPE_SYSTEM", 
+        "PTHREAD_SCOPE_PROCESS"} ]
+   uint16 ContentionScope;
+      [Description (
+        "Indicates the size of storage to be used for the thread's "
+        "stack.") ]
+   string StackSize;
+      [Description (
+        "Indicates the thread's concurrency level.") ]
+   uint64 ConcurrencyLevel;
+      [Description (
+        "Indicates the thread's cancelability state."),
+       ValueMap {"0", "2", "3"},
+       Values{"Unknown", "PTHREAD_CANCEL_ENABLE", 
+        "PTHREAD_CANCEL_DISABLE"} ]
+   uint16 CancelState;
+      [Description (
+        "Indicates the thread's cancelability type."),
+       ValueMap {"0", "2", "3"},
+       Values{"Unknown", "PTHREAD_CANCEL_DEFERRED", 
+       "PTHREAD_CANCEL_ASYNCHRONOUS"} ]
+   uint16 CancelType;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

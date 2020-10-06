@@ -1,0 +1,606 @@
+
+
+Internet Engineering Task Force                             Michael Day
+INTERNET DRAFT                                                      IBM
+                                                           Ira McDonald
+[Target Category: Experimental]                              High North
+25 April 2003                                      Expires in Six Months
+
+          Signature Extension for Service Location Protocol v2
+                   draft-day-svrloc-signature-00.txt
+
+
+
+
+
+
+Status of This Memo
+   This document is an Internet-Draft and is subject to all provisions
+   of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet- Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/1id-abstracts.html
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+   This document is an individual contribution to the Internet
+   Engineering Task Force (IETF). Comments should be submitted to the
+   srvloc@srvloc.org mailing list.
+
+   Distribution of this memo is unlimited.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                      Expires: 25 August 2003                [Page i]
+
+Internet Draft           SLP Signature Extension             April 2003
+
+   Table of Contents
+
+
+   1  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2  Applicability Statement  . . . . . . . . . . . . . . . . . . .   2
+   2.1 Use with DAs  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.2 Use with SLP Messages . . . . . . . . . . . . . . . . . . . .   4
+   3  Signature Extension Format . . . . . . . . . . . . . . . . . .   4
+   3.1 Signature Extension Fields  . . . . . . . . . . . . . . . . .   4
+   3.1.1 CMS signed-data Field . . . . . . . . . . . . . . . . . . .   4
+   3.1.2 Size of signed-data Field . . . . . . . . . . . . . . . . .   5
+   3.2 Contents of signed-data Field . . . . . . . . . . . . . . . .   5
+   3.3 Omission of eContent  . . . . . . . . . . . . . . . . . . . .   5
+   4  Use of the Signature Extension . . . . . . . . . . . . . . . .   6
+   4.1 Input to signed-data Field  . . . . . . . . . . . . . . . . .   6
+   4.1.1 Calculating the Length of a Signed SLP Message  . . . . . .   6
+   4.2 Signature Generation Process  . . . . . . . . . . . . . . . .   7
+   4.3 Signature Verification Process  . . . . . . . . . . . . . . .   7
+   5  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . .   8
+   6  References . . . . . . . . . . . . . . . . . . . . . . . . . .   8
+   7  Author's Contact Information . . . . . . . . . . . . . . . . .   9
+   8  Full Copyright Statement . . . . . . . . . . . . . . . . . . .   9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                      Expires: 25 August 2003                [Page 1]
+
+Internet Draft           SLP Signature Extension             April 2003
+
+
+1  Introduction
+
+   The Service Location Protocol [rfc2608bis] provides a scalable
+   framework for the discovery and selection of network services. Using
+   this protocol, computers using the Internet need little or no static
+   configuration of network services for network based applications.
+
+   SLP recommends the use of IPSec Authentication Headers [AH] for
+   authenticating service information. It also recommends the use of the
+   IPSec Encapsulating Security Payload [ESP] for causing SLP exchanges
+   to be private.
+
+   An addition to [rfc2608bis], the internet-draft "Upgrading to TLS
+   Within Service Location Protocol" (work in progress) [TLS] also
+   specifies a method for upgrading TCP connections to be encrypted.
+
+   The security discussion in section 15 of [rfcs608bis] enumerates the
+   security implications of using SLP for the discovery and selection of
+   network services. IPSec SHOULD be used in the manner described
+   whenever possible.
+
+   There are some situations where the use of IPSEC is not an option for
+   SLP. These include
+
+
+     1. SLP is being transported by a protocol stack other than IP. This
+        point includes the case where SLP is publishing information
+        about a service that is accessible only via non-IP media.
+
+     2. The SLP agent is running on a platform for which IPSec has not
+        been implemented, such as an embedded system.
+
+     3. SLP is being used within an application model that does not have
+        an affinity with IPSec security associations, such as with a
+        high-latency store-and-forward protocol or a many-to-one fanout
+        engine.
+
+   When using SLP in environments where IPSec AH is not avialable it is
+   still desirable to provide a means to authenticate SLP messages. This
+   document describes an optional SLP protocol extension for the genera­
+   tion and verification of signatures of SLP messages. It uses the Cry­
+   tographic Message Syntax [CMS] as the signature format.
+
+
+2  Applicability Statement
+
+   This extension SHOULD NOT be used with SLP when IPSec Authentication
+   Headers [AH] are available for use. IPSec Authentication Headers
+   SHOULD be used to authenticate SLP messages whenever possible, as
+   outlined in [rfc2608bis].
+
+
+
+Day                      Expires: 25 August 2003                [Page 2]
+
+Internet Draft           SLP Signature Extension             April 2003
+
+
+   When there is an acceptable mechanism for managing public keys in
+   place and when IPSec Authentication Headers are not available for
+   use, the signature extension MAY be used to authenticate SLP mes­
+   sages.
+
+   This extension is based upon the Cryptographic Message Syntax [CMS].
+   CMS requires distribution of key material to occur but does not spec­
+   ify how keys should be distributed. CMS supports different Public Key
+   algorithms and the use of Public Key Certificates. There are many
+   ways to distribute Certificates and other key material, and [CMS]
+   states that "The recipient MAY obtain the correct public key for the
+   signer by any means." Further, [CMS] states:
+
+     "[CMS] supports a wide variety of architectures for certificate-
+     based key management, such as the one defined by the PKIX working
+     group. [PROFILE]."
+
+   The selection and implementation of a public-key infrastructure is
+   beyond the scope of this document.
+
+   Assuming private keys are secret, the signature extension can provide
+   assurance that SLP messages originate from the purported host and
+   that they have not been modified in transit to the receiving host.
+
+
+2.1 Use with DAs
+
+   All SLP message are request-response tuples, even when using multi­
+   cast or broadcast. The signature extension works for direct exchanges
+   between two SLP agents. In such a case, the sender of an SLP message
+   signs that message and the receiver verifies the signature.
+
+   When using DAs, SLP transactions can involve three SLP agents and two
+   request-response tuples. For example, an SA registers service infor­
+   mation with a DA. Later, a UA requests that service information from
+   the DA.
+
+   In this case the UA and SA do not transact directly with each other
+   and, therefore, cannot derive mutual trust through the direct
+   exchange of signed messages. Instead, they communicate indirectly
+   through the DA.
+
+   Through administration of a public key infrastructure associative
+   trust between the UA and SA may be achieved through the DA. For this
+   to be achievable, the UA, SA, and DA must be configured with the same
+   root certificate authority, and must also be configured to reject SLP
+   signature extensions signed by a public key outside of the root of
+   trust. When this is the case, a UA and SA can derive associative
+   trust indirectly through signed messages via the DA.
+
+
+
+
+Day                      Expires: 25 August 2003                [Page 3]
+
+Internet Draft           SLP Signature Extension             April 2003
+
+
+2.2 Use with SLP Messages
+
+   The signature extension MAY be used with any SLP message.
+
+
+3  Signature Extension Format
+
+   The Signature Extension comprises an envelope for a Cryptographic
+   Message Syntax signed-data content type. (See section 5.1 of [CMS].)
+
+
+3.1 Signature Extension Fields
+
+   The Signature Extension has the following format:
+
+   0             1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Extension ID = 0x000?        |Next Ext. Offset (must be zero)|
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   | Offset, contd.|               CMS signed-data                 \
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+3.1.1 CMS signed-data Field
+
+   The CMS signed-data field contains the signature of the SLP message
+   and accompanying data. The format for the signed-data field is out­
+   lined in section 5.1 of [CMS]. It is a BER-encoded [X.209-88] buffer
+   that may include at least the following information:
+
+
+     1. Version of the CMS used to sign the message data.
+
+     2. Algorithms used to generate and sign the message digest.
+
+     3. Signed content, which includes a digest of the message data.
+
+     4.
+        Optional Signer information, which may include Public-Key Cer­
+        tificates. Signer attributes are subject to additional encoding
+        rules.
+
+   The list above is generalized. For example, if the signed-data field
+   contains variable-length attribute data that data must use special
+   additional rules. See [CMS] for precise details.
+
+
+
+
+
+
+
+Day                      Expires: 25 August 2003                [Page 4]
+
+Internet Draft           SLP Signature Extension             April 2003
+
+
+3.1.2 Size of signed-data Field
+
+   There is a paradox involving the size of the signed-data field and
+   the generation of the signed message digest.
+
+   The SLP header MUST be included in the input for the message digest
+   contained in the signed-data field. Because the SLP Header includes a
+   length field, the length of the message including the signature
+   extension must be part of the input into the message digest contained
+   in the signature extension.
+
+   The message digest and the signature of the message digest are fixed-
+   length fields and their length is known prior to generating the
+   signed digest. This makes it straightforward to calculate the length
+   of the SLP message, initialize the length field in the SLP header,
+   and then generate the signed message digest.
+
+
+3.2 Contents of signed-data Field
+
+   The CMS provides considerable flexibility when generating signed-data
+   content. For example, it allows multiple signers and multiple signa­
+   tures. It also allows a variable number and type of signer attributes
+   including certificates.
+
+   To be consistent with the goals of SLP UAs and SAs SHOULD keep the
+   signed-data field as simple as possible when generating signature
+   extensions. A simple signed-data field with only a message digest, a
+   signature of the message digest, and a subject key identifier makes a
+   prior calculation of the signed-data length simple and ensures that
+   generating and verifying signatures of SLP messages requires the
+   smallest possible overhead.
+
+   A signed-data field that contains only a signed message digest and a
+   subject key identifier can fit easily within the datagram MTU of most
+   network environments and does not represent an unusual field size
+   relative to other SLP fields. However, embellishing the signed-data
+   with additional variable length attributes may quickly cause the SLP
+   message to exceed the datagram MTU.
+
+
+3.3 Omission of eContent
+
+   The CMS referrs to the data being signed for authentication as "eCon­
+   tent." In this case, the eContent is an SLP Message minus the signa­
+   ture extension.
+
+   The CMS allows signed content to be either encapsulated within a
+   signed-data "envelope" or "external." The signature extension
+   requires the eContent to be "external."
+
+
+
+Day                      Expires: 25 August 2003                [Page 5]
+
+Internet Draft           SLP Signature Extension             April 2003
+
+
+   To quote from section 5.2 of [CMS]:
+
+     The optional omission of the eContent within the EncapsulatedCon­
+     tentInfo field makes it possible to construct "external signa­
+     tures."  In the case of external signatures, the content being
+     signed is absent from the EncapsulatedContentInfo value included in
+     the signed-data content type.  If the eContent value within Encap­
+     sulatedContentInfo is absent, then the signatureValue is calculated
+     and the eContentType is assigned as though the eContent value was
+     present.
+
+   In other words, the signed-data field will always contain a signed
+   digest of the SLP message but not the SLP message itself.
+
+
+4  Use of the Signature Extension
+
+   Subject to the applicability guidelines in section 2 above, the Sig­
+   nature extension can provide additional security to SLP by authenti­
+   cating the content SLP messages, including other SLP extensions. It
+   cannot provide privacy and it cannot authenticate the origin of IP
+   messages. IPSec [AH] is required to authenticate IP headers.
+
+
+4.1 Input to signed-data Field
+
+   When generating a signature extension for an SLP message, the follow­
+   ing data MUST be used as input to the message digest:
+
+
+     1. SLP Header and message.
+
+     2. Any SLP extension up to but not including the signature exten­
+        sion.
+
+     3. The Signature extension MUST be the last extension present in an
+        SLP message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                      Expires: 25 August 2003                [Page 6]
+
+Internet Draft           SLP Signature Extension             April 2003
+
+
+4.1.1 Calculating the Length of a Signed SLP Message
+
+   The following steps should be used to calculate the length of an SLP
+   message that includes the signature extension.
+
+
+     1. Determine the length of the signature extension. The signature
+        extension will always be 6 bytes larger than the size of the CMS
+        signed-data field. If the signed-data field will contain any
+        variable length data such as signer attributes it will be neces­
+        sary to encode the signed-data field using a dummy message
+        digest and signature to obtain its length.
+
+     2. Determine the length of the SLP message, including the length of
+        the signature extension and all preceeding extensions.
+
+     3. Initialize the SLP Header with the length of the message.
+
+
+4.2 Signature Generation Process
+
+   The details of generating signatures for a CMS signed-data field are
+   contained in [CMS] sections 5.4 and 5.5. The following is an overview
+   for using CMS signed-data in the SLP signature extension. The details
+   for performing the individual steps are covered in [CMS].
+
+
+     1. Generate a message digest of the SLP message beginning with the
+        first byte of the SLP Header up to and including the last byte
+        of the message and extensions not including the signature exten­
+        sion. Note that if CMS signed attributes are to be included in
+        the signed-data field they too must be input to the message
+        digest. See [CMS] for details.
+
+     2. Generate a signature of the digest from step 1. The input to the
+        signature is the digest and the signer's private key.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                      Expires: 25 August 2003                [Page 7]
+
+Internet Draft           SLP Signature Extension             April 2003
+
+
+4.3 Signature Verification Process
+
+   The details of verifying signatures for a CMS signed-data field are
+   contained in [CMS] section 5.6. The following is an overview for ver­
+   ifying signatures in CMS signed-data fields within an SLP signature
+   extension.
+
+
+     1. Generate a message digest exactly as in step [1] in section 4.2
+        above.
+
+     2. The signer's public key must be obtained separately.
+
+     3. The input to the signature verification step is the digest gen­
+        erated in step 1 and the signers public key. The details depend
+        upon the exact signature algorithm employed but generally
+        include encrypting the locally generated digest with the signers
+        public key and comparing the result to the signature contained
+        in the message.
+
+
+5  Acknowledgements
+
+   James Kempf was instrumental in the development of this document.
+   Erik Guttman contributed the basic theory of using digital signatures
+   with SLP and offered valuable insights during the preparation of this
+   document.
+
+6  References
+
+
+[rfc2608bis]
+   Guttman, E., Kempf, J., Service Location Protocol, Version 2 (work in
+   progress). draft-guttman-svrloc-rfc2608bis-03.txt, August 2002.
+
+
+[TLS]
+   McDonald, Ira, Kempf, J., Day, M., "Upgrading to TLS With Service
+   Location Protocol", draft-mcdonald-svrloc-tls-00.txt (work in
+   progress).
+
+
+[AH]
+   Kent, S., and Atkinson, R., "IP Authentication Header," RFC 2402,
+   November, 1998.
+
+[ESP]
+   Kent, S., and Atkinson, R., "IP Encapsulating Security Payload
+   (ESP)," RFC 2406, November, 1998.
+
+
+
+
+Day                      Expires: 25 August 2003                [Page 8]
+
+Internet Draft           SLP Signature Extension             April 2003
+
+
+[CMS]
+   Housely, R., "Cryptographic Message Syntax", RFC 3369, August, 2002.
+
+
+[PROFILE]
+   Housley, R., Polk, W., Ford, W. and D. Solo, "Internet X.509 Public
+   Key Infrastructure: Certificate and CRL rofile", RFC 3280, April
+   2002.
+
+[X.209-88]
+   CCITT.  Recommendation X.209: Specification of Basic Encoding Rules
+   for Abstract Syntax Notation One (ASN.1).  1988.
+
+
+7  Author's Contact Information
+
+   Michael Day IBM 3039 Cornwallis Road Research Triangle Park, NC 27709
+   USA Phone:  +1 919 543-4283 Email:  mdday@us.ibm.com
+
+   Ira McDonald High North Inc 221 Ridge Ave Grand Marais, MI 49839 USA
+   Phone: +1 906 494-2434 Email: imcdonald@sharplabs.com
+
+
+8  Full Copyright Statement
+
+   Copyright (C) The Internet Society (2000-2002).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this doc­
+   ument itself may not be modified in any way, such as by removing the
+   copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of develop­
+   ing Internet standards in which case the procedures for copyrights
+   defined in the Internet Standards process must be followed, or as
+   required to translate it into languages other than English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF MER­
+   CHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
+
+
+
+
+Day                      Expires: 25 August 2003                [Page 9]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Day                      Expires: 25 August 2003               [Page 10]

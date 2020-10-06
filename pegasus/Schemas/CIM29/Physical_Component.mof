@@ -1,0 +1,300 @@
+// ===================================================================
+// Title: Physical_Component
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Physical_Component.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Physical Model defines modeling concepts related
+//              to actual boxes and packaging. This file defines
+//              the concepts related to components and chips.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for 2.9Final
+// CR1263 - Add DDR2 enumeration to CIM and SMBIOS
+//
+// Change Log for v2.8 Preliminary
+// CR1005 - Deprecate several boolean properties in the physical model
+//          that overlap.  Create a new property to express their
+//          meaning.
+// CR1019 - CIM Versioning for 2.8 Preliminary
+// 
+// Change Log for v2.7
+// CR623 - Fix the DMI mapping string to include the attribute number
+//         PhysicalMemory.FormFactor, .MemoryType, .TotalWidth,
+//         .DataWidth, .Speed, .Capacity, .BankLabel.
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// PhysicalComponent
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The PhysicalComponent class represents any low-level or basic "
+       "Component within a Package. A Component object either can not "
+       "or does not need to be decomposed into its constituent parts. "
+       "For example, an ASIC (or Chip) can not be further decomposed. "
+       "A tape for data storage (PhysicalMedia) does not need to be "
+       "decomposed. Any PhysicalElement that is not a Link, Connector, "
+       "or Package is a descendent (or member) of this class. For "
+       "example, the UART chipset on an internal modem Card would be a "
+       "subclass (if additional properties or associations are "
+       "defined) or an instance of PhysicalComponent.")]
+class CIM_PhysicalComponent : CIM_PhysicalElement {
+
+      [Description (
+          "The RemovalCapabilites property is used to describe the "
+          "conditions under which a PhysicalPackage can be removed. "
+          "Since all PhysicalPackages are not removable, this property "
+          "defaults to 2, 'Not Applicable'."), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Not Applicable", "Removable when off",
+          "Removable when on or off" }]
+   uint16 RemovalConditions = 2;
+
+      [Deprecated { "CIM_PhysicalComponent.RemovalConditions" }, 
+       Description (
+          "The use of this property is being deprecated. Instead "
+          "RemovalConditions should be used. The RemovalConditions "
+          "property addresses whether a PhysicalComponent is removable "
+          "with or without power being applied. \n"
+          "\n"
+          "A PhysicalComponent is Removable if it is designed to be "
+          "taken in and out of the physical container in which it is "
+          "normally found, without impairing the function of the "
+          "overall packaging. A Component can still be Removable if "
+          "power must be 'off' in order to perform the removal. If "
+          "power can be 'on' and the Component removed, then the "
+          "Element is both Removable and HotSwappable. For example, an "
+          "upgradeable Processor chip is Removable.")]
+   boolean Removable;
+
+      [Deprecated { "No Value" }, Description (
+          "The use of this property is being deprecated because it is "
+          "redundant with the FRU class and its associations. A "
+          "PhysicalComponent is Replaceable if it is possible to "
+          "replace (FRU or upgrade) the Element with a physically "
+          "different one. For example, some ComputerSystems allow the "
+          "main Processor chip to be upgraded to one of a higher clock "
+          "rating. In this case, the Processor is said to be "
+          "Replaceable. All Removable Components are inherently "
+          "Replaceable.")]
+   boolean Replaceable;
+
+      [Deprecated { "CIM_PhysicalComponent.RemovalConditions" }, 
+       Description (
+          "The use of this property is being deprecated. Instead "
+          "RemovalConditions should be used. The RemovalConditions "
+          "property addresses whether a PhysicalComponent is removable "
+          "with or without power being applied. \n"
+          "\n"
+          "A PhysicalComponent is HotSwappable if it is possible to "
+          "replace the Element with a physically different but "
+          "equivalent one while the containing Package has power "
+          "applied to it (ie, is 'on'). For example, a fan Component "
+          "may be designed to be HotSwappable. All HotSwappable "
+          "Components are inherently Removable and Replaceable.")]
+   boolean HotSwappable;
+};
+
+
+// ==================================================================
+// PackagedComponent
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "A Component is typically contained by a PhysicalPackage, such "
+       "as a Chassis or Card. The PackagedComponent association makes "
+       "this relationship explicit. In the first sentence, the word, "
+       "'typically', is used. This is because a Component may be "
+       "removed from, or not yet inserted into, its containing Package "
+       "(ie, the Removable boolean is TRUE). Therefore, a Component "
+       "may not always be associated with a container.")]
+class CIM_PackagedComponent : CIM_Container {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The PhysicalPackage that contains Component(s).")]
+   CIM_PhysicalPackage REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The PhysicalComponent which is contained in the Package.")]
+   CIM_PhysicalComponent REF PartComponent;
+};
+
+
+// ==================================================================
+// Chip
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The Chip class represents any type of integrated circuit "
+       "hardware, including ASICs, processors, memory chips, etc.")]
+class CIM_Chip : CIM_PhysicalComponent {
+
+      [Description (
+          "The implementation form factor for the Chip. For example, "
+          "values such as SIMM (7), TSOP (9) or PGA (10) can be "
+          "specified."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23" }, 
+       Values { "Unknown", "Other", "SIP", "DIP", "ZIP", "SOJ",
+          "Proprietary", "SIMM", "DIMM", "TSOP", 
+          // 10               
+          "PGA", "RIMM", "SODIMM", "SRIMM", "SMD", "SSMP", "QFP",
+          "TQFP", "SOIC", "LCC", 
+          // 20               
+          "PLCC", "BGA", "FPBGA", "LGA" }]
+   uint16 FormFactor;
+};
+
+
+// ==================================================================
+// PhysicalMemory
+// ==================================================================
+   [Version ( "2.9.0" ), Description (
+       "PhysicalMemory is a subclass of CIM_Chip, representing low "
+       "level memory devices - SIMMS, DIMMs, raw memory chips, etc.")]
+class CIM_PhysicalMemory : CIM_Chip {
+
+      [Override ( "FormFactor" ), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.6" }]
+   uint16 FormFactor;
+
+      [Description (
+          "The type of PhysicalMemory."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21" }, 
+       Values { "Unknown", "Other", "DRAM", "Synchronous DRAM",
+          "Cache DRAM", "EDO", "EDRAM", "VRAM", "SRAM", "RAM", 
+          //10 
+          "ROM", "Flash", "EEPROM", "FEPROM", "EPROM", "CDRAM",
+          "3DRAM", "SDRAM", "SGRAM", "RDRAM", 
+          // 20               
+          "DDR", "DDR2" }, 
+       MappingStrings { "MIF.DMTF|Memory Device|005.9" }]
+   uint16 MemoryType;
+
+      [Description (
+          "Total width, in bits, of the PhysicalMemory, including "
+          "check or error correction bits. If there are no error "
+          "correction bits, the value in this property should match "
+          "that specified for DataWidth."), 
+       Units ( "Bits" ), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.7" }]
+   uint16 TotalWidth;
+
+      [Description (
+          "Data width of the PhysicalMemory, in bits. A data width of "
+          "0 and a TotalWidth of 8 would indicate that the Memory is "
+          "solely used to provide error correction bits."), 
+       Units ( "Bits" ), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.8" }]
+   uint16 DataWidth;
+
+      [Description (
+          "The speed of the PhysicalMemory, in nanoseconds."), 
+       Units ( "NanoSeconds" ), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.24" }]
+   uint32 Speed;
+
+      [Description (
+          "The total capacity of this PhysicalMemory, in bytes."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.5" }]
+   uint64 Capacity;
+
+      [Description (
+          "A string identifying the physically labeled bank where the "
+          "Memory is located - for example, 'Bank 0' or 'Bank A'."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.4" }]
+   string BankLabel;
+
+      [Description (
+          "Specifies the position of the PhysicalMemory in a 'row'. "
+          "For example, if it takes two 8-bit memory devices to form a "
+          "16- bit row, then a value of '2'means that this Memory is "
+          "the second device. 0 is an invalid value for this property."), 
+       MappingStrings { "MIF.DMTF|Memory Device Mapped Addresses|001.6" 
+          }]
+   uint32 PositionInRow;
+
+      [Description (
+          "The position of this PhysicalMemory in an interleave. 0 "
+          "indicates non-interleaved. 1 indicates the first position, "
+          "2 the second position and so on. For example, in a 2:1 "
+          "interleave, a value of '1' would indicate that the Memory "
+          "is in the 'even' position."), 
+       MappingStrings { "MIF.DMTF|Memory Device Mapped Addresses|001.7" 
+          }]
+   uint32 InterleavePosition;
+};
+
+
+// ==================================================================
+// MemoryOnCard
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "PhysicalMemory can be located on HostingBoards, adapter Cards, "
+       "etc. This association explicitly defines this relationship of "
+       "Memory to Cards.")]
+class CIM_MemoryOnCard : CIM_PackagedComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The Card that includes or 'contains' Memory.")]
+   CIM_Card REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The PhysicalMemory which is located on the Card.")]
+   CIM_PhysicalMemory REF PartComponent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

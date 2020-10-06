@@ -1,0 +1,771 @@
+//====================================================================
+// Title:      Event MOF Specification 2.5
+// Filename:   CIM_Event25f.mof
+// Version:    2.5
+// Status:      Final
+// Date:        06/12/2001
+// ===================================================================
+// Copyright "2001" Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.  
+// DMTF is a not-for-profit association of industry members dedicated 
+// to promoting enterprise and systems management and interoperability. 
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members, 
+// provided that correct attribution is given. 
+// As DMTF specifications may be revised from time to time, 
+// the particular version and release cited should always be noted.
+// Description: These object classes define the user and security 
+//              model for CIM and includes classes needed to represent
+//              users, groups and organizational entities as well as 
+//              security services and authentication and authorization 
+//              information.
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined 
+//		    by other working groups, are omitted. 
+// ===================================================================
+// Description: The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined 
+//		    by other working groups, are omitted. 
+// ===================================================================
+// Date:    12/18/2000 - Initial release, Version 2.5
+// Author:  DMTF Event Working Group
+//====================================================================
+
+
+// ===================================================================
+// Pragmas
+// ===================================================================
+#pragma locale ("en_US")
+
+
+//====================================================================
+//  CIM_Indication
+//====================================================================
+   [Indication, Abstract,
+    Description (
+     "CIM_Indication is the abstract root class for all notifications "
+     "about changes in schema, objects and their data, and about "
+     "events detected by providers and instrumentation. Subclasses "
+     "represent specific types of notifications. \n"
+     "\n"
+     "To receive an Indication, a consumer (or subscriber) must create "
+     "an instance of CIM_IndicationFilter describing the criteria of "
+     "the notification, an instance of CIM_IndicationHandler describing "
+     "the delivery of the notification, and an instance of "
+     "CIM_IndicationSubscription associating the Filter and Handler.") ]
+class CIM_Indication
+{
+    [Description (
+      "The time and date of creation of the Indication. The property "
+      "may be set to NULL if the entity creating the Indication is "
+      "not capable of determing this information. Note that "
+      "IndicationTime may be the same for two Indications that are "
+      "generated in rapid succession.") ]
+    datetime IndicationTime;
+};
+
+//====================================================================
+//  CIM_ClassIndication
+//====================================================================
+   [Indication, Abstract,
+    Description (
+     "CIM_ClassIndication is an abstract superclass describing changes "
+     "in the definition of the schema. Subclasses represent specific "
+     "types of change notifications, such as class creation, deletion "
+     "and modification.") ]
+class CIM_ClassIndication : CIM_Indication
+{
+    [EmbeddedObject, Required,  
+     Description (
+      "The current definition of the class that is created, changed "
+      "or deleted in the schema. In the case of a CIM_ClassDeletion "
+      "Indication, the definition for the class just prior to "
+      "deletion should be placed in this property.") ]
+    string ClassDefinition;
+};
+
+//====================================================================
+//  CIM_ClassCreation
+//====================================================================
+   [Indication, 
+    Description (
+     "CIM_ClassCreation notifies when a new class is defined in the "
+     "schema.") ]
+class CIM_ClassCreation : CIM_ClassIndication
+{
+};
+
+//====================================================================
+//  CIM_ClassDeletion
+//====================================================================
+   [Indication,
+    Description (
+     "CIM_ClassDeletion notifies when a class is deleted from the "
+     "schema.") ]
+class CIM_ClassDeletion : CIM_ClassIndication
+{
+};
+
+//====================================================================
+//  CIM_ClassModification
+//====================================================================
+   [Indication,
+    Description (
+     "CIM_ClassModification notifies when a class definition in the "
+     "schema is modified.") ]
+class CIM_ClassModification : CIM_ClassIndication
+{
+    [EmbeddedObject, Required, 
+     Description (
+      "A copy of the 'previous' class definition whose change "
+      "generated the Indication. PreviousClassDefinition contains "
+      "an 'older' copy of the class' information, as compared to "
+      "what is found in the ClassDefinition property (inherited "
+      "from ClassIndication).") ]
+    string PreviousClassDefinition;
+};
+
+//====================================================================
+//  CIM_InstIndication
+//====================================================================
+   [Indication, Abstract,
+    Description (
+     "CIM_InstIndication is an abstract superclass describing changes "
+     "to instances. Subclasses represent specific types of change "
+     "notifications, such as instance creation, deletion and "
+     "modification.") ]
+class CIM_InstIndication : CIM_Indication
+{
+    [EmbeddedObject, Required, 
+     Description (
+      "A copy of the instance that changed to generate the "
+      "Indication. SourceInstance contains the current values of "
+      "the properties selected by the Indication"
+      "Filter's Query. In the case of CIM_InstDeletion, "
+      "the property values are copied before the instance is "
+      "deleted.") ]
+    string SourceInstance;
+};
+
+//====================================================================
+//  CIM_InstCreation
+//====================================================================
+   [Indication,
+    Description (
+     "CIM_InstCreation notifies when a new instance is created.") ]
+class CIM_InstCreation : CIM_InstIndication
+{
+};
+
+//====================================================================
+//  CIM_InstDeletion
+//====================================================================
+   [Indication,
+    Description (
+     "CIM_InstDeletion notifies when an existing instance is deleted.") ]
+class CIM_InstDeletion : CIM_InstIndication
+{
+};
+
+//====================================================================
+//  CIM_InstModification
+//====================================================================
+   [Indication,
+    Description (
+     "CIM_InstModification notifies when an instance is modified.") ]
+class CIM_InstModification : CIM_InstIndication
+{
+    [EmbeddedObject, Required, 
+     Description (
+      "A copy of the 'previous' instance whose change generated the "
+      "Indication. PreviousInstance contains 'older' values of "
+      "an instance's properties (as compared to SourceInstance), "
+      "selected by the IndicationFilter's Query.") ]
+    string PreviousInstance;
+};
+
+//====================================================================
+//  CIM_InstMethodCall
+//====================================================================
+   [Indication,
+    Description (
+     "CIM_InstMethodCall notifies when an instance's method is "
+     "invoked.") ]
+class CIM_InstMethodCall : CIM_InstIndication
+{
+    [Required, Description (
+      "The name of the method invoked.") ]
+    string MethodName;
+
+    [EmbeddedObject,
+     Description (
+      "The parameters of the method, formatted as an "
+      "EmbeddedObject (with a predefined class name of "
+      "\"__MethodParameters\".") ]
+    string MethodParameters;
+
+    [Description (
+      "ReturnValue's data is dependent on the PreCall property. "
+      "When PreCall is TRUE, this property is NULL describing that "
+      "there is no method return value (since the method has not yet "
+      "executed). When PreCall is FALSE, ReturnValue contains a "
+      "string representation of the method's return value."), 
+     ModelCorrespondence {"CIM_InstMethodCall.PreCall"} ]
+    string ReturnValue;
+
+    [Required, Description (
+      "Boolean indicating whether the Indication is sent before "
+      "the method begins executing (TRUE) or when the method "
+      "completes (FALSE). When TRUE, the inherited property "
+      "SourceInstance contains the value of the instance (the "
+      "properties defined by the Filter's Query clause), "
+      "before execution of the method. When PreCall is FALSE, "
+      "SourceInstance embeds the instance as it appears after "
+      "the completion of the method.") ]
+    boolean PreCall;
+};
+
+//====================================================================
+//  CIM_InstRead
+//====================================================================
+   [Indication,
+    Description (
+     "CIM_InstRead notifies when an instance is read but not "
+     "modified.") ]
+class CIM_InstRead : CIM_InstIndication
+{
+};
+
+//====================================================================
+//  CIM_ProcessIndication
+//====================================================================
+   [Indication, Abstract,
+    Description (
+     "An abstract superclass for specialized Indication classes, "
+     "addressing specific changes and alerts published by providers "
+     "and instrumentation. Subclasses include AlertIndication (with "
+     "properties such as PerceivedSeverity and ProbableCause), and "
+     "SNMPTrapIndication (which recasts Traps as CIM indications).") ]
+class CIM_ProcessIndication : CIM_Indication
+{
+};
+
+//====================================================================
+//  CIM_SNMPTrapIndication
+//====================================================================
+   [Indication,
+    Description (
+     "A concrete  class for mapping an SNMP Trap to CIM based on the "
+     "IETF RFC 1157. The usefulness of this class is to describe "
+     "common trap semantics. But, a complete understanding of any trap "
+     "data received relies on the Indicaton recipient having access to "
+     "the sender's MIB. Understanding can be improved by mapping the "
+     "SNMP domain to CIM, and using CIM LifeCycle and standard "
+     "subclasses of CIM_ProcessIndication.") ]
+class CIM_SNMPTrapIndication : CIM_ProcessIndication
+{
+    [Description (
+      "Type of object generating the trap."),
+     Mappingstrings {"PDU.IETF|RFC1157-TRAP-PDU.enterprise"} ]
+    string Enterprise;
+
+    [Description (
+      "Address of the object generating the trap."),
+     Mappingstrings {"PDU.IETF|RFC1157-TRAP-PDU.agent-addr"} ]
+    string AgentAddress;
+
+    [Description (
+      "An enumerated value that describes the generic trap type: \n"
+      "- The coldStart(0) trap signifies that the sending protocol "
+      "entity is reinitializing itself such that the agent's "
+      "configuration or the protocol entity implementation may be "
+      "altered. \n"
+      "- The warmStart(1) trap signifies that the sending protocol "
+      "entity is reinitializing itself such that neither the agent "
+      "configuration nor the protocol entity implementation is "
+      "altered. \n"
+      "- The linkDown(2) trap signifies that the sending protocol "
+      "recognizes a failure in one of the communication links "
+      "represented in the agent's configuration. The Trap-PDU of "
+      "type linkDown contains as the first element of its "
+      "variable-bindings the name and value of the ifIndex instance "
+      "for the affected interface. \n"
+      "- The linkUp(3) trap signifies that the sending protocol "
+      "entity recognizes that one of the communication links "
+      "represented in the agent's configuration has come up. The "
+      "Trap-PDU of type linkUp contains as the first element of its "
+      "variable-bindings, the name and value of the ifIndex instance "
+      "for the affected interface. \n"
+      "- An authenticationFailure(4) trap signifies that the sending "
+      "protocol entity is the adressee of a protocol message that was "
+      "not properly authenticated. While implementations of SNMP must "
+      "be capable of generating this trap, they must also be capable "
+      "of suppressing the emission of such traps via an implementation-"
+      "specific mechanism. \n"
+      "- An egpNeighborLoss(5) trap signifies that an EGP neighbor for "
+      "whom the sending protocol entity was an EGP peer has been "
+      "marked as down and the peer relationship no longer pertains. "
+      "The Trap-PDU of type egpNeighborLoss contains as the first "
+      "element of its variable-bindings, the name and value of the "
+      "egpNeighAddr instance for the affected neighbor. \n"
+      "- An enterpriseSpecific(6) trap signifies that the sending "
+      "protocol entity recognizes that some enterprise-specific "
+      "event has occurred. The specific-trap field identifies the "
+      "particular trap which occurred."), 
+     Values {"Cold Start", "Warm Start", "Link Down", "Link Up", 
+             "Authentication Failure", "EGP Neighbor Loss", 
+             "Enterprise Specific"},
+      Mappingstrings {"PDU.IETF|RFC1157-TRAP-PDU.generic-trap"} ]
+    uint16 GenericTrap;
+
+    [Description ("Specific trap code."), 
+     Mappingstrings {"PDU.IETF|RFC1157-TRAP-PDU.specific-trap"} ]
+    uint32 SpecificTrap;
+
+    [Description (
+      "Time elapsed between the last (re)intialization of the "
+      "managed entity and the generation of the trap."), 
+      Mappingstrings {"PDU.IETF|RFC1157-TRAP-PDU.time-stamp"} ]
+    datetime TimeStamp;
+
+    [Description (
+      "Object naming information (an OID) from the 'variable "
+      "binding' portion of the Trap. This array is correlated "
+      "with the VarBindSyntaxes and VarBindValues arrays. Each "
+      "entry is related to the entries in the other arrays, "
+      "that are located at the same index. In this way, the "
+      "variable binding's name/syntax/value tuple can be "
+      "constructed."), ArrayType ("Indexed"), 
+     ModelCorrespondence {"CIM_SNMPTrapIndication.VarBindSyntaxes",
+      "CIM_SNMPTrapIndication.VarBindValues"},
+     Mappingstrings {"PDU.IETF|RFC1157-TRAP-PDU.variable-bindings"} ]
+    string VarBindNames[];
+
+    [Description (
+      "Object syntax information (defined as an enumerated value) "
+      "from the 'variable binding' portion of the Trap. This array "
+      "is correlated with the VarBindNames and VarBindValues "
+      "arrays. Each entry is related to the entries in the other "
+      "arrays, that are located at the same index. In this way, "
+      "the variable binding's name/syntax/value tuple can be "
+      "constructed."), ArrayType ("Indexed"), 
+     ValueMap {"1", "2", "3", "4", "5", "6", "7", "8"}, 
+     Values {"Integer", "OctetString", "ObjectIdentifier",
+             "NetworkAddress", "Counter", "Gauge",
+             "TimeTicks", "Opaque"}, 
+     ModelCorrespondence {"CIM_SNMPTrapIndication.VarBindNames",
+      "CIM_SNMPTrapIndication.VarBindValues"},
+     Mappingstrings {"PDU.IETF|RFC1157-TRAP-PDU.variable-bindings"} ]
+    uint16 VarBindSyntaxes[];
+
+    [Description (
+      "An OctetString representing object value information "
+      "from the 'variable binding' portion of the Trap. This "
+      "array is correlated with the VarBindNames and "
+      "VarBindSyntaxes arrays. Each entry is related to the "
+      "entries in the other arrays, that are located at the "
+      "same index. In this way, the variable binding's "
+      "name/syntax/value tuple can be constructed."), 
+     ArrayType ("Indexed"), OctetString,  
+     ModelCorrespondence {"CIM_SNMPTrapIndication.VarBindNames",
+      "CIM_SNMPTrapIndication.VarBindSyntaxes"},
+     Mappingstrings {"PDU.IETF|RFC1157-TRAP-PDU.variable-bindings"} ]
+    string VarBindValues[];
+};
+
+//====================================================================
+//  CIM_AlertIndication
+//====================================================================
+   [Indication,
+    Description (
+     "A concrete superclass for CIM Alert notifications.  An "
+     "AlertIndication is a specialized type of CIM_Indication that "
+     "contains information about the severity, cause, recommended "
+     "actions and other data of a real world event. This event and its "
+     "data may or may not be modeled in the CIM class hierarchy.") ]
+class CIM_AlertIndication : CIM_ProcessIndication
+{
+    [Description (
+      "A short description of the Indication."), 
+     MappingStrings {"Recommendation.ITU|X733.Additional text"} ]
+    string Description;
+
+    [Description (
+      "The identifying information of the entity (ie, the instance) for "
+      "which this Indication is generated. The property contains the "
+      "path of an instance, encoded as a string parameter - if the "
+      "instance is modeled in the CIM Schema. If not a CIM instance, "
+      "the property contains some identifying string that names the "
+      "entity for which the Alert is generated.") ]
+    string AlertingManagedElement;
+
+    [Required, Description (
+      "Primary classification of the Indication.  The following values "
+      "are defined: \n"
+      "1 - Other. The Indication's OtherAlertType property conveys "
+      "its classification. Use of \"Other\" in an enumeration is a "
+      "standard CIM convention. It means that the current Indication "
+      "does not fit into the categories described by this enumeration. \n"
+      "2 - Communications Alert. An Indication of this type is "
+      "principally associated with the procedures and/or processes "
+      "required to convey information from one point to another. \n"
+      "3 - Quality of Service Alert. An Indication of this type is "
+      "principally associated with a degradation or errors in the "
+      "performance or function of an entity. \n"
+	"4 - Processing Error. An Indication of this type is "
+      "principally associated with a software or processing fault. \n"
+      "5 - Device Alert. An Indication of this type is principally "
+      "associated with an equipment or hardware fault. \n"
+      "6 - Environmental Alert. An Indication of this type is "
+      "principally associated with a condition relating to an "
+      "enclosure in which the hardware resides, or other "
+      "environmental considerations. \n"
+      "7 - Model Change. The Indication addresses changes in the "
+      "Information Model. For example, it may embed a Lifecycle "
+      "Indication to convey the specific model change being "
+      "alerted. \n"
+      "8 - Security Alert. An Indication of this type is associated "
+      "with security violations, detection of viruses, and similar "
+      "issues."),
+     ValueMap {"1", "2", "3", "4", "5", "6", "7", "8"},
+     Values {"Other", "Communications Alert", 
+	       "Quality of Service Alert", "Processing Error", 
+	       "Device Alert", "Environmental Alert", "Model Change",
+             "Security Alert"},
+     MappingStrings {"Recommendation.ITU|X733.Event type"} ]
+    uint16 AlertType;
+
+    [Description (
+      "A string describing the Alert type - used when the AlertType "
+      "property is set to 1, \"Other State Change\"."), 
+     ModelCorrespondence {"CIM_AlertIndication.AlertType"} ]
+    string OtherAlertType;
+
+    [Required, Description (
+      "An enumerated value that describes the severity of the Alert"
+      "Indication from the notifier's point of view: \n"
+      "1 - Other, by CIM convention, is used to indicate that the "
+      "Severity's value can be found in the OtherSeverity property. \n"
+      "3 - Degraded/Warning should be used when its appropriate to let "
+      "the user decide if action is needed.  \n"
+      "4 - Minor should be used to indicate action is needed, but the "
+      "situation is not serious at this time.  \n"
+      "5 - Major should be used to indicate action is needed NOW. \n"
+      "6 - Critical should be used to indicate action is needed NOW "
+      "and the scope is broad (perhaps an imminent outage to a critical "
+      "resource will result). \n"
+      "7 - Fatal/NonRecoverable should be used to indicate an error "
+      "occurred, but it's too late to take remedial action. \n"
+      "2 and 0 - Information and Unknown (respectively) follow common "
+      "usage. Literally, the AlertIndication is purely informational "
+      "or its severity is simply unknown."), 
+     Values {"Unknown", "Other", "Information", "Degraded/Warning", 
+         "Minor", "Major", "Critical", "Fatal/NonRecoverable"},
+     MappingStrings {"Recommendation.ITU|X733.Perceived severity"} ]
+    uint16 PerceivedSeverity;
+
+    [Description (
+      "Holds the value of the user defined severity value when "
+      "'Severity' is 1 (\"Other\")."),
+     ModelCorrespondence {"CIM_AlertIndication.PerceivedSeverity"} ]
+    string OtherSeverity;
+
+    [Required, Description (
+      "An enumerated value that describes the probable cause of the "
+      "situation which resulted in the AlertIndication."),
+     Values {"Unknown", "Other", "Adapter Error", 
+	   "Application Subsystem Failure", "Bandwidth Reduced", 
+         "Connection Establishment Error", 
+         "Communications Protocol Error", 
+         "Communications Subsystem Failure", 
+         "Configuration/Customization Error", "Congestion", 
+         "Corrupt Data", "CPU Cycles Limit Exceeded", 
+         "Dataset/Modem Error", "Degraded Signal",
+         "DTE-DCE Interface Error", "Enclosure Door Open", 
+         "Equipment Malfunction", "Excessive Vibration", 
+         "File Format Error", "Fire Detected", "Flood Detected", 
+         "Framing Error", "HVAC Problem", "Humidity Unacceptable", 
+         "I/O Device Error", "Input Device Error", "LAN Error", 
+         "Non-Toxic Leak Detected", "Local Node Transmission Error", 
+         "Loss of Frame", "Loss of Signal", 
+         "Material Supply Exhausted", "Multiplexer Problem", 
+         "Out of Memory", "Output Device Error", 
+         "Performance Degraded", "Power Problem", 
+         "Pressure Unacceptable", 
+         "Processor Problem (Internal Machine Error)", 
+         "Pump Failure", "Queue Size Exceeded", "Receive Failure", 
+         "Receiver Failure", "Remote Node Transmission Error", 
+         "Resource at or Nearing Capacity", "Response Time Excessive", 
+         "Retransmission Rate Excessive", "Software Error", 
+         "Software Program Abnormally Terminated", 
+         "Software Program Error (Incorrect Results)", 
+         "Storage Capacity Problem", "Temperature Unacceptable", 
+         "Threshold Crossed", "Timing Problem", 
+         "Toxic Leak Detected", "Transmit Failure", 
+         "Transmitter Failure", "Underlying Resource Unavailable", 
+         "Version MisMatch", "Previous Alert Cleared", 
+         "Login Attempts Failed", "Software Virus Detected", 
+         "Hardware Security Breached", "Denial of Service Detected", 
+         "Security Credential MisMatch", 
+         "Invalid Access of Data Detected"},
+     MappingStrings {"Recommendation.ITU|X733.Probable cause"} ]
+    uint16 ProbableCause;
+
+    [Description (
+	"Provides additional information related to the "
+      "ProbableCause.") ]
+    string ProbableCauseDescription;
+
+    [Description (
+      "Provides information on trending - trending up, down or "
+      "no change."),
+     Values {"Unknown", "Not Applicable", "Trending Up", 
+         "Trending Down", "No Change"},
+     MappingStrings {"Recommendation.ITU|X733.TrendIndication"} ]
+    uint16 Trending;  
+
+    [Description (
+      "An identifier for the AlertIndication. This property is "
+      "similar to a key value in that it can be used for "
+      "identification, when correlating AlertIndications (see "
+      "the CorrelatedIndications array). Its value should be unique "
+      "as long as Alert correlations are reported, but may be "
+      "reused or left NULL if no future AlertIndications will "
+      "reference it in their CorrelatedIndications array."),
+     MappingStrings {
+      "Recommendation.ITU|X733.Notification identifier"} ]
+    string IndicationIdentifier;
+
+    [Description (
+      "A list of IndicationIdentifiers whose notifications are correlated "
+      "with (related to) this one."),
+     MappingStrings {
+      "Recommendation.ITU|X733.Correlated notifications"} ]
+    string CorrelatedIndications[];
+
+    [Description (
+      "Free form descriptions of the recommended actions to take to "
+      "resolve the cause of the notification."),
+     MappingStrings {
+      "Recommendation.ITU|X733.Proposed repair actions"} ]
+    string RecommendedActions[];
+};
+
+//====================================================================
+//  CIM_ThresholdIndication
+//====================================================================
+   [Indication, 
+    Description (
+     "A subclass of CIM_AlertIndications carrying additional threshold "
+     "information related to the notification. This subclass is used "
+     "when one of the ProbableCauses is set to 53, \"Threshold "
+     "Crossed\".") ]
+class CIM_ThresholdIndication : CIM_AlertIndication
+{
+    [Description (
+      "A string describing the threshold or naming the property that "
+      "represents the threshold, if modeled in the CIM hierarchy. In "
+      "the latter case, the value should be written as <schema name>_"
+      "<class name>.<property name>."), 
+     MappingStrings {"Recommendation.ITU|X733.Threshold information"} ]
+    string ThresholdIdentifier;
+
+    [Description (
+      "A string holding the current value of the threshold.  This is "
+      "modeled as a string for universal mapping, similar to the "
+      "CIM_Sensor properties in the Device Model."),
+     MappingStrings {"Recommendation.ITU|X733.Threshold information"} ]
+    string ThresholdValue;
+
+    [Description (
+      "A string holding the current reading value that exceeds the "
+      "threshold.  This is modeled as a string for universal mapping, "
+      "similar to the CIM_Sensor properties in the Device Model."),
+     MappingStrings {"Recommendation.ITU|X733.Threshold information"} ]
+    string ObservedValue;
+};
+
+//====================================================================
+//  CIM_AlertInstIndication
+//====================================================================
+   [Indication,
+    Description (
+     "A subclass of CIM_AlertIndication that embeds a CIM_Inst"
+     "Indication. It is used when adding AlertIndication data to a "
+     "LifeCycle Indication.") ]
+class CIM_AlertInstIndication : CIM_AlertIndication
+{
+    [Override ("AlertType"), Description (
+      "The primary classification of the Indication, defaulted "
+      "to 7, \"Model Change\", for this class. This is done "
+      "because: 1) the primary purpose of AlertInstIndication is "
+      "to add Alert data to a LifeCycle Indication; and 2) LifeCycle "
+      "Indications deal with 'model changes'.") ]
+    uint16 AlertType = 7;
+
+    [EmbeddedObject, Required, 
+     Description (
+      "Embeds the InstIndication that is part of this Alert"
+      "Indication. Only the properties selected by the Indication"
+      "Filter's Query are included.") ]
+    string IndObject;
+};
+
+//====================================================================
+//  CIM_IndicationFilter
+//====================================================================
+   [Description (
+     "CIM_IndicationFilter defines the criteria for generating an "
+     "Indication and what data should be returned in the Indication. "
+     "It is derived from CIM_ManagedElement to allow modeling the "
+     "dependency of the filter on a specific service.") ]
+class CIM_IndicationFilter: CIM_ManagedElement
+{
+    [Key, MaxLen (256), 
+     Description (
+      "A System's CreationClassName. The Filter is defined in the "
+      "context of a CIM_System, where it is hosted or to which it "
+      "applies. In a future release, a weak relationship will be "
+      "explicitly added to the model. This is not done now to allow "
+      "further refinement of the Filter definition and its "
+      "inheritance tree. Keys are defined now to allow the class to "
+      "be instantiated.") ]
+    string SystemCreationClassName;
+
+    [Key, MaxLen (256), 
+     Description (
+      "A System's Name. The Filter is defined in the "
+      "context of a CIM_System, where it is hosted or to which it "
+      "applies. In a future release, a weak relationship will be "
+      "explicitly added to the model. This is not done now to allow "
+      "further refinement of the Filter definition and its "
+      "inheritance tree. Keys are defined now to allow the class to "
+      "be instantiated.") ]
+    string SystemName;
+
+    [Key, MaxLen (256),
+     Description (
+      "Indicates the name of the class or the subclass used in the "
+      "creation of an instance. When used with the other key "
+      "properties of this class, it allows all instances of this "
+      "class and its subclasses to be uniquely identified.") ]
+    string CreationClassName;
+
+    [Key, Description (
+      "The name of the filter.") ]
+    string Name;
+
+    [Description (
+      "The path to a local namespace where the Indications "
+      "originate. If NULL, the namespace of the Filter registration "
+      "is assumed.") ]
+    string SourceNamespace;
+
+    [Required, Description (
+      "A query expression that defines the condition(s) under which "
+      "Indications will be generated. For some Indication classes, "
+      "the query expression may also define the instance properties "
+      "to be copied to the CIM_InstIndication's SourceInstance and "
+      "PreviousInstance properties. Query language semantics include "
+      "projection (e.g., Select), range (e.g., From) and predicate "
+      "(e.g., Where)."),
+     ModelCorrespondence {"CIM_IndicationFilter.QueryLanguage"} ]
+    string Query;
+
+    [Required, Description (
+      "The language in which the query is expressed.") ]
+    string QueryLanguage;
+};
+
+//====================================================================
+//  CIM_IndicationHandler
+//====================================================================
+   [Abstract,
+    Description (
+     "CIM_IndicationHandler is an abstract superclass describing how "
+     "an Indication is to be processd/delivered/'handled'. This may "
+     "define a destination and protocol for delivering Indications, "
+     "or it may define a process to invoke. This class is derived "
+     "from CIM_ManagedElement to allow modeling the "
+     "dependency of the Handler on a specific service.") ]
+class CIM_IndicationHandler: CIM_ManagedElement 
+{
+    [Key, MaxLen (256), 
+     Description (
+      "A System's CreationClassName. The Handler is defined in the "
+      "context of a CIM_System, where it is hosted or to which it "
+      "applies. In a future release, a weak relationship will be "
+      "explicitly added to the model. This is not done now to allow "
+      "further refinement of the Handler definition and its "
+      "inheritance tree. Keys are defined now to allow the class to "
+      "be instantiated.") ]
+    string SystemCreationClassName;
+
+    [Key, MaxLen (256), 
+     Description (
+      "A System's Name. The Handler is defined in the "
+      "context of a CIM_System, where it is hosted or to which it "
+      "applies. In a future release, a weak relationship will be "
+      "explicitly added to the model. This is not done now to allow "
+      "further refinement of the Handler definition and its "
+      "inheritance tree. Keys are defined now to allow the class to "
+      "be instantiated.") ]
+    string SystemName;
+
+    [Key, MaxLen (256),
+     Description (
+      "Indicates the name of the class or the subclass used in the "
+      "creation of an instance. When used with the other key properties "
+      "of this class, it allows all instances of this class "
+      "and its subclasses to be uniquely identified.") ]
+    string CreationClassName;
+
+    [Key, MaxLen (256),
+     Description (
+      "Indicates the name of this Handler.") ]
+    string Name;
+
+    [Description (
+      "The name of the entity that created and/or maintains this "
+      "Handler.") ]
+    string Owner;
+};
+
+//====================================================================
+//  CIM_IndicationHandlerXMLHTTP
+//====================================================================
+   [Description (
+     "CIM_IndicationHandlerXMLHTTP describes the destination for "
+     "Indications to be delivered via HTTP, using a cimXML "
+     "representation.") ]
+class CIM_IndicationHandlerXMLHTTP : CIM_IndicationHandler
+{
+    [Required, Description (
+      "The destination URL to which HTTP/cimXML Indication messages "
+      "are to be delivered. The scheme prefix is implied and is not "
+      "required, but must be 'http:' if specified.") ]
+    string Destination;
+};
+
+//====================================================================
+//  CIM_IndicationSubscription
+//====================================================================
+   [Association, 
+    Description (
+     "CIM_IndicationSubscription describes a flow of Indications. "
+     "The flow is specified by the referenced Filter, and directed to "
+     "the referenced destination or process in the Handler.") ]
+class CIM_IndicationSubscription
+{
+    [Key, Description (
+      "The Filter that defines the criteria and data of the possible "
+      "Indications of this subscription.") ]
+    CIM_IndicationFilter REF Filter;
+
+    [Key, Description (
+      "The Handler addressing delivery of the possible Indications of "
+      "this subscription.") ]
+    CIM_IndicationHandler REF Handler;
+
+   
+};

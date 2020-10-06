@@ -1,0 +1,52 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_ElementSoftwareIdentity
+// ==================================================================
+   [Association, UMLPackagePath ( "CIM::Core::Software" ),
+       Version ( "2.8.0" ), Description (
+       "ElementSoftwareIdentity allows a Managed Element to report its "
+       "software related asset information (firmware, drivers, "
+       "configuration software, and etc.)")]
+class CIM_ElementSoftwareIdentity : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "A LogicalElement's Software Asset.")]
+   CIM_SoftwareIdentity REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The ManagedElement that requires or uses the software.")]
+   CIM_ManagedElement REF Dependent;
+
+      [Description (
+          "Indicates the element's ability to upgrade this software "
+          "asset. \n"
+          "'Resides off element'(2), indicates the persistence of the "
+          "software is outside of the element. Typically for a element "
+          "this software is part of the OperatingSystem is typically "
+          "upgradeable. \n"
+          "'Owner Upgradeable' (3), indicates the persistence of the "
+          "software is on the element and is upgradeable by the owner. "
+          "\n'FactoryUpgradeable' (4),indicates the persistence of the "
+          "software is on the element and is upgradeable by the "
+          "manufacturer. \n"
+          "'Not Upgradeable' (5), indicates the presistence of the "
+          "software is on the element and is not upgradeable. (i.e. "
+          "burned into a non replaceable ROM chip."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..",
+       "0x8000..0xFFFF" }, 
+       Values { "Unknown", "Other", "Resides off device",
+          "Owner Upgradeable", "Factory Upgradeable",
+          "Not Upgradeable", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_ElementSoftwareIdentity.OtherUpgradeCondition" }]
+   uint16 UpgradeCondition;
+
+      [Description (
+          "Describes the upgrade condition, when UpgradeCondition is "
+          "set to 1 (\"Other\")."), 
+       ModelCorrespondence { 
+          "CIM_ElementSoftwareIdentity.UpgradeCondition" }]
+   string OtherUpgradeCondition;
+};

@@ -1,0 +1,214 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="CIMCoreCR00752.000" type ="change">Update of
+// descriptions based on Tech Edit review.</
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_PrintJob
+// ==================================================================
+   [UMLPackagePath ( "CIM::Device::Printing" ), Version ( "2.10.0" ), 
+    Description (
+       "Description of a print request that is either waiting on a "
+       "Queue for a Printer to become available or in the process of "
+       "being output on a Printer, or that has previously been printed "
+       "on a Printer. PrintJobs are weak to their current Queue, or to "
+       "the last Queue that held them.")]
+class CIM_PrintJob : CIM_Job {
+
+      [Key, Propagated ( "CIM_PrintQueue.SystemCreationClassName" ), 
+       Description (
+          "The CreationClassName of the scoping System."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_PrintQueue.SystemName" ), Description (
+          "The Name of the scoping System."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Propagated ( "CIM_PrintQueue.CreationClassName" ), 
+       Description (
+          "The CreationClassName of the scoping Queue."), 
+       MaxLen ( 256 )]
+   string QueueCreationClassName;
+
+      [Key, Propagated ( "CIM_PrintQueue.Name" ), Description (
+          "The Name of the scoping Queue."), 
+       MaxLen ( 256 )]
+   string QueueName;
+
+      [Override ( "JobStatus" ), Description (
+          "The inherited JobStatus is used to provide additional "
+          "information about the status of a PrintJob beyond that "
+          "enumerated by PrintJobStatus."), 
+       ModelCorrespondence { "CIM_PrintJob.PrintJobStatus" }]
+   string JobStatus;
+
+      [Key, Description (
+          "Uniquely identifies this Job within its scoping Queue.")]
+   string JobID;
+
+      [Deprecated { "No Value" }, Description (
+          "Note: The use of this free-form string property is "
+          "deprecated in lieu of the more semantically rich "
+          "SettingData class, JobScheduleSettingData.")]
+   string SchedulingInformation;
+
+      [Description (
+          "Specifies the size of the PrintJob (as a byte stream) in "
+          "units of Kbytes."), 
+       Units ( "KiloBytes" ), 
+       ModelCorrespondence { "CIM_Printer.MaxSizeSupported",
+          "CIM_PrintQueue.MaxJobSize" }]
+   uint32 JobSize;
+
+      [Description (
+          "Specifies the print language that is used by this Job."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+          "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+          "41", "42", "43", "44", "45", "46", "47", "48", "50", "51",
+          "52", "53", "54", "55", "56", "57", "58", "59", "60" }, 
+       Values { "Other", "Unknown", "PCL", "HPGL", "PJL", "PS",
+          "PSPrinter", "IPDS", "PPDS", 
+          // 10                 
+          "EscapeP", "Epson", "DDIF", "Interpress", "ISO6429",
+          "Line Data", "MODCA", "REGIS", "SCS", "SPDL", 
+          // 20                 
+          "TEK4014", "PDS", "IGP", "CodeV", "DSCDSE", "WPS", "LN03",
+          "CCITT", "QUIC", "CPAP", 
+          // 30                 
+          "DecPPL", "Simple Text", "NPAP", "DOC", "imPress",
+          "Pinwriter", "NPDL", "NEC201PL", "Automatic", "Pages", 
+          // 40                 
+          "LIPS", "TIFF", "Diagnostic", "CaPSL", "EXCL", "LCDS", "XES",
+          "MIME", "TIPSI", 
+          // 50                 
+          "Prescribe", "LinePrinter", "IDP", "XJCL", "PDF", "RPDL",
+          "IntermecIPL", "UBIFingerprint", "UBIDirectProtocol",
+          "Fujitsu", 
+          // 60                 
+          "PCLXL" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtInterpreterLangFamily" 
+          }, 
+       ModelCorrespondence { "CIM_Printer.LanguagesSupported",
+          "CIM_PrintService.LanguagesSupported",
+          "CIM_PrintJob.MimeTypes" }]
+   uint16 Language;
+
+      [Description (
+          "Specifies the MIME types that are used by the PrintJob if "
+          "Language is set to indicate that a MIME type is in use "
+          "(value=47)."), 
+       ModelCorrespondence { "CIM_PrintJob.Language",
+          "CIM_Printer.MimeTypesSupported",
+          "CIM_PrintService.MimeTypesSupported" }]
+   string MimeTypes[];
+
+      [Description (
+          "A string that specifies the type of paper that is required "
+          "by this PrintJob. Each string should be expressed in the "
+          "form that is specified by ISO/IEC 10175 Document Printing "
+          "Application (DPA), which is also summarized in Appendix C "
+          "of RFC 1759 (Printer MIB). Examples of valid strings are "
+          "\"iso-a4-colored\" and \"na-10x14-envelope\"."), 
+       ModelCorrespondence { "CIM_Printer.PaperTypesAvailable",
+          "CIM_PrintService.PaperTypesAvailable" }]
+   string RequiredPaperType;
+
+      [Description (
+          "An array of integers that indicates the type of finishing "
+          "that is required by this Job. It is equivalent to the "
+          "Capabilities property that is provided by the Printer."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21" }, 
+       Values { "Unknown", "Other", "Color Printing",
+          "Duplex Printing", "Copies", "Collation", "Stapling",
+          "Transparency Printing", "Punch", "Cover", "Bind",
+          "Black and White Printing", "One Sided",
+          "Two Sided Long Edge", "Two Sided Short Edge", "Portrait",
+          "Landscape", "Reverse Portrait", "Reverse Landscape",
+          "Quality High", "Quality Normal", "Quality Low" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Printer.Capabilities",
+          "CIM_PrintService.Capabilities" }]
+   uint16 Finishing[];
+
+      [Description (
+          "The number of physical copies of the output that will be "
+          "produced from this Job."), 
+       ModelCorrespondence { "CIM_Printer.MaxCopies" }]
+   uint32 Copies;
+
+      [Description (
+          "The horizontal resolution in Pixels per Inch for the Job."), 
+       Units ( "Pixels per Inch" ), 
+       ModelCorrespondence { "CIM_Printer.HorizontalResolution" }]
+   uint32 HorizontalResolution;
+
+      [Description (
+          "The vertical resolution in Pixels per Inch for the Job."), 
+       Units ( "Pixels per Inch" ), 
+       ModelCorrespondence { "CIM_Printer.VerticalResolution" }]
+   uint32 VerticalResolution;
+
+      [Description (
+          "Specifies the character set and encoding method that should "
+          "be used by the Printer for the management of this Job. The "
+          "strings should conform to the semantics and syntax that are "
+          "specified by section 4.1.2 (\"Charset parameter\") in RFC "
+          "2046 (MIME Part 2) and contained in the IANA character-set "
+          "registry. Examples include \"utf-8\", \"us-ascii\" and "
+          "\"iso-8859-1\"."), 
+       ModelCorrespondence { "CIM_Printer.CharSetsSupported" }]
+   string CharSet;
+
+      [Description (
+          "Identifies the language that should be used by the Printer "
+          "for the management of this Job. The specified value should "
+          "conform to RFC 1766. For example, \"en\" is used for "
+          "English."), 
+       ModelCorrespondence { "CIM_Printer.NaturalLanguagesSupported" }]
+   string NaturalLanguage;
+
+      [Description (
+          "The number of print-stream pages that should be rendered "
+          "onto a single media sheet when the Printer outputs this "
+          "PrintJob."), 
+       ModelCorrespondence { "CIM_Printer.MaxNumberUp" }]
+   uint32 NumberUp;
+
+      [Description (
+          "Describes the current state of this Job with respect to the "
+          "PrintQueue and the Printer. Additional information can be "
+          "specified in JobStatus."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Other", "Unknown", "Pending", "Blocked", "Complete",
+          "Completed With Error", "Printing" }, 
+       ModelCorrespondence { "CIM_PrintJob.TimeCompleted",
+          "CIM_PrintJob.JobStatus" }]
+   uint16 PrintJobStatus;
+
+      [Description (
+          "The time when this Job was completed. This value is valid "
+          "only if the PrintJobStatus has been assigned to "
+          "\"Complete\" (value=5) or \"Completed With Error\" "
+          "(value=6)."), 
+       ModelCorrespondence { "CIM_PrintJob.PrintJobStatus" }]
+   datetime TimeCompleted;
+
+      [Description (
+          "Describes the job sheets that should be used when this Job "
+          "is output on the Printer."), 
+       ModelCorrespondence { "CIM_Printer.AvailableJobSheets" }]
+   string RequiredJobSheets[];
+
+      [Description (
+          "Provides additional information, beyond Job Owner that is "
+          "inherited from CIM_Job, to identify the origins of the "
+          "PrintJob. This property could include information such as "
+          "the System, Application, or Process that created the Job.")]
+   string JobOrigination;
+};

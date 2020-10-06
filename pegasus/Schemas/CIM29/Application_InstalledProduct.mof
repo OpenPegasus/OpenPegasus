@@ -1,0 +1,206 @@
+// ===================================================================
+// Title: Application_InstalledProduct
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Application_InstalledProduct.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: These object classes define the DMTF Application Model
+//              and represent installed products and product images.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+//    11/29/00 - Version 2.5
+//             - CR546a Add InstalledProduct Collection
+// 
+//    03/09/2002 CIM 2.6 Final release
+//             - CR658 Add Key Qualifier to association references
+//                      in Appl and SysDev MOFs. This changed
+//                      CIM_InstalledSoftwareElement,
+//                      CIM_InstalledProductImage
+//             - CR746 Add Version qualifier (Version 2.6.0) to
+//                     all classes and associations.
+//             - CR823 Cleanup all Descriptions and other textual issues
+// 
+//    06/06/2002 CIM 2.7 Preliminary Release
+//             - Define Application MOF structure
+//    03/17/2003 CIM 2.7 Final
+//             - No changes
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// InstalledProduct
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The InstalledProduct object allows the grouping of "
+       "SoftwareFeatures and SoftwareElements that represent the "
+       "result of the installation of a purchased Product. "
+       "InstalledProduct is defined to be Weak to a Product. \n"
+       "Often, Products are purchased once but may be installed "
+       "several times in different locations on one or more systems. "
+       "All of the SoftwareElements and SoftwareFeatures of a single "
+       "install are grouped by an instance of InstalledProduct. These "
+       "are defined using the associations, CollectedSoftwareFeatures "
+       "and Collected SoftwareElements.")]
+class CIM_InstalledProduct : CIM_Collection {
+
+      [Key, Propagated ( "CIM_Product.IdentifyingNumber" ), 
+       Description (
+          "The scoping Product's identification."), 
+       MaxLen ( 64 )]
+   string ProductIdentifyingNumber;
+
+      [Key, Propagated ( "CIM_Product.Name" ), Description (
+          "The scoping Product's commonly used name."), 
+       MaxLen ( 256 )]
+   string ProductName;
+
+      [Key, Propagated ( "CIM_Product.Vendor" ), Description (
+          "The scoping Product's name."), 
+       MaxLen ( 256 )]
+   string ProductVendor;
+
+      [Key, Propagated ( "CIM_Product.Version" ), Description (
+          "The scoping Product's version information."), 
+       MaxLen ( 64 )]
+   string ProductVersion;
+
+      [Key, Description (
+          "The identifying information of the System (ie, the "
+          "instance) on which the Product is installed. If the System "
+          "is not known, this property returns NULL. If the System is "
+          "known and represented in CIM, the property contains the "
+          "namespace and model paths of the instance, encoded as a "
+          "string parameter. If known but not represented in CIM, the "
+          "property contains some identifying string that names the "
+          "System on which the Product is installed."), 
+       MaxLen ( 256 )]
+   string SystemID;
+
+      [Key, Description (
+          "The identification of the InstalledProduct object. This key "
+          "can be used to differentiate between Product installations "
+          "and could include the installation location."), 
+       MaxLen ( 256 )]
+   string CollectionID;
+
+      [Description (
+          "The Name property defines the label by which the object is "
+          "known to the world, outside the data processing system. "
+          "This label is a human-readable name that uniquely "
+          "identifies the element in the context of the element's "
+          "namespace."), 
+       MaxLen ( 256 )]
+   string Name;
+};
+
+
+// ==================================================================
+// InstalledProductImage
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "InstalledProductImage identifies the collection of Software "
+       "Features and SoftwareElements that are the result of the "
+       "installation of the referenced Product.")]
+class CIM_InstalledProductImage {
+
+      [Key, Aggregate, Min ( 1 ), Max ( 1 ), Description (
+          "The product that has been installed.")]
+   CIM_Product REF Product;
+
+      [Key, Weak, Description (
+          "The collection containing the set of SoftwareFeatures and "
+          "SoftwareElements that are the result of installing the "
+          "Product.")]
+   CIM_InstalledProduct REF Collection;
+};
+
+
+// ==================================================================
+// CollectedSoftwareElements
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "CollectedSoftwareElements defines the SoftwareElements that "
+       "are collected by InstalledProduct (ie, the installed image of "
+       "a Product).")]
+class CIM_CollectedSoftwareElements : CIM_MemberOfCollection {
+
+      [Aggregate, Override ( "Collection" ), Description (
+          "The collection representing the installed image of a "
+          "Product.")]
+   CIM_InstalledProduct REF Collection;
+
+      [Override ( "Member" ), Description (
+          "A SoftwareElement that is a member of the InstalledProduct "
+          "collection.")]
+   CIM_SoftwareElement REF Member;
+};
+
+
+// ==================================================================
+// CollectedSoftwareFeatures
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "CollectedSoftwareFeatures defines the SoftwareFeatures that "
+       "are collected by InstalledProduct (ie, the installed image of "
+       "a Product).")]
+class CIM_CollectedSoftwareFeatures : CIM_MemberOfCollection {
+
+      [Aggregate, Override ( "Collection" ), Description (
+          "The collection representing the installed image of a "
+          "Product.")]
+   CIM_InstalledProduct REF Collection;
+
+      [Override ( "Member" ), Description (
+          "The SoftwareFeature that is a member of the "
+          "InstalledProduct collection.")]
+   CIM_SoftwareFeature REF Member;
+};
+
+
+// ==================================================================
+// end of file
+// ==================================================================

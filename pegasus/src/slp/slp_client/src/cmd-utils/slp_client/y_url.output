@@ -1,0 +1,567 @@
+Terminals which are not used
+
+   _RESERVED
+   _STAG
+   _NAME
+
+
+Grammar
+
+    0 $accept: url $end
+
+    1 url: service_list sap
+
+    2 service_list: service
+    3             | service_list service
+
+    4 service: _RESNAME ':'
+    5        | _RESNAME '.' _RESNAME ':'
+
+    6 sap: site
+    7    | site url_part
+
+    8 site: ip_site
+    9     | ipx_site
+   10     | at_site
+   11     | service_id
+
+   12 ip_site: '/' '/'
+   13        | '/' '/' hostport
+   14        | '/' '/' _RESNAME '@' hostport
+
+   15 service_id: _RESNAME
+
+   16 ipx_site: _IPX
+
+   17 at_site: _AT _ZONE ':' _ZONE ':' _ZONE
+
+   18 hostport: host
+   19         | host ':' _HEXDIG
+
+   20 host: _RESNAME
+   21     | _IPADDR
+
+   22 url_part: path_list
+   23         | attr_list
+   24         | path_list attr_list
+
+   25 path_list: path_el
+   26          | path_list path_el
+
+   27 path_el: '/'
+   28        | '/' _ELEMENT
+   29        | '/' _RESNAME
+   30        | '/' _HEXDIG
+
+   31 attr_list: attr_el
+   32          | attr_list attr_el
+
+   33 attr_el: ';' _ELEMENT
+   34        | ';' _ELEMENT '=' _ELEMENT
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'.' (46) 5
+'/' (47) 12 13 14 27 28 29 30
+':' (58) 4 5 17 19
+';' (59) 33 34
+'=' (61) 34
+'@' (64) 14
+error (256)
+_RESERVED (258)
+_HEXDIG (259) 19 30
+_STAG (260)
+_RESNAME (261) 4 5 14 15 20 29
+_NAME (262)
+_ELEMENT (263) 28 33 34
+_IPADDR (264) 21
+_IPX (265) 16
+_AT (266) 17
+_ZONE (267) 17
+
+
+Nonterminals, with rules where they appear
+
+$accept (19)
+    on left: 0
+url (20)
+    on left: 1, on right: 0
+service_list (21)
+    on left: 2 3, on right: 1 3
+service (22)
+    on left: 4 5, on right: 2 3
+sap (23)
+    on left: 6 7, on right: 1
+site (24)
+    on left: 8 9 10 11, on right: 6 7
+ip_site (25)
+    on left: 12 13 14, on right: 8
+service_id (26)
+    on left: 15, on right: 11
+ipx_site (27)
+    on left: 16, on right: 9
+at_site (28)
+    on left: 17, on right: 10
+hostport (29)
+    on left: 18 19, on right: 13 14
+host (30)
+    on left: 20 21, on right: 18 19
+url_part (31)
+    on left: 22 23 24, on right: 7
+path_list (32)
+    on left: 25 26, on right: 22 24 26
+path_el (33)
+    on left: 27 28 29 30, on right: 25 26
+attr_list (34)
+    on left: 31 32, on right: 23 24 32
+attr_el (35)
+    on left: 33 34, on right: 31 32
+
+
+state 0
+
+    0 $accept: . url $end
+
+    _RESNAME  shift, and go to state 1
+
+    url           go to state 2
+    service_list  go to state 3
+    service       go to state 4
+
+
+state 1
+
+    4 service: _RESNAME . ':'
+    5        | _RESNAME . '.' _RESNAME ':'
+
+    ':'  shift, and go to state 5
+    '.'  shift, and go to state 6
+
+
+state 2
+
+    0 $accept: url . $end
+
+    $end  shift, and go to state 7
+
+
+state 3
+
+    1 url: service_list . sap
+    3 service_list: service_list . service
+
+    _RESNAME  shift, and go to state 8
+    _IPX      shift, and go to state 9
+    _AT       shift, and go to state 10
+    '/'       shift, and go to state 11
+
+    service     go to state 12
+    sap         go to state 13
+    site        go to state 14
+    ip_site     go to state 15
+    service_id  go to state 16
+    ipx_site    go to state 17
+    at_site     go to state 18
+
+
+state 4
+
+    2 service_list: service .
+
+    $default  reduce using rule 2 (service_list)
+
+
+state 5
+
+    4 service: _RESNAME ':' .
+
+    $default  reduce using rule 4 (service)
+
+
+state 6
+
+    5 service: _RESNAME '.' . _RESNAME ':'
+
+    _RESNAME  shift, and go to state 19
+
+
+state 7
+
+    0 $accept: url $end .
+
+    $default  accept
+
+
+state 8
+
+    4 service: _RESNAME . ':'
+    5        | _RESNAME . '.' _RESNAME ':'
+   15 service_id: _RESNAME .
+
+    ':'  shift, and go to state 5
+    '.'  shift, and go to state 6
+
+    $default  reduce using rule 15 (service_id)
+
+
+state 9
+
+   16 ipx_site: _IPX .
+
+    $default  reduce using rule 16 (ipx_site)
+
+
+state 10
+
+   17 at_site: _AT . _ZONE ':' _ZONE ':' _ZONE
+
+    _ZONE  shift, and go to state 20
+
+
+state 11
+
+   12 ip_site: '/' . '/'
+   13        | '/' . '/' hostport
+   14        | '/' . '/' _RESNAME '@' hostport
+
+    '/'  shift, and go to state 21
+
+
+state 12
+
+    3 service_list: service_list service .
+
+    $default  reduce using rule 3 (service_list)
+
+
+state 13
+
+    1 url: service_list sap .
+
+    $default  reduce using rule 1 (url)
+
+
+state 14
+
+    6 sap: site .
+    7    | site . url_part
+
+    '/'  shift, and go to state 22
+    ';'  shift, and go to state 23
+
+    $default  reduce using rule 6 (sap)
+
+    url_part   go to state 24
+    path_list  go to state 25
+    path_el    go to state 26
+    attr_list  go to state 27
+    attr_el    go to state 28
+
+
+state 15
+
+    8 site: ip_site .
+
+    $default  reduce using rule 8 (site)
+
+
+state 16
+
+   11 site: service_id .
+
+    $default  reduce using rule 11 (site)
+
+
+state 17
+
+    9 site: ipx_site .
+
+    $default  reduce using rule 9 (site)
+
+
+state 18
+
+   10 site: at_site .
+
+    $default  reduce using rule 10 (site)
+
+
+state 19
+
+    5 service: _RESNAME '.' _RESNAME . ':'
+
+    ':'  shift, and go to state 29
+
+
+state 20
+
+   17 at_site: _AT _ZONE . ':' _ZONE ':' _ZONE
+
+    ':'  shift, and go to state 30
+
+
+state 21
+
+   12 ip_site: '/' '/' .
+   13        | '/' '/' . hostport
+   14        | '/' '/' . _RESNAME '@' hostport
+
+    _RESNAME  shift, and go to state 31
+    _IPADDR   shift, and go to state 32
+
+    $default  reduce using rule 12 (ip_site)
+
+    hostport  go to state 33
+    host      go to state 34
+
+
+state 22
+
+   27 path_el: '/' .
+   28        | '/' . _ELEMENT
+   29        | '/' . _RESNAME
+   30        | '/' . _HEXDIG
+
+    _HEXDIG   shift, and go to state 35
+    _RESNAME  shift, and go to state 36
+    _ELEMENT  shift, and go to state 37
+
+    $default  reduce using rule 27 (path_el)
+
+
+state 23
+
+   33 attr_el: ';' . _ELEMENT
+   34        | ';' . _ELEMENT '=' _ELEMENT
+
+    _ELEMENT  shift, and go to state 38
+
+
+state 24
+
+    7 sap: site url_part .
+
+    $default  reduce using rule 7 (sap)
+
+
+state 25
+
+   22 url_part: path_list .
+   24         | path_list . attr_list
+   26 path_list: path_list . path_el
+
+    '/'  shift, and go to state 22
+    ';'  shift, and go to state 23
+
+    $default  reduce using rule 22 (url_part)
+
+    path_el    go to state 39
+    attr_list  go to state 40
+    attr_el    go to state 28
+
+
+state 26
+
+   25 path_list: path_el .
+
+    $default  reduce using rule 25 (path_list)
+
+
+state 27
+
+   23 url_part: attr_list .
+   32 attr_list: attr_list . attr_el
+
+    ';'  shift, and go to state 23
+
+    $default  reduce using rule 23 (url_part)
+
+    attr_el  go to state 41
+
+
+state 28
+
+   31 attr_list: attr_el .
+
+    $default  reduce using rule 31 (attr_list)
+
+
+state 29
+
+    5 service: _RESNAME '.' _RESNAME ':' .
+
+    $default  reduce using rule 5 (service)
+
+
+state 30
+
+   17 at_site: _AT _ZONE ':' . _ZONE ':' _ZONE
+
+    _ZONE  shift, and go to state 42
+
+
+state 31
+
+   14 ip_site: '/' '/' _RESNAME . '@' hostport
+   20 host: _RESNAME .
+
+    '@'  shift, and go to state 43
+
+    $default  reduce using rule 20 (host)
+
+
+state 32
+
+   21 host: _IPADDR .
+
+    $default  reduce using rule 21 (host)
+
+
+state 33
+
+   13 ip_site: '/' '/' hostport .
+
+    $default  reduce using rule 13 (ip_site)
+
+
+state 34
+
+   18 hostport: host .
+   19         | host . ':' _HEXDIG
+
+    ':'  shift, and go to state 44
+
+    $default  reduce using rule 18 (hostport)
+
+
+state 35
+
+   30 path_el: '/' _HEXDIG .
+
+    $default  reduce using rule 30 (path_el)
+
+
+state 36
+
+   29 path_el: '/' _RESNAME .
+
+    $default  reduce using rule 29 (path_el)
+
+
+state 37
+
+   28 path_el: '/' _ELEMENT .
+
+    $default  reduce using rule 28 (path_el)
+
+
+state 38
+
+   33 attr_el: ';' _ELEMENT .
+   34        | ';' _ELEMENT . '=' _ELEMENT
+
+    '='  shift, and go to state 45
+
+    $default  reduce using rule 33 (attr_el)
+
+
+state 39
+
+   26 path_list: path_list path_el .
+
+    $default  reduce using rule 26 (path_list)
+
+
+state 40
+
+   24 url_part: path_list attr_list .
+   32 attr_list: attr_list . attr_el
+
+    ';'  shift, and go to state 23
+
+    $default  reduce using rule 24 (url_part)
+
+    attr_el  go to state 41
+
+
+state 41
+
+   32 attr_list: attr_list attr_el .
+
+    $default  reduce using rule 32 (attr_list)
+
+
+state 42
+
+   17 at_site: _AT _ZONE ':' _ZONE . ':' _ZONE
+
+    ':'  shift, and go to state 46
+
+
+state 43
+
+   14 ip_site: '/' '/' _RESNAME '@' . hostport
+
+    _RESNAME  shift, and go to state 47
+    _IPADDR   shift, and go to state 32
+
+    hostport  go to state 48
+    host      go to state 34
+
+
+state 44
+
+   19 hostport: host ':' . _HEXDIG
+
+    _HEXDIG  shift, and go to state 49
+
+
+state 45
+
+   34 attr_el: ';' _ELEMENT '=' . _ELEMENT
+
+    _ELEMENT  shift, and go to state 50
+
+
+state 46
+
+   17 at_site: _AT _ZONE ':' _ZONE ':' . _ZONE
+
+    _ZONE  shift, and go to state 51
+
+
+state 47
+
+   20 host: _RESNAME .
+
+    $default  reduce using rule 20 (host)
+
+
+state 48
+
+   14 ip_site: '/' '/' _RESNAME '@' hostport .
+
+    $default  reduce using rule 14 (ip_site)
+
+
+state 49
+
+   19 hostport: host ':' _HEXDIG .
+
+    $default  reduce using rule 19 (hostport)
+
+
+state 50
+
+   34 attr_el: ';' _ELEMENT '=' _ELEMENT .
+
+    $default  reduce using rule 34 (attr_el)
+
+
+state 51
+
+   17 at_site: _AT _ZONE ':' _ZONE ':' _ZONE .
+
+    $default  reduce using rule 17 (at_site)

@@ -1,0 +1,596 @@
+// ===================================================================
+// Title: Network_Collections
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_Collections.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines network "collections" such
+//              as logical networks (collections of protocol endpoints)
+//              and IP address ranges (an implicit collection).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR803 - Deprecate IPAddressRange and add RangeOfIPAddresses
+// CR804 - Update description for IBSubnet.SubnetMask and add
+//         .PrefixLength
+// CR920 - Add missing parenthesis to the Description for IPSubnet.
+//         PrefixLength
+// CR958 - Deprecation of LogicalNetwork in lieu of
+// ConnectivityCollection
+// CR976 - Addition of the NamedAddressCollection class
+// CR982 - Removal of Experimental for preliminary to final
+// CR983 - Deprecations for v2.7 made final
+// New Log for V2.8
+// CR1001 - Added class definition for ConnectivityMembershipSettingData
+// CR1193 - Remove the Experimental qualifier from the following class
+//          in Network28_Collections.mof, and update the class Version
+//          to read "2.8.0" for:
+//          ConnectivityMembershipSettingData
+// CR1238 - Fix model correspondece reference problems in final version
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// LogicalNetwork
+// ==================================================================
+   [Deprecated { "CIM_ConnectivityCollection" }, Version ( "2.7.0" ), 
+    Description (
+       "A LogicalNetwork groups together a set of ProtocolEndpoints of "
+       "a given type which are able to communicate with each other "
+       "directly. It is used for describing the characteristics of the "
+       "grouping and/or its associated medium. A LogicalNetwork "
+       "represents the ability to send and/or receive data over a "
+       "network. \n"
+       "\n"
+       "This class is deprecated in lieu of ConnectivityCollection. "
+       "The latter better defines that a LogicalNetwork 'collects' "
+       "ProtocolEndpoints and other related entities, and is hosted "
+       "within an AdminDomain.")]
+class CIM_LogicalNetwork : CIM_CollectionOfMSEs {
+
+      [Deprecated { "No value" }, Key,
+          Propagated ( "CIM_AdminDomain.CreationClassName" ), 
+       Description (
+          "The scoping AdminDomain's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Deprecated { "No value" }, Key,
+          Propagated ( "CIM_AdminDomain.Name" ), Description (
+          "The scoping AdminDomain's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Deprecated { "No value" }, Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Deprecated { "CIM_ConnectivityCollection.InstanceID" }, Key, 
+       Description (
+          "The Name property defines the label by which the object is "
+          "known."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Deprecated { "No value" }, Description (
+          "Type is an enumeration that provides additional information "
+          "that can be used to help categorize and classify different "
+          "instances of this class. \n"
+          "\n"
+          "Subclasses should ensure that they are of the appropriate "
+          "type defined in the Type enumeration. That is, the IPSubnet "
+          "subclass should define its property as either IPv4 or IPv6, "
+          "as opposed to, for example, ATM."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18" }, 
+       Values { "Unknown", "Other", "IPv4", "IPv6", "IPX", "AppleTalk",
+          "DECnet", "SNA", "CONP", "CLNP", "VINES", "XNS", "ATM",
+          "Frame Relay", "Ethernet", "TokenRing", "FDDI", "Infiniband",
+          "Fibre Channel" }, 
+       ModelCorrespondence { "CIM_LogicalNetwork.OtherTypeDescription" 
+          }]
+   uint16 NetworkType;
+
+      [Deprecated { "No value" }, Description (
+          "A string describing the type of protocol that is being run "
+          "by this LogicalNetwork, when the value of the Type property "
+          "(or any of its subclasses) is set to 1 (i.e., \"Other\"). "
+          "This property should be set to NULL when the Type property "
+          "is any value other than 1."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_LogicalNetwork.NetworkType" }]
+   string OtherTypeDescription;
+};
+
+
+// ==================================================================
+// NetworksInAdminDomain
+// ==================================================================
+   [Association, Deprecated { "CIM_HostedCollection" },
+       Version ( "2.7.0" ), Description (
+       "This association is used to define the set of Logical Networks "
+       "contained in an AdminDomain. This has the implied semantics "
+       "that this set of LogicalNetworks are all managed by the same "
+       "network administrator that manages the domain. \n"
+       "\n"
+       "Since the LogicalNetwork class is deprecated in lieu of "
+       "ConnectivityCollection, this association is no longer "
+       "necessary. It is deprecated to the HostedCollection "
+       "association, that is inherited by ConnectivityCollection from "
+       "its superclass, SystemSpecificCollection.")]
+class CIM_NetworksInAdminDomain {
+
+      [Deprecated { "CIM_HostedCollection.Antecedent" }, Key, Min ( 1 ),
+       Max ( 1 ), Description (
+          "The AdminDomain that hosts the various LogicalNetworks.")]
+   CIM_AdminDomain REF Domain;
+
+      [Deprecated { "CIM_HostedCollection.Dependent" }, Key, Weak, 
+       Description (
+          "The LogicalNetworks that are hosted by the AdminDomain.")]
+   CIM_LogicalNetwork REF Network;
+};
+
+
+// ==================================================================
+// IPSubnet
+// ==================================================================
+   [Deprecated { "CIM_IPConnectivitySubnet" }, Version ( "2.7.0" ), 
+    Description (
+       "An IPSubnet represents a group of related IPProtocolEndpoints "
+       "that can communicate with each other directly using IP. It is "
+       "used for describing the characteristics of the grouping. \n"
+       "\n"
+       "Since this class' superclass (LogicalNetwork) has been "
+       "deprecated (in order to define more consistent 'collection' "
+       "semantics), this class is also deprecated.")]
+class CIM_IPSubnet : CIM_LogicalNetwork {
+
+      [Deprecated { "CIM_IPConnectivitySubnet.SubnetNumber" }, 
+       Description (
+          "The IP address of the entire subnet, formatted according to "
+          "the appropriate convention as defined in the AddressType "
+          "property of this class.")]
+   string SubnetNumber;
+
+      [Deprecated { "CIM_IPConnectivitySubnet.SubnetMask" }, 
+       Description (
+          "The mask for the starting IPv4 address of the IPSubnet, if "
+          "needed (i.e., if the AddressType property is 1, \"IPv4\").")]
+   string SubnetMask;
+
+      [Deprecated { "CIM_IPConnectivitySubnet.PrefixLength" }, 
+       Description (
+          "The prefix length for IPv6 addresses in the IPSubnet, if "
+          "needed (i.e., if the AddressType property is 2, \"IPv6\").")]
+   uint8 PrefixLength;
+
+      [Deprecated { "CIM_IPConnectivitySubnet.AddressType" }, 
+       Description (
+          "An enumeration that describes the format of the address "
+          "properties in IPSubnet."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "IPv4", "IPv6" }]
+   uint16 AddressType;
+};
+
+
+// ==================================================================
+// LANSegment
+// ==================================================================
+   [Deprecated { "CIM_LANConnectivitySegment" }, Version ( "2.7.0" ), 
+    Description (
+       "A collection of LAN Endpoints of a particular type that are "
+       "able to intercommunicate directly without the assistance of "
+       "bridging or routing services. \n"
+       "\n"
+       "Since this class' superclass (LogicalNetwork) has been "
+       "deprecated (in order to define more consistent 'collection' "
+       "semantics), this class is also deprecated.")]
+class CIM_LANSegment : CIM_LogicalNetwork {
+
+      [Deprecated { "CIM_LANConnectivitySegment.LANID" }, Description (
+          "A label or identifier for the LAN Segment."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_LANEndpoint.LANID" }]
+   string LANID;
+
+      [Deprecated { "CIM_LANConnectivitySegment.ConnectivityType" }, 
+       Description (
+          "An indication of the kind of technology used on the LAN."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Ethernet", "TokenRing", "FDDI" }, 
+       ModelCorrespondence { "CIM_LANEndpoint.LANType" }]
+   uint16 LANType;
+
+      [Deprecated { "CIM_LANConnectivitySegment.OtherTypeDescription" }, 
+       Description (
+          "A string describing the type of technology used on the LAN "
+          "when the value of the LANType property of this class (or "
+          "any of its subclasses) is set to 1 (i.e., \"Other\"). The "
+          "format of the string inserted in this property should be "
+          "similar in format to the values defined for the LANType "
+          "property. This property should be set to NULL when the "
+          "LANType property is any value other than 1."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_LANSegment.LANType" }]
+   string OtherLANType;
+};
+
+
+// ==================================================================
+// IPXNetwork
+// ==================================================================
+   [Deprecated { "CIM_IPXConnectivityNetwork" }, Version ( "2.7.0" ), 
+    Description (
+       "A network or subnet that uses the IPX protocol. Since this "
+       "class' superclass (LogicalNetwork) has been deprecated (in "
+       "order to define more consistent 'collection' semantics), this "
+       "class is also deprecated.")]
+class CIM_IPXNetwork : CIM_LogicalNetwork {
+
+      [Deprecated { "CIM_IPXConnectivityNetwork.NetworkNumber" }, 
+       Description (
+          "An IPX network number formatted as eight hexadecimal digits "
+          "(e.g., \"00112233\").")]
+   string NetworkNumber;
+};
+
+
+// ==================================================================
+// InLogicalNetwork
+// ==================================================================
+   [Association, Deprecated { "CIM_MemberOfCollection" }, Aggregation,
+    Version ( "2.7.0" ), Description (
+       "This association defines a ProtocolEndpoint as a member of a "
+       "specific LogicalNetwork. \n"
+       "\n"
+       "Since the LogicalNetwork class is deprecated in lieu of "
+       "ConnectivityCollection, this association is no longer "
+       "necessary. It is deprecated to the MemberOfCollection "
+       "association, that is inherited by ConnectivityCollection from "
+       "its superclass, Collection.")]
+class CIM_InLogicalNetwork : CIM_CollectedMSEs {
+
+      [Deprecated { "CIM_MemberOfCollection.Collection" }, Aggregate,
+       Override ( "Collection" ), Description (
+          "The LogicalNetwork that groups the ProtocolEndpoint "
+          "instances.")]
+   CIM_LogicalNetwork REF Collection;
+
+      [Deprecated { "CIM_MemberOfCollection.Member" },
+          Override ( "Member" ), Description (
+          "The child ProtocolEndpoints that are components of the "
+          "LogicalNetwork.")]
+   CIM_ProtocolEndpoint REF Member;
+};
+
+
+// ==================================================================
+// RangeOfIPAddresses
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "The class RangeOfIPAddresses represents an implicit grouping "
+       "(or 'pool') of IP addresses specified by the properties, Start "
+       "and EndAddress. It is defined as scoped/contained by a system "
+       "such as an individual network element or an admin domain.")]
+class CIM_RangeOfIPAddresses : CIM_SystemSpecificCollection {
+
+      [Description (
+          "The starting IP address of the AddressRange, formatted "
+          "according to the appropriate convention as defined in the "
+          "AddressType property of this class (e.g., 171.79.6.40)."), 
+       ModelCorrespondence { "CIM_RangeOfIPAddresses.AddressType" }]
+   string StartAddress;
+
+      [Description (
+          "The ending IP address of the AddressRange, formatted "
+          "according to the appropriate convention as defined in the "
+          "AddressType property of this class (e.g., 171.79.6.40)."), 
+       ModelCorrespondence { "CIM_RangeOfIPAddresses.AddressType" }]
+   string EndAddress;
+
+      [Description (
+          "An enumeration that defines how the address and mask "
+          "properties are formatted."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "IPv4", "IPv6" }]
+   uint16 AddressType;
+};
+
+
+// ==================================================================
+// IPAddressRange
+// ==================================================================
+   [Deprecated { "CIM_RangeOfIPAddresses" }, Abstract,
+       Version ( "2.7.0" ), Description (
+       "IPAddressRange represents a grouping of specific addresses, "
+       "and provides additional semantics for this group if "
+       "appropriate. The class is deprecated in lieu of the concrete "
+       "class RangeOfIPAddresses since there is sufficient information "
+       "for the class to be instantiated. In addition, an address "
+       "range should be defined in the context of a System (for "
+       "example, a network element or an admin domain). These "
+       "semantics are incorporated in the RangeOfIPAddresses class.")]
+class CIM_IPAddressRange : CIM_CollectionOfMSEs {
+
+      [Deprecated { "CIM_RangeOfIPAddresses.StartAddress" }, 
+       Description (
+          "The starting IP address of the AddressRange, formatted "
+          "according to the appropriate convention as defined in the "
+          "AddressType property of this class (e.g., 171.79.6.40).")]
+   string StartAddress;
+
+      [Deprecated { "CIM_RangeOfIPAddresses.EndAddress" }, 
+       Description (
+          "The ending IP address of the AddressRange, formatted "
+          "according to the appropriate convention as defined in the "
+          "AddressType property of this class (e.g., 171.79.6.40).")]
+   string EndAddress;
+
+      [Deprecated { "CIM_RangeOfIPAddresses.AddressType" }, 
+       Description (
+          "An enumeration that defines how to format the address and "
+          "mask of the address range that defines this IPSubnet. \n"
+          "\n"
+          "Whenever possible, IPv4-compatible addresses should be used "
+          "instead of IPv6 addresses (see RFC 2373, section 2.5.4). In "
+          "order to have a consistent format for IPv4 addresses in a "
+          "mixed IPv4/v6 environment, all IPv4 addresses and both "
+          "IPv4-compatible IPv6 addresses and IPv4-mapped IPv6 "
+          "addresses, per RFC 2373, section 2.5.4, should be formatted "
+          "in standard IPv4 format."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "IPv4", "IPv6" }]
+   uint16 TypeOfAddress;
+
+      [Deprecated { "No value" }, Description (
+          "This attribute defines the region that addresses can be "
+          "allocated to."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown",
+          "Multiregional: 192.0.0.0 to 193.255.255.255",
+          "Europe: 194.0.0.0 to 195.255.255.255",
+          "Others: 196.0.0.0 to 197.255.255.255",
+          "North America: 198.0.0.0 to 199.255.255.255",
+          "Central & South America: 200.0.0.0 to 201.255.255.255",
+          "Pacific Rim: 202.0.0.0 to 203.255.255.255",
+          "Others: 204.0.0.0 to 205.255.255.255",
+          "Others: 206.0.0.0 to 207.255.255.255" }]
+   uint16 AllocationRegion;
+};
+
+
+// ==================================================================
+// NamedAddressCollection
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A NamedAddressCollection groups ProtocolEndpoints/addresses "
+       "and other network identifiers for the purposes of assigning a "
+       "single name (i.e., an alias). It is a subclass of "
+       "SystemSpecificCollection to force the definition of the 'named "
+       "collection' in the context of a System (for example, either a "
+       "ComputerSystem or an AdminDomain hosting a naming alias).")]
+class CIM_NamedAddressCollection : CIM_SystemSpecificCollection {
+
+      [Required, Write, Description (
+          "A name (alias) for the NamedAddressCollection which is "
+          "unique in the context of the hosting System.")]
+   string CollectionAlias;
+};
+
+
+// ==================================================================
+// ConnectivityCollection
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A ConnectivityCollection groups together a set of "
+       "ProtocolEndpoints of the same 'type' (i.e., class) which are "
+       "able to communicate with each other. It may also group related "
+       "Systems, users or other ManagedElements. A "
+       "ConnectivityCollection represents the ability to send and/or "
+       "receive data over a set of ProtocolEndpoints. The collection "
+       "is defined in the context of an AdminDomain or scoping "
+       "ComputerSystem. This is mandated by the Hosted Collection "
+       "association on the SystemSpecificCollection superclass. Note "
+       "that the entities aggregated into the Collection are specified "
+       "using the association, MemberOfCollection.")]
+class CIM_ConnectivityCollection : CIM_SystemSpecificCollection {
+
+      [Description (
+          "An enumeration describing the current or potential "
+          "connectivity between endpoints in this collection. "
+          "Connectivity may be provided or not, or may be in a "
+          "degraded/partitioned state if one or more endpoints or "
+          "links have failed. The latter would prevent full "
+          "connectivity between all elements in the Collection, but "
+          "would permit connectivity between subsets."), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Connectivity/Up", "No Connectivity/Down",
+          "Partitioned" }]
+   uint16 ConnectivityStatus;
+};
+
+
+// ==================================================================
+// IPConnectivitySubnet
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "An IPConnectivitySubnet represents a group of related "
+       "IPProtocolEndpoints that can communicate with each other, as "
+       "members of a subnet. The class describes the characteristics "
+       "of the subnet.")]
+class CIM_IPConnectivitySubnet : CIM_ConnectivityCollection {
+
+      [Description (
+          "The IP address of the entire subnet, formatted according to "
+          "the appropriate convention as defined in the AddressType "
+          "property of this class."), 
+       ModelCorrespondence { "CIM_IPConnectivitySubnet.AddressType" }]
+   string SubnetNumber;
+
+      [Description (
+          "The mask for the starting IPv4 address of the IP subnet, if "
+          "needed (i.e., if the AddressType property is 1, \"IPv4\").")]
+   string SubnetMask;
+
+      [Description (
+          "The prefix length for IPv6 addresses in the IP subnet, if "
+          "needed (i.e., if the AddressType property is 2, \"IPv6\").")]
+   uint8 PrefixLength;
+
+      [Description (
+          "An enumeration that describes the format of the address "
+          "properties in IPConnectivitySubnet."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "IPv4", "IPv6" }]
+   uint16 AddressType;
+};
+
+
+// ==================================================================
+// LANConnectivitySegment
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A collection of LAN Endpoints of a particular type (i.e., "
+       "Ethernet or Token Ring), that are able to intercommunicate "
+       "without the assistance of bridging or routing services.")]
+class CIM_LANConnectivitySegment : CIM_ConnectivityCollection {
+
+      [Description (
+          "A label or identifier for the LAN segment."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_LANEndpoint.LANID" }]
+   string LANID;
+
+      [Description (
+          "An enumeration that categorizes and classifies instances of "
+          "this class. Instances SHOULD aggregate entities of the "
+          "appropriate 'type', as defined by the value of this "
+          "enumeration."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Ethernet", "TokenRing", "FDDI" }, 
+       ModelCorrespondence { 
+          "CIM_LANConnectivitySegment.OtherTypeDescription" }]
+   uint16 ConnectivityType;
+
+      [Description (
+          "A string describing the type of connectivity that is "
+          "supported by this Collection, when the value of the Type "
+          "property is set to 1 (i.e., \"Other\"). This property "
+          "should be set to NULL when the Type property is any value "
+          "other than 1."), 
+       ModelCorrespondence { 
+          "CIM_LANConnectivitySegment.ConnectivityType" }]
+   string OtherTypeDescription;
+
+};
+
+
+// ==================================================================
+// IPXConnectivityNetwork
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A network or subnet that uses the IPX protocol.")]
+class CIM_IPXConnectivityNetwork : CIM_ConnectivityCollection {
+
+      [Description (
+          "An IPX network number formatted as eight hexadecimal digits "
+          "(e.g., \"00112233\").")]
+   string NetworkNumber;
+};
+
+// ==================================================================
+// ConnectivityMembershipSettingData
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "ConnectivityMembershipSettingData provides the identification "
+       "criteria for possible members of a ConnectivityCollection.")]
+class CIM_ConnectivityMembershipSettingData : CIM_SettingData {
+
+      [Required, Description (
+          "ConnectivityMemberType specifies the type of identification "
+          "used in the ConnectivityMemberID field."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "Permanent Address",
+          "Network Address", "Switch Port ID", "Logical Port Group",
+          "Connectivity Collection", "DMTF Reserved",
+       "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_ConnectivityMembershipSettingData.ConnectivityMemberID",
+          "CIM_ConnectivityMembershipSettingData." 
+          "OtherConnectivityMemberType" }]
+   uint16 ConnectivityMemberType;
+
+      [Description (
+          "This property specifies the type of identification used in "
+          "the ConnectivityMemberID field, when ConnectivityMemberType "
+          "is 1, \"Other\"."), 
+       ModelCorrespondence { 
+          "CIM_ConnectivityMembershipSettingData.ConnectivityMemberType" 
+          }]
+   string OtherConnectivityMemberType;
+
+      [Required, Description (
+          "The identification of the member, based on the type "
+          "specified by ConnectivityMemberType."), 
+       ModelCorrespondence { 
+          "CIM_ConnectivityMembershipSettingData.ConnectivityMemberType" 
+          }]
+   string ConnectivityMemberID;
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

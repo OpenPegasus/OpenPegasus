@@ -1,0 +1,233 @@
+.\" .TA c \" lowercase initial letter of .TH name
+.TH "cimmof" "1" "" "" ""
+.SH "NAME"
+cimmof \- compile MOF files into the CIM Repository 
+.SH "SYNOPSIS"
+\fBcimmof\fP \fB\-h\fP | \fB\-\-help\fP
+
+\fBcimmof\fP \fB\-\-version\fP
+
+\fBcimmof\fP [ \fB\-w\fP ] [ \fB\-E\fP ] [ \fB\-uc\fP ] [ \fB\-aE | \-aV | \-aEV\fP ] [ \fB\-I\fP path ] 
+       [ \fB\-n\fP namespace ] [ \fB\-\-namespace\fP namespace ] [ \fB\-\-xml\fP ] 
+       [ \fB\-\-trace\fP ] [ mof_file ... ]
+.SS Remarks
+.PP 
+Only a superuser or user with write access to the default or specified 
+namespace can run the 
+.B cimmof
+command to compile MOFs in the CIM Repository.
+.PP 
+Superclasses must be compiled before subclasses, else the compile will fail.
+.PP 
+It is strongly recommended that MOF files include all necessary subclasses,
+so they can compile properly even if certain classes are not in the CIM 
+Repository.
+.SH "DESCRIPTION"
+.PP 
+The 
+.B cimmof
+command is the command line interface to the Managed
+Object Format (MOF) Compiler.  The MOF Compiler is a utility that
+compiles MOF files (using the MOF format defined by the DMTF CIM
+Specification) into CIM classes and instances that are stored
+in the CIM Repository.
+.PP 
+The 
+.B cimmof
+command can be used to compile MOF files at any time after installation.
+If no input file is specified, stdin is used as the input.
+.PP 
+The MOF Compiler requires that the input MOF files be in the current
+directory or that a fully qualified path be given.  To simplify the
+specification of multiple MOF files in the 
+.B cimmof
+command line, the MOF Compiler allows compiling from files containing a list of
+MOF files using the include pragma (as shown below).
+.RS
+.TP 
+.PD 0
+.B "#pragma include (""application.mof"")"
+.TP 
+.B "#pragma include (""server.mof"")"
+.PD
+.RE
+.PP 
+MOF files using the include pragma must be in the current directory
+or in a directory specified by the 
+.B \-I
+command line option.
+.PP 
+The 
+.B \-n
+option can be used to specify a 
+.I R namespace 
+in which the CIM classes and instances will be compiled.  If this option is not
+specified, the default 
+.I R namespace 
+is root/cimv2 (with the exception of provider registration schemas).  
+.PP 
+For provider registration schemas, if the 
+.B \-n
+option is not
+specified, the default 
+.I R namespace 
+is root/PG_InterOp.  If 
+.B \-n
+option is specified, the 
+.I R namespace 
+specified must be root/PG_InterOp, otherwise, the error message "The 
+requested operation is not supported." is returned.   For provider
+MOFs, the 
+.I R namespace 
+specified must match one of the namespaces specified
+in the PG_ProviderCapabilities class schema definition. 
+.SS Options
+The 
+.B cimmof
+command recognizes the following options:
+.RS
+.TP 15
+.B \-aE
+Allow Experimental Schema changes.
+.TP 
+.B \-aEV
+Allow both Experimental and Version Schema changes.
+.TP 
+.B \-aV
+Allow both Major and Down Revision Schema changes.
+.TP 
+.B \-E
+Syntax check only
+.TP 
+.B \-h, \-\-help
+Display command usage information.
+.TP 
+\fB\-I\fP path
+Specify the path to included MOF files.  This path may be relative or
+absolute.
+.IP 
+If the input MOF file has include pragmas and the
+included files do not reside in the current directory,
+the 
+.C \-I
+directive must be used to specify a path to
+them on the 
+.B cimmof
+command line.
+.TP 
+\fB\-n\fP 
+Override the default CIM Repository namespace. The
+.I namespace 
+specified  must be a valid CIM
+namespace name.  For the definition of a valid CIM
+namespace name, refer to the Administrator's Guide.
+For provider registration schemas, the 
+.I namepace
+specified must be root/PG_InterOp.
+.TP 
+\fB\-\-namespace\fP 
+Override the default CIM Repository namespace. The
+.I namespace 
+specified  must be a valid CIM
+namespace name.  For the definition of a valid CIM
+namespace name, refer to the Administrator's Guide.
+For provider registration schemas, the 
+.I namepace
+specified must be root/PG_InterOp.
+.TP 
+\fB\-\-trace\fP 
+Trace to file (default to stdout)
+.TP 
+\fB\-uc\fP 
+Allow update of an existing class definition.
+.TP 
+\fB\-\-version\fP 
+Display CIM Server version.
+.TP 
+.B \-w
+Suppress warning messages. 
+.IP 
+When compiling the MOF files, if there are CIM elements (such as classes,
+instances, properties, or methods) defined in the MOF files which 
+already exist in the CIM Repository, the 
+.B cimmof
+command returns warning messages.  The 
+.B \-w
+option can be used to suppress these warning messages.
+.TP 
+.B \-\-xml
+Output XML only, to stdout. Do not update repository.
+.SH "EXIT STATUS"
+.PP 
+The 
+.B cimmof
+command returns one of the following values:
+.RS
+.TP 
+.B 0
+Successful completion
+.PD 0
+.TP 
+.B 1 
+Error
+.PD
+.RE
+.PP 
+When an error occurs, an error message is written to stderr and an
+error value of 1 is returned.
+.SH "USAGE NOTES"
+.PP
+The
+.B cimmof
+command requires that the CIM Server is running.  If an operation requires
+more than two minutes to be processed, the
+.B cimmof
+command prints a timeout message and returns an error value.
+.SH "DIAGNOSTICS"
+.PP 
+.B "Error trying to create Repository in path localhost:5988: Cannot connect to: localhost:5988 Failed to set DefaultNamespacePath."
+.IP 
+The CIM Server is not running.  Start the CIM Server with the
+.C cimserver 
+command and re\-run
+.B cimmof .
+.PP 
+If the MOF Compiler detects an error in the MOF file while parsing the file, 
+a parsing error is returned with the line number of the MOF file containing
+the error.
+.PP 
+.B "Operation cannot be carried out since the specified superclass does not exist." 
+.IP 
+The MOF Compiler compiled a MOF file with superclasses that were not
+in the CIM Repository.
+.PP 
+For a list of possible error messages
+that may be returned, refer to the Chapter on WBEM messages in
+the Administrator's Guide.
+.SH "EXAMPLES"
+.PP 
+Compile a MOF file into the default namespace in the CIM Repository,
+issue the 
+.B cimmof
+command with no options.
+.IP 
+.B "cimmof processInfo.mof"
+.PP 
+Compile the MOF files into the "root/application" namespace.
+.IP 
+.B  "cimmof \-nroot/application test1.mof test2.mof"
+.PP 
+Compile the MOF file defined in the directory ./MOF with the name
+CIMSchema25.mof, and containing include pragmas for other MOF files also
+in the ./MOF directory.
+.IP 
+.B "cimmof \-w \-I./MOF MOF/CIMSchema25.mof"
+.PP 
+Display Usage Info for the 
+.B cimmof
+command.  
+.IP 
+.B "cimmof \-h"
+.SH "SEE ALSO"
+.PP 
+cimserver(1).

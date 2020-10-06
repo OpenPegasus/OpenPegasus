@@ -1,0 +1,313 @@
+// ===================================================================
+// Title: System_Boot
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: System_Boot.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The System Model defines system related management
+//              concepts. This file defines the specific concepts for
+//              booting a system.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for 2.8 Final
+// CR1233 - Sysdev Omnibus Minor MOF correction CR
+// 
+// Change Log for v2.7 - None
+// 
+// Change Log for v2.7
+// CR718 - Promote HostedBootSAP.Antecedent from UnitaryComputer
+//         System to ComputerSystem
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// BootService
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "BootService represents the functionality provided by a Device, "
+       "software or via a Network to load an Operating System on a "
+       "UnitaryComputerSystem.")]
+class CIM_BootService : CIM_Service {
+};
+
+
+// ===================================================================
+// BootSAP
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A representation of the access points of a BootService.")]
+class CIM_BootSAP : CIM_ServiceAccessPoint {
+};
+
+
+// ===================================================================
+// BootServiceAccessBySAP
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "BootServiceAccessBySAP is the relationship between a Boot "
+       "Service and its access points.")]
+class CIM_BootServiceAccessBySAP : CIM_ServiceAccessBySAP {
+
+      [Override ( "Antecedent" ), Description (
+          "The BootService.")]
+   CIM_BootService REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "An access point for the BootService.")]
+   CIM_BootSAP REF Dependent;
+};
+
+
+// ===================================================================
+// HostedBootService
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "HostedBootService defines the hosting System for a Boot "
+       "Service. Since this relationship is subclassed from Hosted "
+       "Service, it inherits the scoping/naming scheme defined for "
+       "Service - where a Service is weak to its hosting System.")]
+class CIM_HostedBootService : CIM_HostedService {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The hosting System.")]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The BootService hosted on the System.")]
+   CIM_BootService REF Dependent;
+};
+
+
+// ===================================================================
+// HostedBootSAP
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "HostedBootSAP defines the hosting UnitaryComputerSystem for a "
+       "BootSAP. Since this relationship is subclassed from "
+       "HostedAccessPoint, it inherits the scoping/naming scheme "
+       "defined for AccessPoint - where an AccessPoint is weak to its "
+       "hosting System. In this case, a BootSAP must be weak to its "
+       "hosting UnitaryComputerSystem.")]
+class CIM_HostedBootSAP : CIM_HostedAccessPoint {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The UnitaryComputerSystem.")]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The BootSAP hosted on the UnitaryComputer System.")]
+   CIM_BootSAP REF Dependent;
+};
+
+
+// ===================================================================
+// OOBAlertService
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "This Service is implemented by a LogicalDevice (e.g. a "
+       "NetworkAdapter or Modem) that is capable of sending alert "
+       "messages to a remote destination. The alert messages reflect "
+       "the state of one or more ManagedSystemElements. The Elements "
+       "for which alert messages are forwarded, are defined by "
+       "enumerating the ProvidesServiceToElement association for the "
+       "Service. Out of Band (OOB) refers to the mechanisms in use "
+       "when normal OS-based management mechanisms are not possible. "
+       "This occurs when the OS is down or not functioning properly.")]
+class CIM_OOBAlertService : CIM_Service {
+
+      [Description (
+          "The type of the alert destination. For example, the alert "
+          "may be received by an application listening on a UDP Port "
+          "on a remote destination, or could be sent to a pager "
+          "(values 4 or 2, respectively)."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Pager", "TCP Port", "UDP Port" }, 
+       ModelCorrespondence { 
+          "CIM_OOBAlertService.OtherDestinationTypeDescription" }]
+   uint16 DestinationType;
+
+      [Description (
+          "The description of the alert DestinationType. This is used "
+          "when the DestinationType is set to \"Other\" (value=1)."), 
+       ModelCorrespondence { "CIM_OOBAlertService.DestinationType" }]
+   string OtherDestinationTypeDescription;
+
+      [Description (
+          "The address where this Service sends the alerts. The format "
+          "of this address depends on the DestinationType. For "
+          "example, if the DestinationType is a UDP Port (value=4), "
+          "then this property contains a string identifying the IP "
+          "address of the Port (for example, 111.222.333.444:4567). If "
+          "DestinationType is a pager (value=2), then the address is a "
+          "Pager number (for example, 18002257654).")]
+   string DestinationAddress;
+
+      [Description (
+          "The format of the Alert Message sent by the Service."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Numeric", "AlphaNumeric",
+          "Free Form Text", "Platform Event Trap" }, 
+       ModelCorrespondence { 
+          "CIM_OOBAlertService.OtherMessageFormatDescription" }]
+   uint16 MessageFormat;
+
+      [Description (
+          "The description of the format of the alert message used by "
+          "the Service when the AlertMessageFormat property is set to "
+          "\"Other\" (value=1)."), 
+       ModelCorrespondence { "CIM_OOBAlertService.MessageFormat" }]
+   string OtherMessageFormatDescription;
+
+      [Description (
+          "If the AlertService only uses a fixed message to send an "
+          "alert, then this flag should be set to TRUE.")]
+   boolean OnlySendsFixedMessage;
+
+      [Description (
+          "The AlertService may require some fixed data to send as "
+          "part of the message. This may include things like the "
+          "address or name of the System. This string contains the "
+          "complete message when the property, OnlySendsFixedMessage, "
+          "is set to TRUE.")]
+   string FixedPartOfMessage;
+
+      [Description (
+          "If the destination is capable of sending an acknowledgement "
+          "to the alert, then this flag is set to TRUE. The format of "
+          "the acknowledgement is determined by the DestinationType "
+          "and the MessageFormat.")]
+   boolean DestinationIsAckCapable;
+
+      [Description (
+          "The AlertService may retry and send an alert more than "
+          "once. The RetryCount identifies how often the operation "
+          "will be repeated. If DestinationIsAckCapable is set to "
+          "TRUE, then the retry will only be done if an Ack is not "
+          "received. Otherwise, the retries are done unconditionally.")]
+   uint16 RetryCount;
+
+      [Description (
+          "The interval between each successive retry, in seconds. If "
+          "DestinationIsAckCapable is set to TRUE, then this interval "
+          "is used as a timeout interval, before the next retry is "
+          "done."), 
+       Units ( "Seconds" )]
+   uint16 RetryInterval;
+
+      [Description (
+          "If the OOB Alerting service is capable of sending Presence "
+          "heart beat messages."), 
+       Read]
+   boolean PresenceHeartbeatCapable;
+
+      [Description (
+          "When set to true causes the OOBAlertService to send "
+          "Presence heart beat messages."), 
+       ModelCorrespondence { 
+          "CIM_OOBAlertService.PresenceHeartbeatCapable" }]
+   boolean EnablePresenceHeartbeats;
+};
+
+
+// ===================================================================
+// WakeUpService
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "WakeUpService allows a UnitaryComputerSystem to be woken up "
+       "from a low power sleep state. This Service is implemented by a "
+       "LogicalDevice (e.g. NetworkAdapter or Modem) that is capable "
+       "of receiving wakeup messages, and notifying the System.")]
+class CIM_WakeUpService : CIM_Service {
+
+      [Description (
+          "The Type of the WakeUp Service."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Wake On LAN - Magic Packet",
+          "Wake on LAN - Packet Filtering", "Wake On Ring" }, 
+       ModelCorrespondence { 
+          "CIM_WakeUpService.OtherWakeUpTypeDescription" }]
+   uint16 WakeUpType;
+
+      [Description (
+          "A description of the type of WakeUpService used when "
+          "WakeUpType is set to \"Other\" (value=1)."), 
+       ModelCorrespondence { "CIM_WakeUpService.WakeUpType" }]
+   string OtherWakeUpTypeDescription;
+
+      [Description (
+          "The filter type on the packets/messages that trigger the "
+          "WakeUpService. This field is only used when the WakeUp Type "
+          "is set to \"Wake On LAN - Packet Filtering\" (value =3)."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "ARP Broadcast",
+          "Neighbor Discovery Multicast",
+          "IP Packet with Directed MAC Address",
+          "IPX Diagnostic Responder", "NBT Name Query",
+       "Binary Match" }, 
+       ModelCorrespondence { 
+          "CIM_WakeUpService.OtherFilterTypeDescription" }]
+   uint16 FilterType;
+
+      [Description (
+          "The binary data that is used to compare the contents of the "
+          "received packet. This is used when the FilterType is set to "
+          "\"Binary Match\" (value=7). This could also be used when "
+          "the FilterType is set to \"Other\" (value=1)."), 
+       OctetString]
+   uint8 FilterData[];
+
+      [Description (
+          "The description of the format of the FilterType used by the "
+          "Service when the FilterType is set to \"Other\" (value=1)."), 
+       ModelCorrespondence { "CIM_WakeUpService.FilterType" }]
+   string OtherFilterTypeDescription;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

@@ -1,0 +1,37 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_CASignsPublicKeyCertificate
+// ==================================================================
+   [Association, UMLPackagePath ( "CIM::User::PublicKey" ),
+       Version ( "2.7.0" ), Description (
+       "This relationship associates a CertificateAuthority with the "
+       "certificates it signs.")]
+class CIM_CASignsPublicKeyCertificate : CIM_ManagedCredential {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The CA which signed the certificate.")]
+   CIM_CertificateAuthority REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The certificate issued by the CA.")]
+   CIM_PublicKeyCertificate REF Dependent;
+
+      [Description (
+          "The Serial Number.")]
+   string SerialNumber;
+
+      [Description (
+          "The Signature."), 
+       OctetString]
+   uint8 Signature[];
+
+      [Deprecated { "CIM_Credential.Expires" }, Description (
+          "The time it expires.")]
+   datetime Expires;
+
+      [Description (
+          "The Authority's revocation list distribution points.")]
+   string CRLDistributionPoint[];
+};

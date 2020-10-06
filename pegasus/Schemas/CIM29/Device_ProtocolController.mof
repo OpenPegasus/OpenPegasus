@@ -1,0 +1,540 @@
+// ===================================================================
+// Title: Device_ProtocolController
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_ProtocolController.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines
+//              the concepts and classes for Protocol Controllers.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1202 - Experimental to Final for Device
+// 
+// Change Log for v2.8 Final
+// CR1201 - Fix use of Privilege/Identity in
+// CreateProtocolControllerWithPorts()
+// CR1223 - Fix ambiguity in ProtocolControllerMaskingCapabilities
+// 
+// Change Log for v2.8 Preliminary
+// CR1015 - Initial ProtocolController definition
+// CR1007 - Addition of ControllerConfigurationService and
+//          StorageMaskingService
+// CR1040 - Improves CreateProtocolController by allowing
+//          atomic creation with permissions.
+// CR1055 - Remove ConnectionRole from ProtocolController
+//          Add UsageRestriction to NetworkPort
+// CR1082 - Change StorageMaskingCapabilities to be
+//          ProtocolControllerMaskingCapabilities
+// CR1108 - Change CreatePortProtocolController to
+//          CreateProtocolControllerWithPorts
+// 
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// ProtocolController
+// ===================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "ProtocolController is a superclass for grouping controllers "
+       "that are used to control the operation and function of "
+       "sophisticated devices that instantiate a protocol such as "
+       "SCSI. Simpler 'bus' and device controllers are modeled using "
+       "the CIM_Controller class.")]
+class CIM_ProtocolController : CIM_LogicalDevice {
+
+      [Description (
+          "Maximum number of Units that can be controlled by or "
+          "accessed through this ProtocolController.")]
+   uint32 MaxUnitsControlled;
+};
+
+// ===================================================================
+// SCSIProtocolController
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "SCSIProtocolController is a type of ProtocolController, "
+       "managing a SCSI interface.")]
+class CIM_SCSIProtocolController : CIM_ProtocolController {
+};
+
+// ===================================================================
+// ProtocolControllerForDevice
+// ===================================================================
+   [Association, Abstract, Version ( "2.8.0" ), Description (
+       "This association indicates a subclass of LogicalDevice (for "
+       "example a Storage Volume) is connected through a specific "
+       "ProtocolController. In many situations (for example storage "
+       "LUN masking), there may be many of these associations used to "
+       "relate to different objects. Therefore subclasses have been "
+       "defined to optimize enumeration of the associations.")]
+class CIM_ProtocolControllerForDevice : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The ProtocolController.")]
+   CIM_ProtocolController REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The controlled Device.")]
+   CIM_LogicalDevice REF Dependent;
+
+      [Description (
+          "Address of the associated Device in the context of the "
+          "Antecedent Controller.")]
+   string DeviceNumber;
+
+      [Description (
+          "This property describes the priority given to accesses of "
+          "the device through this Controller. The highest priority "
+          "path will have the lowest value for this parameter.")]
+   uint16 AccessPriority;
+
+      [Description (
+          "The State property indicates whether the Controller is "
+          "actively commanding or accessing the device (value=2) or "
+          "not (value=3). Also, the value, \"Unknown\" (0), can be "
+          "defined. This information is necessary when a LogicalDevice "
+          "can be commanded by, or accessed through, multiple "
+          "ProtocolControllers."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "Active", "Inactive" }]
+   uint16 AccessState;
+};
+
+// ===================================================================
+// AssociatedProtocolController
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "This association is used to define a hierarchy relationship "
+       "between ProtocolControllers. This subclass is provided so that "
+       "an enumeration of related ProtocolControllers can be performed "
+       "without retrieving any connected StorageVolumes, "
+       "MediaAccessDevices or LogicalPorts.")]
+class CIM_AssociatedProtocolController : CIM_ProtocolControllerForDevice {
+
+      [Override ( "Antecedent" ), Description (
+          "The 'upstream', Antecedent ProtocolController.")]
+   CIM_ProtocolController REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The 'downstream' Dependent ProtocolController.")]
+   CIM_ProtocolController REF Dependent;
+};
+
+// ===================================================================
+// ProtocolControllerForPort
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "This association is used to define a relationship between a "
+       "ProtocolController and a LogicalPort. This subclass is "
+       "provided so that an enumeration of related controllers and "
+       "ports can be performed without retrieving any other "
+       "controllers or connected units.")]
+class CIM_ProtocolControllerForPort : CIM_ProtocolControllerForDevice {
+
+      [Override ( "Antecedent" ), Description (
+          "The ProtocolController.")]
+   CIM_ProtocolController REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalPort 'behind' the ProtocolController.")]
+   CIM_LogicalPort REF Dependent;
+};
+
+// ===================================================================
+// ProtocolControllerForUnit
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "This association is used to define a relationship between a "
+       "ProtocolController and an exposed Logical Unit (for example a "
+       "Storage Volume or a MediaAccessDevice such as a tape drive). "
+       "An example of the use of this association is SCSI, where it "
+       "link the target controller and Logical Units. This subclass is "
+       "provided so that an enumeration of related controllers and "
+       "units can be performed without retrieving any connected ports "
+       "or other controllers.")]
+class CIM_ProtocolControllerForUnit : CIM_ProtocolControllerForDevice {
+
+      [Override ( "Antecedent" ), Description (
+          "The ProtocolController.")]
+   CIM_ProtocolController REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The logical unit (eg StorageVolume) 'behind' the "
+          "ProtocolController.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+// ===================================================================
+// ProtocolControllerAccessesUnit
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "This association is used to define a relationship between a "
+       "protocol controllers and a Logical Unit (for example a Storage "
+       "Volume or Media Access Device) controlled by the controller. "
+       "This association is used instead of ProtocolControllerForUnit "
+       "to indicate a 'controlled through' relationship rather than a "
+       "'controlled by' one. An example is SCSI where this association "
+       "is used to indicate a target/initiator relationship.")]
+class CIM_ProtocolControllerAccessesUnit : CIM_ProtocolControllerForDevice {
+
+      [Override ( "Antecedent" ), Description (
+          "The protocol controller.")]
+   CIM_ProtocolController REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The logical unit (eg StorageVolume).")]
+   CIM_LogicalDevice REF Dependent;
+
+      [Description (
+          "The number of the dependent's target protocol controller. "
+          "As an example, in SCSI this is the Target ID.")]
+   string TargetControllerNumber;
+};
+
+// ==================================================================
+//    ControllerConfigurationService
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The ControllerConfigurationService provides methods that allow "
+       "a client to manipulate LUN Masking in a storage system.")]
+class CIM_ControllerConfigurationService : CIM_Service {
+
+      [Description (
+          "This method creates an appropriate subclass of "
+          "ProtocolController. In addition to its role of controlling "
+          "downstream devices, a ProtocolControl is used to provide a "
+          "central management point for access control with respect to "
+          "those devices. Certain storage system implementations "
+          "across multiple vendors require permissions to be "
+          "established atomically with the creation of a "
+          "ProtocolController. This method provides this capability "
+          "via the Privilege and Identity properties. By supplying "
+          "appropriate information in those properties, this method "
+          "will assure that appropriate AuthorizedTarget and "
+          "AuthorizedSubject associations, (as defined in the User and "
+          "Security Model), are instantiated to restrict access to the "
+          "logical devices 'behind' it. \n"
+          "If multiple target ports are specified in the Ports input "
+          "parameter, all expose the same view (i.e., have the same "
+          "unit numbers and permissions). This method does not create "
+          "the port instances, but does create "
+          "ProtocolControllerForPort associations between the "
+          "specified ports and the new ProtocolController. The new "
+          "ProtocolController is defined to be weak to the same System "
+          "as the ControllerConfigurationService."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6..4095", "4096",
+          "4097", "4098", "4099..32767", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "DMTF Reserved",
+          "ID Parameter Missing or Not Unique",
+          "Hardware Implementation Requires Null Ports Parameter",
+          "Busy", "Method Reserved", "Vendor Specific" }]
+   uint32 CreateProtocolControllerWithPorts ( 
+         [IN, Description (
+             "The string to be used in the ElementName of the new "
+             "ProtocolController."), 
+          ModelCorrespondence { "CIM_ProtocolController.ElementName" }]
+      string ElementName, 
+         [IN, Description (
+             "Array of strings containing representations of "
+             "references to instances of CIM_LogicalPort (or subclass) "
+             "instances. This is the list of target ports that are "
+             "associated to the ProtocolController. "
+             "ProtocolControllerForPort associations are created by "
+             "the instrumentation associating the new "
+             "ProtocolController to these ports. If this parameter is "
+             "null, then all ports in the storage system (this "
+             "Service's 'scoping' System and all its ComponentCS "
+             "Systems) are attached to the new ProtocolController.")]
+      string Ports[], 
+         [IN, Description (
+             "The protocol type for the new ProtocolController."), 
+          ValueMap { "0", "1", "2" }, 
+          Values { "Unknown", "Other", "SCSI" }, 
+          ModelCorrespondence { "CIM_SCSIProtocolController" }]
+      uint16 Protocol, 
+         [IN, Description (
+             "Reference to a CIM_Privilege (or subclass) instance to "
+             "be used as a template. If supplied, it has a 1:1 "
+             "correspondence with the Identity parameter and this "
+             "method will atomically create the new ProtocolController "
+             "instance and related AuthorizedPrivilege, "
+             "AuthorizedTarget and AuthorizedSubject instances. \n"
+             "Note: if ProtocolControllerRequiresAuthorizedIdentity is "
+             "true, then the Identity/Privilege pair MUST be "
+             "specified. If false, then the Identity/Privilege pair "
+             "MUST NOT be specified."), 
+          ModelCorrespondence { "CIM_ControllerConfigurationService." 
+             "CreateProtocolControllerWithPorts.Identity" }]
+      CIM_Privilege REF Privilege, 
+         [Description (
+             "Reference to a CIM_ManagedElement (or subclass) "
+             "instance. This ManagedElement MUST be either a "
+             "CIM_Identity, or a CIM_Collection (or subclass, eg. "
+             "SystemSpecificCollection, Role, or Group) that has "
+             "CIM_Identities as MemberOfCollection. If "
+             "ProtocolControllerMaskingCapabilities.ProtocolControllerSupportsCollection "
+             "is false, the reference MUST be to a CIM_Identity (or "
+             "subclass). If present, it has a 1:1 correspondence with "
+             "the Privilege property. If present, this method will "
+             "atomically create the new ProtocolController instance "
+             "and instantiate a missing AuthorizedSubject association "
+             "between the Privilege/Identity pair; and instantiate an "
+             "AuthorizedTarget association between the "
+             "AuthorizedPrivilege and the new ProtocolController. \n"
+             "Note: if ProtocolControllerRequiresAuthorizedIdentity is "
+             "true, then at least the Identity/Privilege pair MUST be "
+             "specified."), 
+          ModelCorrespondence { "CIM_ControllerConfigurationService." 
+             "CreateProtocolControllerWithPorts.Privilege" }]
+      CIM_ManagedElement REF Identity, 
+         [IN ( false ), OUT, Description (
+             "A reference to the new ProtocolController that is "
+             "created.")]
+      CIM_ProtocolController REF ProtocolController); 
+
+      [Description (
+          "The method deletes an instance of ProtocolController and "
+          "all associations in which this ProtocolController is "
+          "referenced."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6..4095", "4096",
+          "4097", "4098..32767", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "DMTF Reserved",
+          "LogicalDevices Associated to Other ProtocolControllers Not " 
+          "Deleted", "Busy", "Method Reserved", "Vendor Specific" }]
+   uint32 DeleteProtocolController ( 
+         [IN, Description (
+             "The ProtocolController to be deleted.")]
+      CIM_ProtocolController REF ProtocolController, 
+         [IN, Description (
+             "If true, the management instrumentation provider will "
+             "also delete 'child' ProtocolControllers (i.e., those "
+             "defined as Dependent references in instances of "
+             "AssociatedProtocolController where this "
+             "ProtocolController is the Antecedent reference). Also, "
+             "all direct associations involving the 'child' "
+             "ProtocolControllers will be removed.")]
+      boolean DeleteChildrenProtocolControllers, 
+         [IN, Description (
+             "If true, the management instrumentation provider will "
+             "also delete LogicalDevice instances associated via "
+             "ProtocolControllerForUnit, to this ProtocolController "
+             "and its children. (Note that 'child' controllers will "
+             "only be affected if the "
+             "DeleteChildrenProtocolControllers input parameter is "
+             "TRUE). LogicalDevice instances are only deleted if there "
+             "are NO remaining ProtocolControllerForUnit associations, "
+             "to other ProtocolControllers.")]
+      boolean DeleteUnits ); 
+
+      [Description (
+          "This method associates a LogicalDevice subclass "
+          "(specifically a StorageVolume or MediaAccessDevice "
+          "subclass) to the referenced ProtocolController. The "
+          "association is persisted as an instance of "
+          "ProtocolControllerForUnit. The management instrumentation "
+          "provider must verify that the logical unit numbers (defined "
+          "using the DeviceNumber input parameter) are unique for the "
+          "ProtocolController. When the Protocol Controller is "
+          "actively masking a device (i.e. is part of an "
+          "AuthorizedTarget association), the provider should update "
+          "the access configuration in the underlying hardware as "
+          "appropriate."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6..4095", "4096",
+          "4097", "4098", "4099", "4100", "4101..32767",
+       "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "DMTF Reserved",
+          "Invalid LogicalDevice Instance", "Device Number Conflict",
+          "DeviceNumber Parameter Must Be Provided",
+          "Hardware Implementation Requires Null DeviceNumber", "Busy",
+          "Method Reserved", "Vendor Specific" }]
+   uint32 AttachDevice ( 
+         [IN, Description (
+             "The ProtocolController instance.")]
+      CIM_ProtocolController REF ProtocolController, 
+         [IN, Description (
+             "The LogicalDevice instance to attach.")]
+      CIM_LogicalDevice REF Device, 
+         [IN, OUT, Description (
+             "The number assigned to "
+             "ProtocolControllerForUnit.DeviceNumber (if supported by "
+             "the hardware). Hardware support is indicated by "
+             "ProtocolControllerMaskingCapabilities.ClientSelectableDeviceNumbers). "
+             "If the hardware does not support setting the number, but "
+             "the DeviceNumber has not been established in an existing "
+             "ProtocolControllerForDevice subclass, then this "
+             "parameter's value will be used. If the DeviceNumber has "
+             "been established, then the current number will be "
+             "reused."), 
+          ModelCorrespondence { 
+             "CIM_ProtocolControllerForUnit.DeviceNumber" }]
+      string DeviceNumber ); 
+
+      [Description (
+          "This method removes the ProtocolControllerForDevice "
+          "association subclass between the ProtocolController and a "
+          "LogicalDevice, such as a StorageVolume or a "
+          "MediaAccessDevice. When the ProtocolController is actively "
+          "masking a device (i.e. is part of an AuthorizedTarget "
+          "association, the management instrumentation provider should "
+          "update the hardware access configuration when DetachDevice "
+          "is called."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6..4095", "4096",
+          "4097", "4098..32767", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "DMTF Reserved",
+          "LogicalDevice Instance not Associated with Controller",
+          "Busy", "Method Reserved", "Vendor Specific" }]
+   uint32 DetachDevice ( 
+         [IN, Description (
+             "The ProtocolController instance.")]
+      CIM_ProtocolController REF ProtocolController, 
+         [IN, Description (
+             "The LogicalDevice instance to detach.")]
+      CIM_LogicalDevice REF Device ); 
+};
+
+
+// ==================================================================
+// ProtocolControllerMaskingCapabilities
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A subclass of Capabilities that defines the Masking-related "
+       "capabilities of a ProtocolController.")]
+class CIM_ProtocolControllerMaskingCapabilities : CIM_Capabilities {
+
+      [Description (
+          "A list of the valid values for StrorageHardwareID.IDType."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Port WWN", "Node WWN", "Host Name" },
+       ArrayType ( "Indexed" )]
+   uint16 ValidHardwareIdTypes[];
+
+      [Description (
+          "An array of strings describing types for valid "
+          "StorageHardwareID.IDType. Used when the "
+          "ValidHardwareIdTypes includes 1 (\"Other\")."), 
+       ArrayType ( "Indexed" )]
+   string OtherValidHardwareIDTypes[];
+
+      [Description (
+          "An integer enumeration indicating the way that ports per "
+          "view (ProtocolController) are handled by the underlying "
+          "storage system."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "One Port per View", "Multiple Ports per View",
+          "All Ports share the same View" }]
+   uint16 PortsPerView = 2;
+
+      [Description (
+          "Set to true if this storage system allows the client to "
+          "specify the DeviceNumber parameter when calling "
+          "ControllerConfigurationService.AttachDevice() and "
+          "ControllerConfigurationService.AttachDevice() and Set to "
+          "false if the implementation does not allow unit numbers to "
+          "vary for a ProtocolController. However, if set to false and "
+          "a Device is not the Dependent of a "
+          "ProtocolControllerForUnit association, the client must "
+          "provide a DeviceNumber parameter in "
+          "ControllerConfigurationService.AttachDevice. If set to "
+          "false and the Device is already the Dependent of a "
+          "ProtocolControllerForUnit association, then the client can "
+          "omit the DeviceNumber parameter (or supply the same value) "
+          "in subsequent ControllerConfigurationService.AttachDevice "
+          "calls.")]
+   boolean ClientSelectableDeviceNumbers = TRUE;
+
+      [Description (
+          "Set to true if this storage system supports the "
+          "AttachDevice method.")]
+   boolean AttachDeviceSupported;
+
+      [Description (
+          "Set to true if this storage system limits configurations to "
+          "a single subject hardware ID per view. Otherwise, multiple "
+          "hardware ID types can be used. The default is FALSE, that "
+          "multiple ID types may be used in a single view.")]
+   boolean OneHardwareIDPerView = FALSE;
+
+      [Description (
+          "When set to false, different ProtocolContollers attached to "
+          "a LogicalPort can expose the same unit numbers. If true, "
+          "then this storage system requires unique unit numbers "
+          "across all the ProtocolControllers connected to a "
+          "LogicalPort.")]
+   boolean UniqueUnitNumbersPerPort = FALSE;
+
+      [Description (
+          "Set to true if this storage system allows a client to "
+          "create a Privilege instance with PrivilegeGranted set to "
+          "FALSE.")]
+   boolean PrivilegeDeniedSupported = FALSE;
+
+      [Description (
+          "If true, this property indicates that a Privilege/Identity "
+          "pair MUST be specified when "
+          "CreateProtocolControllerWithPorts() is called. If false, "
+          "then the Privilege/Identity pair in "
+          "CreateProtocolControllerWithPorts() MUST NOT be set.")]
+   boolean ProtocolControllerRequiresAuthorizedIdentity = FALSE;
+
+      [Description (
+          "If true, this property indicates that the Identity "
+          "parameter of CreateProtocolConntrollerWithPorts() MUST "
+          "contain a reference to a CIM_Collection (or subclass) or to "
+          "a CIM_Identity (or subclass).")]
+   boolean ProtocolControllerSupportsCollections = FALSE;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

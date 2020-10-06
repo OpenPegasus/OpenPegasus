@@ -1,0 +1,1025 @@
+// ===================================================================
+// Title: Device_FC
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_FC.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines the
+//              concepts and classes to manage Fibre Channel devices
+//              and Zones.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1202 - Remove Experimental Qualifiers
+// CR1223 - Omnibus Sysdev CR - Minor MOF corrections
+// 
+// Change log for v2.8 Preliminary
+// CR1001 - Update ZoneMembershipSettingData to use
+//          CIM_ConnectivityMembershipSettingData
+// CR1032 - Add Zoning methods
+// CR1035 - Add additional properties to FCPortStatistic
+// CR1082 - Changed ref from CIM_ZoneAlias to
+// CIM_NamedAddressCollection.
+//          Changed ZoneMemberSettingData to ZoneMembershipSettingData
+//          Corrected ValueMap for the method ActivateZoneSet
+// CR1122 - Correct type of ZoneService.RequestedSessionState
+// 
+// Change Log for v2.7.1
+//       - Fix Value/ValueMap mismatch in FCPort.SupportedCOS and
+//         ActiveCOS
+// 
+// Change Log for v2.7 Final
+// CR940 - Fix Value/ValueMap mismatch in FCPort.ActiveFC4Types
+// CR948 - Add additional value of "G" to FCPort.PortType
+// CR970 - Removal of the Experimental qualifier
+//       - Move ZoneCapabilities to CIM V2.8, as Experimental
+// CR975 - Clean up of Zone
+// CR976 - Remove ZoneAlias in lieu of the Network's class
+//         NamedAddressCollection
+// CR977 - Update to ZoneMemberSettingData to allow for common
+//         superclass of ConnectivitySettingData
+// 
+// Change Log for v2.7
+// CR630 - Add FCPort and FCPortStatistics
+// CR674 - Add ZoneSet, Zone, ZoneAlias, ZoneMemberSettingData,
+//         ZoneService and ZoneCapabilities
+// CR783 - Modify FCPort and FCPortStatistics
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// FCPort
+// ==================================================================
+   [Version ( "2.7.1" ), Description (
+       "Capabilities and management of a Fibre Channel Port Device.")]
+class CIM_FCPort : CIM_NetworkPort {
+
+      [Override ( "PortType" ), Description (
+          "The specific mode currently enabled for the Port. The "
+          "values: \"N\" = Node Port, \"NL\" = Node Port supporting FC "
+          "arbitrated loop, \"E\" = Expansion Port connecting fabric "
+          "elements (for example, FC switches), \"F\" = Fabric "
+          "(element) Port, \"FL\" = Fabric (element) Port supporting "
+          "FC arbitrated loop, \"B\" = Bridge and \"G\" = Generic "
+          "Port. PortTypes are defined in the ANSI X3 standards. When "
+          "set to 1 (\"Other\"), the related property OtherPortType "
+          "contains a string description of the port's type."), 
+       ValueMap { "0", "1", "10", "11", "12", "13", "14", "15", "16",
+          "17", "18", "16000..65535" }, 
+       Values { "Unknown", "Other", "N", "NL", "F/NL", "Nx", "E", "F",
+          "FL", "B", "G", "Vendor Reserved" }]
+   uint16 PortType;
+
+      [Description (
+          "An array of integers indicating the Fibre Channel Classes "
+          "of Service that are supported. The active COS are indicated "
+          "in ActiveCOS."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "1", "2", "3", "4", "5", "6", "F" }]
+   uint16 SupportedCOS[];
+
+      [Description (
+          "An array of integers indicating the Classes of Service that "
+          "are active. The Active COS is indicated in ActiveCOS."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "1", "2", "3", "4", "5", "6", "F" }, 
+       ModelCorrespondence { "CIM_FCPort.SupportedCOS" }]
+   uint16 ActiveCOS[];
+
+      [Description (
+          "An array of integers indicating the Fibre Channel FC-4 "
+          "protocols supported. The protocols that are active and "
+          "running are indicated in the ActiveFC4Types property."), 
+       ValueMap { "0", "1", "4", "5", "8", "9", "17", "18", "19", "21",
+          "22", "23", "25", "26", "27", "28", "32", "34", "36", "64",
+          "80", "81", "82", "88", "96", "255" }, 
+       Values { "Unknown", "Other", "ISO/IEC 8802 - 2 LLC",
+          "IP over FC", "SCSI - FCP", "SCSI - GPP", "IPI - 3 Master",
+          "IPI - 3 Slave", "IPI - 3 Peer", "CP IPI - 3 Master",
+          "CP IPI - 3 Slave", "CP IPI - 3 Peer", "SBCCS Channel",
+          "SBCCS Control Unit", "FC-SB-2 Channel",
+          "FC-SB-2 Control Unit",
+          "Fibre Channel Services (FC-GS, FC-GS-2, FC-GS-3)", "FC-SW",
+          "FC - SNMP", "HIPPI - FP", "BBL Control",
+          "BBL FDDI Encapsulated LAN PDU",
+          "BBL 802.3 Encapsulated LAN PDU", "FC - VI", "FC - AV",
+          "Vendor Unique" }]
+   uint16 SupportedFC4Types[];
+
+      [Description (
+          "An array of integers indicating the Fibre Channel FC-4 "
+          "protocols currently running. A list of all protocols "
+          "supported is indicated in the SupportedFC4Types property."), 
+       ValueMap { "0", "1", "4", "5", "8", "9", "17", "18", "19", "21",
+          "22", "23", "25", "26", "27", "28", "32", "34", "36", "64",
+          "80", "81", "82", "88", "96", "255" }, 
+       Values { "Unknown", "Other", "ISO/IEC 8802 - 2 LLC",
+          "IP over FC", "SCSI - FCP", "SCSI - GPP", "IPI - 3 Master",
+          "IPI - 3 Slave", "IPI - 3 Peer", "CP IPI - 3 Master",
+          "CP IPI - 3 Slave", "CP IPI - 3 Peer", "SBCCS Channel",
+          "SBCCS Control Unit", "FC-SB-2 Channel",
+          "FC-SB-2 Control Unit",
+          "Fibre Channel Services (FC-GS, FC-GS-2, FC-GS-3)", "FC-SW",
+          "FC - SNMP", "HIPPI - FP", "BBL Control",
+          "BBL FDDI Encapsulated LAN PDU",
+          "BBL 802.3 Encapsulated LAN PDU", "FC - VI", "FC - AV",
+          "Vendor Unique" }, 
+       ModelCorrespondence { "CIM_FCPort.SupportedFC4Types" }]
+   uint16 ActiveFC4Types[];
+};
+
+
+// ==================================================================
+// ZoneSet
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A ZoneSet is a group of zones that are managed collectively by "
+       "the same domain. The managing domain is indicated by the "
+       "HostedCollection association. For example, for Fibre Channel, "
+       "this would indicate a set of zones that are part of a fabric. "
+       "The zones are only under zone enforcement by the fabric, if "
+       "the zoneset is set to active.")]
+class CIM_ZoneSet : CIM_ConnectivityCollection {
+
+      [Required, Override ( "ElementName" ), Write, Description (
+          "A user-friendly name for the ZoneSet that is unique within "
+          "the AdminDomain.")]
+   string ElementName;
+
+      [Required, Write, Description (
+          "Indicates that this ZoneSet is currently active (i.e. under "
+          "enforcement of a fabric). This property can be used to "
+          "distinguish between a ZoneSet that is currently active and "
+          "a snapshot of a ZoneSet (with the same InstanceName) that "
+          "is for \"offline\" editing.")]
+   boolean Active;
+};
+
+
+// ==================================================================
+// Zone
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A zone is a group of Ports, Endpoints, Nodes, Zones, and/or "
+       "NamedAddressCollections that are managed collectively by the "
+       "same domain. The managing domain is indicated by the "
+       "HostedCollection association. For Fibre Channel, a zone "
+       "indicates a set of members that are participating together in "
+       "the fabric.")]
+class CIM_Zone : CIM_ConnectivityCollection {
+
+      [Required, Override ( "ElementName" ), Write, Description (
+          "A user-friendly name for the Zone that is unique within the "
+          "AdminDomain.")]
+   string ElementName;
+
+      [Required, Description (
+          "Indicates that this Zone is currently active (i.e. under "
+          "enforcement of a fabric). This property can be used to "
+          "distinguish between a Zone that is currently active and a "
+          "snapshot of a Zone (with the same InstanceName) that is for "
+          "\"offline\" editing.")]
+   boolean Active;
+
+      [Required, Description (
+          "The type of zoning to be enforced."), 
+       ValueMap { "0", "1", "2", "3", "..", "32768..65535" }, 
+       Values { "Unknown", "Other", "Default", "Protocol",
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Zone.OtherZoneTypeDescription" }]
+   uint16 ZoneType;
+
+      [Description (
+          "A string describing the ZoneType when the ZoneType value is "
+          "1 \"Other\"."), 
+       ModelCorrespondence { "CIM_Zone.ZoneType" }]
+   string OtherZoneTypeDescription;
+
+      [Description (
+          "Specific clarification when necessary when the ProtocolType "
+          "has an enumeration that requires it. Specifically, if "
+          "ProtocolType is \"Protocol\", then SubType the Fibre "
+          "Channel FC4 type."), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "32768..65535" }, 
+       Values { "Unknown", "Other", "SCSI", "VI", "IP",
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Zone.OtherZoneSubTypeDescription" }]
+   uint16 ZoneSubType;
+
+      [Description (
+          "A string describing the ZoneSubType when the ZoneSubType "
+          "value is 1 \"Other\"."), 
+       ModelCorrespondence { "CIM_Zone.ZoneSubType" }]
+   string OtherZoneSubTypeDescription;
+};
+
+
+// ==================================================================
+// ZoneMembershipSettingData
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "ZoneMembershipSettingData provides the identification criteria "
+       "for possible Zone and ZoneAlias members.")]
+class CIM_ZoneMembershipSettingData : CIM_ConnectivityMembershipSettingData {
+
+      [Override ( "ConnectivityMemberType" ), Description (
+          "ConnectivityMemberType specifies the type of identification "
+          "used in the ConnectivityMemberID field. For Fibre Channel, "
+          "several of the enumerated values require additional "
+          "explanation: \n"
+          "* A ConnectivityMemberType equal to 2 (Permanent Address) "
+          "indicates that an NxPort WWN value should be specified in "
+          "the related ConnectivityMemberID property \n"
+          "* A ConnectivityMemberType of 3 (Network Address) indicates "
+          "that an NxPort Address ID value should be specified in the "
+          "related ConnectivityMemberID property \n"
+          "* A ConnectivityMemberType of 4 (Switch Port ID) indicates "
+          "that a Domain/Port Number value should be specified in the "
+          "related ConnectivityMemberID property \n"
+          "* A ConnectivityMemberType of 5 (Logical Port Group) "
+          "indicates that a Node WWN value should be specified in the "
+          "related ConnectivityMemberID property.")]
+   uint16 ConnectivityMemberType;
+};
+
+
+// ==================================================================
+// ZoneService
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The ZoneService if responsible for managing the zone "
+       "enforcement for the fabric. The ZoneService is hosted on an "
+       "AdminDomain. This is depicted by the HostedService "
+       "association.")]
+class CIM_ZoneService : CIM_Service {
+
+      [Description (
+          "SessionState is an integer enumeration indicating whether "
+          "the session is currently starting (value = 2), or ended "
+          "(value = 3). It is possible that a particular instance of a "
+          "ZoneService may not support sessions. If this occurs, the "
+          "value 4 (\"Not Applicable\") is used."), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Starting", "Ended", "Not Applicable" }]
+   uint16 SessionState = 4;
+
+      [Description (
+          "RequestedSessionState is an integer enumeration indicating "
+          "whether the ZoneService session has been requested to start "
+          "(value = 2), end (3), or terminate (4). Note that when "
+          "RequestedSessionState is set to 4 (\"Not Applicable\"), "
+          "then this property is not used. By default, the element's "
+          "RequestedSessionState is 5 (\"No Change\")."), 
+       ValueMap { "2", "3", "4", "5" }, 
+       Values { "Start", "End", "Terminate", "No Change" }, 
+       ModelCorrespondence { "CIM_ZoneService.SessionState",
+          "CIM_ZoneService.SessionControl()" }]
+   uint16 RequestedSessionState = 5;
+
+      [Description (
+          "The method creates a ZoneSet and the association "
+          "HostedCollection. The newly created association, "
+          "HostedCollection, associates the Zone to the same "
+          "AdminDomain the ZoneService is hosted to. For the newly "
+          "created ZoneSet, the Active property is always set to "
+          "false. \n"
+          "\n"
+          "This method maybe deprecated in the future in lieu of "
+          "intrinsics once limitations in the CIM Operations are "
+          "addressed."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10..0x0FFF", "0x1000..0x7777", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "Access_Denied",
+          "Not_Found", "Already_Exists", "Insufficient_Resources",
+          "DMTF_Reserved", "Method_Reserved", "Vendor_Reserved" }]
+   uint32 CreateZoneSet( 
+         [Required, IN, Description (
+             "A user-friendly name for the ZoneSet that is unique "
+             "within the AdminDomain."), 
+          ModelCorrespondence { "CIM_ZoneSet.ElementName" }]
+      string ZoneSetName, 
+         [IN ( false ), OUT, Description (
+             "A reference to the newly created Zone.")]
+      CIM_ZoneSet ref ZoneSet); 
+
+      [Description (
+          "The method creates a Zone and the association "
+          "HostedCollection. The newly created association, "
+          "HostedCollection, associates the Zone to the same "
+          "AdminDomain the ZoneService is hosted to. For the newly "
+          "created Zone, the Active property is always set to false. \n"
+          "\n"
+          "This method maybe deprecated in the future in lieu of "
+          "intrinsics once limitations in the CIM Operations are "
+          "addressed."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10..0x0FFF", "0x1000..0x7777", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "Access_Denied",
+          "Not_Found", "Already_Exists", "Insufficient_Resources",
+          "DMTF_Reserved", "Method_Reserved", "Vendor_Reserved" }]
+   uint32 CreateZone( 
+         [Required, IN, Description (
+             "A user-friendly name for the Zone that is unique within "
+             "the AdminDomain."), 
+          ModelCorrespondence { "CIM_Zone.ElementName" }]
+      string ZoneName, 
+         [IN, Description (
+             "The type of zoning to be enforced."), 
+          ValueMap { "2", "3" }, 
+          Values { "Default", "Protocol" }, 
+          ModelCorrespondence { "CIM_Zone.ZoneType" }]
+      uint16 ZoneType, 
+         [IN, Description (
+             "Specific clarification when necessary when the ZoneType "
+             "has an enumeration that requires it. Specifically, if "
+             "ZoneType is \"Protocol\", then SubType is the Fibre "
+             "Channel FC4 type."), 
+          ValueMap { "2", "3", "4" }, 
+          Values { "SCSI", "VI", "IP" }, 
+          ModelCorrespondence { "CIM_Zone.ZoneSubType" }]
+      uint16 ZoneSubType, 
+         [IN ( false ), OUT, Description (
+             "A reference to the newly created Zone.")]
+      CIM_Zone ref Zone); 
+
+      [Description (
+          "The method creates a ZoneAlias and the association "
+          "HostedCollection. The newly created association, "
+          "HostedCollection, associates the ZoneAlias to the same "
+          "AdminDomain the ZoneService is hosted to. For the newly "
+          "created ZoneAlias, the Active property is always set to "
+          "false. \n"
+          "\n"
+          "This method maybe deprecated in the future in lieu of "
+          "intrinsics once limitations in the CIM Operations are "
+          "addressed."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10..0x0FFF", "0x1000..0x7777", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "Access_Denied",
+          "Not_Found", "Already_Exists", "Insufficient_Resources",
+          "DMTF_Reserved", "Method_Reserved", "Vendor_Reserved" }]
+   uint32 CreateZoneAlias( 
+         [Required, IN, Description (
+             "A name (alias) for the ZoneAlias which is unique in the "
+             "context of the hosting System."), 
+          ModelCorrespondence { "CIM_ZoneAlias.CollectionAlias" }]
+      string CollectionAlias, 
+         [IN ( false ), OUT, Description (
+             "A reference to the newly created ZoneAlias.")]
+      CIM_NamedAddressCollection ref ZoneAlias); 
+
+      [Description (
+          "CreateZoneMembershipSettingData creates a "
+          "ZoneMembershipSettingData and adds it to the specified Zone "
+          "or ZoneAlias by creating a MemberOfCollection association. "
+          "\n\n"
+          "This method maybe deprecated in the future in lieu of "
+          "intrinsics once limitations in the CIM Operations are "
+          "addressed."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10..0x0FFF", "0x1000..0x7777", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "Access_Denied",
+          "Not_Found", "Already_Exists", "Insufficient_Resources",
+          "DMTF_Reserved", "Method_Reserved", "Vendor_Reserved" }]
+   uint32 CreateZoneMembershipSettingData( 
+         [Required, IN, Description (
+             "Identifies the type of identification placed in "
+             "ConnectivityMemberID."), 
+          ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+          Values { "Unknown", "Other", "PermanentAddress",
+             "NetworkAddress", "SwitchPortID", "LogicalPortGroup",
+             "DMTF_Reserved", "Vendor_Reserved" }, 
+          ModelCorrespondence { 
+             "CIM_ZoneMembershipSettingData.ZoneMemberType" }]
+      uint16 ConnectivityMemberType, 
+         [Required, IN, Description (
+             "This specifies the type of identification used in the "
+             "ConnectivityMemberID field. For Fibre Channel: \n"
+             "* A ConnectivityMemberType of 'PermanentAddress', the "
+             "ConnectivityMemberID is the NxPort WWN; \n"
+             "* A ConnectivityMemberType of 'NetworkAddress', the "
+             "ConnectivityMemberID is the NXPort Address ID; \n"
+             "* A ConnectivityMemberType of 'SwitchPortID', the "
+             "ConnectivityMemberID is 'Domain:PortNumber'."), 
+          ModelCorrespondence { 
+             "CIM_ZoneMembershipSettingData.ConnectivityMemberID" }]
+      string ConnectivityMemberID, 
+         [Required, IN, Description (
+             "The collection that the ZoneMembershipSettingData should "
+             "be added to. The collection is either a Zone or "
+             "ZoneAlias.")]
+      CIM_SystemSpecificCollection ref SystemSpecificCollection, 
+         [IN ( false ), OUT, Description (
+             "A reference to the newly created "
+             "ZoneMembershipSettingData.")]
+      CIM_ZoneMembershipSettingData ref ZoneMembershipSettingData); 
+
+      [Description (
+          "Adds to the ZoneSet the specified Zone. Adding a Zone to a "
+          "ZoneSet, extends the zone enforcement definition of the "
+          "ZoneSet to include the members of that Zone. If adding the "
+          "Zone is, successful, the Zone should be associated to the "
+          "ZoneSet by MemberOfCollection. \n"
+          "\n"
+          "This method maybe deprecated in the future in lieu of "
+          "intrinsics once limitations in the CIM Operations are "
+          "addressed."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10..0x0FFF", "0x1000..0x7777", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "Access_Denied",
+          "Not_Found", "Already_Exists", "Insufficient_Resources",
+          "DMTF_Reserved", "Method_Reserved", "Vendor_Reserved" }]
+   uint32 AddZone( 
+         [Required, IN, Description (
+             "A reference to the ZoneSet the Zone is added to.")]
+      CIM_ZoneSet ref ZoneSet, 
+         [IN, Description (
+             "A reference to the Zone to be added to the ZoneSet.")]
+      CIM_Zone ref Zone); 
+
+      [Description (
+          "Adds to the Zone or ZoneAlias the specified "
+          "ZoneMembershipSettingData. If adding the "
+          "ZoneMembershipSettingData is successful, an "
+          "ElementSettingData association will be created between the "
+          "ZoneMembershipSettingData and either the Zone or ZoneAlias. "
+          "\n\n"
+          "This method maybe deprecated in the future in lieu of "
+          "intrinsics once limitations in the CIM Operations are "
+          "addressed."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10..0x0FFF", "0x1000..0x7777", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "Access_Denied",
+          "Not_Found", "Already_Exists", "Insufficient_Resources",
+          "DMTF_Reserved", "Method_Reserved", "Vendor_Reserved" }]
+   uint32 AddZoneMembershipSettingData( 
+         [Required, IN, Description (
+             "A reference to the Zone or ZoneAlias the "
+             "ZoneMembershipSettingData is to be added.")]
+      CIM_SystemSpecificCollection ref SystemSpecificCollection, 
+         [IN, Description (
+             "A reference to the ZoneMembershipSettingData to be added "
+             "to the Zone or ZoneAlias.")]
+      CIM_ZoneMembershipSettingData ref ZoneMembershipSettingData); 
+
+      [Description (
+          "Adds to the Zone the specified ZoneAlias. \n"
+          "\n"
+          "This method maybe deprecated in the future in lieu of "
+          "intrinsics once limitations in the CIM Operations are "
+          "addressed."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10..0x0FFF", "0x1000..0x7777", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "Access_Denied",
+          "Not_Found", "Already_Exists", "Insufficient_Resources",
+          "DMTF_Reserved", "Method_Reserved", "Vendor_Reserved" }]
+   uint32 AddZoneAlias( 
+         [Required, IN, Description (
+             "A reference to the Zone the ZoneAlias is to be added.")]
+      CIM_Zone ref Zone, 
+         [IN, Description (
+             "A reference to the ZoneAlias to be added to the Zone.")]
+      CIM_NamedAddressCollection ref ZoneAlias); 
+
+      [Description (
+          "Activates the specified ZoneSet. Once the ZoneSet in "
+          "activated, the ZoneSet and associatiated Zone, ZoneAliases, "
+          "and ZoneMembershipSettingData instances will have the "
+          "active flag set to true. \n"
+          "\n"
+          "This method maybe deprecated in the future in lieu of "
+          "intrinsics once limitations in the CIM Operations are "
+          "addressed."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "9",
+          "10..0x0FFF", "0x1000..0x7777", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "Access_Denied",
+          "Not_Found", "Insufficient_Resources", "DMTF_Reserved",
+          "Method_Reserved", "Vendor_Reserved" }]
+   uint32 ActivateZoneSet ( 
+         [Required, IN, Description (
+             "A reference to the ZoneSet to be activated.")]
+      CIM_ZoneSet ref ZoneSet, 
+         [Required, IN, Description (
+             "Activate indicates whether the references ZoneSet should "
+             "be activated (Active=true) or deactivated "
+             "(Active=false).")]
+      boolean Activate); 
+
+      [Description (
+          "SessionControl requests that a session start (value = 2), "
+          "end (3), or terminate (4)."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "9", "10..0x0FFF",
+          "0x1000..0x7777", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unspecified Error",
+          "Timeout", "Failed", "Invalid Parameter", "Access_Denied",
+          "Insufficient_Resources", "DMTF_Reserved", "Method_Reserved",
+          "Vendor_Reserved" }]
+   uint32 SessionControl ( 
+         [IN, Description (
+             "RequestedSessionState is an integer enumeration "
+             "indicating whether the ZoneService session has been "
+             "requested to start (value = 2), end (3), or terminate "
+             "(4)."), 
+          ValueMap { "2", "3", "4" }, 
+          Values { "Start", "End", "Terminate" }, 
+          ModelCorrespondence { "CIM_ZoneService.RequestedSessionState" 
+             }]
+      uint16 RequestedSessionState); 
+};
+
+
+// ==================================================================
+// FibreProtocolService
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "FibreProtocolService abstracts and allows the management of "
+       "the Alias, Management, Time, Security, Directory (Naming) and "
+       "other services and functions available in a Fibre Channel "
+       "network. This class will be further defined in a later release "
+       "of CIM.")]
+class CIM_FibreProtocolService : CIM_Service {
+};
+
+
+// ==================================================================
+// FCPortStatistics
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "FCPortStatistics is the statistics for the FCPort.")]
+class CIM_FCPortStatistics : CIM_NetworkPortStatistics {
+
+      [Description (
+          "LIPCount is the number of LIP events that have occurred on "
+          "an arbitrated loop."), 
+       Counter]
+   uint64 LIPCount;
+
+      [Description (
+          "NOSCount is the number of NOS events that have occurred on "
+          "the switched fabric."), 
+       Counter]
+   uint64 NOSCount;
+
+      [Description (
+          "ErrorFrames is the number of frames that have been received "
+          "in error."), 
+       Counter]
+   uint64 ErrorFrames;
+
+      [Description (
+          "DumpedFrames is the number of frames that were lost due to "
+          "a lack of host buffers available."), 
+       Counter]
+   uint64 DumpedFrames;
+
+      [Description (
+          "LinkFailure is the number of times a link error has "
+          "occurred. This count is part of the Link Error Status Block "
+          "(LESB)."), 
+       Counter]
+   uint64 LinkFailures;
+
+      [Description (
+          "Number of times that signal is lost on the Port since last "
+          "reset of the Device. This count is part of the Link Error "
+          "Status Block (LESB)."), 
+       Counter]
+   uint64 LossOfSignalCounter;
+
+      [Description (
+          "Number of times that synchronization is lost on the Port "
+          "since last reset of the Device. Synchronization is assumed "
+          "lost after a timeout period (identified by the Receiver "
+          "TransmitterTimeout property) is exceeded. This count is "
+          "part of the Link Error Status Block (LESB)."), 
+       Counter]
+   uint64 LossOfSyncCounter;
+
+      [Description (
+          "Count of primitive sequence protocol errors detected at "
+          "this port. This count is part of the Link Error Status "
+          "Block (LESB)."), 
+       Counter]
+   uint64 PrimitiveSeqProtocolErrCount;
+
+      [Description (
+          "Number of times that the CRC in a frame does not match the "
+          "CRC computed by the receiver. This count is part of the "
+          "Link Error Status Block (LESB)."), 
+       Counter]
+   uint64 CRCErrors;
+
+      [Description (
+          "The number of transmission words that had an invalid "
+          "character (8b10b code violation) in one or more of its "
+          "characters, had a K28.5 (8b10b control) in its second, "
+          "third or fourth character positions, and/or had an "
+          "incorrect Beginning Running Disparity. This count is part "
+          "of the Link Error Status Block (LESB)."), 
+       Counter]
+   uint64 InvalidTransmissionWords;
+
+      [Description (
+          "The number of frames received that were shorter than 28 "
+          "octets. The value of 28 is calculated based on an "
+          "assumption of 24 header bytes plus 4 CRC bytes. The count "
+          "does not include SOF/EOF bytes which are not data."), 
+       Counter]
+   uint64 FramesTooShort;
+
+      [Description (
+          "The number of frames received that were longer than 2140 "
+          "octets. The value of 2140 is calculated based on an "
+          "assumption of 24 header bytes plus 4 CRC bytes and 2112 "
+          "bytes of payload."), 
+       Counter]
+   uint64 FramesTooLong;
+
+      [Description (
+          "Count of frames received with unknown addressing. An "
+          "example is an unknown SID or DID. The SID or DID is not "
+          "known to the routing algorithm."), 
+       Counter]
+   uint64 AddressErrors;
+
+      [Description (
+          "Count of occurrences when all input buffers of a port were "
+          "full and outbound buffer-to-buffer credit transitioned to "
+          "zero. There is no credit to provide to other side."), 
+       Counter]
+   uint64 BufferCreditNotProvided;
+
+      [Description (
+          "Count of transitions in/out of BBcredit zero state. The "
+          "other side is not providing any credit."), 
+       Counter]
+   uint64 BufferCreditNotReceived;
+
+      [Description (
+          "Count of invalid frame delimiters received at this port. An "
+          "example is a frame with a class 2 start and a class 3 at "
+          "the end."), 
+       Counter]
+   uint64 DelimiterErrors;
+
+      [Description (
+          "Count of disparity errors received at this port."), 
+       Counter]
+   uint64 EncodingDisparityErrors;
+
+      [Description (
+          "Count of Link resets. This is the number of LRs received."), 
+       Counter]
+   uint64 LinkResetsReceived;
+
+      [Description (
+          "Count of Link resets. This is the number of LRs "
+          "transmitted."), 
+       Counter]
+   uint64 LinkResetsTransmitted;
+
+      [Description (
+          "Count of Multicast Frames or Packets received."), 
+       Counter]
+   uint64 MulticastFramesReceived;
+
+      [Description (
+          "Count of Multicast Frames or Packets transmitted."), 
+       Counter]
+   uint64 MulticastFramesTransmitted;
+
+      [Description (
+          "FBSYFrames is the count of times that FBSY was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|ErrorCounters|1.SWAPI_STATS_LBL_FBSY" }]
+   uint64 FBSYFrames;
+
+      [Description (
+          "PBSYFrames is the count of times that PBSY was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|ErrorCounters|1.SWAPI_STATS_LBL_PBSY" }]
+   uint64 PBSYFrames;
+
+      [Description (
+          "FRJTFrames is the count of times that FRJT was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|ErrorCounters|1.SWAPI_STATS_LBL_FRJT" }]
+   uint64 FRJTFrames;
+
+      [Description (
+          "PRJTFrames is the count of times that PRJT was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|ErrorCounters|1.SWAPI_STATS_LBL_PRJT" }]
+   uint64 PRJTFrames;
+
+      [Description (
+          "RXClass1Frames is the count of class 1 frames received."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C1RF" }]
+   uint64 RXClass1Frames;
+
+      [Description (
+          "TXClass1Frames is the count of class 1 frames transmitted."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C1TF" }]
+   uint64 TXClass1Frames;
+
+      [Description (
+          "Class1FBSY is the count of times that FBSY was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C1FB" }]
+   uint64 Class1FBSY;
+
+      [Description (
+          "Class1PBSY is the count of times that PBSY was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C1PB" }]
+   uint64 Class1PBSY;
+
+      [Description (
+          "Class1FRJT is the count of times that FRJT was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C1FR" }]
+   uint64 Class1FRJT;
+
+      [Description (
+          "Class1PRJT is the count of times that PRJT was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C1PR" }]
+   uint64 Class1PRJT;
+
+      [Description (
+          "RXClass2Frames is the count of class 2 frames received."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C2RF" }]
+   uint64 RXClass2Frames;
+
+      [Description (
+          "TXClass2Frames is the count of class 2 frames transmitted."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C2LF" }]
+   uint64 TXClass2Frames;
+
+      [Description (
+          "Class2FBSY is the count of times that FBSY was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C2FB" }]
+   uint64 Class2FBSY;
+
+      [Description (
+          "Class2PBSY is the count of times that PBSY was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C2PB" }]
+   uint64 Class2PBSY;
+
+      [Description (
+          "Class2FRJT is the count of times that FRJT was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C2FR" }]
+   uint64 Class2FRJT;
+
+      [Description (
+          "Class2PRJT is the count of times that PRJT was returned to "
+          "the port."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C2PR" }]
+   uint64 Class2PRJT;
+
+      [Description (
+          "RXClass3Frames is the count of class 3 frames received."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C3RF" }]
+   uint64 RXClass3Frames;
+
+      [Description (
+          "TXClass3Frames is the count of class 3 frames transmitted."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C3TF" }]
+   uint64 TXClass3Frames;
+
+      [Description (
+          "Class3FramesDiscarded is the count of class 3 frames that "
+          "were discarded upon reception."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_C3DC" }]
+   uint64 Class3FramesDiscarded;
+
+      [Description (
+          "RXBroadcastFrames is the count of broadcast frames or "
+          "packets received."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_RBCO" }]
+   uint64 RXBroadcastFrames;
+
+      [Description (
+          "TXBroadcastFrames is the count of broadcast frames or "
+          "packets transmitted."), 
+       Counter, 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceCounters|1.SWAPI_STATS_LBL_TBCO" }]
+   uint64 TXBroadcastFrames;
+};
+
+
+// ==================================================================
+// FCPortRateStatistics
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "FCPortRateStatistics is the performance rates for the FCPort. "
+       "The Frame and Byte rates report the average of a counter "
+       "change per second and the maximum counter change per second "
+       "over a specified interval, the SampleInterval, which is "
+       "defined in the parent class, StatisticalData.")]
+class CIM_FCPortRateStatistics : CIM_StatisticalData {
+
+      [Description (
+          "TxFrameRate is the instantaneous transmit frame rate."), 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceRates|1.SWAPI_STATS_LBL_TFRR" }, 
+       ModelCorrespondence { "CIM_StatisticalData.SampleInterval" }]
+   uint64 TxFrameRate;
+
+      [Description (
+          "RxFrameRate is the instantaneous receive frame rate."), 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceRates|1.SWAPI_STATS_LBL_RFRR" }, 
+       ModelCorrespondence { "CIM_StatisticalData.SampleInterval" }]
+   uint64 RxFrameRate;
+
+      [Description (
+          "MaxTxFrameRate is the maximum transmit frame rate achieved."), 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceRates|1.SWAPI_STATS_LBL_TFPR" }, 
+       ModelCorrespondence { "CIM_StatisticalData.SampleInterval" }]
+   uint64 MaxTxFrameRate;
+
+      [Description (
+          "MaxRxFrameRate is the maximum receive frame rate achieved."), 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceRates|1.SWAPI_STATS_LBL_RFPR" }, 
+       ModelCorrespondence { "CIM_StatisticalData.SampleInterval" }]
+   uint64 MaxRxFrameRate;
+
+      [Description (
+          "TxRate is the instantaneous transmit byte rate."), 
+       MappingStrings { "FC-SWAPI.T11|PerformanceRates|1. " 
+          "SWAPI_STATS_LBL_TBYR" }, 
+       ModelCorrespondence { "CIM_StatisticalData.SampleInterval" }]
+   uint64 TxRate;
+
+      [Description (
+          "RxRate is the instantaneous receive byte rate."), 
+       MappingStrings { 
+          "FC-SWAPI.T11|PerformanceRates|1.SWAPI_STATS_LBL_RBYR" }, 
+       ModelCorrespondence { "CIM_StatisticalData.SampleInterval" }]
+   uint64 RxRate;
+
+      [Description (
+          "PeakTxRate is the maximum transmit byte rate achieved."), 
+       MappingStrings { "FC-SWAPI.T11|PerformanceRates|1. " 
+          "SWAPI_STATS_LBL_TBPR" }, 
+       ModelCorrespondence { "CIM_StatisticalData.SampleInterval" }]
+   uint64 PeakTxRate;
+
+      [Description (
+          "PeakRxRate is the maximum receive byte rate achieved."), 
+       MappingStrings { "FC-SWAPI.T11|PerformanceRates|1. " 
+          "SWAPI_STATS_LBL_RBPR" }, 
+       ModelCorrespondence { "CIM_StatisticalData.SampleInterval" }]
+   uint64 PeakRxRate;
+};
+
+
+// ==================================================================
+// ZoneCapabilities
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "ZoneCapabilities exposes the capabilities for zoning of an "
+       "AdminDomain.")]
+class CIM_ZoneCapabilities : CIM_Capabilities {
+
+      [Description (
+          "The maximum length for the Zone Name that the AdminDomain "
+          "is capable of supporting.")]
+   uint32 ZoneNameMaxLen;
+
+      [Description (
+          "The ZoneNameFormat supported by the AdminDomain."), 
+       ValueMap { "0", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "Numeric", "Alpha Numeric", "DMTF Reserved",
+          "Vendor Reserved" }]
+   uint16 ZoneNameFormat;
+
+      [Description (
+          "The maximum number of ZoneSets that the AdminDomain is "
+          "capable of supporting.")]
+   uint32 MaxNumZoneSets;
+
+      [Description (
+          "The maximum number of Zones that the AdminDomain is capable "
+          "of supporting.")]
+   uint32 MaxNumZone;
+
+      [Description (
+          "The maximum number of ZoneMembers that the AdminDomain is "
+          "capable of supporting.")]
+   uint32 MaxNumZoneMembers;
+
+      [Description (
+          "The maximum number of Zones per ZoneSet that the "
+          "AdminDomain is capable of supporting.")]
+   uint32 MaxNumZonesPerZoneSet;
+
+      [Description (
+          "The maximum number of ZoneAliases that the AdminDomain is "
+          "capable of supporting.")]
+   uint32 MaxNumZoneAliases;
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

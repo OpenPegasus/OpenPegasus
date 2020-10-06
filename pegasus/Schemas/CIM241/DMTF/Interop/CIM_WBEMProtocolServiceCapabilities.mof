@@ -1,0 +1,46 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Version ( "2.38.0" ), 
+    UMLPackagePath ( "CIM::Interop::WBEMProtocol" ), 
+    Description ( 
+       "CIM_WBEMProtocolServiceCapabilities defines the capabilities "
+       "for a WBEM Protocol." )]
+class CIM_WBEMProtocolServiceCapabilities : CIM_ProtocolServiceCapabilities {
+
+      [Required, Description ( 
+          "Includes the latest version for each major version "
+          "supported. For example, 1.3.1, 2.0.0. This property "
+          "shall not include multiple revisions of the same major "
+          "version." )]
+   string WBEMProtocolVersionsSupported[];
+
+      [Required, Description ( 
+          "The generic operations capabilities supported. For more "
+          "information on generic operations see DSP0223." ), 
+       EmbeddedInstance ( 
+          "CIM_GenericOperationCapabilitiesStructure" )]
+   string GenericOperationCapabilities;
+
+      [Description ( 
+          "Enumerated array describing the types of authentication "
+          "supported by the associated ProtocolService." ), 
+       ValueMap { "0", "1", "2", "3", "4", ".." }, 
+       Values { "Unknown", "Other", "None", "Basic", "Digest", 
+          "DMTF Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_WBEMProtocolServiceCapabilities.AuthenticationMechanismsDescriptions" }]
+   sint16 AuthenticationMechanismsSupported[];
+
+      [Description ( 
+          "Free-form strings providing descriptions of the "
+          "supported mechanisms. Entries in this array are "
+          "correlated with those in the "
+          "AuthenticationMechanismsSupported array. An entry in "
+          "this Descriptions array shall be provided when 1, "
+          "\"Other\", is specified in "
+          "AuthenticationMechanismsSupported." ), 
+       ModelCorrespondence { 
+          "CIM_WBEMProtocolServiceCapabilities.AuthenticationMechanismsSupported" }]
+   string AuthenticationMechanismsDescriptions[];
+
+
+};

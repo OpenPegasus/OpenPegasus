@@ -1,0 +1,39 @@
+# WQL Select Statements
+WQL:
+SELECT PropertyBoolean,PropertyUint32,PropertyChar16,PropertyString FROM QExpr_TestPropertyTypes
+SELECT PropertyBoolean,PropertyUint32,PropertyChar16,PropertyString FROM QExpr_TestPropertyTypes WHERE PropertyBoolean = TRUE OR PropertyBoolean = FALSE
+SELECT PropertyBoolean,PropertyUint32,PropertyChar16,PropertyString FROM QExpr_TestPropertyTypes WHERE PropertyBoolean = TRUE AND PropertyUint32 >= 10 AND PropertyReal32 <= 14.0 AND PropertyString = "Ten"
+SELECT * FROM QExpr_TestPropertyTypes WHERE (PropertyBoolean = TRUE AND PropertyUint32 >= 10 AND PropertyReal32 <= 14.0 AND PropertyString = "Ten") AND NOT PropertyBoolean = TRUE IS NOT TRUE
+# Array type not supported in WQL
+SELECT * FROM QExpr_TestPropertyTypes WHERE PropertyStringArray = "hello"
+# Property32 does not exist on the FROM class
+SELECT * FROM QExpr_TestPropertyTypes WHERE Property32 < 5
+# Property32 does not exist in the Select list
+SELECT Property32 FROM QExpr_TestPropertyTypes WHERE PropertyBoolean = false
+
+# FROM class is not superclass of QExpr_TestPropertyTypes
+SELECT * FROM Bogus
+
+# FROM class is not a superclass of QExpr_TestPropertyTypes, but exists
+SELECT * FROM CIM_ComputerSystem
+
+# FROM class is a superclass of QExpr_TestPropertyTypes
+SELECT * FROM QExpr_TestElement
+
+# CQL Select Statements
+CQL:
+SELECT PropertyBoolean,PropertyUint32,PropertyChar16,PropertyString FROM QExpr_TestPropertyTypes
+SELECT PropertyBoolean,PropertyUint32,PropertyChar16,PropertyString FROM QExpr_TestPropertyTypes WHERE PropertyBoolean = TRUE OR PropertyBoolean = FALSE
+SELECT PropertyBoolean,PropertyUint32,PropertyChar16,PropertyString FROM QExpr_TestPropertyTypes WHERE PropertyBoolean = TRUE AND PropertyUint32 >= 10 AND PropertyReal32 <= 14.0 AND PropertyString = 'Ten'
+# IS NOT TRUE not supported in CQL
+SELECT * FROM QExpr_TestPropertyTypes WHERE (PropertyBoolean = TRUE AND PropertyUint32 >= 10 AND PropertyReal32 <= 14.0 AND PropertyString = 'Ten')
+# Array type is supported in CQL
+SELECT * FROM QExpr_TestPropertyTypes WHERE PropertyStringArray[0] = 'hello'
+# Property32 does not exist on the FROM class
+SELECT * FROM QExpr_TestPropertyTypes WHERE Property32 < 5
+
+# FROM class is not a superclass of QExpr_TestPropertyTypes, but exists
+SELECT * FROM CIM_ComputerSystem
+
+# FROM class is a superclass of QExpr_TestPropertyTypes
+SELECT * FROM QExpr_TestElement

@@ -1,0 +1,203 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Creating Multiple Provider Interfaces</title>
+</head>
+
+<body>
+
+<H1 align="center">Pegasus Project Working Paper</H1>
+
+<H1 align="center">CREATING MULTIPLE PROVIDER INTERFACES</H1>
+
+<b>AUTHORS:</b>&nbsp;Karl Schopmeyer
+<p><font size="1">Last Update <!--webbot bot="Timestamp" startspan
+S-Type="EDITED" S-Format="%A, %B %d, %Y %I:%M %p" -->Sunday, June 03, 2001 09:03 PM<!--webbot
+bot="Timestamp" i-CheckSum="43635" endspan -->
+</font></p>
+<p>Revision Status</p>
+<table border="1" width="80%">
+  <tr>
+    <td width="25%"><b>Revision</b></td>
+    <td width="25%">Date</td>
+    <td width="25%">Author(s)</td>
+    <td width="25%">Reason</td>
+  </tr>
+  <tr>
+    <td width="25%">0.8</td>
+    <td width="25%">2 June 2001</td>
+    <td width="25%">KS</td>
+    <td width="25%">Partly done</td>
+  </tr>
+  <tr>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+</table>
+
+<h2>Introduction</h2>
+
+<p>The following is a discussion document to form the basis for deciding if a
+more flexible interface for providers would be logical</p>
+
+<h2>Requirement</h2>
+
+<p>The clear requirement is that in the future we will be required to support
+multiple language bindings for Pegasus for several reasons:</p>
+
+<ol>
+  <li>The SUN WBEM Java bindings are a requirement to support a large set of
+    providers already written and to allow writing other providers in Java in
+    the future.</li>
+  <li>We have long discussed providers written in scripting languages like TCL
+    or even the shell.</li>
+  <li>There has been interest in interfacing components written in Perl into
+    Pegasus.</li>
+  <li>There has been a demand for a C interface since a lot of providers are
+    written in C.</li>
+</ol>
+<p>Thus we expect to see multiple language bindings.</p>
+
+<p>It also becomes clear that even in C++ there may be demands for multiple
+types of interfaces although this is not yet clear.&nbsp; Thus, for example, we
+today have an interface the incorporates all of the CIM Operations into one
+Interface Class (provider).&nbsp; There is a demand now to create several
+interfaces that breaks the CIM Operations into multiple groups probably by
+object type (Instance, property, method, association, Indication).&nbsp; In this
+model, each interface would implement the methods associated with its object
+(get, set, create, etc.). To implement an provider for more than one type of
+these interfaces, the provider would have to implement the different interfaces.</p>
+
+<p>Both of these models have logic and it is not clear that one or the other is
+universally better.&nbsp; While the majority of the users will probably use the
+multiple interface approach, we need not change the existing approach or remove
+it.&nbsp; It can be kept as a separate provider interface.</p>
+
+<p>There is also the consideration we must give to migration and change in the
+future.&nbsp; It is a serious question how we can protect existing providers
+from change and at the same time migrate the the environment to match future
+requirements and changes.</p>
+
+<h2>TECHNOLOGY</h2>
+
+<p>The proposal is that we implement a provider interface module as a separate
+entity&nbsp; -- separate interface modules. Each interface module would
+implement a set of interfaces.&nbsp; We would keep a core interface in the Core
+Pegasus (probably similar to the existing interface with the general changes
+proposed) and to implement any other
+interface, Provider Interface modules would perform the transforms between the
+&quot;base interface&quot; and other interfaces.</p>
+
+<p>We would define the rules for how we create a provider interface module. A
+new provider interface would be created as a separate entity and installed as a separate
+module (typically a shared library in those environments that support
+shared libraries).</p>
+
+<p>NOTE: Caldera is implementing something similar in the Caldera OpenWBEM and
+they have currently chosen to implement it using the provider
+registration.&nbsp;</p>
+
+<p>In fact, this technique is much more general in that it does not require
+anything special in the provider, simply knowledge from the registration of
+which interface to call.</p>
+
+<p>I propose that we use something similar and further that we propose that a
+field be incorporated into the provider registration classes to build this into
+the next generation of provider registration being defined now within the
+Interop Group.</p>
+
+<p>Our presumption is that this will separate the writing of provider language
+bindings and other interfaces from the Pegasus core and allow these interfaces
+to be created separatly. This will further help organize the tasks of creating a
+modular environment for Pegasus.</p>
+
+<h3>Determining the Provider interface.</h3>
+
+<p>&nbsp;The module interfaces will be defined on a class, method, or property
+basis.&nbsp; Each class/method/property could go to a different provider
+interface. One of the questions is the technique we use to pick a particular
+interface for a particular provider.&nbsp; Before we issue the first Operation
+request to the provider we must know what interface we need to pass through.</p>
+
+<p>Since the interface must be known when you get the first request for the
+provider and try to initialize the provider, this information cannot come from
+the provider at initialization unless we implement one single known interface
+to the provider.&nbsp; In effect we do that today with the Initialize. The
+required interface module could be defined through this interface.</p>
+
+<p>An alternative would be to define the particular interface through the
+registration of the provider. Today that registration is through the provider
+qualifier. In the future it will be through the registration class for the
+provider.&nbsp;</p>
+
+<p>NOTE: Caldera modified the current Provider Qualifier to add a field which identifies
+the provider interface. A new provider interface can be added to the
+CIMOM by simply creating a shared library that creates a Provider Interface
+object   object a. The format of the provider qualifier that the CIMOM understands is
+&quot;<font face="Courier New">[interface id]::[interface specific text]</font>&quot;. The "interface id" is used by   the provider interface multi-plexor to identify the provider interface that   can supply the provider.
+Thus, their compiled in provider interface is <font face="Courier New">"cimom::provider id"</font>
+and the C++ interface <font face="Courier New">"c++::provider id"</font>.
+</p>
+
+<p>The third possible technique is to start the provider registration class now
+and use that as the means to define the interface.
+</p>
+
+<p>The first technique ( getting information back at initialize from the
+provider about its interface) simply will not work because we cannot guanatee
+the provider will have the correct form of interface for initialize.&nbsp; In
+some cases, this may be specific to the provider interface.&nbsp; Therefore, our
+choice is either the provider qualifier or starting the&nbsp; provider
+registration class.&nbsp; I suggest that for the moment, the provider qualifier
+is by far the easiest and can be implemented now.</p>
+
+<p>The "interface specific text" is given to the   provider interface once it is found, so it can use it to find the appropriate   provider.&nbsp;</p>
+<h3>Functions Needed</h3>
+
+<p>The only component within the CIMOM that deals directly with provider   interfaces is the provider manager
+(ProviderTable today).&nbsp; NOTE: We will change the name at some point of the
+ProviderTable to ProviderManager. The provider   manager is the provider interface
+multiplexor.</p>
+
+<p>The functions we need:</p>
+
+<p>1. Find the interface modules.&nbsp; It may be logical to load these all at
+startup rather than loading each one when one of its corresponding providers is
+loaded.</p>
+
+<p>2. Initialization function for the interface module. Each interface module
+must be initialized at its startup.</p>
+
+<p>3. The decision process to determine which interface module to call for each
+operation.</p>
+
+<p>TBD</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p></p>
+
+<p>---END OF DOCUMENT--</p>
+
+</body>
+
+</html>

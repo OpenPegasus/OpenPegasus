@@ -1,0 +1,310 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Creating a non</title>
+</head>
+
+<body>
+
+<h1 align="center">
+
+<B><C>Pegasus Working Paper</B>
+
+</h1>
+<h1 align="center">
+
+<B>Creating a non-blocking environment for Pegasus</C></B>
+
+</h1>
+<p>&nbsp;
+
+<C>Results of 14 May face-to-face meeting</C>
+
+&nbsp;</p>
+<p>
+
+AUTHORS: Chip Vincent (IBM), Mike Brasher (BMC), Karl Schopmeyer (The Open Group)
+
+DATE: 20 May 2001
+
+----------------------------------------------</p>
+
+<h2>Overview of The Meeting	 </h2>
+
+The Pegasus work group spent a fair part of Tuesday afternoon (15 May 2001) at
+the Compaq meeting defining the requirements that we felt were important for
+creating a nonblocking extension to Pegasus and defining the major components
+of the design.
+
+First, all parties agree that making Pegasus non-blocking to CIM_Operations is
+a very high priority activity. It should be one of the initial activities of
+the Phase 2 development.
+
+Second we agreed that it was more than simply multi-threading the processing
+of requests.  In all probability the key blocks will be at the providers
+depending on the design rules applied to providers.
+
+<h2>Key Issues</h2>
+
+The key issues with providers are;
+
+<OL>
+<LI> The time to accomplish tasks will vary widely from the simplistic very
+rapid response to normal operations to extremely long and non-deterministic
+times for some operations conducted by providers.  Consider as an extreme
+case, the time to format a disk.
+
+<LI>Much of the question will lie in the design and structure of provider
+and a key issues will be whether they are re-entrant or not.
+
+</OL>
+
+For CIM Operations we concluded that we could break the problem into several
+components:
+<OL>
+	<LI> Processing of operation request input process (reception,
+	decoding)
+<LI>Processing of dispatching to providers
+<LI>Processing of response from providers and particularly aggregration of
+provider responses.
+<LI>Processing of response generation and output to the originator.
+<LI>Finally we began to take into account the flow of indications from event
+providers and its effect on the blocking model.
+</OL>
+
+<h2>Providers and Threading</h2>
+
+We agreed that providers must be either:
+<OL>
+<LI> Reentrant so that they may process multiple requests in parallel
+<LI>Protected by a queuing mechanism in the CIMOM to meter requests to the
+provider if they are not reentrant.
+</OL>
+
+We also concluded that we could not, in the long run, impose the requirement
+that all providers be reentrant. We need to account for both models of
+provider.
+
+It appears that for Pegasus it will be important to know whether any given
+provider is reentrant or not and that this should be part of the registration
+of providers
+
+<h2>Aggregating Provider Responses</h2>
+
+We have to account for aggregation of responses from multiple providers.  This
+is not simply an issue for 1) separate property providers for a class or 2)
+the potential for multiple providers for a single class (ex. Separation by
+instance keys, etc.).  Aggregation is essential for any number of enumeration
+operations simply because of derived providers.
+
+We must account for aggregating provider responses as part of the completetion of phase one, not simply for phase 2.  Aggregation is really a function issue, not just a threading issue.
+
+However, the technique we use of accessing multiple providers and for aggregating results may be dependent on the threading model.
+
+<h2>Threading and Indications</h2>
+
+TBD
+
+<h2>Threading</h2>
+
+TBD
+
+<h2>Components Required</h2>
+The following is the list of major components that will be required to finish the threading work.
+<OL>
+<LI> Provider queuing
+<LI> Aggregator
+<LI> Request threading
+<LI> Response threading
+<LI> Threads Library
+<LI> NonReentrant Function Blocking (repositories and other provider
+functions)
+<LI> Queuing
+</OL>
+
+<H4>Potential Limitations</H4>
+1. If we limit ourselves to only reentrant providers initially we eliminate
+the need for queuing
+
+<H4>A threads Library  </H4>
+
+It becomes obvious that one of the first things we will have to do is to create
+a thread abstraction so that we can separate threads implementations from use in
+the Pegasus code.
+
+<H3>Proposal for Dispatching Request to Providers using Threads</H3>
+
+
+This proposal addresses threading as it relates to handling requests within
+the CIMOM. Threading issues relating to the HTTP client or server are not
+discussed.
+
+
+The current implementation of Pegasus handles requests from the client
+synchronously. A request from a given client blocks the CIMOM from
+processing additional requests for that client. Assuming an active client
+connection, the CIMOM processes requests using the following general steps,
+in order.
+1)   Receive message and decode.
+2)   Dispatch request.
+3)   Process request (repository or provider).
+4)   Encode result and send message.
+
+
+Given that an individual request may produce a large result and that a
+given request may be decomposed and dispatched to the repository and
+multiple providers, it is preferred that the CIMOM support multitasking to
+expedite request responses and maintain client responsiveness. The CIMOM
+should introduce threads to perform client requests.
+
+
+Threading provides the greatest benefit during step 2 and step 3.
+
+
+Threading at Step 2:
+-Each request passed to the dispatcher is executed on an independent
+thread. This thread can be thought of as the request thread since its
+purpose it exists for the lifetime of the request (NOTE: this ideas holds
+for indication subscriptions). Request threads allow a large number of
+requests to execute simultaneously for each client.
+
+
+The diagram below shows the multiple requests executing simultaneously. The
+horizontal axis represents thread objects and the vertical axis represents
+time. For example, the below image depicts 2 or more threads operating at
+the same time.
+<PRE>
+
+
+     Request 1 ---------&gt;
+     Request 2 ---------&gt;
+     ?
+
+
+</PRE>
+
+Threading at Step 3:
+-Assuming the request requires processing by multiple entities, i.e., the
+repository and one or more providers, each entity executes on an
+independent thread. Each of these threads can be thought of an operation
+thread since each exists for the particular lifetime of the operation for a
+given entity. Operation threads allow multiple operations to execute
+simultaneously for each request.
+
+
+The diagram below depicts a single request performing multiple operations
+against potentially different operation entities (repository or provider).
+
+
+<PRE>
+     Request 1 ---------&gt;
+          Operation A ---------&gt;
+          Operation B ---------&gt;
+          ?
+     Request 2 ---------&gt;
+     ?
+
+</PRE>
+
+
+The above diagram assumes that the operation entities are reentrant. This
+is necessary because a single request may result in multiple operation
+threads against a single provider (e.g., a request for different class
+instances managed by the sample provider) or multiple requests that operate
+on the same operation entity (e.g., multiple requests for the same class
+instance).
+
+
+<PRE>
+     Request 1 ---------&gt;
+          Operation A ---------&gt; Entity I(class A)
+          Operation B ---------&gt; Entity I(class B)
+          ?
+     Request 2 ---------&gt;
+          Operation A ---------&gt; Entity I(class A)
+     ?
+
+</PRE>
+
+
+When a provider is does not support reentrance, all operation threads
+resulting from any request must be serialized to prevent resource conflicts
+within the provider. This could be accomplished using one operation queue
+per non-reentrant provider with a dedicated (as opposed to shared) thread
+to allow an operation to complete before executing another, in the order
+the requests were received.
+
+
+NOTE: Threads can be created as necessary or obtained from a pool. New
+threads or threads from a dynamic pool enable the CIMOM to dispatch and
+process a virtually unlimited number of request simultaneously.
+
+
+In order to take advantage of reentrant providers and support non-reentrant
+providers, both non-queued operating threading techniques are required.
+
+
+<PRE>
+     Reentrant provider -&gt; non-queued operation threads
+     Non-reentrant provider -&gt; queued operations threads
+
+</PRE>
+
+
+The notion of multiple requests resulting in multiple operations executing
+simultaneously (multithreaded) leads to the notion that providers should
+respond asynchronously. That is, requests execute as they are invoked and
+responses made as they are generated. Regardless of the reentrance of the
+provider, it is useful for the provider to support interfaces that support
+asynchronous operations. Asynchronous operations require a technique for
+generate partial (subset) responses during execution. That is, providers
+require an object to aggregate (or propagate) intermediate results from
+operations. The term aggregator or sink describes and object designed to
+handle partial responses. For general purposes, an object that processes
+intermediate results is called a response handler, rather than aggregator
+or sink, which have associated usage implications. For CIM operations, it
+is suggested that a single complete object (or partial depending on the
+request parameters) represent the increment for reporting partial
+responses. Specifically, providers pass completed objects to the response
+handler as they are created. In this way, response handlers can process
+partial responses according to the implementation and/or configuration.
+
+
+NOTE: The cardinality between request threads, operation threads, and
+response handlers is not specified. It can (should) vary based on the
+implementation/configuration.
+
+
+The following diagram illustrates a reentrant provider passing responses
+(individual completed objects), resulting from multiple operations, as over
+time.
+
+
+<PRE>
+     Request 1 ---------&gt;
+          Operation A ---------&gt; Entity I(class A)
+                              Operation A(Object 1) to responseHandler
+                              Operation A(Object 2) to responseHandler
+          Operation B ---------&gt; Entity I(class B)
+                              Operation B(Object 1) to responseHandler
+                              Operation A(Object 3) to responseHandler
+
+</PRE>
+
+
+In general, requests to the CIMOM result in the creation of a request
+thread. The response thread determines the operation entities and creates
+an operation thread to correspond to each entity. Reentrant providers
+support operation threads implicitly, while no-reentrant providers require
+the operations to be queued for serialization. Regardless of reentrance
+support, providers should provide responses, when practical, asynchronously
+using response handlers. Response handlers
+
+
+
+</body>
+
+</html>

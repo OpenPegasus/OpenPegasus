@@ -1,0 +1,110 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_StorageVolume
+// ==================================================================
+   [UMLPackagePath ( "CIM::Device::StorageExtents" ),
+    Version ( "2.8.2" ), Description (
+       "A StorageVolume is an Extent that is presented to the "
+       "Operating System (for example, by a hardware RAID cabinet), to "
+       "a File System (for example, by a software volume manager) or "
+       "to another entity. StorageVolumes do NOT participate in "
+       "StorageRedundancy Groups. They are directly Realized in "
+       "hardware or are the end result of assembling lower level "
+       "Extents.")]
+class CIM_StorageVolume : CIM_StorageExtent {
+
+      [Override ( "Name" ), Description (
+          "A unique identifier for the Volume."), 
+       MappingStrings { "ANSI|T10|SCSI SPC-3|8.6" }, 
+       ModelCorrespondence { "CIM_StorageVolume.NameFormat" }]
+   string Name;
+
+      [Description (
+          "Note - this property originally touched on two concepts "
+          "that are now separated into this property and "
+          "NameNamespace. Values 2,3,4,5,6, and 8 are retained for "
+          "backwards compatibility but are deprecated in lieu of the "
+          "corresponding values in CIM_StorageVolume.NameNamespace. "
+          "Format of the Name property. Values are (per SCSI SPC-3): \n"
+          "2 = VPD Page 83, NAA IEEE Registered Extended (VPD83NAA6) \n"
+          "(DEPRECATED) \n"
+          "3 = VPD Page 83, NAA IEEE Registered (VPD83NAA5) \n"
+          "(DEPRECATED) \n"
+          "4 = VPD Page 83, (VPD83Type2) (DEPRECATED) \n"
+          "5 = VPD Page 83, \n"
+          "T10 Vendor Identification (VPD83Type1) (DEPRECATED) \n"
+          "6 = VPD Page 83, Vendor Specific (VPD83Type0) (DEPRECATED) "
+          "\n7 = Serial Number/Vendor/Model (SNVM) SNVM is 3 strings "
+          "representing the vendor name, product name within the "
+          "vendor namespace, and the serial number within the model "
+          "namespace. Strings are delimited with a '+'. Spaces may be "
+          "included and are significant. The serial number is the text "
+          "representation of the serial number in hexadecimal upper "
+          "case. Vendor and Model represent the vendor and model ID "
+          "from SCSI Inquiry data, the vendor field MUST be 8 "
+          "characters wide and the product field MUST be 16 characters "
+          "wide. For example, 'ACME +SUPER DISK +124437458' \n"
+          "8 = Node WWN (for single LUN/controller) (NodeWWN) \n"
+          "(DEPRECATED) \n"
+          "9 = NAA as a generic format. See \n"
+          "http://standards.ieee.org/regauth/oui/tutorials/fibrecomp_id.html "
+          "Formatted as 16 or 32 unseparated uppercase hex characters "
+          "(2 per binary byte). For example '21000020372D3C73' \n"
+          "10 = EUI as a generic format (EUI64) See \n"
+          "http://standards.ieee.org/regauth/oui/tutorials/EUI64.html "
+          "\nFormatted as 16 unseparated uppercase hex characters (2 "
+          "per binary byte) \n"
+          "11 = T10 vendor identifier format as returned by SCSI "
+          "Inquiry VPD page 83, identifier type 2. See T1- SPC-3 "
+          "specification. The 8-byte ASCII vendor ID from the T10 "
+          "registry followed by a vendor specific ASCII identifier; "
+          "spaces are permitted. For non SCSI volumes, 'SNVM' may be "
+          "the most appropriate choice."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11" }, 
+       Values { "Unknown", "Other", "VPD83NAA6", "VPD83NAA5",
+          "VPD83Type2", "VPD83Type1", "VPD83Type0", "SNVM", "NodeWWN",
+          "NAA", "EUI64", "T10VID" }, 
+       ModelCorrespondence { "CIM_StorageVolume.Name",
+          "CIM_StorageVolume.OtherNameFormat" }]
+   uint16 NameFormat;
+
+      [Description (
+          "The preferred source for volume names is SCSI VPD Page 83 "
+          "responses. Page 83 returns a list of identifiers for "
+          "various device elements. The metadata for each identifier "
+          "includes an Association field, identifiers with association "
+          "of 0 apply to volumes. Page 83 supports several namespaces "
+          "specified in the Type field in the identifier metadata. See "
+          "SCSI SPC-3 specification. 2 = VPD Page 83, Type 3 NAA "
+          "(NameFormat should be NAA) 3 = VPD Page 83, Type 2 EUI64 "
+          "(NameFormat EUI) 4 = VPD Page 83, Type 1 T10 Vendor "
+          "Identification; (NameFormat T10) Less preferred namespaces "
+          "from other interfaces: 5 = VPD page 80, Serial number "
+          "(NameFormat should be Other) 6 = FC NodeWWN (NameFormat "
+          "should be NAA or EUI) 7 = Serial Number/Vendor/Model "
+          "(NameFormat should be SNVM)"), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "VPD83Type3", "VPD83Type2",
+          "VPD83Type1", "VPD80", "NodeWWN", "SNVM" }, 
+       MappingStrings { "INCITS|T10|SCSI SPC-3|Vital Product Data " 
+          "Parameters" }, 
+       ModelCorrespondence { "CIM_StorageVolume.Name",
+          "CIM_StorageVolume.OtherNameNamespace" }]
+   uint16 NameNamespace;
+
+      [Description (
+          "A string describing the namespace of the Name property when "
+          "NameNamespace includes the value 1, \"Other\"."), 
+       ModelCorrespondence { "CIM_StorageVolume.NameNamespace" }]
+   string OtherNameNamespace;
+
+
+      [Description (
+          "A string describing the format of the Name property when "
+          "NameFormat includes the value 1, \"Other\"."), 
+       ModelCorrespondence { "CIM_StorageVolume.NameFormat" }]
+   string OtherNameFormat;
+};

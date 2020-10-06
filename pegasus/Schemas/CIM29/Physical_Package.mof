@@ -1,0 +1,901 @@
+// ===================================================================
+// Title: Physical_Package
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Physical_Package.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Physical Model defines modeling concepts related
+//              to actual boxes and packaging. This file defines the
+//              concepts related to packaging of Cards, Frames,
+//              Chassis, etc.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// 
+// Change Log for v2.9 Final
+// CR1259 - Add PCI-E enumeration to CIM_SystemBusCard and SMBIOS Type 9.
+//
+// Change Log for v2.8 Final
+// CR1223 - SysDev Omnibus Minor MOF corrections.
+// 
+// Change Log for v2.8 Preliminary
+// CR1005 - Deprecate several boolean properties in the physical model
+//          that overlap.  Create a new property to express their
+//          meaning.
+// CR1019 - CIM Versioning for 2.8 Preliminary
+// CR1031 - Addition of PackageLocation
+// CR1042 - Split PhysicalConnector.ConnectorType into several
+//          properties.
+// CR1043 - ChassisType was incorrectly defined as an array.
+// 
+// Change Log for v2.7
+// CR623 - Fix the DMI mapping string to include the attribute number
+//         PhysicalFrame.SecurityBreach and Chassis.ChassisTypes
+// CR629 - Extend Chassis.ChassisType to include "Multi-system Chassis"
+// CR877 - Add AGP8X enumeration to PhysicalConnector.ConnectorType
+// ==================================================================
+
+#pragma locale ("en_US")
+
+// ==================================================================
+// PhysicalPackage
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The PhysicalPackage class represents PhysicalElements that "
+       "contain or host other components. Examples are a Rack "
+       "enclosure or an adapter Card.")]
+class CIM_PhysicalPackage : CIM_PhysicalElement {
+
+      [Description (
+          "The RemovalCapabilites property is used to describe the "
+          "conditions under which a PhysicalPackage can be removed. "
+          "Since all PhysicalPackages are not removable, this property "
+          "defaults to 2, 'Not Applicable'."), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Not Applicable", "Removable when off",
+          "Removable when on or off" }]
+   uint16 RemovalConditions = 2;
+
+      [Deprecated { "CIM_PhysicalPackage.RemovalConditions" }, 
+       Description (
+          "The use of this property is being deprecated. Instead "
+          "RemovalConditions should be used. The RemovalConditions "
+          "property addresses whether a PhysicalPackage is removable "
+          "with or without power being applied. \n"
+          "A PhysicalPackage is Removable if it is designed to be "
+          "taken in and out of the physical container in which it is "
+          "normally found, without impairing the function of the "
+          "overall packaging. A Package can still be Removable if "
+          "power must be 'off' in order to perform the removal. If "
+          "power can be 'on' and the Package removed, then the Element "
+          "is both Removable and HotSwappable. For example, an extra "
+          "battery in a laptop is Removable, as is a disk drive "
+          "Package inserted using SCA connectors. However, the latter "
+          "is also HotSwappable. A laptop's display is not Removable, "
+          "nor is a non-redundant power supply. Removing these "
+          "components would impact the function of the overall "
+          "packaging or is impossible due to the tight integration of "
+          "the Package.")]
+   boolean Removable;
+
+      [Deprecated { "No Value" }, Description (
+          "The use of this property is being deprecated because it is "
+          "redundant with the FRU class and its associations. A "
+          "PhysicalPackage is Replaceable if it is possible to replace "
+          "(FRU or upgrade) the Element with a physically different "
+          "one. For example, some ComputerSystems allow the main "
+          "Processor chip to be upgraded to one of a higher clock "
+          "rating. In this case, the Processor is said to be "
+          "Replaceable. Another example is a power supply Package "
+          "mounted on sliding rails. All Removable packages are "
+          "inherently Replaceable.")]
+   boolean Replaceable;
+
+      [Deprecated { "CIM_PhysicalPackage.RemovalConditions" }, 
+       Description (
+          "The use of this property is being deprecated. Instead "
+          "RemovalConditions should be used. The RemovalConditions "
+          "property addresses whether a PhysicalPackage is removable "
+          "with or without power being applied. \n"
+          "\n"
+          "A PhysicalPackage is HotSwappable if it is possible to "
+          "replace the Element with a physically different but "
+          "equivalent one while the containing Package has power "
+          "applied to it (ie, is 'on'). For example, a disk drive "
+          "Package inserted using SCA connectors is both Removable and "
+          "HotSwappable. All HotSwappable packages are inherently "
+          "Removable and Replaceable.")]
+   boolean HotSwappable;
+
+      [Description (
+          "The height of the PhysicalPackage in inches."), 
+       Units ( "Inches" )]
+   real32 Height;
+
+      [Description (
+          "The depth of the PhysicalPackage in inches."), 
+       Units ( "Inches" )]
+   real32 Depth;
+
+      [Description (
+          "The width of the PhysicalPackage in inches."), 
+       Units ( "Inches" )]
+   real32 Width;
+
+      [Description (
+          "The weight of the PhysicalPackage in pounds."), 
+       Units ( "Pounds" )]
+   real32 Weight;
+
+      [Deprecated { "No Value" }, Description (
+          "This method is being deprecated. A PhysicalPackage cannot "
+          "determine if it is compatible with another object. The "
+          "IsCompatible method verifies whether the referenced "
+          "PhysicalElement may be contained by or inserted into the "
+          "PhysicalPackage. The return value should be 0 if the "
+          "request was successfully executed, 1 if the request is not "
+          "supported and some other value if an error occurred. In a "
+          "subclass, the set of possible return codes could be "
+          "specified, using a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' may "
+          "also be specified in the subclass as a Values array "
+          "qualifier.")]
+   uint32 IsCompatible( 
+         [IN, Description (
+             "The element to check for compatibility with this one.")]
+      CIM_PhysicalElement REF ElementToCheck); 
+};
+
+
+// ==================================================================
+// Container
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "The Container association represents the relationship between "
+       "a contained and a containing PhysicalElement. A containing "
+       "object must be a PhysicalPackage.")]
+class CIM_Container : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The PhysicalPackage that contains other PhysicalElements, "
+          "including other Packages."), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalContainedIn" }]
+   CIM_PhysicalPackage REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The PhysicalElement which is contained in the Package.")]
+   CIM_PhysicalElement REF PartComponent;
+
+      [Description (
+          "A free-form string representing the positioning of the "
+          "PhysicalElement within the PhysicalPackage. Information "
+          "relative to stationary elements in the Container (for "
+          "example, 'second drive bay from the top'), angles, "
+          "altitudes and other data may be recorded in this property. "
+          "This string could supplement or be used in place of "
+          "instantiating the CIM_Location object."), 
+       MappingStrings { "MIB.IETF|Entity-MIB.entPhysicalParentRelPos" }]
+   string LocationWithinContainer;
+};
+
+
+// ==================================================================
+// PhysicalFrame
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "PhysicalFrame is a superclass of Rack, Chassis and other frame "
+       "enclosures, as they are defined in extension classes. "
+       "Properties like visible or audible alarm, and data related to "
+       "security breaches are in this superclass.")]
+class CIM_PhysicalFrame : CIM_PhysicalPackage {
+
+      [Description (
+          "CableManagementStrategy is a free-form string that contains "
+          "information on how the various cables are connected and "
+          "bundled for the Frame. With many networking, "
+          "storage-related and power cables, cable management can be a "
+          "complex and challenging endeavor. This string property "
+          "contains information to aid in assembly and service of the "
+          "Frame.")]
+   string CableManagementStrategy;
+
+      [Description (
+          "ServicePhilosophy is an enumerated, integer-valued array "
+          "that indicates whether the Frame is serviced from the top "
+          "(value=2), front (3), back (4) or side (5), whether it has "
+          "sliding trays (6) or removable sides (7), and/or whether "
+          "the Frame is moveable (8), for example, having rollers."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Service From Top",
+          "Service From Front", "Service From Back",
+          "Service From Side", "Sliding Trays", "Removable Sides",
+          "Moveable" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PhysicalFrame.ServiceDescriptions" }]
+   uint16 ServicePhilosophy[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the entries in the Service "
+          "Philosophy array. Note, each entry of this array is related "
+          "to the entry in ServicePhilosophy that is located at the "
+          "same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PhysicalFrame.ServicePhilosophy" }]
+   string ServiceDescriptions[];
+
+      [Description (
+          "Boolean indicating whether the Frame is protected with a "
+          "lock.")]
+   boolean LockPresent;
+
+      [Description (
+          "Boolean indicating whether the Frame is equipped with an "
+          "audible alarm.")]
+   boolean AudibleAlarm;
+
+      [Description (
+          "Boolean indicating that the equipment includes a visible "
+          "alarm.")]
+   boolean VisibleAlarm;
+
+      [Description (
+          "SecurityBreach is an enumerated, integer-valued property "
+          "indicating whether a physical breach of the Frame was "
+          "attempted but unsuccessful (value=4) or attempted and "
+          "successful (5). Also, the values, \"Unknown\", \"Other\" or "
+          "\"No Breach\", can be specified."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "No Breach", "Breach Attempted",
+          "Breach Successful" }, 
+       MappingStrings { "MIF.DMTF|Physical Container Global " 
+          "Table|004.12" }, 
+       ModelCorrespondence { "CIM_PhysicalFrame.BreachDescription" }]
+   uint16 SecurityBreach;
+
+      [Description (
+          "BreachDescription is a free-form string providing more "
+          "information if the SecurityBreach property indicates that a "
+          "breach or some other security-related event occurred."), 
+       ModelCorrespondence { "CIM_PhysicalFrame.SecurityBreach" }]
+   string BreachDescription;
+
+      [Description (
+          "Boolean indicating that the Frame is currently locked.")]
+   boolean IsLocked;
+};
+
+
+// ==================================================================
+// Rack
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "A Rack is a PhysicalFrame that represents an enclosure in "
+       "which Chassis are placed. Typically a Rack is nothing more "
+       "than the enclosure, and all the functioning componentry is "
+       "packaged in the Chassis, loaded in the Rack.")]
+class CIM_Rack : CIM_PhysicalFrame {
+
+      [Override ( "Height" ), Description (
+          "The height of the PhysicalPackage in 'U's. A 'U' is a "
+          "standard unit of measure for the height of a Rack or "
+          "rack-mountable component. It is equal to 1.75 inches or "
+          "4.445 cm."), 
+       Units ( "Us" )]
+   real32 Height;
+
+      [Description (
+          "Enumeration indicating the type of Rack. Information such "
+          "as \"Telco\" rack (value=2) or standard 19 inch rack (1) "
+          "can be specified. The country for which the Rack is "
+          "manufactured is defined in the the Country Designation "
+          "property."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Standard 19 Inch", "Telco",
+          "Equipment Shelf", "Non-Standard" }, 
+       ModelCorrespondence { "CIM_Rack.CountryDesignation" }]
+   uint16 TypeOfRack;
+
+      [Description (
+          "Designation of the country for which the Rack is designed. "
+          "Country code strings are as defined by ISO/IEC 3166. The "
+          "rack type is specified in the TypeOf Rack property."), 
+       ModelCorrespondence { "CIM_Rack.TypeOfRack" }]
+   string CountryDesignation;
+};
+
+
+// ==================================================================
+// Chassis
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The Chassis class represents the PhysicalElements that enclose "
+       "other Elements and provide definable functionality, such as a "
+       "desktop, processing node, UPS, disk or tape storage, or a "
+       "combination of these.")]
+class CIM_Chassis : CIM_PhysicalFrame {
+
+      [Description (
+          "Integer indicating the number of power cords which must be "
+          "connected to the Chassis, for all the componentry to "
+          "operate.")]
+   uint16 NumberOfPowerCords;
+
+      [Description (
+          "Current required by the Chassis at 120V. If power is "
+          "provided by the Chassis (as in the case of a UPS), this "
+          "property may indicate the amperage produced, as a negative "
+          "number."), 
+       Units ( "Amps at 120 Volts" )]
+   sint16 CurrentRequiredOrProduced;
+
+      [Description (
+          "Amount of heat generated by the Chassis in BTU/hour."), 
+       Units ( "BTU per Hour" )]
+   uint16 HeatGeneration;
+
+      [Deprecated { "CIM_Chassis.ChassisPackageType",
+          "CIM_Chassis.MultipleSystemSupport" }, Description (
+          "The use of this property is deprecated in lieu of "
+          "ChassisPackageType. A physical package should not have "
+          "multiple form factors. Therefore, this property is being "
+          "deprecated in lieu of a single value property. \n"
+          "An enumerated, integer-valued array indicating the type of "
+          "Chassis."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25" }, 
+       Values { "Other", "Unknown", "Desktop", "Low Profile Desktop",
+          "Pizza Box", "Mini Tower", "Tower", "Portable", "LapTop", 
+          // 10                
+          "Notebook", "Hand Held", "Docking Station", "All in One",
+          "Sub Notebook", "Space-Saving", "Lunch Box",
+          "Main System Chassis", "Expansion Chassis", "SubChassis", 
+          // 20               
+          "Bus Expansion Chassis", "Peripheral Chassis",
+          "Storage Chassis", "Rack Mount Chassis", "Sealed-Case PC",
+          "Multi-system Chassis" }, 
+       MappingStrings { "MIF.DMTF|Physical Container Global " 
+          "Table|004.1" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Chassis.TypeDescriptions" }]
+   uint16 ChassisTypes[];
+
+      [Deprecated { "CIM_Chassis.ChassisTypeDescription" }, 
+       Description (
+          "The use of this property is deprecated in lieu of a single "
+          "value property, ChassisTypeDescription. \n"
+          "An array of free-form strings providing more information on "
+          "the ChassisTypes array entries. Note, each entry of this "
+          "array is related to the entry in ChassisTypes that is "
+          "located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Chassis.ChassisTypes" }]
+   string TypeDescriptions[];
+
+      [Description (
+          "ChassisPackageType indicates the physical form factor for "
+          "the type of Chassis."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "..", "0x8000..0xFFFF" }, 
+       Values { "Unknown", "Other", "SMBIOS Reserved", "Desktop",
+          "Low Profile Desktop", "Pizza Box", "Mini Tower", "Tower",
+          "Portable", "LapTop", 
+          // 10                
+          "Notebook", "Hand Held", "Docking Station", "All in One",
+          "Sub Notebook", "Space-Saving", "Lunch Box",
+          "Main System Chassis", "Expansion Chassis", "SubChassis", 
+          // 20               
+          "Bus Expansion Chassis", "Peripheral Chassis",
+          "Storage Chassis", "SMBIOS Reseved", "Sealed-Case PC",
+          "SMBIOS Reserved", "DMTF Reserved", "Vendor Reserved" }, 
+       MappingStrings { "MIF.DMTF|Physical Container Global " 
+          "Table|004.1" }, 
+       ModelCorrespondence { "CIM_Chassis.ChassisTypeDescription" }]
+   uint16 ChassisPackageType;
+
+      [Description (
+          "A string providing more information on the "
+          "ChassisPackageType."), 
+       ModelCorrespondence { "CIM_Chassis.ChassisPackageType" }]
+   string ChassisTypeDescription;
+
+      [Description (
+          "MultipleSystemSupport indicates whether or not this chassis "
+          "supports multiple systems, for example server blades."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "True", "False" }]
+   uint16 MultipleSystemSupport;
+
+      [Description (
+          "RackMountable indicates whether or not the chassis is Rack "
+          "Mountable."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "True", "False" }]
+   uint16 RackMountable;
+};
+
+
+// ==================================================================
+// PhysicalConnector
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The PhysicalConnector class represents any PhysicalElement "
+       "that is used to connect to other Elements. Any object that can "
+       "be used to connect and transmit signals or power between two "
+       "or more PhysicalElements is a descendant (or member) of this "
+       "class. For example, Slots and D-shell connectors are types of "
+       "PhysicalConnectors.")]
+class CIM_PhysicalConnector : CIM_PhysicalElement {
+
+      [Description (
+          "A free-form string describing the pin configuration and/or "
+          "signal usage of a PhysicalConnector."), 
+       ModelCorrespondence { "CIM_PhysicalConnector.NumPhysicalPins" }]
+   string ConnectorPinout;
+
+      [Deprecated { "CIM_PhysicalConnector.ConnectorGender",
+          "CIM_PhysicalConnector.ConnectorElectricalCharacteristics",
+          "CIM_PhysicalConnector.NumPhysicalPins",
+          "CIM_PhysicalConnector.ConnectorLayout" }, Description (
+          "An array of integers defining the type of "
+          "PhysicalConnector. An array is specified to allow the "
+          "description of 'combinations' of Connector information. For "
+          "example, one array entry could specify RS-232 (value=25), "
+          "another DB-25 (value=23) and a third entry define the "
+          "Connector as \"Male\" (value=2). \n"
+          "This single property is being deprecated in lieu of using "
+          "separate properties to describe the various aspects of the "
+          "connector. The separation allows for a more generic means "
+          "of describing the connectors. Obsolete connectors were "
+          "intentionally removed from the new list."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+          "60", "61", "62", "63", "64", "65", "66", "67", "68", "69",
+          "70", "71", "72", "73", "74", "75", "76", "77", "78", "79",
+          "80", "81", "82", "83", "84", "85", "86", "87", "88", "89",
+          "90", "91", "92", "93", "94", "95", "96", "97", "98", "99",
+          "100", "101", "102", "103", "104", "105", "106", "107",
+          "108", "109", "110", "111", "112", "113", "114", "115",
+          "116", "117", "118", "119", "120", "121", "122" }, 
+       Values { "Unknown", "Other", "Male", "Female", "Shielded",
+          "Unshielded", "SCSI (A) High-Density (50 pins)",
+          "SCSI (A) Low-Density (50 pins)",
+          "SCSI (P) High-Density (68 pins)", "SCSI SCA-I (80 pins)",
+          "SCSI SCA-II (80 pins)", 
+          // 11                  
+          "Fibre Channel (DB-9, Copper)",
+          "Fibre Channel (Optical Fibre)",
+          "Fibre Channel SCA-II (40 pins)",
+          "Fibre Channel SCA-II (20 pins)", "Fibre Channel BNC",
+          "ATA 3-1/2 Inch (40 pins)", "ATA 2-1/2 Inch (44 pins)",
+          "ATA-2", "ATA-3", "ATA/66", "DB-9", "DB-15", "DB-25",
+          "DB-36", "RS-232C", "RS-422", "RS-423", "RS-485", "RS-449",
+          "V.35", 
+          // 31                 
+          "X.21", "IEEE-488", "AUI", "UPT Category 3",
+          "UPT Category 4", "UPT Category 5", "BNC", "RJ11", "RJ45",
+          "Fiber MIC", "Apple AUI", "Apple GeoPort", "PCI", "ISA",
+          "EISA", "VESA", "PCMCIA", "PCMCIA Type I", "PCMCIA Type II",
+          "PCMCIA Type III", 
+          // 51                              
+          "ZV Port", "CardBus", "USB", "IEEE 1394", "HIPPI",
+          "HSSDC (6 pins)", "GBIC", "DIN", "Mini-DIN", "Micro-DIN",
+          "PS/2", "Infrared", "HP-HIL", "Access.bus", "NuBus",
+          "Centronics", "Mini-Centronics", "Mini-Centronics Type-14",
+          "Mini-Centronics Type-20", "Mini-Centronics Type-26", 
+          // 71               
+          "Bus Mouse", "ADB", "AGP", "VME Bus", "VME64", "Proprietary",
+          "Proprietary Processor Card Slot",
+          "Proprietary Memory Card Slot", "Proprietary I/O Riser Slot",
+          "PCI-66MHZ", "AGP2X", "AGP4X", "PC-98", "PC-98-Hireso",
+          "PC-H98", "PC-98Note", "PC-98Full", "SSA SCSI", "Circular",
+          "On Board IDE Connector", "On Board Floppy Connector",
+          "9 Pin Dual Inline", "25 Pin Dual Inline",
+          "50 Pin Dual Inline", "68 Pin Dual Inline",
+          "On Board Sound Connector", "Mini-jack", "PCI-X",
+          "Sbus IEEE 1396-1993 32 bit", 
+          // 100                               
+          "Sbus IEEE 1396-1993 64 bit", "MCA", "GIO", "XIO", "HIO",
+          "NGIO", "PMC", "MTRJ", "VF-45", "Future I/O", "SC", "SG",
+          "Electrical", "Optical", "Ribbon", "GLM", "1x9", "Mini SG",
+          "LC", "HSSC", 
+          // 120                
+          "VHDCI Shielded (68 pins)", "InfiniBand", "AGP8X" }, 
+       MappingStrings { "MIF.DMTF|Bus Port|004.10" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_PhysicalConnector.OtherTypeDescription" }]
+   uint16 ConnectorType[];
+
+      [Deprecated { "CIM_PhysicalConnector.ConnectorDescription" }, 
+       Description (
+          "A string describing the Connector - used when the "
+          "ConnectorType property is set to 1 (\"Other\"). OtherType "
+          "Description should be set to NULL when ConnectorType is any "
+          "value other than 1. \n"
+          "The use of this property is deprecated in lieu of Connector "
+          "Description."), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.11" }, 
+       ModelCorrespondence { "CIM_PhysicalConnector.ConnectorType" }]
+   string OtherTypeDescription;
+
+      [Description (
+          "Describes the gender of the connector."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "Male", "Female" }]
+   uint16 ConnectorGender;
+
+      [Description (
+          "Describes the electrical characteristic for this connector."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Single Ended", "Differential",
+          "Low Voltage Differential", "Optical", "Copper", "Shielded",
+          "Unshielded" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_PhysicalConnector.OtherElectricalCharacteristics" }]
+   uint16 ConnectorElectricalCharacteristics[];
+
+      [Description (
+          "A string describing the connector's electrical "
+          "characteristics - used when the "
+          "ConnectorElectricalCharacteristics property contains an "
+          "entry of 1 (Other). OtherElectricalCharacteristics should "
+          "be set to NULL when ConnectorElectricalCharacteristics does "
+          "not contain an value of 1."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_PhysicalConnector.ConnectorElectricalCharacteristics" }]
+   string OtherElectricalCharacteristics[];
+
+      [Description (
+          "Describes the number of physical pins (male/female) that "
+          "are present on this connector."), 
+       ModelCorrespondence { "CIM_PhysicalConnector.ConnectorPinout" }]
+   uint32 NumPhysicalPins;
+
+      [Description (
+          "Describes the type of packaging normally associated with "
+          "this type of connector."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10" }, 
+       Values { "Unknown", "Other", "RS232", "BNC", "RJ11", "RJ45",
+          "DB9", "Slot", "SCSI High Density", "SCSI Low Density",
+          "Ribbon" }, 
+       ModelCorrespondence { 
+          "CIM_PhysicalConnector.ConnectorDescription" }]
+   uint16 ConnectorLayout;
+
+      [Description (
+          "A string describing the Connector - used when the "
+          "ConnectorLayout property is set to 1 (\"Other\"). Connector "
+          "Description should be set to NULL when ConnectorLayout is "
+          "any value other than 1."), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.11" }, 
+       ModelCorrespondence { "CIM_PhysicalConnector.ConnectorLayout" }]
+   string ConnectorDescription;
+};
+
+
+// ==================================================================
+// ChassisInRack
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Racks, as simple enclosures, contain Chassis that provide the "
+       "physical componentry realizing processing nodes, storage "
+       "devices, UPSs, etc. The ChassisInRack association makes "
+       "explicit the 'containing' relationship between the Rack and "
+       "the Chassis.")]
+class CIM_ChassisInRack : CIM_Container {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The Rack that contains the Chassis.")]
+   CIM_Rack REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The Chassis which is mounted in the Rack.")]
+   CIM_Chassis REF PartComponent;
+
+      [Description (
+          "An integer indicating the lowest or 'bottom' U in which the "
+          "Chassis is mounted. A 'U' is a standard unit of measure for "
+          "the height of a Rack or rack-mountable component. It is "
+          "equal to 1.75 inches or 4.445 cm."), 
+       Units ( "Us" )]
+   uint16 BottomU;
+};
+
+
+// ==================================================================
+// PackageInChassis
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "A Chassis can contain other Packages, such as other Chassis "
+       "and Cards. The PackageInChassis association makes explicit "
+       "this relationship.")]
+class CIM_PackageInChassis : CIM_Container {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The Chassis that contains other PhysicalPackages.")]
+   CIM_Chassis REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The PhysicalPackage which is contained in the Chassis.")]
+   CIM_PhysicalPackage REF PartComponent;
+};
+
+
+// ==================================================================
+// Docked
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A laptop, a type of Chassis, may be docked in another type of "
+       "Chassis, a Docking Station. This is the relationship "
+       "represented by the Docked association. Because this is such a "
+       "typical relationship, it is explicitly described."), 
+    MappingStrings { "MIF.DMTF|Dynamic States|001.2" }]
+class CIM_Docked : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The Docking Station.")]
+   CIM_Chassis REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The Laptop that is 'Docked'.")]
+   CIM_Chassis REF Dependent;
+};
+
+
+// ==================================================================
+// Card
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The Card class represents a type of physical container that "
+       "can be plugged into another Card or HostingBoard, or is itself "
+       "a HostingBoard/Motherboard in a Chassis. The CIM_Card class "
+       "includes any package capable of carrying signals and providing "
+       "a mounting point for PhysicalComponents, such as Chips, or "
+       "other PhysicalPackages, such as other Cards.")]
+class CIM_Card : CIM_PhysicalPackage {
+
+      [Description (
+          "Boolean indicating that this Card is a Motherboard or, more "
+          "generically, a baseboard in a Chassis.")]
+   boolean HostingBoard;
+
+      [Description (
+          "SlotLayout is a free-form string that describes the slot "
+          "positioning, typical usage, restrictions, individual slot "
+          "spacings or any other pertinent information for the slots "
+          "on a Card.")]
+   string SlotLayout;
+
+      [Description (
+          "Boolean indicating that at least one daughterboard or "
+          "auxiliary Card is required in order to function properly.")]
+   boolean RequiresDaughterBoard;
+
+      [Description (
+          "Boolean indicating that this Card is physically unique from "
+          "other Cards of the same type and therefore requires a "
+          "special Slot. For example, a double-wide Card requires two "
+          "Slots. Another example is where a certain Card may be used "
+          "for the same general function as other Cards but requires a "
+          "special Slot (e.g., extra long), whereas the other Cards "
+          "can be placed in any available Slot. If set to TRUE, then "
+          "the corresponding property, RequirementsDescription, should "
+          "specify the nature of the uniqueness or purpose of the "
+          "Card."), 
+       ModelCorrespondence { "CIM_Card.RequirementsDescription" }]
+   boolean SpecialRequirements;
+
+      [Description (
+          "A free-form string describing the way(s) in which this Card "
+          "is physically unique from other Cards. This property only "
+          "has meaning when the corresponding boolean property, "
+          "SpecialRequirements, is set to TRUE."), 
+       ModelCorrespondence { "CIM_Card.SpecialRequirements" }]
+   string RequirementsDescription;
+
+      [Description (
+          "Operating voltages required by the Card."), 
+       Units ( "MilliVolts" )]
+   sint16 OperatingVoltages[];
+
+      [Description (
+          "This method manipulates the power to a PhysicalConnector on "
+          "a Card. It is intended to be used by a Card (especially by "
+          "a motherboard - i.e., HostingBoard=TRUE) to turn the power "
+          "on and off for a specific PhysicalConnector located on it. "
+          "For example, in a personal computer, a system slot does not "
+          "know how to turn itself on and off. However, the "
+          "motherboard hosting this slot may have that capability. "
+          "This is important in order to support hot swapping of an "
+          "adapter card in a system slot. The method should return 0 "
+          "if successful, 1 if the request is not supported, and some "
+          "other value if any other error occurred. In a subclass, the "
+          "set of possible return codes could be specified, using a "
+          "ValueMap qualifier on the method. The strings to which the "
+          "ValueMap contents are 'translated' may also be specified in "
+          "the subclass as a Values array qualifier.")]
+   uint32 ConnectorPower( 
+         [IN, Description (
+             "The connector to change the power setting for.")]
+      CIM_PhysicalConnector REF Connector, 
+         [IN, Description (
+             "If TRUE, turn power on for the connector. If FALSE, turn "
+             "power off.")]
+      boolean PoweredOn); 
+};
+
+
+// ==================================================================
+// SystemBusCard
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The SystemBusCard class represents additional information for "
+       "a CIM_Card, detailing the Card's bus type and data width. "
+       "These properties dictate the type of Slot into which the Card "
+       "can be inserted. For example, using the properties of this "
+       "class, one can define that a Card is a PCI, 64 bit adapter.")]
+class CIM_SystemBusCard : CIM_Card {
+
+      [Description (
+          "An enumerated integer describing the System bus type for "
+          "this Card. It indicates the type of Slot into which the "
+          "Card can plug. The list of permissible values aligns with "
+          "the System bus types in CIM_PhysicalConnector.Connector "
+          "Type."), 
+       ValueMap { "43", "44", "45", "46", "47", "48", "49", "50", "52",
+          "64", "65", "73", "74", "75", "76", "77", "78", "79", "80",
+          "81", "82", "83", "84", "85", "86", "87", "98", "99", "100",
+          "101", "102", "103", "104", "105", "106", "109", "110",
+       "111", "112" }, 
+       Values { 
+          // 43               
+          "PCI", "ISA", "EISA", "VESA", "PCMCIA", "PCMCIA Type I",
+          "PCMCIA Type II", "PCMCIA Type III", 
+          // 52               
+          "CardBus", 
+          // 64               
+          "Access.bus", "NuBus", 
+          // 73               
+          "AGP", "VME Bus", "VME64", "Proprietary",
+          "Proprietary Processor Card Slot",
+          "Proprietary Memory Card Slot", "Proprietary I/O Riser Slot", 
+          // 80               
+          "PCI-66MHZ", "AGP2X", "AGP4X", "PC-98", "PC-98-Hireso",
+          "PC-H98", "PC-98Note", "PC-98Full", 
+          // 98               
+          "PCI-X", "Sbus IEEE 1396-1993 32 bit", 
+          // 100               
+          "Sbus IEEE 1396-1993 64 bit", "MCA", "GIO", "XIO", "HIO",
+          "NGIO", "PMC", 
+          // 109               
+          "Future I/O", "InfiniBand", "AGP8X", "PCI-E" }, 
+       ModelCorrespondence { "CIM_PhysicalConnector.ConnectorType" }]
+   uint16 BusType;
+
+      [Description (
+          "System bus width (in bits) required by this Card. If "
+          "'unknown', enter 0. If 'other' than the values, 8, 16, 32, "
+          "64 or 128, enter 1. The list of permissible values aligns "
+          "with the data in CIM_Slot.MaxBusWidth."), 
+       Units ( "Bits" ), 
+       ValueMap { "0", "1", "8", "16", "32", "64", "128" }, 
+       ModelCorrespondence { "CIM_Slot.MaxDataWidth" }]
+   uint16 BusWidth;
+};
+
+
+// ==================================================================
+// CardOnCard
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Cards may be plugged into Motherboards/baseboards, are "
+       "daughtercards of an adapter, or support special Card-like "
+       "modules. These relationships are described by the CardOnCard "
+       "association.")]
+class CIM_CardOnCard : CIM_Container {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The Card that hosts another Card.")]
+   CIM_Card REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The Card that is plugged into or otherwise mounted on "
+          "another Card.")]
+   CIM_Card REF PartComponent;
+
+      [Description (
+          "A string describing and identifying how the Card is mounted "
+          "on or plugged into the 'other' Card. Slot information could "
+          "be included in this field and may be sufficient for certain "
+          "management purposes. If so, this avoids creating "
+          "instantiations of Connector/Slot objects just to model the "
+          "relationship of Cards to HostingBoards or other adapters. "
+          "On the other hand, if Slot and Connector information is "
+          "available, this field could be used to provide more "
+          "detailed mounting or slot insertion data.")]
+   string MountOrSlotDescription;
+};
+
+
+// ===================================================================
+// PackageLocation
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "PackageLocation is a space/hole/shelf, possibly with mounting "
+       "brackets or other connecting hardware, where other "
+       "PhysicalPackages may be placed. This class describes an entity "
+       "that holds something else and is not just a 'place' (as is "
+       "conveyed by the CIM_Location object). This class has several "
+       "corollaries to HostingBoard. Where a HostingBoard (backplane) "
+       "has connectors/slots to describe the capabilities of holding "
+       "additional PhysicalPackages, a PackageLocation is used to "
+       "describe the same case for the general package, where there "
+       "may or may not be no connectors. Examples of PackageLocations "
+       "would include a disk cage in a tower PC or the chassis area "
+       "where the power supply is mounted.")]
+class CIM_PackageLocation : CIM_PhysicalPackage {
+
+      [Description (
+          "LocationCoordinates represent the physical location of the "
+          "the FrameSlot instance. The property is defined as a "
+          "free-form string to allow the location information to be "
+          "described in vendor-unique terminology.")]
+   string LocationCoordinates;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

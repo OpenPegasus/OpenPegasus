@@ -1,0 +1,58 @@
+# Tests the following APIs on CQLSelectStatement
+# getClassPathList
+# getPropertyList, getSelectPropertyList, getWherePropertyList
+#
+# Tests for getClassPathList
+SELECT * FROM CQL_TestElement
+SELECT * FROM CIM_NonExistent
+SELECT * FROM CQL_TestPropertyTypes
+#
+# Tests for getPropertyList, getSelectPropertyList
+#
+# Base class, all FROM props by name
+SELECT InstanceID FROM CQL_TestElement
+# Base class, all FROM props by name, scoped to FROM
+SELECT CQL_TestElement::InstanceID FROM CQL_TestElement
+# Base class, all FROM props by name, scope is sub-class of FROM
+SELECT InstanceID, CQL_TestPropertyTypesMissing::MissingProperty FROM CQL_TestElement
+SELECT InstanceID, CQL_TestPropertyTypes::propertySint64 FROM CQL_TestElement
+# Base class, wildcard
+SELECT * FROM CQL_TestElement
+#
+# Sub class, all props by name
+SELECT InstanceID, MissingProperty FROM CQL_TestPropertyTypesMissing
+# Sub class, partial prop list
+SELECT InstanceID FROM CQL_TestPropertyTypesMissing
+SELECT MissingProperty FROM CQL_TestPropertyTypesMissing
+# Sub class, scoped to FROM, full list
+SELECT CQL_TestPropertyTypesMissing::MissingProperty, InstanceID FROM CQL_TestPropertyTypesMissing
+# Sub class, scoped to FROM, partial list
+SELECT CQL_TestPropertyTypesMissing::InstanceID FROM CQL_TestPropertyTypesMissing
+# Sub class, scoped to base class, partial list
+SELECT CQL_TestElement::InstanceID FROM CQL_TestPropertyTypesMissing
+# Sub class, scoped to base class, full list
+SELECT MissingProperty, CQL_TestElement::InstanceID FROM CQL_TestPropertyTypesMissing
+SELECT CQL_TestElement::MissingProperty FROM CQL_TestPropertyTypesMissing
+# Sub class, wildcard
+SELECT * FROM CQL_TestPropertyTypesMissing
+SELECT InstanceID, *, MissingProperty FROM CQL_TestPropertyTypesMissing
+SELECT *, CQL_TestElement::InstanceID FROM CQL_TestPropertyTypesMissing
+SELECT MissingProperty, * FROM CQL_TestPropertyTypesMissing
+#
+# Tests for getPropertyList, getWherePropertyList
+#
+# Base class, all FROM props by name
+SELECT * FROM CQL_TestElement WHERE InstanceID = 3
+# Base class, all FROM props by name, scoped to FROM
+SELECT * FROM CQL_TestElement WHERE CQL_TestElement::InstanceID = 3
+# Base class, all FROM props by name, scope is sub-class of FROM
+SELECT * FROM CQL_TestElement WHERE InstanceID = 3 AND CQL_TestPropertyTypesMissing::MissingProperty = 5
+SELECT * FROM CQL_TestElement WHERE InstanceID = 3 AND CQL_TestPropertyTypes::propertySint64 = -1
+#
+# Special tests for ISA
+SELECT * FROM CQL_TestPropertyTypes WHERE CQL_TestPropertyTypes ISA CQL_TestElement
+SELECT * FROM CQL_TestPropertyTypes WHERE CQL_TestPropertyTypes ISA CQL_TestElement AND CQL_TestPropertyTypes.BogusProperty ISA CQL_TestElement
+SELECT * FROM CQL_TestPropertyTypes WHERE CQL_TestPropertyTypes ISA CQL_TestElement AND CQL_TestPropertyTypes.BogusProperty ISA CQL_TestBogus
+
+
+

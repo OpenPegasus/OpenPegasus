@@ -1,0 +1,134 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Pegasus Project Working Paper</title>
+</head>
+
+<body>
+
+<H1 align="center">Pegasus Project Working Paper</H1>
+
+<H1 align="center">Implementing NULL CIMValue Attribute</H1>
+
+<b>AUTHORS:</b>&nbsp;Karl Schopmeyer
+<p><font size="1">Last Update <!--webbot bot="Timestamp" startspan
+S-Type="EDITED" S-Format="%A, %B %d, %Y %I:%M %p" -->Monday, June 18, 2001 10:24 AM<!--webbot
+bot="Timestamp" i-CheckSum="42649" endspan -->
+</font></p>
+<p>Revision Status</p>
+<table border="1" width="80%">
+  <tr>
+    <td width="25%">Revision</td>
+    <td width="25%">Date</td>
+    <td width="25%">Author(s)</td>
+    <td width="25%">Reason</td>
+  </tr>
+  <tr>
+    <td width="25%">1.0</td>
+    <td width="25%">18 June 2001</td>
+    <td width="25%">K. Schopmeyer</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+</table>
+
+<h2>Introduction</h2>
+
+<font SIZE="2">
+<p>In reviewing the changes needed to enable the property list, it was noted
+that the <i>CIM Operations over HTTP</i> specification clearly states that the
+possible definitions for proertylist are:</p>
+<ol>
+  <li>NULL - implies that the respond contains all properties.</li>
+  <li>Empty list - reply with no parameters</li>
+  <li>Properties listed - Respond with the properties contained in the list.</li>
+</ol>
+<p>Further, NULL is the default if the propertylist parameter is not included in
+the request. However we are today defining an empty array as the default. In
+fact, we do not have the concept of NULL.</p>
+<p>The concept of NULL is defined in the document <i>CIM Operations over HTTP</i>
+specificaion as follows</p>
+<blockquote>
+  <p>This notation uses the NULL qualifier to indicate parameters whose values
+  may be specified as NULL in a method call. A NULL (unassigned) value for a
+  parameter is specified by an &lt;IPARAMVALUE&gt; element with no subelement.
+  For parameters which do not possess the NULL qualifier, the CIM Client MUST
+  specify a value for the parameter by including a suitable subelement for the
+  &lt;IPARAMVALUE&gt; element for that parameter.</p>
+</blockquote>
+<p>NULL is referenced in the CIM specification as follows</p>
+</font><b><i><font FACE="Times New Roman" SIZE="2" COLOR="#000080">
+<blockquote>
+  <p>4.11.6 </font><font FACE="Times New Roman" SIZE="2">NULL</p>
+</font></i></b><font FACE="Times New Roman" SIZE="2">
+<p>All types can be initialized to the predefined constant NULL, which indicates
+no value has been provided. The details of the internal implementation of the
+NULL value are not mandated by this document.</font> <font SIZE="2">Thus we have
+to be able to support the concept of NULL on any CIM type and in particular to
+values.</p>
+</blockquote>
+<p>It would appear that we need to implement the concept of NULL in general on
+CIMValue to be compliant with the CIM specifications. Doing this will allow us
+to then correctly implement the NULL in the property list also. In effect, this
+becomes a qualifier on each CIMValue</p>
+<p>The areas that we appear to have to change include the following:</p>
+<ol>
+  <li>Add NULL attribute to the basic CIMValue definition.</li>
+  <li>Add methods to set and test for NULL (setNull, setNotNull, isNull) to
+    CIMValue class.</li>
+  <li>Add the decoding for &lt;IPARMVALUE&gt; with no subelement as the decode
+    to NULL value</li>
+  <li>Add the encoding of NULL indicator on a CIMValue as &lt;IPARMVALUE&gt;
+    with no subelement.</li>
+  <li>Modify the set CIMValue functions -While the setNull, etc. functions can
+    be important, the real key to making use of the NULL is through the get and
+    set functions.&nbsp;&nbsp; Any time a new CIMValue object is created without
+    putting a value it in, it, it should be set NULL.&nbsp; Any time a value is
+    set in a CIMValue, the NULL attribute should be unset.</li>
+  <li>Modify the get CIMValue functions - Any time an attempt is made to access
+    a CIMValue, the value returned must depend on the state of the NULL
+    attribute.&nbsp; Since there is no value if NULL is set, we cannot return a
+    value to the requestor if NULL is set.&nbsp; Since all possible values can
+    be returned (ex. on a Boolean CIMValue, the only possible values returned
+    are true and false), the most logical way to inform the requester that a
+    CIMValue is NULL is through an exception.&nbsp; This is also probably the
+    technique that causes the minimal distrubance to existing code.&nbsp;
+    THerefore, we need to throw an exception on each CIMValue get if the NULL
+    attribute is set.</li>
+  <li>Modify the propertylist processing to use NULL correctly</li>
+  <li>The compiler. Not sure what Bob is doing with NULL initialization
+    now?&nbsp; However, apparently NULL is the default setting for values and in
+    addition NULL as a property setting is specifically allowed.</li>
+  <li>Clients that have been created to account for NULL in a number of cases.</li>
+</ol>
+<p>NOTE: There has been some discussion of the possibility of adding the concept
+of&nbsp; UNKNOWN to CIMValue in addition to NULL.&nbsp; However, this is not in
+any of the specifications today and we see not reason to consider it further
+unless it is proposed as an extension to the CIM Specification.</p>
+</font>
+
+<p>---END OF DOCUMENT--</p>
+
+</body>
+
+</html>

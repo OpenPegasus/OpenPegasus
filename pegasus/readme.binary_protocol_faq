@@ -1,0 +1,300 @@
+                    The OpenPegasus Binary Protocol FAQ
+                    ===================================
+
+This FAQ (Frequently Asked Questions) hopefully addresses questions you might
+have about the the OpenPegasus Binary Protocol. If you find your question was
+not addressed, please ask your question on the OpenPegasus mailing list and
+request that the answer be included in this document.
+
+What is the Binary Protocol?
+============================
+
+The binary protocol is a fast protocol for client-server communication. It
+allows local clients to send binary messages to the OpenPegasus server and
+receive binary responses. This protocol is much faster than the default
+XML protocol. When the binary protocol is enabled, local clients use it to
+communicate with the OpenPegasus server. Examples of local clients include:
+(1) out-of-process providers making up-calls, (2) any provider making a local
+connection with the CIMClient class, (2) any local process making a local
+connection with the CIMClient class.
+
+Why use the Binary Protocol?
+============================
+
+The main reason to use the binary protocol is to improve performance of the
+server and clients. Some operations execute as much as 4 times faster with
+the binary protocol.
+
+How big are binary messages?
+============================
+
+Binary messages are slightly larger than XML messages for two reasons:
+(1) Strings are transmitted using 2-byte characters and (2) Objects are
+aligned on 8-byte boundaries.
+
+What are the basic rules for encoding messages?
+===============================================
+
+The encoding rules were designed for speed rather than size. The basic rules
+are:
+
+    (1) All basic types are aligned on 8-byte boundaries. For example, a uint32
+        starts on an 8-byte boundary and is followed by 4 padding bytes so that
+        the next type is aligned on an 8-byte boundary. This alignment has 2
+        advantages: (1) it allows any basic type to be dereferenced directly in
+        the buffer without having to relocate it and (2) it is inexpensive to
+        calculate the alignment of the next type.
+
+        There are 2 other data alignment techniques we could have chosen:
+
+            (*) Don't align at all. Just pack types into the buffer end-to-end.
+                This technique yields smaller messages but sacrifices
+                performance since types cannot be assigned directly to or
+                from the data buffer (some operating systems generate data
+                alignment errors).
+
+            (*) Align types on their "natural boundaries". This means that
+                a type should be aligned on boundaries divisible by its size.
+                For example, a 2-byte integer should be aligned on a 2-byte
+                boundary, or a 4-byte integer should be aligned on a 4-byte
+                boundary. This alignment technique allows types to be directly
+                assigned to or from the data buffer. However, aligning the data
+                buffer for the next type is slightly more expensive since it
+                requires a few extra instructions to compute the alignment
+                boundary than our approach.
+
+    (2) Types are serialized into the message in their native representations.
+        We do not change the representation to either big endian or little
+        endian. Instead, the recipient of the message is responsible for
+        converting the data into its native representation. If both processes
+        have the same native representation, then the reordering of bytes can
+        be avoided (this is always the case with local processes). This policy
+        has been referred to as "reader makes right". That is, the reader is
+        responsible for making the incoming data into the "right"
+        representation.
+
+    (3) All arrays are represented by their size followed by their elements.
+        The size is always 4 bytes with 4 extra bytes of padding. In this way,
+        the elements always begin on an 8-byte boundary. The elements are packed
+        end to end with no padding.
+
+    (4) Strings are represented like arrays (size plus elements).
+
+    (5) Boolean are represented as a single byte, either 0 or 1.
+
+    (6) Complex objects that have optional elements or boolean elements, often
+        employ a single 4-byte bit mask that indicates which flags are true
+        and which elements are present in the network buffer. For example,
+        the CIMProperty representation has a bit mask that indicates whether
+        the property:
+
+            (*) is an array.
+            (*) is propagated.
+            (*) has qualifiers.
+            (*) has a non-empty references class .
+            (*) has a non-empty class origin.
+
+        This save considerable space. For example, if there are no qualifiers,
+        then we save 8 bytes that would be needed to represent an empty
+        qualifier array.
+
+What is the layout of a binary message?
+=======================================
+
+Binary messages are comprised of a header followed by a body. The header has
+the following elements:
+
+    (1) Magic number - contains 0xF00DFACE.
+    (2) Version number - 1 for the first version.
+    (3) Flags - flags used to represent boolean options of the message.
+    (4) Message ID - same as the message ID in a CIM message.
+    (5) Operation - an integer representing the CIM operation, given as follows:
+
+        (*) Invalid = 1
+        (*) GetClass = 2
+        (*) GetInstance = 3
+        (*) IndicationDelivery = 4 (binary version not implemented)
+        (*) DeleteClass = 5
+        (*) DeleteInstance = 6
+        (*) CreateClass = 7
+        (*) CreateInstance = 8
+        (*) ModifyClass = 9
+        (*) ModifyInstance = 10
+        (*) EnumerateClasses = 11
+        (*) EnumerateClassNames = 12
+        (*) EnumerateInstances = 13
+        (*) EnumerateInstanceNames = 14
+        (*) ExecQuery = 15
+        (*) Associators = 16
+        (*) AssociatorNames = 17
+        (*) References = 18
+        (*) ReferenceNames = 19
+        (*) GetProperty = 20
+        (*) SetProperty = 21
+        (*) GetQualifier = 22
+        (*) SetQualifier = 23
+        (*) DeleteQualifier = 24
+        (*) EnumerateQualifiers = 25
+        (*) InvokeMethod = 26
+
+Does the binary protocol use HTTP?
+==================================
+
+Yes. The binary protocol uses the existing OpenPegasus HTTP infrastructure.
+It preserve the same headers as the conventional protocol.
+
+Does the binary protocol define new HTTP headers?
+=================================================
+
+Yes. It defines two new headers:
+
+    Content-Type: application/x-openpegasus
+    Accept: application/x-openpegasus
+
+The first header is borne by both binary requests and binary responses.
+It indicates that the content (payload) contains an OpenPegasus binary messages.
+
+The second header is sent by a request and indicates that the client can
+handle OpenPegasus binary responses.
+
+The client can combine these headers to achieve 4 different behaviors:
+
+    (1) Binary request/Binary response:
+
+            Content-Type: application/x-openpegasus
+            Accept: application/x-openpegasus
+
+    (2) Binary request/XML response:
+
+            Content-Type: application/x-openpegasus
+
+    (3) XML request/binary response:
+
+            Accept: application/x-openpegasus
+
+    (4) XML request/XML response:
+
+            (omit both headers)
+
+Only 1 and 4 can be achieved without minor code changes to OpenPegasus.
+
+How does protocol versioning work?
+==================================
+
+The binary messages carries a version number in the header. This will be used
+to support backwards compatibility with clients. The server must never be
+modified to send version N+1 messages to version N clients.
+
+Does the binary protocol support remote communication?
+======================================================
+
+Yes, although there is no official SDK interface for enabling it. To enable
+it, one must obtain the CIMClientRep from the CIMClient instance and set
+the following data members to true.
+
+    CIMClientRep::_binaryRequest
+    CIMClientRep::_binaryResponse
+
+The following code fragment shows how one might do this in a program.
+
+    static void _SetBinaryRequest(CIMClient& client, Boolean flag)
+    {
+        CIMClientRep* rep = *(reinterpret_cast<CIMClientRep**>(&client));
+        rep->setBinaryRequest(flag);
+    }
+
+    static void _SetBinaryResponse(CIMClient& client, Boolean flag)
+    {
+        CIMClientRep* rep = *(reinterpret_cast<CIMClientRep**>(&client));
+        rep->setBinaryResponse(flag);
+    }
+
+    ...
+
+    CIMClient client;
+    _SetBinaryRequest(client, true);
+    _SetBinaryResponse(client, true);
+
+    client.connect("localhost", 22000, String(), String());
+
+This forces a remote binary connection.
+
+What is on-demand de-serialization?
+===================================
+
+The binary protocol supports a feature we call "on-demand de-serialization".
+When using out-of-process providers, data may be de-serialized unnecessarily.
+Consider the following sequence of events.
+
+    (1) The client sends an EnumerateInstances request to the server.
+    (2) The server de-serializes the request.
+    (3) The server serializes the request for the provider agent.
+    (4) The provider agent de-serializes the request.
+    (5) The provider agent obtains response.
+    (6) The provider agent serializes the response for the server.
+    (7) The server de-serializes the request.
+    (8) The server serializes the request for the client.
+    (9) The client de-serializes the request.
+
+The on-demand de-serialization feature eliminates the de-serialization of the
+returned instances, saving them in a data buffer. Then in step 8, the data
+buffer is sent to the client. This optimization avoids one de-serialization and
+one serialization. For the EnumerateInstances operation, this optimization
+alone doubles the speed of servicing this operation.
+
+On-demand de-serialization is implemented for the following operations:
+
+    (1) EnumerateInstances
+    (2) GetInstance
+    (3) Associators
+    (4) ExecQuery
+
+Where is the binary encoding/decoding code located?
+===================================================
+
+The source code for encoding and decoding binary requests and responses is
+all included in a single module. The source files are located here:
+
+    pegasus/src/Pegaus/Common/BinaryCodec.h
+    pegasus/src/Pegaus/Common/BinaryCodec.cpp
+
+The source code that implements the encoding of objects themselves is located
+here:
+
+    pegasus/src/Pegaus/Common/CIMBuffer.h
+    pegasus/src/Pegaus/Common/CIMBuffer.cpp
+
+How do you build OpenPegasus with binary protocol support?
+==========================================================
+
+To build OpenPegasus with binary protocol support, define the following
+environment variable first:
+
+    $ export PEGASUS_ENABLE_PROTOCOL_BINARY=true
+
+Are there further improvements that could be made to the protocol?
+==================================================================
+
+Yes, here are a few.
+
+    (1) Excessive copying is required to convert CIMBuffer objects into
+        Buffer objects. CIMBuffer could be reimplemented to use Buffer
+        as its representation. Then it would be possible to "swap" their
+        implementations rather than copying one to the other.
+
+    (2) It might have been better to align objects on their natural boundaries
+        rather than on 8-byte boundaries. This would probably reduce the
+        message size by 25% or so.
+
+    (3) The on-demand de-serialization should probably be extended to operations
+        other than just GetInstance and EnumerateInstances. For example, the
+        following operations would benefit the most.
+
+            (*) EnumerateInstanceNames
+            (*) AssociatorNames
+            (*) References
+            (*) ReferenceNames
+            (*) InvokeMethod
+
+    (4) The binary protocol should be extended to support the pull-operations
+        whenever they are implemented for XML.

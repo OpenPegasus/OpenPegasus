@@ -1,0 +1,1063 @@
+// ===================================================================
+// Title: CIM_IPsecPolicy
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: CIM_IPsecPolicy.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: This file defines the classes to negotiate
+//              an IPsec security association.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// This model was originally introduced in CIM V2.6 Preliminary and
+// was not promoted to Final status.  The following CR updates the
+// V2.6 MOF and better aligns it with the IETF I-D from the IPSP
+// Working Group.
+// 
+// Change Log for v2.8 Preliminary
+// CR1026 - Modifications to the V2.6 MOF for IPsec management
+// CR1105 - Generalize the SACondition class to be FilterCondition
+//          & move the classes to the Policy model.
+//          Generalize SAConditionInRule to be PacketConditionInSARule.
+// Change Log for v2.8 Final
+// 
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+// ==================================================================
+// Compile prerequisite:  Core, Policy and Network MOFs
+// ==================================================================
+
+
+// ==================================================================
+// IPsec Negotiation Policy Rules
+// ==================================================================
+
+// ==================================================================
+// SARule
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "SARule is a base class for defining IKE and IPsec Rules. "
+       "Although concrete (because it subclasses from a concrete "
+       "class), it is not intended to be instantiated. It defines a "
+       "common connection point for associating conditions and actions "
+       "for both types of rules. Note that each valid PolicyGroup "
+       "containing SARules MUST use a unique priority number for the "
+       "Rule in the aggregation, PolicySetComponent.Priority."), 
+    MappingStrings { "IPSP Policy Model.IETF|SARule" }]
+class CIM_SARule : CIM_PolicyRule {
+
+      [Description (
+          "LimitNegotiation is used as part of processing either a key "
+          "exchange or IPsec Rule. Before proceeding with either a "
+          "phase 1 or a phase 2 negotiation, this property is checked "
+          "to determine if the negotiation role of the Rule matches "
+          "that defined for the negotiation being undertaken (e.g., "
+          "Initiator, Responder, or Both). If this check fails, then "
+          "the negotiation is stopped. Note that this only applies to "
+          "new negotiations and has no effect on either renegotiation "
+          "or refresh operations with peers for which an established "
+          "Security Association already exists."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Initiator-Only", "Responder-Only", "Either" }, 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|SARule.LimitNegotiation" }]
+   uint16 LimitNegotiation;
+};
+
+
+// ==================================================================
+// RuleThatGeneratedSA
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "RuleThatGeneratedSA associates a SecurityAssociationEndpoint "
+       "with the SARule used to generate (or negotiate) it.")]
+class CIM_RuleThatGeneratedSA : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 0 ), Max ( 1 ), Description (
+          "SARule that led to the Security Association.")]
+   CIM_SARule REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "SecurityAssociationEndpoint created using the rule.")]
+   CIM_SecurityAssociationEndpoint REF Dependent;
+};
+
+
+// ==================================================================
+// IKERule
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "IKERule contains the Conditions and Actions for IKE phase 1 "
+       "negotiations or to specify static actions such as Discard."), 
+    MappingStrings { "IPSP Policy Model.IETF|IKERule" }]
+class CIM_IKERule : CIM_SARule {
+
+      [Description (
+          "An IP endpoint may have multiple identities for use in "
+          "different situations. The IdentityContext property "
+          "specifies the specific context/identities which pertain to "
+          "this Rule. The property's function is similar to that of "
+          "PolicyRoles. A context may be a VPN name or other "
+          "identifier that selects the appropriate identity. \n"
+          "\n"
+          "IdentityContext is an array of strings. The multiple values "
+          "in the array are logically ORed together in matching an "
+          "IPNetworkIdentity's IdentityContext. Each value in the "
+          "array may be a composition of multiple context names. When "
+          "an array value is a composition, the individual values are "
+          "logically ANDed together for evaluation purposes. The "
+          "syntax is: \n"
+          "<ContextName>[&&<ContextName>]* \n"
+          "where the individual context names appear in alphabetical "
+          "order (according to the collating sequence for UCS-2). So, "
+          "for example, the values 'CompanyXVPN', "
+          "'CompanyYVPN&&TopSecret', 'CompanyZVPN&&Confidential' are "
+          "possible contexts for a Rule. They are matched against an "
+          "IPNetworkIdentity's IdentityContext. Any of the values may "
+          "indicate a match and select an Identity, since the values "
+          "in the array are logically ORed."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IKERule.IdentityContexts" }, 
+       ModelCorrespondence { "CIM_IdentityContext" }]
+   string IdentityContexts[];
+};
+
+
+// ==================================================================
+// IPsecRule
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "IPsecRule contains the Conditions and Actions for phase 2 "
+       "negotiations or to specify static actions such as Discard."), 
+    MappingStrings { "IPSP Policy Model.IETF|IPsecRule" }]
+class CIM_IPsecRule : CIM_SARule {
+};
+
+
+// ==================================================================
+// IPsecPolicyForSystem
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "IPsecPolicyForSystem associates a PolicyGroup with a specific "
+       "system (e.g., a host or a network device) - indicating that "
+       "this is the 'default' IPsec policy for that system. The "
+       "referenced PolicyGroup would be used for any "
+       "IPProtocolEndpoint's IPsec negotiations, UNLESS the "
+       "IPsecPolicyForEndpoint association is defined. "
+       "IPsecPolicyForEndpoint indicates a more specific PolicyGroup "
+       "for IPsec negotiations for the endpoint."), 
+    MappingStrings { "IPSP Policy Model.IETF|IPsecPolicyForSystem" }]
+class CIM_IPsecPolicyForSystem : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "A System to which the PolicyGroup applies."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IPsecPolicyForSystem.Antecedent" }]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 0 ), Max ( 1 ), Description (
+          "The PolicyGroup that defines the 'default' IPsec "
+          "negotiation policy for the System."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IPsecPolicyForSystem.Dependent" }]
+   CIM_PolicyGroup REF Dependent;
+};
+
+
+// ==================================================================
+// IPsecPolicyForEndpoint
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "IPsecPolicyForEndpoint associates a PolicyGroup with a "
+       "specific IP endpoint. This association's policies take "
+       "priority over any PolicyGroup defined generically for the "
+       "hosting system. The latter is defined using the "
+       "IPsecPolicyForSystem association."), 
+    MappingStrings { "IPSP Policy Model.IETF|IPsecPolicyForEndpoint" }]
+class CIM_IPsecPolicyForEndpoint : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The IPProtocolEndpoint that identifies an interface to "
+          "which the PolicyGroup applies."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IPsecPolicyForEndpoint.Antecedent" }]
+   CIM_IPProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 0 ), Max ( 1 ), Description (
+          "The PolicyGroup that defines the IPsec negotiation policy "
+          "for the Endpoint."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IPsecPolicyForEndpoint.Dependent" }]
+   CIM_PolicyGroup REF Dependent;
+};
+
+
+// ==================================================================
+// IPsec Negotiation Policy Conditions
+// ==================================================================
+
+// ==================================================================
+// PacketConditionInSARule
+// ==================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "PacketConditionInSARule aggregates an SARule with at least one "
+       "instance of PacketFilterCondition. This is a specialization of "
+       "the PolicyConditionInPolicyRule association."), 
+    MappingStrings { "IPSP Policy Model.IETF|SAConditionInRule" }]
+class CIM_PacketConditionInSARule : CIM_PolicyConditionInPolicyRule {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "An SARule subclass of PolicyRule."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|SAConditionInRule.GroupComponent" }]
+   CIM_SARule REF GroupComponent;
+
+      [Override ( "PartComponent" ), Min ( 1 ), Description (
+          "An SACondition that is required for the SARule."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|SAConditionInRule.PartComponent" }]
+   CIM_PacketFilterCondition REF PartComponent;
+};
+
+
+// ==================================================================
+// IPsec Negotiation Policy Actions - Static and Negotiated
+// ==================================================================
+
+// ==================================================================
+// SAAction
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "SAAction is the base class for the various types of key "
+       "exchange or IPsec actions. It is abstract and used to "
+       "categorize the different types of actions of SARules."), 
+    MappingStrings { "IPSP Policy Model.IETF|SAAction" }]
+class CIM_SAAction : CIM_PolicyAction {
+
+      [Description (
+          "DoPacketLogging causes a log message to be generated when "
+          "the action is applied to a packet."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|SAAction.DoPacketLogging" }, 
+       ModelCorrespondence { 
+          "CIM_SecurityAssociationEndpoint.PacketLoggingActive" }]
+   boolean DoPacketLogging;
+};
+
+
+// ==================================================================
+// SAStaticAction
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "SAStaticAction is the base class for both key exchange as well "
+       "as IPsec actions that require no negotiation. It is a concrete "
+       "class that can be aggregated with other subclasses of "
+       "PolicyAction (such as NetworkPacketAction) into a PolicyRule, "
+       "to describe how packets are handled throughout the lifetime of "
+       "the Security Association."), 
+    MappingStrings { "IPSP Policy Model.IETF|SAStaticAction" }]
+class CIM_SAStaticAction : CIM_SAAction {
+
+      [Description (
+          "LifetimeSeconds specifies how long the SA created from this "
+          "action should be used/exist. A value of 0 means an infinite "
+          "lifetime. A non-zero value is typically used in conjunction "
+          "with alternate SAActions performed when there is a "
+          "negotiation failure of some sort. \n"
+          "\n"
+          "Note: If the referenced SAStaticAction object IS-A "
+          "PreconfiguredSAAction (that is associated to several "
+          "SATransforms), then the actual lifetime of the Security "
+          "Association will be the lesser of the value of this "
+          "LifetimeSeconds property and of the value of the "
+          "MaxLifetimeSeconds property of the associated SATransform."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|SAStaticAction.LifetimeSeconds" }, 
+       ModelCorrespondence { 
+          "CIM_SecurityAssociationEndpoint.LifetimeSeconds" }]
+   uint64 LifetimeSeconds;
+};
+
+
+// ==================================================================
+// PreconfiguredSAAction
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "Subclasses of PreconfiguredSAAction are used to create SAs "
+       "using preconfigured, hard-wired algorithms and keys. No "
+       "negotiation is necessary. Note that this class is defined as "
+       "concrete, since its superclass is also concrete. However, it "
+       "should not be directly instantiated, but one of its subclasses "
+       "used instead. \n"
+       "\n"
+       "Also note that: \n"
+       "- The SPI for a preconfigured SA action is contained in the "
+       "association, TransformOfPreconfiguredAction. \n"
+       "- The session key (if applicable) is contained in an instance "
+       "of SharedSecret. For an instance of the SharedSecret class: "
+       "The session key is stored in the Secret property; the property "
+       "protocol contains one of the values, \"ESP-encrypt\", "
+       "\"ESP-auth\" or \"AH\"; and, the class' property algorithm "
+       "contains the algorithm used to protect the secret. (The latter "
+       "can be \"PLAINTEXT\" if the IPsec entity has no secret "
+       "storage.) The value of the class' RemoteID property is the "
+       "concatenation of the remote IPsec peer IP address in dotted "
+       "decimal, of the character \"/\", of \"IN\" (or respectively "
+       "\"OUT\") for inbound/outbound SAs, of the character \"/\" and "
+       "of the hexadecimal representation of the SPI."), 
+    MappingStrings { "IPSP Policy Model.IETF|PreconfiguredSAAction" }]
+class CIM_PreconfiguredSAAction : CIM_SAStaticAction {
+
+      [Description (
+          "LifetimeKilobytes defines a traffic limit in kilobytes that "
+          "can be consumed before the SA is deleted. A value of zero "
+          "(the default) indicates that there is no lifetime "
+          "associated with this action (i.e., infinite lifetime). A "
+          "non-zero value is used to indicate that after this number "
+          "of kilobytes has been consumed the SA must be deleted. \n"
+          "\n"
+          "Note that the actual lifetime of the preconfigured SA will "
+          "be the lesser of the value of this LifetimeKilobytes "
+          "property and the value of the MaxLifetimeKilobytes property "
+          "of the associated SATransform. Also note that some SA "
+          "negotiation protocols (such as IKE) can negotiate the "
+          "lifetime as an arbitrary length field, it is assumed that a "
+          "64-bit integer will be sufficient."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "IPSP Policy Model.IETF|PreconfiguredSAAction." 
+          "LifetimeKilobytes" }, 
+       ModelCorrespondence { 
+          "CIM_SecurityAssociationEndpoint.LifetimeKilobytes" }]
+   uint64 LifetimeKilobytes;
+};
+
+
+// ==================================================================
+// TransformOfPreconfiguredAction
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "TransformOfPreconfiguredAction defines the transforms used by "
+       "a preconfigured IPsec action. Two, four or six SATransforms "
+       "can be associated to a PreconfiguredSAAction (applied to the "
+       "inbound and outbound traffic, as indicated by the Direction "
+       "property of this association). The order of application of the "
+       "SATransforms is implicitly defined in RFC2401."), 
+    MappingStrings { "IPSP Policy " 
+       "Model.IETF|TransformOfPreconfiguredAction" }]
+class CIM_TransformOfPreconfiguredAction : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 2 ), Max ( 6 ), Description (
+          "This defines the type of transform used by the referenced "
+          "PreconfiguredSAAction. A minimum of 2 and maximum of 6 "
+          "transforms can be defined, for the inbound/outbound "
+          "directions, representing AH, ESP, and/or an IPCOMP "
+          "transforms."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "TransformOfPreconfiguredAction.Antecedent" }]
+   CIM_SATransform REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "This defines the PreconfiguredSAAction which uses the AH, "
+          "ESP, and/or IPCOMP transforms."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "TransformOfPreconfiguredAction.Dependent" }]
+   CIM_PreconfiguredSAAction REF Dependent;
+
+      [Description (
+          "The SPI property specifies the security parameter index to "
+          "be used by the pre-configured action for the associated "
+          "transform."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "TransformOfPreconfiguredAction.SPI" }, 
+       ModelCorrespondence { "CIM_IPsecSAEndpoint.SPI" }]
+   uint32 SPI;
+
+      [Description (
+          "InboundDirection specifies whether the SA applies to "
+          "inbound (TRUE) or outbound (FALSE) traffic."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "TransformOfPreconfiguredAction.Direction" }, 
+       ModelCorrespondence { "CIM_IPsecSAEndpoint.InboundDirection" }]
+   boolean InboundDirection;
+};
+
+
+// ==================================================================
+// PreconfiguredTransportAction
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "PreconfiguredTransportAction is used to create transport-mode "
+       "SAs using preconfigured, hard-wired algorithms and keys. Note "
+       "that the SPI for a preconfigured SA action is contained in the "
+       "association, TransformOfPreconfiguredAction."), 
+    MappingStrings { "IPSP Policy " 
+       "Model.IETF|PreconfiguredTransportAction" }]
+class CIM_PreconfiguredTransportAction : CIM_PreconfiguredSAAction {
+};
+
+
+// ==================================================================
+// PreconfiguredTunnelAction
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "PreconfiguredTunnelAction is used to create tunnel-mode SAs "
+       "using preconfigured, hard-wired algorithms and keys. Note that "
+       "the SPI for a preconfigured SA action is contained in the "
+       "association, TransformOfPreconfiguredAction."), 
+    MappingStrings { "IPSP Policy Model.IETF|PreconfiguredTunnelAction" 
+       }]
+class CIM_PreconfiguredTunnelAction : CIM_PreconfiguredSAAction {
+
+      [Description (
+          "DFHandling controls how the Don't Fragment bit is managed "
+          "by the tunnel."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Copy from Internal to External IP Header",
+          "Set DF Bit in External Header to 1",
+          "Set DF Bit in External Header to 0" }, 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "PreconfiguredTunnelAction.DFHandling" }, 
+       ModelCorrespondence { "CIM_IPsecSAEndpoint.DFHandling" }]
+   uint16 DFHandling;
+};
+
+
+// ==================================================================
+// PeerGatewayForPreconfiguredTunnel
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "PeerGatewayForPreconfiguredTunnel identifies at most one "
+       "security gateway be used in constructing a preconfigured "
+       "tunnel. A security gateway is simply a particular instance of "
+       "RemoteServiceAccessPoint."), 
+    MappingStrings { "IPSP Policy " 
+       "Model.IETF|PeerGatewayForPreconfiguredTunnel" }]
+class CIM_PeerGatewayForPreconfiguredTunnel : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "Security gateway for the preconfigured SA."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "PeerGatewayForPreconfiguredTunnel.Antecedent" }]
+   CIM_RemoteServiceAccessPoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PreconfiguredTunnelAction that requires a security "
+          "gateway."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "PeerGatewayForPreconfiguredTunnel.Dependent" }]
+   CIM_PreconfiguredTunnelAction REF Dependent;
+};
+
+
+// ==================================================================
+// SANegotiationAction
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "SANegotiationAction is the base class for negotiated SAs. It "
+       "is abstract, specifying the common parameters that control the "
+       "IPsec phase 1 and phase 2 negotiations."), 
+    MappingStrings { "IPSP Policy Model.IETF|SANegotiationAction",
+       "IPSP Policy Model.IETF|IKENegotiationAction" }]
+class CIM_SANegotiationAction : CIM_SAAction {
+
+      [Description (
+          "MinLifetimeSeconds prevents certain denial of service "
+          "attacks where the peer requests an arbitrarily low lifetime "
+          "value, causing renegotiations with expensive Diffie-Hellman "
+          "operations. The property specifies the minimum lifetime, in "
+          "seconds, that will be accepted from the peer. A value of "
+          "zero (the default) indicates that there is no minimum "
+          "value. A non-zero value specifies the minimum seconds "
+          "lifetime."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "IKENegotiationAction.MinLifetimeSeconds" }, 
+       ModelCorrespondence { 
+          "CIM_SecurityAssociationEndpoint.LifetimeSeconds" }]
+   uint64 MinLifetimeSeconds = 0;
+
+      [Description (
+          "IdleDurationSeconds is the time an SA can remain idle "
+          "(i.e., no traffic protected using the security association) "
+          "before it is automatically deleted. The default (zero) "
+          "value indicates that there is no idle duration timer and "
+          "that the SA is deleted based upon the SA seconds and "
+          "kilobyte lifetimes. Any non-zero value indicates the number "
+          "of seconds that the SA may remain unused."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "IKENegotiationAction.IdleDurationSeconds" }, 
+       ModelCorrespondence { 
+          "CIM_SecurityAssociationEndpoint.IdleDurationSeconds" }]
+   uint64 IdleDurationSeconds = 0;
+
+      [Description (
+          "MinLifetimeKilobytes prevents certain denial of service "
+          "attacks where the peer requests an arbitrarily low lifetime "
+          "value, causing renegotiations with expensive Diffie-Hellman "
+          "operations. The property specifies the minimum lifetime, in "
+          "kilobytes, that will be accepted from the peer. A value of "
+          "zero (the default) indicates that there is no minimum "
+          "value. A non-zero value specifies the minimum kilobytes "
+          "lifetime. Note that there has been considerable debate "
+          "regarding the usefulness of applying kilobyte lifetimes to "
+          "phase 1 security associations, so it is likely that this "
+          "property will only apply to the subclass, IPsecAction."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "IKENegotiationAction.MinLifetimeKilobytes" }, 
+       ModelCorrespondence { 
+          "CIM_SecurityAssociationEndpoint.LifetimeKilobytes" }]
+   uint64 MinLifetimeKilobytes = 0;
+};
+
+
+// ==================================================================
+// IKEAction
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "IKEAction specifies the parameters to use for an IPsec IKE "
+       "phase 1 negotiation."), 
+    MappingStrings { "IPSP Policy Model.IETF|IKEAction" }]
+class CIM_IKEAction : CIM_SANegotiationAction {
+
+      [Description (
+          "The ExchangeMode designates the mode IKE should use for its "
+          "key negotiations."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Base", "Main", "Aggressive" }, 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IKEAction.ExchangeMode" }]
+   uint16 ExchangeMode;
+
+      [Description (
+          "UseIKEIdentityType specifies what network identity type "
+          "should be used when negotiating with the peer. It is used "
+          "in conjunction with the available IPNetworkIdentity "
+          "instances, that are associated with an IPProtocolEndpoint."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "..", "0x8000.." }, 
+       Values { "Other", "IPV4 Address", "FQDN", "User FQDN",
+          "IPV4 Subnet Address", "IPV6 Address", "IPV6 Subnet Address",
+          "IPV4 Address Range", "IPV6 Address Range", "DER ASN1 DN",
+          "DER ASN1 GN", "KEY ID", "DMTF Reserved", "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IKEAction.UseIKEIdentityType",
+          "RFC2407.IETF|Section 4.6.2.1" }, 
+       ModelCorrespondence { "CIM_IPNetworkIdentity.IdentityType" }]
+   uint16 UseIKEIdentityType;
+
+      [Description (
+          "VendorID specifies the value to be used in the Vendor ID "
+          "payload. An empty string (the default) means that the "
+          "Vendor ID payload will not be generated or accepted. A "
+          "non-NULL value means that a Vendor ID payload will be "
+          "generated (when acting as an initiator) or is expected "
+          "(when acting as a responder)."), 
+       MappingStrings { "IPSP Policy Model.IETF|IKEAction.VendorID" }]
+   string VendorID = "";
+
+      [Description (
+          "When IKEAction.ExchangeMode is set to \"Aggressive\" (4), "
+          "this property specifies the key exchange groupID to use in "
+          "the first packets of the phase 1 negotiation. This property "
+          "is ignored unless the ExchangeMode is 'aggressive'. If the "
+          "GroupID number is from the vendor- specific range "
+          "(32768-65535), the VendorID qualifies the group number. "
+          "Well-known group identifiers from RFC2412, Appendix E, are: "
+          "Group 1='768 bit prime', Group 2='1024 bit prime', Group "
+          "3='Elliptic Curve Group with 155 bit field element', Group "
+          "4='Large Elliptic Curve Group with 185 bit field element', "
+          "and Group 5='1536 bit prime'."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "No Group/Non-Diffie-Hellman Exchange",
+          "DH-768 bit prime", "DH-1024 bit prime",
+          "EC2N-155 bit field element", "EC2N-185 bit field element",
+          "DH-1536 bit prime", "Standard Group - Reserved",
+          "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IKEAction.AggressiveModeGroupID",
+          "RFC2412.IETF|Appendix E" }, 
+       ModelCorrespondence { "CIM_IKEAction.VendorID" }]
+   uint16 AggressiveModeGroupID;
+};
+
+
+// ==================================================================
+// IPsecAction
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "IPsecAction specifies the parameters to use for an IPsec phase "
+       "2 negotiation."), 
+    MappingStrings { "IPSP Policy Model.IETF|IPsecAction" }]
+class CIM_IPsecAction : CIM_SANegotiationAction {
+
+      [Description (
+          "UsePFS indicates whether perfect forward secrecy is "
+          "required when refreshing keys."), 
+       MappingStrings { "IPSP Policy Model.IETF|IPsecAction.UsePFS" }, 
+       ModelCorrespondence { "CIM_IPsecSAEndpoint.PFSInUse" }]
+   boolean UsePFS;
+
+      [Description (
+          "UsePhase1Group indicates that the phase 2 GroupId should be "
+          "the same as that used in the phase 1 key exchange. If "
+          "UsePFS is False, then this property is ignored. Note that a "
+          "value of False indicates that the property GroupId will "
+          "contain the key exchange group to use for phase 2."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IPsecAction.UseIKEGroup" }]
+   boolean UsePhase1Group;
+
+      [Description (
+          "GroupId specifies the PFS group ID to use. This value is "
+          "only used if PFS is True and UsePhase1Group is False. If "
+          "the GroupID number is from the vendor-specific range "
+          "(32768-65535), the VendorID qualifies the group number. "
+          "Well-known group identifiers from RFC2412, Appendix E, are: "
+          "Group 1='768 bit prime', Group 2='1024 bit prime', Group "
+          "3='Elliptic Curve Group with 155 bit field element', Group "
+          "4='Large Elliptic Curve Group with 185 bit field element', "
+          "and Group 5='1536 bit prime'."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "No Group/Non-Diffie-Hellman Exchange",
+          "DH-768 bit prime", "DH-1024 bit prime",
+          "EC2N-155 bit field element", "EC2N-185 bit field element",
+          "DH-1536 bit prime", "Standard Group - Reserved",
+          "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy Model.IETF|IPsecAction.GroupID",
+          "RFC2412.IETF|Appendix E" }, 
+       ModelCorrespondence { "CIM_IPsecAction.VendorID",
+          "CIM_IKESAEndpoint.GroupID" }]
+   uint16 GroupId;
+
+      [Description (
+          "The property VendorID is used together with the property "
+          "GroupID (when it is in the vendor-specific range) to "
+          "identify the key exchange group. VendorID is ignored unless "
+          "UsePFS is true, AND UsePhase1Group is False, AND GroupID is "
+          "in the vendor-specific range (32768-65535)."), 
+       MappingStrings { "IPSP Policy Model.IETF|IPsecAction.VendorID" }, 
+       ModelCorrespondence { "CIM_IPsecAction.GroupId",
+          "CIM_IKESAEndpoint.VendorID" }]
+   string VendorID;
+
+      [Description (
+          "The property Granularity is an enumeration that specifies "
+          "how the selector for the SA should be derived from the "
+          "traffic that triggered the negotiation. Its values are: \n"
+          "1=Other; See the OtherGranularity property for more "
+          "information \n"
+          "2=Subnet; The source and destination subnet masks are used "
+          "\n3=Address; The source and destination IP addresses of the "
+          "triggering packet are used \n"
+          "4=Protocol; The source and destination IP addresses and the "
+          "IP protocol of the triggering packet are used \n"
+          "5=Port; The source and destination IP addresses, IP "
+          "protocol and the source and destination layer 4 ports of "
+          "the triggering packet are used."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Subnet", "Address", "Protocol", "Port" }, 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IPsecAction.Granularity" }, 
+       ModelCorrespondence { "CIM_IPsecAction.OtherGranularity" }]
+   uint16 Granularity;
+
+      [Description (
+          "Description of the granularity when the value 1 (\"Other\") "
+          "is specified for the property, Granularity."), 
+       ModelCorrespondence { "CIM_IPsecAction.Granularity" }]
+   string OtherGranularity;
+};
+
+
+// ==================================================================
+// IPsecTransportAction
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "IPsecTransportAction is used to specify that a transport-mode "
+       "SA should be negotiated."), 
+    MappingStrings { "IPSP Policy Model.IETF|IPsecTransportAction" }]
+class CIM_IPsecTransportAction : CIM_IPsecAction {
+};
+
+
+// ==================================================================
+// IPsecTunnelAction
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "IPsecTunnelAction is used to specify that a tunnel-mode SA "
+       "should be negotiated."), 
+    MappingStrings { "IPSP Policy Model.IETF|IPsecTunnelAction" }]
+class CIM_IPsecTunnelAction : CIM_IPsecAction {
+
+      [Description (
+          "DFHandling controls how the Don't Fragment bit is managed "
+          "by the tunnel."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Copy from Internal to External IP Header",
+          "Set DF Bit in External Header to 1",
+          "Set DF Bit in External Header to 0" }, 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "PreconfiguredTunnelAction.DFHandling" }, 
+       ModelCorrespondence { "CIM_IPsecSAEndpoint.DFHandling" }]
+   uint16 DFHandling;
+};
+
+
+// ==================================================================
+// PeerGatewayForTunnel
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "PeerGatewayForTunnel identifies an ordered list of security "
+       "gateways to be used in negotiating and constructing a tunnel. "
+       "A security gateway is simply a particular instance of "
+       "RemoteServiceAccessPoint."), 
+    MappingStrings { "IPSP Policy Model.IETF|PeerGatewayForTunnel" }]
+class CIM_PeerGatewayForTunnel : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The security gateway for the SA. Note that the absense of "
+          "this association indicates that: \n"
+          "- When acting as a responder, IKE will accept phase 1 "
+          "negotiations with any other security gateway \n"
+          "- When acting as an initiator, IKE will use the destination "
+          "IP address (of the IP packets which triggered the SARule) "
+          "as the IP address of the peer IKE entity."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|PeerGatewayForTunnel.Antecedent" }]
+   CIM_RemoteServiceAccessPoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The IPsecTunnelAction that requires a security gateway."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|PeerGatewayForTunnel.Dependent" }]
+   CIM_IPsecTunnelAction REF Dependent;
+
+      [Description (
+          "SequenceNumber indicates the ordering to be used when "
+          "selecting a PeerGateway instance for an IPsecTunnelAction. "
+          "Lower values are evaluated first."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "PeerGatewayForTunnel.SequenceNumber" }]
+   uint16 SequenceNumber;
+};
+
+
+// ==================================================================
+// IPsec phase 1 and 2 Proposals to be negotiated
+// ==================================================================
+
+// ==================================================================
+// SAProposal
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "SAProposal is a base class defining the common properties of, "
+       "and anchoring common associations for, IPsec phase 1 and phase "
+       "2 proposals. It is defined as a kind of ScopedSettingData "
+       "(scoped by a ComputerSystem or AdminDomain), since its "
+       "subclasses define sets of IPsec properties that MUST be "
+       "applied together, if negotiated. This subclassing is different "
+       "than that defined in IETF's IPSP Policy draft - where it is "
+       "subclassed from Policy. The definition as SettingData is more "
+       "consistent with the application of the properties as a set, to "
+       "the negotiated Security Association. To indicate that 'this' "
+       "proposaltransform is negotiated for a Security Association, "
+       "use the ElementSettingData to associate the proposal and the "
+       "SA."), 
+    MappingStrings { "IPSP Policy Model.IETF|SAProposal" }]
+class CIM_SAProposal : CIM_ScopedSettingData {
+};
+
+
+// ==================================================================
+// ContainedProposal
+// ==================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "ContainedProposal holds an ordered list of SAProposals that "
+       "make up an SANegotiationAction. If the referenced "
+       "NegotiationAction is an IKEAction, then the SAProposal objects "
+       "MUST be IKEProposals. If the referenced NegotiationAction "
+       "object is an IPsecTransport/TunnelAction, then the referenced "
+       "SAProposal objects MUST be IPsecProposals."), 
+    MappingStrings { "IPSP Policy Model.IETF|ContainedProposal" }]
+class CIM_ContainedProposal : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The SANegotiationAction containing a list of SAProposals."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|ContainedProposal.GroupComponent" }]
+   CIM_SANegotiationAction REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The SAProposal in this negotiation action."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|ContainedProposal.PartComponent" }]
+   CIM_SAProposal REF PartComponent;
+
+      [Description (
+          "SequenceNumber indicates the ordering to be used when "
+          "chosing from among the proposals. Lower-valued proposals "
+          "are preferred over proposals with higher values. For "
+          "ContainedProposals that reference the same "
+          "SANegotiationAction, SequenceNumber values MUST be unique."), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|ContainedProposal.SequenceNumber" }]
+   uint16 SequenceNumber;
+};
+
+
+// ==================================================================
+// IKEProposal
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "IKEProposal contains the parameters necessary to drive the "
+       "phase 1 IKE negotiation."), 
+    MappingStrings { "IPSP Policy Model.IETF|IKEProposal" }]
+class CIM_IKEProposal : CIM_SAProposal {
+
+      [Description (
+          "MaxLifetimeSeconds specifies the maximum time the IKE "
+          "message sender proposes for an SA to be considered valid "
+          "after it has been created. A value of zero indicates that "
+          "the default of 8 hours be used. A non-zero value indicates "
+          "the maximum seconds lifetime."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IKEProposal.MaxLifetimeSeconds" }, 
+       ModelCorrespondence { 
+          "CIM_SecurityAssociationEndpoint.LifetimeSeconds" }]
+   uint64 MaxLifetimeSeconds;
+
+      [Description (
+          "MaxLifetimeKilobytes specifies the maximum kilobyte "
+          "lifetime the IKE message sender proposes for an SA to be "
+          "considered valid after it has been created. A value of zero "
+          "(the default) indicates that there should be no maximum "
+          "kilobyte lifetime. A non-zero value specifies the desired "
+          "kilobyte lifetime."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IKEProposal.MaxLifetimeKilobytes" }, 
+       ModelCorrespondence { 
+          "CIM_SecurityAssociationEndpoint.LifetimeKilobytes" }]
+   uint64 MaxLifetimeKilobytes;
+
+      [Description (
+          "CipherAlgorithm is an enumeration that specifies the "
+          "proposed encryption algorithm. The list of algorithms was "
+          "generated from Appendix A of RFC2409. Note that the "
+          "enumeration is different than the RFC list and aligns with "
+          "the values in IKESAEndpoint.CipherAlgorithm."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8..65000",
+          "65001..65535" }, 
+       Values { "Other", "DES", "IDEA", "Blowfish", "RC5", "3DES",
+          "CAST", "DMTF/IANA Reserved", "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IKEProposal.CipherAlgorithm",
+          "RFC2409.IETF|Appendix A" }, 
+       ModelCorrespondence { "CIM_IKESAEndpoint.CipherAlgorithm",
+          "CIM_IKEProposal.OtherCipherAlgorithm" }]
+   uint16 CipherAlgorithm;
+
+      [Description (
+          "Description of the encryption algorithm when the value 1 "
+          "(\"Other\") is specified for the property, CipherAlgorithm."), 
+       ModelCorrespondence { "CIM_IKESAEndpoint.OtherCipherAlgorithm",
+          "CIM_IKEProposal.CipherAlgorithm" }]
+   string OtherCipherAlgorithm;
+
+      [Description (
+          "HashAlgorithm is an enumeration that specifies the proposed "
+          "hash function. The list of algorithms was generated from "
+          "Appendix A of RFC2409. Note that the enumeration is "
+          "different than the RFC list and aligns with the values in "
+          "IKESAEndpoint.HashAlgorithm."), 
+       ValueMap { "1", "2", "3", "4", "5..65000", "65001..65535" }, 
+       Values { "Other", "MD5", "SHA-1", "Tiger", "DMTF/IANA Reserved",
+          "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IKEProposal.HashAlgorithm",
+          "RFC2409.IETF|Appendix A" }, 
+       ModelCorrespondence { "CIM_IKESAEndpoint.HashAlgorithm",
+          "CIM_IKEProposal.OtherHashAlgorithm" }]
+   uint16 HashAlgorithm;
+
+      [Description (
+          "Description of the hash function when the value 1 "
+          "(\"Other\") is specified for the property, HashAlgorithm."), 
+       ModelCorrespondence { "CIM_IKESAEndpoint.OtherHashAlgorithm",
+          "CIM_IKEProposal.HashAlgorithm" }]
+   string OtherHashAlgorithm;
+
+      [Description (
+          "AuthenticationMethod is an enumeration that specifies the "
+          "proposed authentication. The list of methods was generated "
+          "from Appendix A of RFC2409. Note that the enumeration is "
+          "different than the RFC list and aligns with the values in "
+          "IKESAEndpoint.AuthenticationMethod. There is one change to "
+          "the list - the value 65000 has special meaning. It is a "
+          "special value that indicates that this particular proposal "
+          "should be repeated once for each authentication method "
+          "corresponding to credentials installed on the machine. For "
+          "example, if the system has a pre-shared key and an "
+          "public-key certificate, a proposal list would be "
+          "constructed which includes a proposal that specifies a "
+          "pre-shared key and a proposal for any of the public-key "
+          "certificates."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7..64999", "65000",
+          "65001..65535" }, 
+       Values { "Other", "Pre-shared Key", "DSS Signatures",
+          "RSA Signatures", "Encryption with RSA",
+          "Revised Encryption with RSA", "DMTF/IANA Reserved", "Any",
+          "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy " 
+          "Model.IETF|IKEProposal.AuthenticationMethod",
+          "RFC2409.IETF|Appendix A" }, 
+       ModelCorrespondence { "CIM_IKESAEndpoint.AuthenticationMethod",
+          "CIM_IKEProposal.OtherAuthenticationMethod" }]
+   uint16 AuthenticationMethod;
+
+      [Description (
+          "Description of the method when the value 1 (\"Other\") is "
+          "specified for the property, AuthenticationMethod."), 
+       ModelCorrespondence { 
+          "CIM_IKESAEndpoint.OtherAuthenticationMethod",
+          "CIM_IKEProposal.AuthenticationMethod" }]
+   string OtherAuthenticationMethod;
+
+      [Description (
+          "The property GroupId specifies the proposed phase 1 "
+          "security association key exchange group. This property is "
+          "ignored for all aggressive mode exchanges "
+          "(IKEAction.ExchangeMode = 4). If the GroupID number is from "
+          "the vendor-specific range (32768-65535), the property "
+          "VendorID qualifies the group number. Well-known group "
+          "identifiers from RFC2412, Appendix E, are: Group 1='768 bit "
+          "prime', Group 2='1024 bit prime', Group 3 ='Elliptic Curve "
+          "Group with 155 bit field element', Group 4= 'Large Elliptic "
+          "Curve Group with 185 bit field element', and Group 5='1536 "
+          "bit prime'."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "No Group/Non-Diffie-Hellman Exchange",
+          "DH-768 bit prime", "DH-1024 bit prime",
+          "EC2N-155 bit field element", "EC2N-185 bit field element",
+          "DH-1536 bit prime", "Standard Group - Reserved",
+          "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy Model.IETF|IKEProposal.GroupID",
+          "RFC2412.IETF|Appendix E" }, 
+       ModelCorrespondence { "CIM_IKESAEndpoint.GroupID",
+          "CIM_IKEProposal.VendorID" }]
+   uint16 GroupId;
+
+      [Description (
+          "VendorID identifies the vendor when the value of GroupID is "
+          "in the vendor-specific range, 32768 to 65535."), 
+       ModelCorrespondence { "CIM_IKESAEndpoint.VendorID",
+          "CIM_IKEProposal.GroupId" }]
+   string VendorID;
+};
+
+
+// ==================================================================
+// IPsecProposal
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The class IPsecProposal adds no new properties, but inherits "
+       "proposal properties from SAProposal as well as associating the "
+       "security association transforms necessary for building an "
+       "IPsec proposal (see the class ContainedTransform)."), 
+    MappingStrings { "IPSP Policy Model.IETF|IPsecProposal" }]
+class CIM_IPsecProposal : CIM_SAProposal {
+};
+
+
+// ==================================================================
+// ContainedTransform
+// ==================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "ContainedTransform associates a proposal with a list of "
+       "transforms. If multiple transforms of a given type are "
+       "included in a proposal, these transforms are interpreted as "
+       "alternatives -- i.e., logically ORed with each other. The "
+       "order of preference is dictated by the SequenceNumber "
+       "property. Sets of transforms of different types are logically "
+       "ANDed. For example, a proposal based on two AH transforms and "
+       "three ESP transforms means one of the AH AND one of the ESP "
+       "transforms MUST be chosen. Note that at least 1 transform MUST "
+       "be aggregated into the proposal."), 
+    MappingStrings { "IPSP Policy Model.IETF|ContainedTransform" }]
+class CIM_ContainedTransform : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The Proposal containing the transforms."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "ContainedTransform.GroupComponent" }]
+   CIM_IPsecProposal REF GroupComponent;
+
+      [Override ( "PartComponent" ), Min ( 1 ), Description (
+          "Transforms in the proposal."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "ContainedTransform.PartComponent" }]
+   CIM_SATransform REF PartComponent;
+
+      [Description (
+          "SequenceNumber indicates the order of preference for "
+          "SATransforms of the same type. Lower-valued transforms are "
+          "preferred over transforms of the same type with higher "
+          "values. For ContainedTransforms (of the same type) that "
+          "reference the same IPsecProposal, SequenceNumber values "
+          "MUST be unique."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "ContainedTransform.SequenceNumber" }]
+   uint16 SequenceNumber;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

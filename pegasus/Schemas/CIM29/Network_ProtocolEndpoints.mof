@@ -1,0 +1,772 @@
+// ===================================================================
+// Title: Network_ProtocolEndpoints
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_ProtocolEndpoints.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines network interfaces -
+//              subclasses of CIM_ProtocolEndpoint.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR788 - Add classes to support OSPF
+// CR789 - Add TCP and UDP Endpoints
+// CR790 - Add classes to support MPLS
+// CR792 - Add the Composition qualifer to ASBGPEndpoints
+// CR804 - Updates to LANEndpoint - Update description for .LANID;
+//         Deprecate .LANType and .OtherLANType
+//       - Updates to IPProtocolEndpoint - Deprecate .Address; Add
+//         .IPv4Address, .IPv6Address, and .PrefixLength
+//       - Update several property descriptions
+// CR837 - Move AuthType, OtherAuthType and AuthKey to the
+//         OSPFProtocolEndpointBase class (from the
+//         OSPFProtocolEndpoint)
+// CR863 - Update the format of the MappingStrings qualifier when
+//         referencing IETF RFCs
+// CR866 - Fixes to BGPProtocolEndpoint - Deprecated several
+//         properties and added properties from BGPPeerGroup that
+//         are per Endpoint
+// CR920 - Add missing parenthesis to the Description for
+//         BGPProtocolEndpoint.IsEBGPMultihop
+// CR961 - Changes to Enabled and RequestedState in BGPProtocolEndpoint
+//         and OSPFProtocolEndpointBase, inherited from
+//         EnabledLogicalElement
+// CR982 - Removal of Experimental for preliminary to final
+// CR983 - Deprecations for v2.7 made final
+// CR991 - Adjust LANEndpoint classes to reference
+// LANConnectivitySegment
+//         and deprecate the association InSegment
+// Change Log for v2.8
+// CR1061 - Add class definition for MPLSProtocolEndpoint
+// CR1052 - Add properties to IPProtocolEndpoint,
+//          BGPProtocolEndpoint, IPXProtocolEndpoint,
+//          TCPProtocolEndpoint
+//          UDPProtocolEndpoint and OSPFProtocolEndpoint. Deprecate
+//          properties
+// CR1053 - Add a new endpoint for wireless support
+// (WirelessLANEndpoint)
+// CR1191 - CIM_MPLSProtocolEndpoint remains experimental in CIM V2.9
+// CR1182 - CIM_WirelessLANEndpoint remains experimental in CIM v2.9
+// CR1193 - Remove the Experimental qualifier from the following
+// properties
+//          in Network28_ProtocolEndpoints.mof, and update the class
+//          Version
+//          to read "2.8.0" for the following classes.  These
+//          properties only
+//          override ProtocolIFType to set the appropriate default.
+// 
+//          IPProtocolEndpoint.ProtocolIFType
+//          BGPProtocolEndpoint.ProtocolIFType
+//          IPXProtocolEndpoint.ProtocolIFType
+//          TCPProtocolEndpoint.ProtocolIFType
+//          UDPProtocolEndpoint.ProtocolIFType
+//          OSPFProtocolEndpointBase.ProtocolIFType
+// Change Log for v2.9
+// CR1484 - Corrections to MOF to fix errors in value maps for ProtocolIfType
+//          
+//          Property ProtocolIFType in Class IPProtocolEndpoint
+//          Property ProtocolIFType in Class BGPProtocolEndpoint
+//          Property ProtocolIFType in Class IPXProtocolEndpoint
+//          Property ProtocolIFType in Class TCPProtocolEndpoint
+//          Property ProtocolIFType in Class UDPProtocolEndpoint
+//          Property ProtocolIFType in Class OSPProtocolEndpointBase
+//          
+//          
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// LANEndpoint
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A communication endpoint which, when its associated interface "
+       "device is connected to a LAN, may send and receive data "
+       "frames. LANEndpoints include Ethernet, Token Ring and FDDI "
+       "interfaces.")]
+class CIM_LANEndpoint : CIM_ProtocolEndpoint {
+
+      [Description (
+          "A label or identifier for the LAN Segment to which the "
+          "Endpoint is connected. If the Endpoint is not currently "
+          "active/connected or this information is not known, then "
+          "LANID is NULL."), 
+       ModelCorrespondence { "CIM_LANConnectivitySegment.LANID",
+          "CIM_LANSegment.LANID" }]
+   string LANID;
+
+      [Deprecated { "CIM_ProtocolEndpoint.ProtocolType" }, 
+       Description (
+          "An indication of the kind of technology used on the LAN. "
+          "This property is deprecated in lieu of ProtocolType, which "
+          "is an enumeration inherited from ProtocolEndpoint and which "
+          "includes the Values specified here."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Ethernet", "TokenRing", "FDDI" }, 
+       ModelCorrespondence { 
+          "CIM_LANConnectivitySegment.ConnectivityType",
+          "CIM_LANSegment.LANType" }]
+   uint16 LANType;
+
+      [Deprecated { "CIM_ProtocolEndpoint.OtherTypeDescription" }, 
+       Description (
+          "A free-form string that describes the type of technology "
+          "used on the LAN when the value of the LANType property is "
+          "equal to 1 (i.e., \"Other\"). This property is deprecated "
+          "since its purpose overlaps with OtherTypeDescription, which "
+          "which is inherited from ProtocolEndpoint."), 
+       ModelCorrespondence { 
+          "CIM_LANConnectivitySegment.OtherTypeDescription",
+          "CIM_LANEndpoint.LANType" }]
+   string OtherLANType;
+
+      [Description (
+          "The principal unicast address used in communication with "
+          "the LANEndpoint. The MAC address is formatted as twelve "
+          "hexadecimal digits (e.g., \"010203040506\"), with each pair "
+          "representing one of the six octets of the MAC address in "
+          "\"canonical\" bit order according to RFC 2469."), 
+       MaxLen ( 12 )]
+   string MACAddress;
+
+      [Description (
+          "Other unicast addresses that may be used to communicate "
+          "with the LANEndpoint.")]
+   string AliasAddresses[];
+
+      [Description (
+          "Multicast addresses to which the LANEndpoint listens.")]
+   string GroupAddresses[];
+
+      [Description (
+          "The largest information field that may be sent or received "
+          "by the LANEndpoint."), 
+       Units ( "Bits" )]
+   uint32 MaxDataSize;
+};
+
+
+// ==================================================================
+// InSegment
+// ==================================================================
+   [Association, Deprecated { "CIM_MemberOfCollection" }, Aggregation,
+    Version ( "2.7.0" ), Description (
+       "Defines a LANEndpoint as a member of a specific LANSegment. "
+       "Note that one of this association's references (LANSegment) is "
+       "deprecated, as well as its superclass (InLogicalNetwork). "
+       "Following the same logic as its parent, this association is "
+       "deprecated to the MemberOfCollection association.")]
+class CIM_InSegment : CIM_InLogicalNetwork {
+
+      [Deprecated { "CIM_MemberOfCollection.Collection" }, Aggregate,
+       Override ( "Collection" ), Max ( 1 ), Description (
+          "The LANSegment that groups the LANEndpoint instances.")]
+   CIM_LANSegment REF Collection;
+
+      [Deprecated { "CIM_MemberOfCollection.Member" },
+          Override ( "Member" ), Description (
+          "A child LANEndpoint that is a component of the LANSegment.")]
+   CIM_LANEndpoint REF Member;
+};
+
+
+
+// ==================================================================
+// BindsToLANEndpoint
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association makes explicit the dependency of a SAP or "
+       "ProtocolEndpoint on an underlying LANEndpoint, on the same "
+       "system.")]
+class CIM_BindsToLANEndpoint : CIM_BindsTo {
+
+      [Override ( "Antecedent" ), Description (
+          "The underlying LANEndpoint, which is depended upon.")]
+   CIM_LANEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The AccessPoint or ProtocolEndpoint dependent on the "
+          "LANEndpoint.")]
+   CIM_ServiceAccessPoint REF Dependent;
+
+      [Description (
+          "This describes the framing method for the upper layer SAP "
+          "or Endpoint that is bound to the LANEndpoint. Note: "
+          "\"Raw802.3\" is only known to be used with the IPX "
+          "protocol."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Ethernet", "802.2", "SNAP", "Raw802.3" }]
+   uint16 FrameType;
+};
+
+
+// ==================================================================
+// IPProtocolEndpoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A ProtocolEndpoint that is dedicated to running IP.")]
+class CIM_IPProtocolEndpoint : CIM_ProtocolEndpoint {
+
+      [Description (
+          "The IPv4 address that this ProtocolEndpoint represents.")]
+   string IPv4Address;
+
+      [Description (
+          "The IPv6 address that this ProtocolEndpoint represents.")]
+   string IPv6Address;
+
+      [Deprecated { "CIM_IPProtocolEndpoint.IPv4Address",
+          "CIM_IPProtocolEndpoint.IPv6Address" }, Description (
+          "The IP address that this ProtocolEndpoint represents, "
+          "formatted according to the appropriate convention as "
+          "defined in the AddressType property of this class (e.g., "
+          "171.79.6.40). This single property is deprecated to replace "
+          "it by specific IPv4 and v6 addresses.")]
+   string Address;
+
+      [Description (
+          "The mask for the IPv4 address of this ProtocolEndpoint, if "
+          "one is defined.")]
+   string SubnetMask;
+
+      [Description (
+          "The prefix length for the IPv6 address of this Protocol "
+          "Endpoint, if one is defined.")]
+   uint8 PrefixLength;
+
+      [Deprecated { "No value" }, Description (
+          "An enumeration that describes the format of the Address "
+          "property. It is deprecated since it is not needed, as the "
+          "class contains both IPv4 and v6 addresses)."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "IPv4", "IPv6" }]
+   uint16 AddressType;
+
+      [Deprecated { "CIM_ProtocolEndpoint.ProtocolIFType" }, 
+       Description (
+          "This property explicitly defines support for different "
+          "versions of the IP protocol, for this Endpoint. It is "
+          "deprecated since the ProtocolIFType also provides this "
+          "functionality by describing an endpoint as IPv4 only "
+          "(value=4096), IPv6 only (value=4097), or IPv4/v6 "
+          "(value=4098)."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "IPv4 Only", "IPv6 Only",
+          "Both IPv4 and IPv6" }]
+   uint16 IPVersionSupport;
+
+      [Override ( "ProtocolIFType" ), Description (
+          "ProtocolIFType's enumeration is limited to IP-related and "
+          "reserved values for this subclass of ProtocolEndpoint."),
+       ValueMap { "1", "225..4095", "4096", "4097", "4098",
+          "4301..32767", "32768.." },
+       Values { "Other", "IANA Reserved", "IPv4", "IPv6", "IPv4/v6",
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 ProtocolIFType = 4096;
+
+};
+
+
+// ==================================================================
+// BGPProtocolEndpoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A ProtocolEndpoint that is dedicated to running BGP.")]
+class CIM_BGPProtocolEndpoint : CIM_ProtocolEndpoint {
+
+      [Description (
+          "A boolean that, when TRUE, signifies that this is an "
+          "instance of the external version of BGP (FALSE is the "
+          "internal version).")]
+   boolean IsEBGP;
+
+      [Description (
+          "Normally, two routers running EBGP must be physically "
+          "connected. This boolean, when TRUE, denotes a LOGICAL "
+          "connection between two routers that are running EBGP (e.g., "
+          "there is an intermediate router or interface between them).")]
+   boolean IsEBGPMultihop;
+
+      [Description (
+          "This is the unique identifier of the local BGP router. This "
+          "is often the router ID (e.g., an IP address)."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpIdentifier" }]
+   string LocalIdentifier;
+
+      [Description (
+          "This is the unique identifier of the peer BGP router. This "
+          "is often the router ID (e.g., an IP address)."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerIdentifier" }]
+   string PeerIdentifier;
+
+      [Description (
+          "This defines the current connection state of the BGP Peer."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Idle", "Connect", "Active", "OpenSet", "OpenConfirm",
+          "Established" }, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerState" }]
+   uint16 State;
+
+      [Deprecated { "CIM_EnabledLogicalElement.RequestedState" }, 
+       Description (
+          "This defines the desired state of the BGP connection. It is "
+          "equivalent to the RequestedState property (i.e., "
+          "enabled/disabled status) that is inherited from "
+          "EnabledLogicalElement. AdminStatus is deprecated in lieu of "
+          "this inherited property."), 
+       ValueMap { "1", "2" }, 
+       Values { "Stop", "Start" }, 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerAdminStatus" }]
+   uint16 AdminStatus;
+
+      [Description (
+          "This defines the negotiated version of BGP that is running "
+          "between the two peers."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerNegotiatedVersion" }]
+   string NegotiatedVersion;
+
+      [Deprecated { "CIM_BindsTo", "CIM_IPProtocolEndpoint" }, 
+       Description (
+          "This is the local IP address of this router's BGP "
+          "connection. It is deprecated since a binding should be "
+          "defined using the CIM_BindsTo association. Ideally the "
+          "binding is to a TCPProtocolEndpoint which then handles the "
+          "association to its IPEndpoint."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerLocalAddr" }]
+   string LocalAddress;
+
+      [Deprecated { "CIM_BindsTo", "CIM_TCPProtocolEndpoint" }, 
+       Description (
+          "This is the local port number for the TCP connection of "
+          "this router's BGP connection. It is deprecated since a "
+          "binding should be defined (to a TCPProtocolEndpoint) using "
+          "the CIM_BindsTo association."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerLocalPort" }]
+   uint16 LocalPort;
+
+      [Deprecated { "CIM_BindsTo", "CIM_RemoteServiceAccessPoint" }, 
+       Description (
+          "This is the remote IP address of this router's BGP "
+          "connection. It is deprecated since a binding to a Remote "
+          "ServiceAccessPoint should be instantiated, using "
+          "CIM_BindsTo."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerRemoteAddr" }]
+   string RemoteAddress;
+
+      [Deprecated { "CIM_BindsTo", "CIM_RemotePort" }, Description (
+          "This is the remote port number for the TCP connection of "
+          "this router's BGP connection. It is deprecated since a "
+          "binding to a RemotePort should be instantiated, using "
+          "CIM_BindsTo."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerRemotePort" }]
+   uint16 RemotePort;
+
+      [Description (
+          "This is the remote AS number for this router's BGP "
+          "connection."), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerRemoteAs" }]
+   uint16 RemoteAS;
+
+      [Description (
+          "This defines the time interval, in seconds, for the "
+          "ConnectRetry timer. The suggested value is 120 seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpConnectRetryInterval" }]
+   uint32 ConnectRetryInterval = 120;
+
+      [Description (
+          "This defines the time interval in seconds for the Hold Time "
+          "configured for this BGP speaker with a peer. This value is "
+          "placed in an OPEN message sent to a peer by this BGP "
+          "speaker, and is compared with the Hold Time field in the "
+          "OPEN message received from the peer. It enables this "
+          "speaker to establish a mutually agreeable Hold Time with "
+          "the peer. This value must not be less than three seconds. "
+          "If it is zero, then the Hold Time is NOT to be established "
+          "with the peer. The suggested value for this timer is 90 "
+          "seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerHoldTimeConfigured" }]
+   uint16 HoldTimeConfigured = 90;
+
+      [Description (
+          "This defines the time interval in seconds for the KeepAlive "
+          "timer configured for this BGP speaker with a peer. This "
+          "value will determine the frequency of the KEEPALIVE "
+          "messages relative to the value of the HoldTimeConfigured "
+          "property; the actual frequency is specified by the value of "
+          "the KeepAlive property. A reasonable value is one third of "
+          "that of the value of the HoldTimeConfigured property. If it "
+          "is zero, then NO periodic KEEPALIVE messages are sent to "
+          "the peer. The suggested value for this property is 30 "
+          "seconds. The maximum value of this property is 21845 "
+          "seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerKeepAliveConfigured" 
+          }]
+   uint16 KeepAliveConfigured = 30;
+
+      [Description (
+          "This defines the time interval in seconds for the "
+          "MinASOriginationInterval timer. The suggested value for "
+          "this property is 15 seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { 
+          "MIB.IETF|BGP4-MIB.bgpPeerMinASOriginationInterval" }]
+   uint16 MinASOriginationInterval = 15;
+
+      [Description (
+          "This defines the time interval in seconds for the "
+          "MinRouteAdvertisementInterval timer. The suggested value "
+          "for this property is 30 seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { 
+          "MIB.IETF|BGP4-MIB.bgpPeerMinRouteAdvertisementInterval" }]
+   uint16 MinRouteAdvertisementInterval = 30;
+
+      [Description (
+          "This defines the maximum amount of time in seconds that may "
+          "elapse between the receipt of successive KEEPALIVE or "
+          "UPDATE messages. This is instrumented as a counter that "
+          "increments from zero to the value specified in this "
+          "property. The value of this property is calculated by the "
+          "BGP speaker by using the smaller of the values of "
+          "bgpPeerHoldTimeConfigured and the Hold Time received in the "
+          "OPEN message. This value, if not zero seconds, must be at "
+          "least three seconds, up to a maximum of 65535 seconds. "
+          "Receipt of either a KEEPALIVE or an UPDATE message resets "
+          "this value."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerHoldTime" }]
+   uint16 HoldTime;
+
+      [Description (
+          "This defines the time interval in seconds for the KeepAlive "
+          "timer established with the peer. The value of this property "
+          "is calculated by the speaker such that, when compared with "
+          "the HoldTime property, it has the same proportion as the "
+          "KeepAliveConfigured property has with the "
+          "HoldTimeConfigured property. A value of 0 indicates that "
+          "the KeepAlive timer has not yet been established. The "
+          "maximum value of this property is 21845 seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|BGP4-MIB.bgpPeerKeepAlive" }]
+   uint16 KeepAlive;
+
+
+      [Override ( "ProtocolIFType" ), Description (
+          "ProtocolIFType's enumeration is limited to BGP and reserved "
+          "values for this subclass of ProtocolEndpoint."),
+       ValueMap { "1", "225..4095", "4108", "4301..32767", "32768.." },
+       Values { "Other", "IANA Reserved", "BGP", "DMTF Reserved",
+          "Vendor Reserved" }]
+   uint16 ProtocolIFType = 4108;
+};
+
+
+// ==================================================================
+// ASBGPEndpoints
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "This aggregation defines the different router interfaces that "
+       "are running BGP in the AutonomousSystem.")]
+class CIM_ASBGPEndpoints : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The AutonomousSystem that aggregates the router interfaces "
+          "that are running BGP.")]
+   CIM_AutonomousSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The router interfaces that are contained in the AS.")]
+   CIM_BGPProtocolEndpoint REF PartComponent;
+};
+
+
+// ==================================================================
+// IPXProtocolEndpoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "An IPX communication point from which data may be sent or "
+       "received.")]
+class CIM_IPXProtocolEndpoint : CIM_ProtocolEndpoint {
+
+      [Description (
+          "An IPX address formatted as eight hexadecimal digits "
+          "representing the network number, followed by a colon, "
+          "followed by twelve hexadecimal digits representing the host "
+          "address (e.g. \"00112233:010203040506\").")]
+   string Address;
+
+
+      [Override ( "ProtocolIFType" ), Description (
+          "ProtocolIFType's enumeration is limited to IPX and reserved "
+          "values for this subclass of ProtocolEndpoint."),
+       ValueMap { "1", "225..4095", "4099", "4301..32767", "32768.." },
+       Values { "Other", "IANA Reserved", "IPX", "DMTF Reserved",
+          "Vendor Reserved" }]
+   uint16 ProtocolIFType = 4099;
+};
+
+
+// ==================================================================
+// TCPProtocolEndpoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A protocol endpoint that is dedicated to running TCP.")]
+class CIM_TCPProtocolEndpoint : CIM_ProtocolEndpoint {
+
+      [Description (
+          "The TCP port number.")]
+   uint32 PortNumber;
+
+
+      [Override ( "ProtocolIFType" ), Description (
+          "ProtocolIFType's enumeration is limited to TCP and reserved "
+          "values for this subclass of ProtocolEndpoint."),
+       ValueMap { "1", "225..4095", "4111", "4301..32767", "32768.." },
+       Values { "Other", "IANA Reserved", "TCP", "DMTF Reserved",
+          "Vendor Reserved" }]
+   uint16 ProtocolIFType = 4111;
+};
+
+
+// ==================================================================
+// UDPProtocolEndpoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A protocol endpoint that is dedicated to running UDP.")]
+class CIM_UDPProtocolEndpoint : CIM_ProtocolEndpoint {
+
+      [Description (
+          "The UDP port number.")]
+   uint32 PortNumber;
+
+      [Override ( "ProtocolIFType" ), Description (
+          "ProtocolIFType's enumeration is limited to UDP and reserved "
+          "values for this subclass of ProtocolEndpoint."),
+       ValueMap { "1", "225..4095", "4110", "4301..32767", "32768.." },
+       Values { "Other", "IANA Reserved", "UDP", "DMTF Reserved",
+          "Vendor Reserved" }]
+   uint16 ProtocolIFType = 4110;
+};
+
+
+// ====================================================================
+// OSPFProtocolEndpointBase
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "Base class for OSPF protocol endpoints, defining several "
+       "general properties.")]
+class CIM_OSPFProtocolEndpointBase : CIM_ProtocolEndpoint {
+
+      [Override ( "EnabledState" ), Description (
+          "The operational status of the interface, see "
+          "ospfIfAdminStat in RFC 1850. This is an integer enumeration "
+          "whose complete definition is found in the "
+          "EnabledLogicalElement class."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfAdminStat" }]
+   uint16 EnabledState;
+
+      [Description (
+          "Estimated delay, in seconds that it takes to transmit a "
+          "Link State Update Packet over this interface, see C.3 in "
+          "RFC 2328."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfTransitDelay" }]
+   uint16 TransitDelay;
+
+      [Description (
+          "The number of seconds between LSA (Link State "
+          "Advertisement) retransmissions, see C.3 in RFC 2328."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfRetransInterval" }]
+   uint16 RetransmitInterval;
+
+      [Required, Description (
+          "Identifies the authentication procedure to be used on the "
+          "attached network, see C.3 in RFC 2328."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Null authentication", "Simple password",
+          "Cryptographic authentication" }, 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfAuthType" }]
+   uint16 AuthType;
+
+      [Description (
+          "Specifies the authentication procedure if the value, "
+          "\"Other\" (1) is set for AuthType."), 
+       ModelCorrespondence { "CIM_OSPFProtocolEndpoint.AuthType" }]
+   string OtherAuthType;
+
+      [Description (
+          "This key is used during the authentication procedure to "
+          "verify OSPF protocol packets, see C.3 RFC 2328. It is used "
+          "in the \"Simple password\" and in the \"Cryptographic "
+          "authentication\" case too."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfAuthKey" }]
+   string AuthKey;
+
+
+      [Override ( "ProtocolIFType" ), Description (
+          "ProtocolIFType's enumeration is limited to OSPF and "
+          "reserved values for this subclass of ProtocolEndpoint."),
+       ValueMap { "1", "225..4095", "4109", "4301..32767", "32768.." },
+       Values { "Other", "IANA Reserved", "OSPF", "DMTF Reserved",
+          "Vendor Reserved" }]
+   uint16 ProtocolIFType = 4109;
+};
+
+
+// ====================================================================
+// OSPFProtocolEndpoint
+// ====================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class represents the OSPF configuration of an interface "
+       "running OSPF. The instance of this class should be connected "
+       "to an IPProtocolEndpoint instance via a BindsTo association. "
+       "The IPProtocolEndpoint instance is the Antecedent and the "
+       "OSPFProtocolEndpoint instance is the Dependent in the BindsTo "
+       "association.")]
+class CIM_OSPFProtocolEndpoint : CIM_OSPFProtocolEndpointBase {
+
+      [Description (
+          "When two routers attached to a network both attempt to "
+          "become the Designated Router, the one with the highest "
+          "(i.e. largest) Priority takes precedence, see C.3 in RFC "
+          "2328. Only routers with greater than zero priority are "
+          "eligible to become Designated Router."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfRtrPriority" }]
+   uint8 Priority;
+
+      [Description (
+          "If a neighbouring router on an NBMA (NonBroadcast "
+          "MultiAccess) link becomes inactive, it is still necessary "
+          "to send Hello Packets to the dead neighbor. These packets "
+          "will be sent at the reduced rate, which should be much "
+          "larger than HelloInterval, see C.5 in RFC 2328."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfPollInterval" }]
+   uint16 PollInterval;
+
+      [Description (
+          "The cost of the routes through this OSPF endpoint, see C.3 "
+          "in RFC 2328."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfMetricStatus" }]
+   uint16 Cost;
+
+      [Description (
+          "Indicates whether the interface connects to an on-demand "
+          "circuit, see RFC 1793."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfDemand" }]
+   boolean IfDemand;
+};
+
+
+// ====================================================================
+// OSPFVirtualInterface
+// ====================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class represent an OSPF protocol endpoint on a virtual "
+       "link. The definition of a virtual link from RFC2328, is "
+       "'Virtual links can be configured between any two backbone "
+       "routers that have an interface to a common non-backbone area. "
+       "Virtual links belong to the backbone. The protocol treats two "
+       "routers joined by a virtual link as if they were connected by "
+       "an unnumbered point-to-point backbone network.'")]
+class CIM_OSPFVirtualInterface : CIM_OSPFProtocolEndpointBase {
+};
+
+
+// ===================================================================
+// EndpointIdentity
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_EndpointIdentity indicates that two ProtocolEndpoints "
+       "represent different aspects of the same underlying address or "
+       "protocol-specific ID. This association refines the "
+       "CIM_LogicalIdentity superclass by restricting it to the "
+       "Endpoint level and defining its use in well understood "
+       "scenarios. One of these scenarios is to represent that an "
+       "Endpoint has both 'LAN' and protocol-specific aspects. For "
+       "example, an Endpoint could be both a LANEndpoint as well as a "
+       "DHCPEndpoint.")]
+class CIM_EndpointIdentity : CIM_LogicalIdentity {
+
+      [Override ( "SystemElement" ), Description (
+          "SystemElement represents one aspect of the Endpoint.")]
+   CIM_ProtocolEndpoint ref SystemElement;
+
+      [Override ( "SameElement" ), Description (
+          "SameElement represents an alternate aspect of the Endpoint.")]
+   CIM_ProtocolEndpoint ref SameElement;
+};
+
+
+// ===================================================================
+// SwitchPort
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Switch Port from which frames are received and out which they "
+       "are transmitted. This endpoint is associated with its "
+       "networking interface (such as Ethernet) via the "
+       "EndpointIdentity relationship.")]
+class CIM_SwitchPort : CIM_ProtocolEndpoint {
+
+      [Description (
+          "Numeric identifier for a switch port."), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dPort" }]
+   uint16 PortNumber;
+};
+
+
+
+// ===================================================================
+// end of file
+// ===================================================================

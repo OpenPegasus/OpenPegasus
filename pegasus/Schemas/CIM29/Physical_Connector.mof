@@ -1,0 +1,360 @@
+// ===================================================================
+// Title: Physical_Connector
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Physical_Connector.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Physical Model defines modeling concepts related
+//              to actual boxes and packaging. This file defines the
+//              concepts related to connectors.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 - None
+// CR1093 - Add text regarding PhysicalConnector class defintion
+// 
+// Change Log for v2.7
+// CR623 - Fix the DMI mapping string to include the attribute number
+//         PhysicalConnector.ConnectorType and .OtherTypeDescription.
+// CR676 - Deprecate Slot.Powered
+// CR877 - Add AGP8X enumeration to PhysicalConnector.ConnectorType
+// ==================================================================
+
+#pragma locale ("en_US")
+
+// ==================================================================
+// CIM_PhysicalConnector --- Is located in Physicalxx_Package.mof
+//    to avoid the ConnectorPower method in CIM_Card having a
+//    forward reference.
+// ==================================================================
+
+
+
+// ===================================================================
+// ConnectedTo
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The ConnectedTo association indicates that two or more "
+       "PhysicalConnectors are connected together.")]
+class CIM_ConnectedTo : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Antecedent represents a PhysicalConnector that serves "
+          "as one end of the connection.")]
+   CIM_PhysicalConnector REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Dependent represents another PhysicalConnector that "
+          "serves as the other end of the connection.")]
+   CIM_PhysicalConnector REF Dependent;
+};
+
+
+// ===================================================================
+// Slot
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "The Slot class represents Connectors into which Packages are "
+       "inserted. For example, a PhysicalPackage that is a DiskDrive "
+       "may be inserted into an SCA 'Slot'. As another example, a Card "
+       "(subclass of PhysicalPackage) may be inserted into a 16-, 32-, "
+       "or 64-bit expansion 'Slot' on a HostingBoard. PCI or PCMCIA "
+       "Type III Slots are examples of the latter.")]
+class CIM_Slot : CIM_PhysicalConnector {
+
+      [Override ( "ConnectorType" ), 
+       MappingStrings { "MIF.DMTF|System Slot|005.2" }]
+   uint16 ConnectorType[];
+
+      [Override ( "PoweredOn" ), 
+       MappingStrings { "MIF.DMTF|System Slot|005.13" }]
+   boolean PoweredOn;
+
+      [Description (
+          "Boolean indicating whether the Slot supports hot-plug of "
+          "adapter Cards.")]
+   boolean SupportsHotPlug;
+
+      [Description (
+          "Maximum height of an adapter Card that can be inserted into "
+          "the Slot, in inches."), 
+       Units ( "Inches" )]
+   real32 HeightAllowed;
+
+      [Description (
+          "Maximum length of an adapter Card that can be inserted into "
+          "the Slot, in inches."), 
+       Units ( "Inches" )]
+   real32 LengthAllowed;
+
+      [Description (
+          "Maximum bus width of adapter Cards that can be inserted "
+          "into this Slot, in bits. If the value is 'unknown', enter "
+          "0. If the value is other than 8, 16, 32, 64 or 128, enter "
+          "1."), 
+       Units ( "Bits" ), 
+       ValueMap { "0", "1", "8", "16", "32", "64", "128" }, 
+       MappingStrings { "MIF.DMTF|System Slot|005.3" }]
+   uint16 MaxDataWidth;
+
+      [Description (
+          "An array of enumerated integers indicating the Vcc voltage "
+          "supported by this Slot."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "3.3V", "5V" }, 
+       MappingStrings { "MIF.DMTF|System Slot|005.9" }]
+   uint16 VccMixedVoltageSupport[];
+
+      [Description (
+          "An array of enumerated integers indicating the Vpp voltage "
+          "supported by this Slot."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "3.3V", "5V", "12V" }, 
+       MappingStrings { "MIF.DMTF|System Slot|005.10" }]
+   uint16 VppMixedVoltageSupport[];
+
+      [Description (
+          "Maximum thermal dissipation of the Slot in milliwatts."), 
+       Units ( "MilliWatts" ), 
+       MappingStrings { "MIF.DMTF|System Slot|005.11" }]
+   uint32 ThermalRating;
+
+      [Description (
+          "Boolean indicating that this Slot is physically unique and "
+          "may hold special types of hardware, e.g. a graphics "
+          "processor slot. If set to TRUE, then the property, Special "
+          "PurposeDescription (a string), should specify the nature of "
+          "the uniqueness or purpose of the Slot."), 
+       ModelCorrespondence { "CIM_Slot.PurposeDescription" }]
+   boolean SpecialPurpose;
+
+      [Description (
+          "A free-form string describing that this Slot is physically "
+          "unique and may hold special types of hardware. This "
+          "property only has meaning when the corresponding boolean "
+          "property, SpecialPurpose, is set to TRUE."), 
+       ModelCorrespondence { "CIM_Slot.SpecialPurpose" }]
+   string PurposeDescription;
+
+      [Description (
+          "The Number property indicates the physical slot number, "
+          "which can be used as an index into a system slot table, "
+          "whether or not that slot is physically occupied."), 
+       MappingStrings { "MIF.DMTF|System Slot|005.1" }]
+   uint16 Number;
+
+      [Deprecated { "CIM_PhysicalElement.PoweredOn" }, Description (
+          "A boolean indicating whether the Slot is currently powered "
+          "(TRUE) or not (FALSE)."), 
+       MappingStrings { "MIF.DMTF|System Slot|005.13" }]
+   boolean Powered;
+
+      [Description (
+          "A boolean indicating whether the switch state of the Slot "
+          "is currently open (TRUE) or closed (FALSE). This switch "
+          "state determines whether the contents of the Slot can be "
+          "hot-plugged."), 
+       MappingStrings { "MIF.DMTF|System Slot|005.15" }]
+   boolean OpenSwitch;
+};
+
+
+// ==================================================================
+// SlotInSlot
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Slots are special types of Connectors into which adapter Cards "
+       "are typically inserted. The SlotInSlot relationship represents "
+       "the ability of a special adapter to extend the existing Slot "
+       "structure to enable otherwise incompatible Cards to be plugged "
+       "into a Frame or Hosting Board. The adapter effectively creates "
+       "a new Slot and can be thought of (conceptually) as a Slot in a "
+       "Slot. This enables Cards that would otherwise be physically "
+       "and/or electrically incompatible with the existing Slots to be "
+       "supported, by interfacing to the Slot provided by the adapter. "
+       "This has many practical uses. For example, networking boards "
+       "are very expensive. As new hardware becomes available, Chassis "
+       "and even Card configurations change. To protect the investment "
+       "of their customers, networking vendors will manufacture "
+       "special adapters that enable old Cards to fit into new Chassis "
+       "or Hosting Boards and/or new Cards to fit into old. This is "
+       "done using a special adapter that fits over one or more "
+       "existing Slots and presents a new Slot into which the Card can "
+       "plug.")]
+class CIM_SlotInSlot : CIM_ConnectedTo {
+
+      [Override ( "Antecedent" ), Description (
+          "The Antecedent represents the existing Slot(s) of the "
+          "HostingBoard, or Frame that are being adapted to "
+          "accommodate a Card that would otherwise not be physically "
+          "and/or electrically compatible with it.")]
+   CIM_Slot REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The new Slot provided by the adapter board.")]
+   CIM_Slot REF Dependent;
+};
+
+
+// ==================================================================
+// AdjacentSlots
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "AdjacentSlots describes the layout of Slots on a HostingBoard "
+       "or adapter Card. Information like the distance between the "
+       "Slots and whether they are 'shared' (if one is populated, then "
+       "the other Slot can not be used), is conveyed as properties of "
+       "the association.")]
+class CIM_AdjacentSlots {
+
+      [Key, Description (
+          "One of the adjacent Slots.")]
+   CIM_Slot REF SlotA;
+
+      [Key, Description (
+          "The 'other' adjacent Slot.")]
+   CIM_Slot REF SlotB;
+
+      [Description (
+          "The distance, in inches, between adjacent Slots."), 
+       Units ( "Inches" )]
+   real32 DistanceBetweenSlots;
+
+      [Description (
+          "Slots can be located in close proximity on Hosting Boards "
+          "or other Cards, such that if one of these Slots is "
+          "populated by an adapter Card, the other Slot must be left "
+          "empty. This relationship is indicated by the SharedSlots "
+          "boolean set to TRUE.")]
+   boolean SharedSlots;
+};
+
+// ==================================================================
+// PackageInConnector
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Adapter cards and other 'packaging' are plugged into System "
+       "Connectors for power and/or to transfer data. This "
+       "relationship is defined by PackageInConnector. For example, it "
+       "would be used to describe the insertion of a daughtercard onto "
+       "another Card. Various subclasses of PackageInConnector are "
+       "also defined. PackageInSlot and its subclass, CardInSlot, are "
+       "two examples of subclasses.")]
+class CIM_PackageInConnector : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Connector into which the Package is inserted.")]
+   CIM_PhysicalConnector REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The Package in the Connector.")]
+   CIM_PhysicalPackage REF Dependent;
+};
+
+
+// ==================================================================
+// PackageInSlot
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Complex networking devices often are Chassis-based. These "
+       "Chassis allow for enhancement and/or augmentation of their "
+       "base functionality by accepting additional Chassis devices, "
+       "similar to accepting functionality in the form of adding "
+       "Cards. This association models this capability.")]
+class CIM_PackageInSlot : CIM_PackageInConnector {
+
+      [Override ( "Antecedent" ), Description (
+          "The Slot into which the PhysicalPackage is inserted.")]
+   CIM_Slot REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The Package in the Slot.")]
+   CIM_PhysicalPackage REF Dependent;
+};
+
+
+// ==================================================================
+// CardInSlot
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Slots are special types of Connectors into which adapter Cards "
+       "are inserted. This relationship of a Card in a Slot is made "
+       "explicit using the CardInSlot association."), 
+    MappingStrings { "MIF.DMTF|System Slot|005.4" }]
+class CIM_CardInSlot : CIM_PackageInSlot {
+
+      [Override ( "Antecedent" ), Description (
+          "The Slot into which the Card is inserted.")]
+   CIM_Slot REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The Card in the Slot.")]
+   CIM_Card REF Dependent;
+};
+
+
+// ==================================================================
+// ConnectorOnPackage
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "PhysicalPackages contain Connectors as well as other "
+       "PhysicalElements. The ConnectorOnPackage association makes "
+       "explicit the containment relationship between Connectors and "
+       "Packages.")]
+class CIM_ConnectorOnPackage : CIM_Container {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The PhysicalPackage that has a Connector.")]
+   CIM_PhysicalPackage REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The PhysicalConnector.")]
+   CIM_PhysicalConnector REF PartComponent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

@@ -1,0 +1,153 @@
+TITLE: REDUCING PEGASUS STATIC FOOTPRINT
+
+Author: M. Brasher, Karl Schopmeyer
+
+Date: 3 Aug 2006
+
+This readme describes how to build Pegasus for the smallest possible footprint.
+It defines a number of changes that you can make to reduce both  the Pegasus
+code size and class repository size.
+
+COMPILER ISSUES
+
+    1.	When using GCC, always use 4.0 or later. There are two advantages:
+
+	(*) GCC 4 does a better job of optimizing C++ for size.
+
+	(*) Pegasus limits symbol visisibility from shared libraries using
+	    special features of GCC 4.0 and later.
+
+    2.	If you can't use at least GCC 4.0, at least try to use GCC 3.0 or
+	better. GCC 3.0 introduced the -fno-enforce-eh-specs option, which
+	reduces the object code size of Pegasus by 20%.
+
+    3.	On 64-bit Intel systems, build 32-bit to save around 30% of the
+	footprint (64-bit code is large since the operands are twice as
+	long). This technique of course will produces slower code.
+
+REPOSITORY SIZE REDUCTION
+
+    1.  Configure Pegasus to use a binary CIM repository. This is done by
+	setting the PEGASUS_REPOSITORY_MODE environment variable to BIN.
+	This technique will improve the performance of the repository. There is
+	a readme that describes this feature.
+
+    2.	Configure Pegasus to compress the CIM repository. This is done by
+	setting the PEGASUS_ENABLE_COMPRESSED_REPOSITORY environment variable
+	to true. This technique will slightly degrade the performance of the
+	repository but reduce size by better than 50%. There is a readme
+	that describes this feature and how to set it up.
+
+COMPILE OPTIONS
+
+    1.  Be sure that the PEGASUS_DEBUG environment variable is not defined
+	when you build Pegasus. Otherwise, you will end up with a much
+	larger image.
+    2.  Define PEGASUS_NO_FILE_LINE_TRACE=true to eliminate __FILE__ and
+	__LINE__ macros from tracer expansion. This reduces the overall size
+	by about 50k by not including the line and file information into
+	the code.  However, it means the resulting traces do not have this
+	information in the trace output.
+
+     3. Turn off the compile of the trace completely.  The flag PEGASUS_DISABLE_TRACE
+        will force the compile without any of the trace code.  This can save at least
+	100k but means that there is no means to trace including the XMLIO traces.
+
+     4.	Define the PEGASUS_OPTIMIZE_FOR_SIZE environment variable
+	that causes Pegasus to build with -Os rather than -O2.
+
+     5. Disable use of OOP.  This eliminates the extra use of memory that occurs because
+        of the extra process created to load providers.
+
+STATIC BUILD VS. DYNAMIC BUILD
+
+Originally Pegasus was built with a series of dynamic libraries, one for each
+source directory (common, WQL, CQL, etc.).  While this has proven a good tool
+for developers the result is a significantly larger footprint for a number of
+reasons. See PEP 253 for more information.  Today you have the choice of building
+the dynamic version or a static build which results in a much smaller footprint.
+Generally the static build can save up to 40% in code footprint.
+
+The same basic build mechanism is used for both static and dynamic builds
+with the choice being controlled by the use of two variables:
+
+	PEGASUS_USE_STATIC_LIBRARIES - The environment variable
+	PEGASUS_USE_STATIC_LIBRARIES if it exists will result in a static build.
+	In order to determine which of the libraries go into the static build, a
+	second variable is used in the Makefile for the libraries that are to be
+	included in the executable.
+	
+	STATIC - Setting the variable STATIC=1 in the Makefile for a Pegasus
+	component causes that component to be included in the static executable
+	instead of building a shared library.
+
+As part of the definition of the static build mechanisms into the build
+environment, a lot of work was put into determining which of the existing
+libraries could logically be in the executable since this means that they
+are NOT available as shared libraries for use with providers and clients.
+
+Currently the following libraries are in the static build as supplied with
+the CVS Pegasus 2.6 checkout. Different users may elect to either add or remove
+some of these libraries from the static build depending on their needs for
+the availability of shared libraries for providers or clients..
+
+	src/Pegasus/Server
+	src/Pegasus/Server/ProviderRegistrationManager
+	src/Pegasus/Security/Authentication
+	src/Pegasus/Security/UserManager
+	src/Pegasus/WQL
+	src/Pegasus/ProviderManager2
+	src/Pegasus/ProviderManager2/Default
+	src/Pegasus/IndicationService
+	src/Pegasus/ControlProviders/QueryCapabilitiesProvider
+	src/Pegasus/ControlProviders/NamespaceProvider
+	src/Pegasus/ControlProviders/Statistic
+	src/Pegasus/ControlProviders/UserAuthProvider
+	src/Pegasus/ControlProviders/InteropProvider
+	src/Pegasus/ControlProviders/ConfigSettingProvider
+	src/Pegasus/ControlProviders/ProviderRegistrationProvider
+	src/Pegasus/Repository
+	src/Pegasus/ExportServer
+	src/Pegasus/HandlerService
+	src/Pegasus/Query/QueryExpression
+	src/Pegasus/Query/QueryCommon
+	src/Pegasus/CQL
+	src/Service
+
+NOTE: To see this list for yourself, grep -r Makefiles for STATIC=1.
+NOTE: This list may change with time.
+
+The components that remain dynamic libraries with are as follows:
+
+       src/Pegasus/Common
+       src/Pegasus/Client
+       src/Pegasus/Config
+       src/Pegasus/Provider
+
+This list represents the libraries required by providers.
+
+Building with the static build options does result in static builds for the client
+utilities which might include the static libraries which means that some client
+utilities could be significantly larger.
+
+Today you only gain if you do not use the out-of-process providers (OOP) feature
+because if you build static, the resulting remote agent is effectivly as large
+as the server because of all the static libraries that must be built into it.
+
+The steps to create a static build instead of the dynamic build:
+
+
+    1. Set the PEGASUS_USE_STATIC_LIBRARIES environment variable to true to
+	cause Pegasus to use static libraries where appropriate (rather than
+	dynamic libraries).
+	
+
+    2. Rebuild Pegasus. This will create a single executable for the server
+       and dynamic libraries for those components not defined to be included
+       in the static build.
+
+
+
+
+
+

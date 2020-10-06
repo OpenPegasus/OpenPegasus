@@ -1,0 +1,73 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+//
+// tests character escapes in string contants
+//
+// 8/20/2004, ebb
+//
+class ValidMof4b {
+    [key] uint32 id;
+    uint16 A1[];
+    string s1;     /* we'll use these */
+    string s2;
+    };
+
+instance of ValidMof4b {
+    id = 1;
+    A1 = NULL;
+    s1 = "\b\f\n\r\t\'\"\\";
+    s2 = "\\\\\\\\\\\\";
+    };
+
+instance of ValidMof4b {
+    id = 2;
+    A1 = {};
+    s1 = "--\b--\f--\n--\r--\t--\'--\"--\\";
+    s2 = "\`\~\!\@\#\$\%\^\&\\*\(\)\-\_\=\+\[\]\{\}\:\;\?\/\<\>\,\.";
+    };
+
+instance of ValidMof4b {
+    id = 3;
+    A1 = {1};
+    s1 = "\x1\b\x2\f\x3\n\x4\r\x5\t\x6\'\x7\"\x8\\\x9";
+    s2 = "\x0";           /* how long is this string? */
+    };
+
+instance of ValidMof4b {
+    id = 4;
+    A1 = {1,2,3};
+    s1 = "\x0000\x0001\x0002\x0003\x0004\x0005\x0006\x0007\x0008\x0009\x000a\x000b\x000c\x000d\x000e\x000f";
+    s2 = "\x00000\x0101\x0102\x0103\x0104\x0105\x0106\x0107\X1008\x0109\Xx010a\x010b\x010c\x010d\x010e\x010f";
+
+    };
+
+instance of ValidMof4b {
+    id = 5;
+    s1 = "\a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z\1\2\3\4\5\6\7\8\9\0";
+    };

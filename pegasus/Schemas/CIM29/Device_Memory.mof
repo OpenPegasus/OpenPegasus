@@ -1,0 +1,808 @@
+// ===================================================================
+// Title: Device_Memory
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_Memory.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines the
+//              concepts behind managing memory.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1202 - Remove Experimental Qualifiers
+// 
+// Change Log for v2.8 Preliminary
+// CR941 - Deprecate CacheMemory, VolatileStorage and NonVolatileStorage
+//         Promote AssociatedMemory to LogicalELement
+//         Add AssociatedCacheMemory association
+//         Add Volatile parameter to Memory
+//         Promote BIOSLoadedInNV.Antecendent to CIM_Memory
+//         Deprecate CIM_ComputerSystemMemory
+// CR1097 - Cleanup of CIM_MemoryError.ErrorAccess
+// 
+// Change Log for v2.7
+// CR622 - Fix the DMI mapping string to include the attribute number
+//         for Memory.ErrorInfo, .CorrectableError, .ErrorAccess,
+//           .ErrorTransferSize, .ErrorData, .ErrorAddress,
+//           .ErrorResolution & .AdditionalErrorData,
+//         VolatileStorage.Cacheable & .CacheType,
+//         CacheMemory.Level, .WritePolicy, .CacheType, .LineSize,
+//           .ReplacementPolicy, .ReadPolicy, .FlushTimer, &
+//           .Associativity
+// CR771 - Add the Composition qualifer to ComputerSystemMemory
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// Memory
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "Capabilities and management of Memory-related LogicalDevices.")]
+class CIM_Memory : CIM_StorageExtent {
+
+      [Description (
+          "Volatile is a property that indicates whether this memory "
+          "is volatile or not.")]
+   boolean Volatile;
+
+      [Override ( "ErrorMethodology" ), Description (
+          "ErrorMethodology for Memory is a string property that "
+          "indicates whether parity or CRC algorithms, ECC or other "
+          "mechanisms are used. Details on the algorithm can also be "
+          "supplied."), 
+       MappingStrings { "MIF.DMTF|Physical Memory Array|001.7" }]
+   string ErrorMethodology;
+
+      [Description (
+          "The beginning address, referenced by an application or "
+          "operating system and mapped by a memory controller, for "
+          "this Memory object. The starting address is specified in "
+          "KBytes."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Memory Array Mapped Addresses|001.3",
+          "MIF.DMTF|Memory Device Mapped Addresses|001.4" }]
+   uint64 StartingAddress;
+
+      [Description (
+          "The ending address, referenced by an application or "
+          "operating system and mapped by a memory controller, for "
+          "this Memory object. The ending address is specified in "
+          "KBytes."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Memory Array Mapped Addresses|001.4",
+          "MIF.DMTF|Memory Device Mapped Addresses|001.5" }]
+   uint64 EndingAddress;
+
+      [Deprecated { "CIM_MemoryError.ErrorInfo" }, Description (
+          "An integer enumeration describing the type of error that "
+          "occurred most recently. For example, single (value=6) or "
+          "double bit errors (7) can be specified using this property. "
+          "The values, 12-14, are undefined in the CIM Schema since in "
+          "DMI, they mix the semantics of the type of error and "
+          "whether it was correctable or not. The latter is indicated "
+          "in the property, CorrectableError."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14" }, 
+       Values { "Other", "Unknown", "OK", "Bad Read", "Parity Error",
+          "Single-Bit Error", "Double-Bit Error", "Multi-Bit Error",
+          "Nibble Error", "Checksum Error", "CRC Error", "Undefined",
+          "Undefined", "Undefined" }, 
+       MappingStrings { "MIF.DMTF|Memory Device|005.12",
+          "MIF.DMTF|Physical Memory Array|001.8" }, 
+       ModelCorrespondence { "CIM_Memory.OtherErrorDescription" }]
+   uint16 ErrorInfo;
+
+      [Deprecated { "CIM_MemoryError.OtherErrorDescription" }, 
+       Description (
+          "Free form string providing more information if the Error "
+          "Type property is set to 1, \"Other\". If not set to 1, this "
+          "string has no meaning."), 
+       ModelCorrespondence { "CIM_Memory.ErrorInfo" }]
+   string OtherErrorDescription;
+
+      [Deprecated { "CIM_MemoryError.CorrectableError" }, Description (
+          "Boolean indicating that the most recent error was "
+          "correctable. If the ErrorInfo property is equal to 3, "
+          "\"OK\", then this property has no meaning."), 
+       MappingStrings { "MIF.DMTF|Physical Memory Array|001.8" }]
+   boolean CorrectableError;
+
+      [Deprecated { "CIM_MemoryError.ErrorTime" }, Description (
+          "The time that the last memory error occurred. The type of "
+          "error is described by the ErrorInfo property. If the Error "
+          "Info property is equal to 3, \"OK\", then this property has "
+          "no meaning.")]
+   datetime ErrorTime;
+
+      [Deprecated { "CIM_MemoryError.ErrorAccess" }, Description (
+          "An integer enumeration indicating the memory access "
+          "operation that caused the last error. The type of error is "
+          "described by the ErrorInfo property. If the ErrorInfo "
+          "property is equal to 3, \"OK\", then this property has no "
+          "meaning."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Read", "Write", "Partial Write" }, 
+       MappingStrings { "MIF.DMTF|Physical Memory Array|001.10" }]
+   uint16 ErrorAccess;
+
+      [Deprecated { "CIM_MemoryError.ErrorTransferSize" }, 
+       Description (
+          "The size of the data transfer in bits that caused the last "
+          "error. 0 indicates no error. If the ErrorInfo property is "
+          "equal to 3, \"OK\", then this property should be set to 0."), 
+       Units ( "Bits" ), 
+       MappingStrings { "MIF.DMTF|Physical Memory Array|001.11" }]
+   uint32 ErrorTransferSize;
+
+      [Deprecated { "CIM_MemoryError.ErrorData" }, Description (
+          "Data captured during the last erroneous mebmory access. The "
+          "data occupies the first n octets of the array necessary to "
+          "hold the number of bits specified by the ErrorTransferSize "
+          "property. If ErrorTransferSize is 0, then this property has "
+          "no meaning."), 
+       OctetString, 
+       MappingStrings { "MIF.DMTF|Physical Memory Array|001.12" },
+       ArrayType ( "Indexed" )]
+   uint8 ErrorData[64];
+
+      [Deprecated { "CIM_MemoryError.ErrorDataOrder" }, Description (
+          "The ordering for data stored in the ErrorData property. "
+          "\"Least Significant Byte First\" (value=1) or \"Most "
+          "Significant Byte First\" (2) can be specified. If "
+          "ErrorTransferSize is 0, then this property has no meaning."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "Least Significant Byte First",
+          "Most Significant Byte First" }]
+   uint16 ErrorDataOrder;
+
+      [Deprecated { "CIM_MemoryError.StartingAddress" }, Description (
+          "Specifies the address of the last memory error. The type of "
+          "error is described by the ErrorInfo property. If the "
+          "ErrorInfo property is equal to 3, \"OK\", then this "
+          "property has no meaning."), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.19",
+          "MIF.DMTF|Physical Memory Array|001.14" }]
+   uint64 ErrorAddress;
+
+      [Deprecated { "CIM_MemoryError.SystemLevelAddress" }, 
+       Description (
+          "Boolean indicating whether the address information in the "
+          "property, ErrorAddress, is a system-level address (TRUE) or "
+          "a physical address (FALSE). If the ErrorInfo property is "
+          "equal to 3, \"OK\", then this property has no meaning.")]
+   boolean SystemLevelAddress;
+
+      [Deprecated { "CIM_MemoryError.ErrorResolution" }, Description (
+          "Specifies the range, in bytes, to which the last error can "
+          "be resolved. For example, if error addresses are resolved "
+          "to bit 11 (ie, on a typical page basis), then errors can be "
+          "resolved to 4K boundaries and this property is set to 4000. "
+          "If the ErrorInfo property is equal to 3, \"OK\", then this "
+          "property has no meaning."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.21",
+          "MIF.DMTF|Physical Memory Array|001.15" }]
+   uint64 ErrorResolution;
+
+      [Deprecated { "CIM_MemoryError.AdditionalErrorData" }, 
+       Description (
+          "An array of octets holding additional error information. An "
+          "example is ECC Syndrome or the return of the check bits if "
+          "a CRC-based ErrorMethodology is used. In the latter case, "
+          "if a single bit error is recognized and the CRC algorithm "
+          "is known, it is possible to determine the exact bit that "
+          "failed. This type of data (ECC Syndrome, Check Bit or "
+          "Parity Bit data, or other vendor supplied information) is "
+          "included in this field. If the ErrorInfo property is equal "
+          "to 3, \"OK\", then AdditionalErrorData has no meaning."), 
+       OctetString, 
+       MappingStrings { "MIF.DMTF|Memory Device|005.18",
+          "MIF.DMTF|Physical Memory Array|001.13" }]
+   uint8 AdditionalErrorData[64];
+};
+
+
+// ===================================================================
+// AssociatedMemory
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "LogicalElements may have Memory installed on them or otherwise "
+       "associated with them - such as CacheMemory. This is made "
+       "explicit in this association.")]
+class CIM_AssociatedMemory : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "Memory installed on or associated with a Device.")]
+   CIM_Memory REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalElement.")]
+   CIM_LogicalElement REF Dependent;
+};
+
+
+// ===================================================================
+// MemoryError
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "MemoryError defines a memory space that has errors. The Key of "
+       "the class is the StartingAddress of the bytes in error.")]
+class CIM_MemoryError : CIM_StorageError {
+
+      [Override ( "StartingAddress" ), Description (
+          "Specifies the address of the memory error. The type of "
+          "error is described by the ErrorInfo property. If the "
+          "ErrorInfo property is equal to 3, \"OK\", then this "
+          "property has no meaning."), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.19",
+          "MIF.DMTF|Physical Memory Array|001.14" }]
+   uint64 StartingAddress;
+
+      [Description (
+          "An integer enumeration describing the type of error that "
+          "occurred most recently. For example, single (value=6) or "
+          "double bit errors (7) can be specified using this property. "
+          "The values, 12-14, are undefined in the CIM Schema since in "
+          "DMI, they mix the semantics of the type of error and "
+          "whether it was correctable or not. The latter is indicated "
+          "in the property, CorrectableError."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10" }, 
+       Values { "Unknown", "Other", "OK", "Bad Read", "Parity Error",
+          "Single-Bit Error", "Double-Bit Error", "Multi-Bit Error",
+          "Nibble Error", "Checksum Error", "CRC Error" }, 
+       MappingStrings { "MIF.DMTF|Memory Device|005.12",
+          "MIF.DMTF|Physical Memory Array|001.8" }, 
+       ModelCorrespondence { "CIM_Memory.OtherErrorDescription" }]
+   uint16 ErrorInfo;
+
+      [Description (
+          "Free form string providing more information if the Error "
+          "Type property is set to 1, \"Other\". If not set to 1, this "
+          "string has no meaning."), 
+       ModelCorrespondence { "CIM_Memory.ErrorInfo" }]
+   string OtherErrorDescription;
+
+      [Description (
+          "Boolean indicating that the most recent error was "
+          "correctable. If the ErrorInfo property is equal to 3, "
+          "\"OK\", then this property has no meaning."), 
+       MappingStrings { "MIF.DMTF|Physical Memory Array|001.8" }]
+   boolean CorrectableError;
+
+      [Description (
+          "The time that the last memory error occurred. The type of "
+          "error is described by the ErrorInfo property. If the Error "
+          "Info property is equal to 3, \"OK\", then this property has "
+          "no meaning.")]
+   datetime ErrorTime;
+
+      [Description (
+          "An integer enumeration indicating the memory access "
+          "operation that caused the last error. The type of error "
+          "MUST be described by the ErrorInfo property. If the "
+          "ErrorInfo property is equal to 3, \"OK\", then this "
+          "property has no meaning."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Read", "Write", "Partial Write" }, 
+       MappingStrings { "MIF.DMTF|Physical Memory Array|001.10" }]
+   uint16 ErrorAccess;
+
+      [Description (
+          "The size of the data transfer in bits that caused the last "
+          "error. 0 indicates no error. If the ErrorInfo property is "
+          "equal to 3, \"OK\", then this property should be set to 0."), 
+       Units ( "Bits" ), 
+       MappingStrings { "MIF.DMTF|Physical Memory Array|001.11" }]
+   uint32 ErrorTransferSize;
+
+      [Description (
+          "Data captured during the last erroneous mebmory access. The "
+          "data occupies the first n octets of the array necessary to "
+          "hold the number of bits specified by the ErrorTransferSize "
+          "property. If ErrorTransferSize is 0, then this property has "
+          "no meaning."), 
+       OctetString, 
+       MappingStrings { "MIF.DMTF|Physical Memory Array|001.12" },
+       ArrayType ( "Indexed" )]
+   uint8 ErrorData[64];
+
+      [Description (
+          "The ordering for data stored in the ErrorData property. "
+          "\"Least Significant Byte First\" (value=1) or \"Most "
+          "Significant Byte First\" (2) can be specified. If "
+          "ErrorTransferSize is 0, then this property has no meaning."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "Least Significant Byte First",
+          "Most Significant Byte First" }]
+   uint16 ErrorDataOrder;
+
+      [Description (
+          "Boolean indicating whether the address information in the "
+          "property, ErrorAddress, is a system-level address (TRUE) or "
+          "a physical address (FALSE). If the ErrorInfo property is "
+          "equal to 3, \"OK\", then this property has no meaning.")]
+   boolean SystemLevelAddress;
+
+      [Description (
+          "Specifies the range, in bytes, to which the last error can "
+          "be resolved. For example, if error addresses are resolved "
+          "to bit 11 (ie, on a typical page basis), then errors can be "
+          "resolved to 4K boundaries and this property is set to 4000. "
+          "If the ErrorInfo property is equal to 3, \"OK\", then this "
+          "property has no meaning."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Memory Device|005.21",
+          "MIF.DMTF|Physical Memory Array|001.15" }]
+   uint64 ErrorResolution;
+
+      [Description (
+          "An array of octets holding additional error information. An "
+          "example is ECC Syndrome or the return of the check bits if "
+          "a CRC-based ErrorMethodology is used. In the latter case, "
+          "if a single bit error is recognized and the CRC algorithm "
+          "is known, it is possible to determine the exact bit that "
+          "failed. This type of data (ECC Syndrome, Check Bit or "
+          "Parity Bit data, or other vendor supplied information) is "
+          "included in this field. If the ErrorInfo property is equal "
+          "to 3, \"OK\", then AdditionalErrorData has no meaning."), 
+       OctetString, 
+       MappingStrings { "MIF.DMTF|Memory Device|005.18",
+          "MIF.DMTF|Physical Memory Array|001.13" }]
+   uint8 AdditionalErrorData[64];
+};
+
+
+// ===================================================================
+// ComputerSystemMemory
+// ===================================================================
+   [Association, Deprecated { "CIM_SystemDevice" }, Aggregation,
+    Composition, Version ( "2.8.0" ), Description (
+       "The use of this association has be deprecated in lieu of "
+       "SystemDevice. Association indicating that memory is installed "
+       "and required for the UnitaryComputerSystem to operate. Note "
+       "that this relationship inherits from the SystemDevice "
+       "association, and therefore, the Memory StorageExtent is weak "
+       "to the aggregating UnitaryComputerSystem.")]
+class CIM_ComputerSystemMemory : CIM_SystemDevice {
+
+      [Deprecated { "CIM_SystemDevice.GroupComponent" }, Aggregate,
+       Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The UnitaryComputerSystem.")]
+   CIM_UnitaryComputerSystem REF GroupComponent;
+
+      [Deprecated { "CIM_SystemDevice.PartComponent" },
+          Override ( "PartComponent" ), Description (
+          "The Memory StorageExtent which is part of the "
+          "UnitaryComputerSystem.")]
+   CIM_Memory REF PartComponent;
+};
+
+
+// ===================================================================
+// AssociatedProcessorMemory
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Associates the Processor and system Memory, or a Processor's "
+       "Cache.")]
+class CIM_AssociatedProcessorMemory : CIM_AssociatedMemory {
+
+      [Override ( "Dependent" ), Description (
+          "The Processor that accesses the Memory or uses the Cache.")]
+   CIM_Processor REF Dependent;
+
+      [Description (
+          "Speed of the bus, in MHertz, between the Processor and "
+          "Memory."), 
+       Units ( "MegaHertz" )]
+   uint32 BusSpeed;
+};
+
+// ===================================================================
+// AssociatedCacheMemory
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "Indicates that the Memory provides Cache to the Dependent "
+       "Logical Element.")]
+class CIM_AssociatedCacheMemory : CIM_AssociatedMemory {
+
+      [Description (
+          "Defines whether this is the Primary (value=3), Secondary "
+          "(value=4) or Tertiary (value=5) Cache. Also, \"Other\" (1), "
+          "\"Unknown\" (0) and \"Not Applicable\" (2) can be defined."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Not Applicable", "Primary",
+          "Secondary", "Tertiary" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.2" }, 
+       ModelCorrespondence { 
+          "CIM_AssociatedCacheMemory.OtherLevelDescription" }]
+   uint16 Level;
+
+      [Description (
+          "A string describing the cache level when the Level value is "
+          "1, \"Other\"."), 
+       ModelCorrespondence { "CIM_AssociatedCacheMemory.Level" }]
+   string OtherLevelDescription;
+
+      [Description (
+          "Defines whether this is write-back (value=2) or "
+          "write-through (value=3) Cache, or whether this information "
+          "\"Varies with Address\" (4) or is defined individually for "
+          "each I/O (5). Also, \"Other\" (1) and \"Unknown\" (0) can "
+          "be specified."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Write Back", "Write Through",
+          "Varies with Address", "Determination Per I/O" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.5" }, 
+       ModelCorrespondence { 
+          "CIM_AssociatedCacheMemory.OtherWritePolicyDescription" }]
+   uint16 WritePolicy;
+
+      [Description (
+          "A string describing the Write Policy when the WritePolicy "
+          "value is 1, \"Other\"."), 
+       ModelCorrespondence { "CIM_AssociatedCacheMemory.WritePolicy" }]
+   string OtherWritePolicyDescription;
+
+      [Description (
+          "Defines whether this is for instruction caching (value=2), "
+          "data caching (value=3) or both (value=4, \"Unified\"). "
+          "Also, \"Other\" (1) and \"Unknown\" (0) can be defined."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Instruction", "Data", "Unified" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.9" }, 
+       ModelCorrespondence { 
+          "CIM_AssociatedCacheMemory.OtherCacheTypeDescription" }]
+   uint16 CacheType;
+
+      [Description (
+          "A string describing the Cache Type when the CacheType value "
+          "is 1, \"Other\"."), 
+       ModelCorrespondence { "CIM_AssociatedCacheMemory.CacheType" }]
+   string OtherCacheTypeDescription;
+
+      [Description (
+          "Size, in bytes, of a single cache bucket or line."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|System Cache|006.10" }]
+   uint32 LineSize;
+
+      [Description (
+          "An integer enumeration describing the algorithm to "
+          "determine which cache lines or buckets should be re-used."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Unknown",
+          "Least Recently Used (LRU)", "First In First Out (FIFO)",
+          "Last In First Out (LIFO)", "Least Frequently Used (LFU)",
+          "Most Frequently Used (MFU)",
+          "Data Dependent Multiple Algorithms" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.12" }, 
+       ModelCorrespondence { 
+          "CIM_AssociatedCacheMemory.OtherReplacementPolicyDescription" 
+          }]
+   uint16 ReplacementPolicy;
+
+      [Description (
+          "A string describing the Cache replacement policy when the "
+          "ReplacementPolicy value is 1, \"Other\"."), 
+       ModelCorrespondence { 
+          "CIM_AssociatedCacheMemory.ReplacementPolicy" }]
+   string OtherReplacementPolicyDescription;
+
+      [Description (
+          "Policy that shall be employed by the Cache for handling "
+          "read requests. For example, \"Read\", \"Read-Ahead\" or "
+          "both can be specified using the values, 2, 3 or 4, "
+          "respectively. If the read policy is determined individually "
+          "(ie, for each request), then the value 5 (\"Determination "
+          "per I/O\") should be specified. \"Other\" (1) and "
+          "\"Unknown\" (0) are also valid values."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Read", "Read-Ahead",
+          "Read and Read-Ahead", "Determination Per I/O" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.13" }, 
+       ModelCorrespondence { 
+          "CIM_AssociatedCacheMemory.OtherReadPolicyDescription" }]
+   uint16 ReadPolicy;
+
+      [Description (
+          "A string describing the read policy when the ReadPolicy "
+          "value is 1, \"Other\"."), 
+       ModelCorrespondence { "CIM_AssociatedCacheMemory.ReadPolicy" }]
+   string OtherReadPolicyDescription;
+
+      [Description (
+          "Maximum amount of time, in seconds, dirty lines or buckets "
+          "may remain in the Cache before they are flushed. A value of "
+          "zero indicated that a cache flush is not controlled by a "
+          "flushing timer."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIF.DMTF|System Cache|006.14" }]
+   uint32 FlushTimer;
+
+      [Description (
+          "An integer enumeration defining the system cache "
+          "associativity. For example, 5 indicates a fully associative "
+          "cache."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "Direct Mapped",
+          "2-way Set-Associative", "4-way Set-Associative",
+          "Fully Associative", "8-way Set-Associative",
+          "16-way Set-Associative" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.15" }, 
+       ModelCorrespondence { 
+          "CIM_AssociatedCacheMemory.OtherAssociativityDescription" }]
+   uint16 Associativity;
+
+      [Description (
+          "A string describing the cache associativity when the "
+          "Associativity value is 1, \"Other\"."), 
+       ModelCorrespondence { "CIM_AssociatedCacheMemory.Associativity" 
+          }]
+   string OtherAssociativityDescription;
+};
+
+
+// ===================================================================
+// NonVolatileStorage
+// ===================================================================
+   [Deprecated { "CIM_Memory" }, Version ( "2.8.0" ), Description (
+       "This class has been deprecated in favor of CIM_Memory with the "
+       "volatile parameter set to false. Capabilities and management "
+       "of NV Storage. Non-volatile memory natively includes flash and "
+       "ROM storage. In addition, NV memory can be BasedOn "
+       "VolatileStorage, if the volatile memory is backed by a "
+       "Battery. This scenario would be completely described by an "
+       "instance of the AssociatedBattery relationship, referencing "
+       "the NonVolatileStorage as the Dependent and the Battery as the "
+       "Antecedent, and an instance of the BasedOn relationship, "
+       "referencing the NonVolatileStorage as the Dependent and the "
+       "VolatileStorage as the Antecedent.")]
+class CIM_NonVolatileStorage : CIM_Memory {
+
+      [Deprecated { "CIM_Memory.Access" }, Description (
+          "Indicating that the NV storage is writeable.")]
+   boolean IsWriteable;
+
+      [Deprecated { "no value" }, Description (
+          "Boolean indicating that at least some portion of the "
+          "NonVolatileStorage is writeable by applications.")]
+   boolean ApplicationWriteable;
+
+      [Deprecated { "no value" }, Description (
+          "When at least some portion of the NonVolatileStorage is "
+          "writeable (ApplicationWriteable property = TRUE), "
+          "StartAddress forApplcationWrite indicates the starting "
+          "address for application data. If the ApplicationWriteable "
+          "property is FALSE, this property is undefined."), 
+       ModelCorrespondence { 
+          "CIM_NonVolatileStorage.ApplicationWriteable" }]
+   uint64 StartAddressForApplicationWrite;
+
+      [Deprecated { "no value" }, Description (
+          "When at least some portion of the NonVolatileStorage is "
+          "writeable (ApplicationWriteable property = TRUE), "
+          "Application WritableSize indicates the number of bits "
+          "available for application data. If the ApplicationWriteable "
+          "property is FALSE, this property is undefined."), 
+       Units ( "Bits" ), 
+       ModelCorrespondence { 
+          "CIM_NonVolatileStorage.ApplicationWriteable" }]
+   uint64 ApplicationWriteableSize;
+};
+
+// ===================================================================
+// BIOSLoadedInNV
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "A link between BIOSElement and Memory where the BIOS is "
+       "loaded.")]
+class CIM_BIOSLoadedInNV : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The memory storage.")]
+   CIM_Memory REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The BIOS stored in the memory.")]
+   CIM_BIOSElement REF Dependent;
+
+      [Description (
+          "The starting address where the BIOS is located in "
+          "non-volatile storage.")]
+   uint64 StartingAddress;
+
+      [Description (
+          "The ending address where the BIOS is located in "
+          "non-volatile storage.")]
+   uint64 EndingAddress;
+};
+
+
+
+// ===================================================================
+// VolatileStorage
+// ===================================================================
+   [Deprecated { "CIM_Memory" }, Version ( "2.8.0" ), Description (
+       "Capabilities and management of Volatile Storage.")]
+class CIM_VolatileStorage : CIM_Memory {
+
+      [Deprecated { "CIM_AssociatedCacheMemory" }, Description (
+          "Indicates whether this Memory can be cached or not."), 
+       MappingStrings { "MIF.DMTF|System Resource Memory Info|002.5" }]
+   boolean Cacheable;
+
+      [Deprecated { "CIM_AssociatedCacheMemory.WritePolicy" }, 
+       Description (
+          "An enumeration indicating the cache type that is compatible "
+          "with this Memory. For example, 4 indicates write-through "
+          "cache. If the Cacheable property is set to false, then this "
+          "property does not have meaning and should be set to 5, "
+          "\"Not Applicable\"."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Write-Back", "Write-Through",
+          "Not Applicable" }, 
+       MappingStrings { "MIF.DMTF|System Resource Memory Info|002.6" }]
+   uint16 CacheType;
+};
+
+
+// ===================================================================
+// CacheMemory
+// ===================================================================
+   [Deprecated { "CIM_AssociatedCacheMemory" }, Version ( "2.8.0" ), 
+    Description (
+       "Capabilities and management of Cache Memory. Cache memory is "
+       "dedicated or allocated RAM that a Processor searches first for "
+       "data, before going to 'regular' memory. CacheMemory is used to "
+       "speed up the delivery of data to a Processor. It is usually "
+       "described by its closeness to the Processor (for example, "
+       "Primary or Secondary Cache). \n"
+       "If a DiskDrive includes RAM allocated for holding the disk's "
+       "most recently read and/or adjacent data (in order to speed up "
+       "retrieval), this also would be modeled as CacheMemory. Note "
+       "that CacheMemory is NOT operating system or application level "
+       "buffers but actual RAM allocated for caching data for a "
+       "Processor, from a hard disk, etc.")]
+class CIM_CacheMemory : CIM_Memory {
+
+      [Deprecated { "CIM_AssociatedCacheMemory.Level" }, Description (
+          "Defines whether this is the Primary (value=3), Secondary "
+          "(value=4) or Tertiary (value=5) Cache. Also, \"Other\" (1), "
+          "\"Unknown\" (2) and \"Not Applicable\" (6) can be defined."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "Primary", "Secondary", "Tertiary",
+          "Not Applicable" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.2" }]
+   uint16 Level;
+
+      [Deprecated { "CIM_AssociatedCacheMemory.WritePolicy" }, 
+       Description (
+          "Defines whether this is write-back (value=3) or "
+          "write-through (value=4) Cache, or whether this information "
+          "\"Varies with Address\" (5) or is defined individually for "
+          "each I/O (6). Also, \"Other\" (1) and \"Unknown\" (2) can "
+          "be specified."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "Write Back", "Write Through",
+          "Varies with Address", "Determination Per I/O" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.5" }]
+   uint16 WritePolicy;
+
+      [Deprecated { "CIM_AssociatedCacheMemory.CacheType" }, 
+       Description (
+          "Defines whether this is for instruction caching (value=3), "
+          "data caching (value=4) or both (value=5, \"Unified\"). "
+          "Also, \"Other\" (1) and \"Unknown\" (2) can be defined."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Instruction", "Data", "Unified" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.9" }]
+   uint16 CacheType;
+
+      [Deprecated { "CIM_AssociatedCacheMemory.LineSize" }, 
+       Description (
+          "Size, in bytes, of a single cache bucket or line."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|System Cache|006.10" }]
+   uint32 LineSize;
+
+      [Deprecated { "CIM_AssociatedCacheMemory.ReplacementPolicy" }, 
+       Description (
+          "An integer enumeration describing the algorithm to "
+          "determine which cache lines or buckets should be re-used."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Other", "Unknown", "Least Recently Used (LRU)",
+          "First In First Out (FIFO)", "Last In First Out (LIFO)",
+          "Least Frequently Used (LFU)", "Most Frequently Used (MFU)",
+          "Data Dependent Multiple Algorithms" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.12" }]
+   uint16 ReplacementPolicy;
+
+      [Deprecated { "CIM_AssociatedCacheMemory.ReadPolicy" }, 
+       Description (
+          "Policy that shall be employed by the Cache for handling "
+          "read requests. For example, \"Read\", \"Read-Ahead\" or "
+          "both can be specified using the values, 3, 4 or 5, "
+          "respectively. If the read policy is determined individually "
+          "(ie, for each request), then the value 6 (\"Determination "
+          "per I/O\") should be specified. \"Other\" (1) and "
+          "\"Unknown\" (2) are also valid values."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "Read", "Read-Ahead",
+          "Read and Read-Ahead", "Determination Per I/O" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.13" }]
+   uint16 ReadPolicy;
+
+      [Deprecated { "CIM_AssociatedCacheMemory.FlushTimer" }, 
+       Description (
+          "Maximum amount of time, in seconds, dirty lines or buckets "
+          "may remain in the Cache before they are flushed. A value of "
+          "zero indicated that a cache flush is not controlled by a "
+          "flushing timer."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIF.DMTF|System Cache|006.14" }]
+   uint32 FlushTimer;
+
+      [Deprecated { "CIM_AssociatedCacheMemory.Associativity" }, 
+       Description (
+          "An integer enumeration defining the system cache "
+          "associativity. For example, 6 indicates a fully associative "
+          "cache."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Other", "Unknown", "Direct Mapped",
+          "2-way Set-Associative", "4-way Set-Associative",
+          "Fully Associative", "8-way Set-Associative",
+          "16-way Set-Associative" }, 
+       MappingStrings { "MIF.DMTF|System Cache|006.15" }]
+   uint16 Associativity;
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

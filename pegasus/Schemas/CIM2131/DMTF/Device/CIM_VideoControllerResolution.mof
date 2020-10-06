@@ -1,0 +1,79 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_VideoControllerResolution
+// ==================================================================
+   [UMLPackagePath ( "CIM::Device::Controller" ), Version ( "2.6.0" ), 
+    Description (
+       "VideoControllerResolution describes the various video modes "
+       "that a VideoController can support. Video modes are defined by "
+       "the possible horizontal and vertical resolutions, refresh "
+       "rate, scan mode and number of colors settings supported by a "
+       "Controller. The actual resolutions, etc. that are in use, are "
+       "the values specified in the VideoController object.")]
+class CIM_VideoControllerResolution : CIM_Setting {
+
+      [Key, Override ( "SettingID" ), Description (
+          "The inherited SettingID serves as part of the key for a "
+          "VideoControllerResolution instance."), 
+       MaxLen ( 256 )]
+   string SettingID;
+
+      [Description (
+          "Controller's horizontal resolution in Pixels."), 
+       Units ( "Pixels" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.2" }, 
+       ModelCorrespondence { 
+          "CIM_VideoController.CurrentHorizontalResolution" }]
+   uint32 HorizontalResolution;
+
+      [Description (
+          "Controller's vertical resolution in Pixels."), 
+       Units ( "Pixels" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.3" }, 
+       ModelCorrespondence { 
+          "CIM_VideoController.CurrentVerticalResolution" }]
+   uint32 VerticalResolution;
+
+      [Description (
+          "Refresh rate in Hertz. If a range of rates is supported, "
+          "use the MinRefreshRate and MaxRefreshRate properties, and "
+          "set RefreshRate (this property) to 0."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.4" }, 
+       ModelCorrespondence { "CIM_VideoController.CurrentRefreshRate" }]
+   uint32 RefreshRate;
+
+      [Description (
+          "Minimum refresh rate in Hertz, when a range of rates is "
+          "supported at the specified resolutions."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.6" }, 
+       ModelCorrespondence { "CIM_VideoController.MinRefreshRate" }]
+   uint32 MinRefreshRate;
+
+      [Description (
+          "Maximum refresh rate in Hertz, when a range of rates is "
+          "supported at the specified resolutions."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.7" }, 
+       ModelCorrespondence { "CIM_VideoController.MaxRefreshRate" }]
+   uint32 MaxRefreshRate;
+
+      [Description (
+          "Integer indicating whether the Controller operates in "
+          "interlaced (value=5) or non-interlaced (4) mode."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Not Supported",
+          "Non-Interlaced Operation", "Interlaced Operation" }, 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.5" }, 
+       ModelCorrespondence { "CIM_VideoController.CurrentScanMode" }]
+   uint16 ScanMode;
+
+      [Description (
+          "Number of colors supported at the current resolutions."), 
+       ModelCorrespondence { 
+          "CIM_VideoController.CurrentNumberOfColors" }]
+   uint64 NumberOfColors;
+};

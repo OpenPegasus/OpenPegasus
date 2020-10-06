@@ -1,0 +1,192 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Version ( "2.36.0" ), 
+    UMLPackagePath ( "CIM::Device::Processor" ), 
+    Description ( 
+       "Capabilities and management of the Processor LogicalDevice." )]
+class CIM_Processor : CIM_LogicalDevice {
+
+      [Description ( 
+          "A free-form string that describes the role of the "
+          "Processor, for example, \"Central Processor\" or \"Math "
+          "Processor\"." )]
+   string Role;
+
+      [Description ( 
+          "The Processor family type. For example, values include "
+          "\"Pentium(R) processor with MMX(TM) technology\" "
+          "(value=14) and \"68040\" (value=96)." ), 
+       MappingStrings { "MIF.DMTF|Processor|017.3" }, 
+       ModelCorrespondence { "CIM_Processor.OtherFamilyDescription" }]
+   uint16 Family;
+
+      [Description ( 
+          "A string that describes the Processor Family type. It is "
+          "used when the Family property is set to 1 (\"Other\"). "
+          "This string should be set to NULL when the Family "
+          "property is any value other than 1." ), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_Processor.Family" }]
+   string OtherFamilyDescription;
+
+      [Description ( 
+          "CPU socket information that includes data on how this "
+          "Processor can be upgraded (if upgrades are supported). "
+          "This property is an integer enumeration." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", 
+          "29", "30", "31", "32", "33", "34", "35", "36", "37", 
+          "38", "39", "40", "41", "42", "43", "44", "45" }, 
+       Values { "Other", "Unknown", "Daughter Board", "ZIF Socket", 
+          "Replacement/Piggy Back", "None", "LIF Socket", "Slot 1", 
+          "Slot 2", "370 Pin Socket", "Slot A", "Slot M", 
+          "Socket 423", "Socket A (Socket 462)", "Socket 478", 
+          "Socket 754", "Socket 940", "Socket 939", 
+          "Socket mPGA604", "Socket LGA771", "Socket LGA775", 
+          "Socket S1", "Socket AM2", "Socket F (1207)", 
+          "Socket LGA1366", "Socket G34", "Socket AM3", 
+          "Socket C32", "Socket LGA1156", "Socket LGA1567", 
+          "Socket PGA988A", "Socket BGA1288", "rPGA988B", "BGA1023", 
+          "BGA1224", "LGA1155", "LGA1356", "LGA2011", "Socket FS1", 
+          "Socket FS2", "Socket FM1", "Socket FM2", 
+          "Socket LGA2011-3", "Socket LGA1356-3", "Socket LGA1150" }, 
+       MappingStrings { "MIF.DMTF|Processor|017.7" }]
+   uint16 UpgradeMethod;
+
+      [Description ( "The maximum speed (in MHz) of this Processor." ), 
+       Units ( "MegaHertz" ), 
+       MappingStrings { "MIF.DMTF|Processor|017.5" }, 
+       PUnit ( "hertz * 10^6" )]
+   uint32 MaxClockSpeed;
+
+      [Description ( "The current speed (in MHz) of this Processor." ), 
+       Units ( "MegaHertz" ), 
+       MappingStrings { "MIF.DMTF|Processor|017.6" }, 
+       PUnit ( "hertz * 10^6" )]
+   uint32 CurrentClockSpeed;
+
+      [Description ( "Processor data width in bits." ), 
+       Units ( "Bits" ), 
+       PUnit ( "bit" )]
+   uint16 DataWidth;
+
+      [Description ( "Processor address width in bits." ), 
+       Units ( "Bits" ), 
+       PUnit ( "bit" )]
+   uint16 AddressWidth;
+
+      [Description ( 
+          "Loading of this Processor, averaged over the last "
+          "minute, in Percent." ), 
+       Units ( "Percent" ), 
+       Gauge, MappingStrings { 
+          "MIB.IETF|HOST-RESOURCES-MIB.hrProcessorLoad" }, 
+       PUnit ( "percent" )]
+   uint16 LoadPercentage;
+
+      [Description ( 
+          "Stepping is a free-form string that indicates the "
+          "revision level of the Processor within the "
+          "Processor.Family." ), 
+       ModelCorrespondence { "CIM_Processor.Family" }]
+   string Stepping;
+
+      [Description ( 
+          "A globally unique identifier for the Processor. This "
+          "identifier can be unique only within a Processor Family." )]
+   string UniqueID;
+
+      [Description ( 
+          "The CPUStatus property that indicates the current status "
+          "of the Processor. For example, the Processor might be "
+          "disabled by the user (value=2), or disabled due to a "
+          "POST error (value=3). Information in this property can "
+          "be obtained from SMBIOS, the Type 4 structure, and the "
+          "Status attribute." ), 
+       ValueMap { "0", "1", "2", "3", "4", "7" }, 
+       Values { "Unknown", "CPU Enabled", "CPU Disabled by User", 
+          "CPU Disabled By BIOS (POST Error)", "CPU Is Idle", "Other" }]
+   uint16 CPUStatus;
+
+      [Description ( 
+          "The speed (in MHz) of the external bus interface (also "
+          "known as the front side bus)." ), 
+       Units ( "MegaHertz" ), 
+       PUnit ( "hertz * 10^6" )]
+   uint32 ExternalBusClockSpeed;
+
+      [Description ( 
+          "Array of enumerated values that describes the "
+          "characteristics of the processor. The characteristics "
+          "include certain features of the processor such as 64 bit "
+          "support for data width of the processor. Note that if "
+          "this property does not contain the value corresponding "
+          "to a feature of the processor, than the feature either "
+          "is not that some of the features of the processor may "
+          "exist but may not be enabled. To find the the currently "
+          "enabled features the processor, reffer to the "
+          "EnabledProcessorCharacteristics property. Values "
+          "specified in the enumeration may be obtained from SMBIOS "
+          "v2.5 Type 4 offset 26h (Processor Characteristics Word). "
+          "32-bit Capable - describes whether the processor has the "
+          "capability for 32 bits data width. 64-bit Capable - "
+          "describes whether the processor has the capability for "
+          "64 bits data width. Enhanced Virtualization - describes "
+          "whether the processor has the capability for executing "
+          "enhanced virtualization instructions. Hardware Thread - "
+          "indicates that the processor is capable of the hardware "
+          "threading. NX-bit - describes whether the processor has "
+          "capability to utilize non-execute bit and can "
+          "differentiate the memory marked strictly for storage. "
+          "Power/Performance Control - describes whether the "
+          "processor has capability for load based power savings. "
+          "Core Frequency Boosting - describes whether the "
+          "processor has a capability for one processor core to "
+          "increase its frequency whenever the other core has gone "
+          "into an idle state." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", 
+          "9..32567", "32568..65535" }, 
+       Values { "Unknown", "DMTF Reserved", "64-bit Capable", 
+          "32-bit Capable", "Enhanced Virtualization", 
+          "Hardware Thread", "NX-bit", "Power/Performance Control", 
+          "Core Frequency Boosting", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_Processor.EnabledProcessorCharacteristics" }]
+   uint16 Characteristics[];
+
+      [Description ( 
+          "This property indicates the enabled states of the "
+          "corresponding processor characteristics. The property "
+          "array is indexed with ProcessorCharacteristics property "
+          "array of the associated CIM_ProcessorCapabilities "
+          "instance through the CIM_ElementCapabilities "
+          "association. Each of the values in the "
+          "ProcessorCharacteristics array property shall have its "
+          "enabled state indicated in the corresponding element of "
+          "this property array. For example; if the "
+          "ProcessorCharacteristics array has value - NX-bit - for "
+          "the first element of the array, then the first element "
+          "of this property will contain the value for the enabled "
+          "state of the NX-bit feature of the processor: whether "
+          "the processor currently differentiates the dedicated "
+          "storage memory based on the non-execute bit. Unknown - "
+          "the processor feature is in unknown state. Enabled - the "
+          "processor feature is enabled and could be used. Disabled "
+          "- the processor feature is disabled and cannot be used. "
+          "Not Applicable - the processor feature does not have "
+          "state context." ), 
+       ValueMap { "0", "2", "3", "4", "5..32767", "32768..65535" }, 
+       Values { "Unknown", "Enabled", "Disabled", "Not Applicable", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Processor.Characteristics" }]
+   uint16 EnabledProcessorCharacteristics[];
+
+      [Description ( 
+          "Number of processor cores enabled for processor." )]
+   uint16 NumberOfEnabledCores = 1;
+
+
+};

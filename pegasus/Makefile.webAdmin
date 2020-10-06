@@ -1,0 +1,86 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+# Makefile for webadmin website files.
+
+ROOT = .
+
+include $(ROOT)/env_var.status
+
+# There is no 'OS' defined when it is on linux platform, so define OS = linux.
+# On zOS,Solaris,HP ,'OS' has already been defined.
+ifndef OS
+	OS = linux
+endif
+
+# WEBADMIN_ROOT is the path where webadmin pages locate in source.
+WEBADMIN_ROOT = $(PEGASUS_ROOT)/www
+
+# WEBADMIN_HOME/www is the path in the product.
+WEBADMIN_HOME = $(PEGASUS_HOME)
+
+#WEBADMIN_TARGET is the path where webadmin pages locate in the system.
+# Following place holder are kept for future requirement when we have all the
+# difinition of WEBADMIN_TARGET for all supported platforms, But NOT CURRENTLY
+# IN USE
+ifeq ($(OS), linux)
+ WEBADMIN_TARGET = /var/tog-pegasus/www
+endif
+
+ifeq ($(OS), zos)
+ WEBADMIN_TARGET = /var/wbem/www
+endif
+
+ifeq ($(OS), PASE)
+ WEBADMIN_TARGET = /QOpenSys/QIBM/UserData/UME/Pegasus/www
+endif
+
+ifeq ($(OS),solaris)
+endif
+
+ifeq ($(OS),VMS)
+endif
+
+ifeq ($(OS),aix)
+endif
+
+ifeq ($(OS),windows)
+endif
+
+ifeq ($(OS),darwin)
+endif
+
+setupwebadmin: FORCE
+	-@$(CPDIRHIER) $(WEBADMIN_ROOT) $(WEBADMIN_HOME)
+
+.PHONY: FORCE
+
+FORCE:
+include $(ROOT)/mak/commands.mak
+
+# DO NOT DELETE

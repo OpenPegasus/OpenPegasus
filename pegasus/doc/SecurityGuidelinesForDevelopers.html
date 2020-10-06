@@ -1,0 +1,569 @@
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>PEP</title>
+<link rel="stylesheet" href="http://www.opengroup.org/stylesheets/info1+margins.css">
+<style><!--
+-->
+</style>
+</head>
+<body bgcolor="#FFFFFF">
+<h1> <font color="#000000">Pegasus Security Implementation Guidelines</font></h1>
+<hr>
+<h2><font color="#000000">Problem Statement</font></h2>
+<p><font color="#000000">Open Pegasus has a challenging role. It provides a portal
+  for users and programs to access a wide variety of information on a system.
+  Pegasus is responsible for user authentication and provides a framework for
+  the provider authors to authorize specific read and write operations on the
+  server. Managing the resulting &quot;trust delta&quot; (the difference between
+  what the provider <em>could </em>do in its current execution context, vs. what
+  a given user is <em>authorized</em> to do) is hard. The bigger the trust delta,
+  the greater the incentive to &quot;break in&quot; past authorizations in providers
+  to &quot;get to&quot; a super-user/administrator execution context(or to the
+  context of a user that can do something the authenticated user isn't authorized
+  to do). Though the OpenPegasus 2.5 feature, <strong>&quot;run-as-requestor,&quot;</strong>
+  does provide a way to lower the risk to a given provider that takes advantage
+  of the run-as-requestor context, there are still risks for the providers that
+  decide to run at elevated privilege (defined as when the execution context has
+  more permissions/abilities than the authorized users... hard to avoid when the
+  execution is not <em>as</em> the authorized user).</font></p>
+<p><font color="#008000">Pre-2.5 implementations of OpenPegasus do not change
+  the user-context (effective-user) of the provider from that of the CIMOM. Thus,
+  when Pegasus is used on the majority of platforms (that don't provide intra-thread
+  protections and/or work in a multi-user environment) a provider can, through
+  mistake or intent, easily affect the security of the CIMOM and other providers.
+  </font></p>
+<h2><font color="#000000">Requirements, Constraints or Assumptions</font></h2>
+<p>Most of the risk of failing to follow the guidelines below are only present
+  when code is not run as the authenticated user (whether that code be in the
+  provider or the client) or in deployments for which the concept of authentication
+  isn't used (i.e.: SNMP-public info). Even for more limited deployments, many
+  of the problems below can still cause potential crashes/denial of service conditions.</p>
+<h2><font color="#000000">Definitions:</font></h2>
+<p>Elevated code: a difference between the actions that the logged in user is
+  authorized to perform, and the execution context of the running program.&nbsp;
+  This &quot;trust delta&quot; must then be managed by the code to ensure that
+  the user doesn't perform more actions than they are authorized either directly
+  or through side-effect.&nbsp; For example, a process run as the UID of the authenticated
+  user is thus said to be &quot;non-elevated.&quot;&nbsp; A process running as
+  administrator on behalf of a &quot;non-administrator&quot; user, would be called
+  elevated.</p>
+<p>Privilege: The collection of actions a process or user is not prevented from
+  doing.&nbsp; An &quot;administrator&quot;/root user is said to be full privilege
+  with respect to a system since that execution context does not prevent any action
+  on the system.</p>
+<p>Trust: The degree to which an actor that is interacting with&nbsp; the component
+  under consideration is believed to behave non-maliciously.&nbsp; For example,
+  an arbitrary user on the Internet has no 'trust,&quot; a junior operator or
+  administration is trusted to no attempt malicious activity, but may accidentally
+  attempt damaging actions.&nbsp; Root/Administrator code is trusted to behave
+  correctly.</p>
+<p>Security Testing: Non-functional testing that centers around behavior in the
+  presence of malicious use.&nbsp; Examples includes testing for crashes or security
+  side-effects in the presence of overly long inputs, special character inputs,
+  high-system load, and network storm environments.</p>
+<p>Security Side Effect: Applications often, in accomplishing their goals, perform
+  actions beyond those visible to the user.&nbsp; Examples include writing temporary
+  files, or clearing or requesting memory.&nbsp; Since this behavior is not specified
+  in the functional requirements, it is often not tested.&nbsp; This &quot;side
+  effect&quot; behavior is often the behavior that a malicious user attempts to
+  leverage when trying to gain privilege.&nbsp; Examples include exploiting race
+  conditions where a temporary file is momentarily world writeable, before it
+  is chmod-ed.&nbsp; This window is an opportunity for a malicious user to insert
+  data that can change the behavior of the application.</p>
+<h2><font color="#000000">References:</font></h2>
+<p>Architecture: <a href="http://www.opengroup.org/security/secarch.htm"> http://www.opengroup.org/security/secarch.htm</a></p>
+<p>Books and References (not endorsed by Opengroup or partners): </p>
+<ul>
+  <li><a href="http://www.oreilly.com/catalog/securecdng/"> http://www.oreilly.com/catalog/securecdng/</a></li>
+  <li><a href="http://www.oreilly.com/catalog/puis3/"> http://www.oreilly.com/catalog/puis3/</a></li>
+  <li><a href="http://www.securityfocus.com/infocus/1596"> http://www.securityfocus.com/infocus/1596</a>
+  </li>
+</ul>
+<h2><font color="#000000">Proposed Solution </font></h2>
+<h3><font color="#000000">General Implementation Guidelines: </font></h3>
+<h4><font color="#000000">Code that doesn't adhere to the following guidelines
+  in elevated code should be considered a bug, including providers not running
+  as-requestor. it is a best-practice to follow the following guidelines for all
+  code. </font></h4>
+<ol>
+  <li> <u>Avoid buffer overflow vulnerabilities</u> in your code (hackers use
+    to insert arbitrary code) <br>
+    Buffer overflows in network-accessible software cause the most, and some believe,
+    the majority, of software vulnerabilities. Since Pegasus is written in C/C++,
+    it is especially susceptible to buffer overflows. Strongly consider using
+    a static tool like Flawfinder or RATS to look for common problems. Dynamic
+    tools can also be used but only identify problems when the overflow actually
+    happens vs. finding potential overflows. The susceptibility stems from a lack
+    of bounds checks in C++ and C. Problematic functions include strcpy, sprintf,
+    strcat, gets, and strlcat.</li>
+  <ul>
+    <li> References:<br>
+      <ul>
+        <li> Smashing the stack for fun and profit, <a href="http://www.phrack.com/show.php?p=49">http://www.phrack.com/show.php?p=49</a>
+        <br>
+        <li> Heap Overflows: <a href="http://www.phrack.org/phrack/57/p57-0x08%20">http://www.phrack.org/phrack/57/p57-0x08</a>
+        <br>
+      </ul>
+    </li>
+  </ul>
+  <li> <u>Avoid format string vulnerabilities</u> in your code (hackers use to
+    read or insert arbitrary code)<br>
+    Format strings define the format and types of program variables that are substituted
+    into an input or output string. Exploitation of format strings occurs when
+    functions that require a format string are coded with a variable, and that
+    variable is not validated. For example the following is vulnerable code: printf(string_from_untrusted_user)
+    as the user can supply the format string, and read or overwrite (using %n)
+    arbitrary data. Each developer must: </li>
+  <ul>
+    <li> Use functions with a strict format string argument.</li>
+    <li> Check the input parameter data for format strings before assigning them
+      to variables.</li>
+    <li>Always validate that the input parameter data does not contain any program-specific
+      format characters before assigning the input data to variables.</li>
+    <li> Always check the return codes of library functions for failure.<br>
+    </li>
+  </ul>
+  <li><u>Adhere to the general, good programming practices</u>:
+    <ol>
+      <li> Always have people other than the coder review the code.</li>
+      <li> Always have people other than the coder develop tests and test the
+        end product.</li>
+      <li> Check return codes from system or library calls, and handle errors
+        or exceptions gracefully.</li>
+      <li>Keep your code simple: simple code decreases the risk of defects; complex
+        code increases the risk of defects.</li>
+      <li> Don't use uninitialized variables.</li>
+      <li> Use symbolic constants (such as #define) to minimize typos and improve
+        code maintainability.</li>
+      <li> Use temporary files with care. Do not create temporary directories
+        or files from your program that are world writeable. Limit the permissions
+        to what is needed by the program. Clean up temporary files or directories
+        when you are finished using them.</li>
+      <li>Do not put sensitive information in log files. For example, do not print
+        social security numbers, passwords, credit card numbers, or any other
+        sensitive or personal information for debugging purposes in the log files.
+        Sometimes such information shows up in the web browser in case of exceptions
+        or application failure.</li>
+      <li> Enforce strong password policies and a delay on failed logins. This
+        helps to prevent unauthorized access to private data. See libpam for a
+        good way to implement this.</li>
+      <li>
+        <p>Validate input to the program or system before processing the input.
+          Test to see if the input is the proper type of data and in the range
+          of acceptable or expected values and test both upper and lower bounds.
+          For example, if you are reading in a year value (int), and you have
+          already checked for buffer overflow and format strings:</p>
+        <blockquote>
+          <p>Correct: if 0 &lt;= year &lt;= 3000 then (accept input and process)</p>
+          <p>Unsafe: if year &lt;= 3000 then (accept input and process)</p>
+          <p>The vulnerability of the unsafe example is that if someone were to
+            return a value of -32769, then they could intentionally stop or corrupt
+            a procedure. If the language which you are using does not enforce
+            strong types, then a type check should also be performed before accepting
+            the input.</p>
+        </blockquote>
+      </li>
+    </ol>
+  </li>
+  <li> <u>Use the principles of least and necessary privilege</u>.<br>
+    Only grant the minimum set of privileges required to perform an operation,
+    and grant these privileges for the minimum required amount of time. For example,
+    if a provider needs to modify both mail queues and print spools, don't run
+    the application as root; instead, use /etc/logingroup or other facilities
+    to give the application the privileges which it needs, but not more privileges
+    than it needs. <br>
+  </li>
+  <li> <u>Use SSL securely</u>:
+    <p> Please refer to the OpenSSL documentation for usage. Pegasus libraries
+      help with some but not all functions necessary for certificate management
+      and usage.</li>
+  <li> <u>Handle race conditions securely</u><br>
+    Race conditions occur when two or more processes access a shared resource
+    in an order that was not expected by the program. Unordered access to resources
+    is common in multitasking environments, and is mostly associated with either
+    Signal Handlers or File Handling. For example, if a program &quot;A&quot;
+    checks to see if a file exists before writing, but a program &quot;B&quot;
+    creates a link after the check, but before the write, &quot;A&quot; may inadvertently
+    overwrite the link destination with the permissions associated with &quot;A&quot;.
+    This can be a security problem if &quot;A&quot; has different permissions
+    than &quot;B.&quot;</li>
+  <li> <u>Use secure defaults when possible, or clearly document when they aren't
+    used</u> </li>
+  <li> <u>Design Securely</u><br>
+    Design your code so that as little as possible runs as a privileged user.
+    All privileged user code (especially if it listens on a network or executes
+    on behalf of other users) should be inspected very thoroughly, so it should
+    be short and simple. Each module of code should have a clean interface for
+    other modules to use and a well-defined perimeter around each module.&nbsp;
+    Additional details can be found at: <a href="http://www.joeyoder.com/papers/patterns/Security/appsec.pdf">
+    Architectural Patterns for Enabling Application Security</a> <font size="-4">(http://www.joeyoder.com/papers/patterns/Security/appsec.pdf)</font></li>
+  <li> <u>Test for security </u>(use both positive and negative tests)<br>
+    &quot;Positive tests&quot;verify that the functionality of the product works as specified.
+    &quot;Negative tests&quot;attempt to subvert the security of the system, and are often
+    overlooked when testing software. Spend some time thinking like a hacker and
+    trying to break your system. Always test boundary conditions or corner cases
+    for values of data, size of data, and type of data. Many common bugs are related
+    to this. Sometimes this type of bug may result in wrong information being
+    retrieved from the database instead of failing gracefully. Attempt to exploit
+    the system with buffer overflow and format string attacks.</li>
+  <li> <u>Don't bundle private copies of security code</u><br>
+    Security code (especially highly scrutinized open-source code) is likely to
+    have security bulletins issued against it. When such security bulletins are
+    inevitably issued against code you depend on, you don't want to have to issue
+    a bulletin against your product also. If you put a dependency in your code
+    to a standard distribution of a component which you need (for example OpenSSL),
+    rather than embedding a private copy, then whenever a security bulletin is
+    issued against it, you won't have to reissue the bulletin after repacking
+    the fix for your private copy. <br>
+  </li>
+</ol>
+<h4><font color="#000000">General Coding Best-Practices:</font></h4>
+<ol>
+  <li> <u>Avoid implementing security functionality</u>: Making security claims
+    in your documentation (beyond the implied security claims of authentication
+    and authorization done by the operating system) can increase your risk of
+    having a security defect. This is because any of those claims that are not
+    fully implemented or enforced is by definition a security defect and requires
+    an expedited fix and a security bulletin to announce that fix. Reuse of tried-and-tested
+    code, that has been used in a security context is always a better choice.
+    Never implement a random number generator or cryptographic algorithm unless
+    you're a cryptographer by profession. You will almost certainly get it wrong.<br>
+    &nbsp;&nbsp;&nbsp; You should always, however, document your security behavior.
+  </li>
+  <li><u>Duplicating authorization code</u>: Related to risk #1, every provider
+    has the risk of authorization related defects because the authorization done
+    in each provider is a duplication of the kernel authorization code. However,
+    you can still decrease your risk by using common API's. For example, many
+    providers will need a way to tell if the authenticated user should have access
+    to a given file. The code which does this needs to check the user id, group
+    ids of the file in question and all of its parent directories. Any defect
+    in this code could easily be a security defect and would need to be fixed
+    in every copy of that code. For this reason it is imperative that this logic
+    exists in only one place and that your provider uses that copy. Do not try
+    to replicate this complex logic in your own provider, unless you are the single
+    owner of that code. </li>
+  <li>WBEM provider/client combinations: Writing a WBEM provider that is also
+    a WBEM client (makes requests of other providers) has security risks/challenges.
+    There are two subcategories of this risk/challenge:
+    <ol>
+      <li>using the connectLocal() API uses the UID of the running process to
+        do authentication. Thus, the provider initiating the request must ensure
+        authorization of the other provider's data before making the request.
+        (This is another example of Risk 2, multiple copies of authorization code)
+        One feasible way to do this is to check that the user is a privileged
+        user before calling the other provider (in which case the UID matches
+        the running process)</li>
+      <li> Using the connect() API has additional complexities. Credentials must
+        be somehow passed into the provider and then handled appropriately. Also,
+        there are additional client responsibilities as far as certificate validation
+        and testing, and the consequences are more severe because the client is
+        running with elevated privileges</li>
+    </ol>
+  </li>
+</ol>
+<h3> <font color="#000000">Provider Implementation Guidelines&nbsp; </font></h3>
+<h4> <font color="#000000">Code that doesn't following the following guidelines
+  in providers running at elevated-privilege should be considered a bug.<br>
+  Code in providers running as-requestor can consider the following as general
+  best practice.</font></h4>
+<ol>
+  <li> <u>Check the username/uid and execute every method as if it was running
+    as that user</u> (i.e. had the OS kernel or authorization service done the
+    authorization).<br>
+    By checking each operation they perform, and ensuring those operations, when
+    performed on behalf of a non-privileged user, do not have security side-effects.
+    Any discrepancy between OS authorizations done by the kernel and that done
+    by the provider that is not part of documented behavior is a security defect.
+    If the user does not have the privileges to perform the requested operation
+    the Provider must throw CIMAccessDeniedException.</li>
+  <li> <u>Keep your design/provider simple.</u> <br>
+    While this is difficult to quantify, it is important to minimize the amount
+    of code running as a privileged user. As a general guideline, if you have
+    significant lines of code running with elevated privilege, the likelihood
+    of a security defect is high. Remember that defects in elevated privilege
+    code is a potential security defect, so all of this code must be straightforward
+    and easy to review based on the principles mentioned in the General Coding
+    principles above. The likelihood of a defect not being found is proportional
+    to the amount and complexity of the code. </li>
+  <li><u>Provider must not use any calls such as setuid or setting environment
+    variables (i.e. PATH) that would alter the state of the process running the
+    CIM Server.</u> <br>
+    This could cause unexpected results for other providers or threads.</li>
+  <li><u>Provider must document property authorizations</u>. <br>
+    Specifically, the provider should describe which data elements they make available
+    for reading, which system changes they are capable of making, and which users
+    will be able to read those elements and make those changes.</li>
+  <li><u>Provider must check all untrusted input for validity.</u> <br>
+    While the CIM Server ensures that the input is a valid CIM request, the provider
+    is responsible for validating that the CIM request does not cause any side
+    effects by ensuring that the input strings contain only expected characters
+    and that values are within an expected range. Examples of input data that
+    must be checked include directory or file names, data within files that are
+    read by the provider, and data returned from system calls.</li>
+  <li><u>Provider must execute stress tests</u>.<br>
+    These include operation in the presence of multiple interacting provider requests.
+    Based on a white box analysis of your provider, identify ways in which testing
+    could stress your provider. For example, sending large input strings, a large
+    number of simultaneous requests, requests including out-of-bounds data, or
+    ensuring that every branch is covered are just a few ways that you could stress
+    your product to find potential defects. By exploring the way your provider
+    fails, you can look for side effects that might lead to &quot;infinite&quot;
+    resource requests, overwritten data, or other anomalies that could cause a
+    denial-of-service or reveal a side-effect that can be leveraged as an exploit.</li>
+  <li><u>Design your provider to expect belligerent input</u>. <br>
+    For example, have a common method that validates all CIM requests and ensure
+    that that method gets called for every request. The method should assume that
+    input is invalid unless it matches a specific format and specific bounds are
+    checked. Also, if your provider allocates any memory buffers or writes to
+    any file based on user input, all error conditions (out-of-memory, disk full,
+    file is a symbolic link/device file/directory instead of the expected format,
+    buffer/array too small for data, etc.) should be checked and all of this should
+    be enforced in a common place.</li>
+  <li><u>Do not allow group or world-write access </u>to your shared library,
+    any other executable code, configuration files, or any parent directory of
+    any of the above. <br>
+    Although only a privileged user ought to be able to create the symbolic links
+    or shortcuts to the provider shared library in the designated WBEM provider
+    library directory, the actual provider shared library can be placed in any
+    directory. A provider must ensure that their shared libraries are protected
+    in such a way that only a privileged user can modify or delete the shared
+    library or the directory where the shared library is located.</li>
+  <li><u><font color="#008000">Don't bypass authentication</font></u><font color="#008000">:
+    To avoid damaging CIMOM and other-providers' security, providers should not
+    bypass CIMOM authentication steps in communicating to other providers or the
+    CIMOM (manipulating CIMOM-handle userid) and instead use CIMClient in accordance
+    with &quot;General-Client Best Practices&quot; section. In cases where the
+    Pegasus use-model does rely on platform-native inter-thread protections, a
+    future protection algorithm may have to be implemented in OpenPegasus that
+    ensures an unchanged state of the operation context. Note however that, In
+    Pegasus 2.5, if a provider uses run-as-requestor, that will ensure the provider
+    runs in the right user-context, and cleans up the interface to that provider
+    to ensure it doesn't skip inter-provider authentication. </font><br>
+  </li>
+</ol>
+<h4><br>
+  <font color="#000000">Provider Best-Practices:</font></h4>
+<ol>
+  <li><u>Use &quot;UserContext registration&quot; setting, present in Open Pegasus
+    2.5 and later</u>: <br>
+    In Pegasus 2.5 and after, you should strongly consider registering your provider
+    to run as requestor context, or if not available, use Windows &quot;impersonation&quot;
+    or fork a correct-user-running process. For providers in versions prior to
+    2.5, you may want to consider implementing your own out of process provider,
+    to avoid the risks of running at elevated privilege. For those that must run
+    privileged: </li>
+  <ul>
+    <li><u>Check that the authenticated username provided by CIM matches the effective
+      user id</u> of the running process. For Pegasus 2.4 and prior, this means
+      that only the privileged user would be able to use your provider. The general
+      property is that if you are not elevating privilege (running on behalf of
+      a different user), then the likelihood of a security defect is greatly decreased.
+      Making your code more general may mean less work in the future when non-privilege-elevated
+      providers are able to run with the correct user-id.&nbsp; Even in the model
+      where Pegasus is run under a non-privileged user, there is a delta in &quot;trust&quot;
+      between the different users.&nbsp; This still represents some, though not
+      as much, risk as deploying a run-as-administrator Pegasus.&nbsp; There is
+      an opportunity to improve Pegasus to better support fully protecting this
+      use model, though this is less urgent than protecting the higher risk associated
+      with an administrator running CIM server.</li>
+    <li><u>Recommend configuring the WBEM users group (ref: PEP 142)</u>: For
+      Pegasus versions prior to 2.5, and subsequent, customers can configure a
+      specific group of users who has access to WBEM providers. This allows customers
+      to choose a tradeoff between security risk and ease-of-setup. Since every
+      provider runs with elevated privilege, the risk of security defects is high.
+      Thus, it is advised that customers configure this group of WBEM users to
+      only allow access to users who are trusted not to be malicious. If you also
+      do not run by default, this information can be in your initial setup documentation
+      so that it gets to all of your customers. This can greatly decrease your
+      risk of having a security defect, because all malicious activities can be
+      potentially ruled out.</li>
+  </ul>
+  <li><u>Providers should consider the tradeoff between default installation/registration
+    and optional</u>:&nbsp; An optional installation of a component (as part of
+    an OS or software package) gives customers a choice as to whether or not to
+    limit their interface/exposure, and maintenance/patch burden.&nbsp; Your provider
+    likely meets a real need for many customers, but there are also customers
+    who do not need the functionality you provide. There are many customers who
+    would prefer less patching/update cost and decreased security risk (risk is
+    added whenever there is a new interface) versus the functionality that your
+    product provides. Although technically this doesn't decrease the risk of having
+    a security defect, it can give you more options for interim workarounds until
+    you can get a critical fix out, and fewer customers would be affected by any
+    given defect.&nbsp; Provider writers and bundlers should consider these benefits
+    and weigh those against the bundling benefits of mandatory inclusion.</li>
+  <li><u>Log important events, such as unauthorized requests</u>: This can help
+    a customer track down a potential intrusion as well as debug problems. Do
+    not include confidential information, such as passwords, in the log. Ensure
+    that the confidentiality of information stored in the log is commensurate
+    with access to the log. It is recommended that you use a common logging facility,
+    such as syslog. Syslogd takes care of things like log rotation, etc. and the
+    administrator already knows where to look for your logs.</li>
+  <li><u>When making system changes, use platform security checks where possible
+    vs. rewriting your own authorization code</u>: Duplicating authorization code
+    at least doubles the work and is more error-prone.</li>
+</ol>
+<h3> <font color="#000000">Client Implementation Guidelines:</font></h3>
+<p> Note: In general, these are the responsibility of the applications invoking
+  CIM client libraries to the extent that the client libraries don't yet provide
+  the direct support.</p>
+<h4> <font color="#000000">Client code that doesn't follow these guidelines should
+  be considered a bug:</font></h4>
+<ol>
+  <li><u>Use SSL as<a> follows in your remote production client. Though WBEM does
+    provide libraries to help, client behavior is the client's responsibility:</a></u></li>
+  <li><u>Protect the Keystore and Truststore for remote production clients</u>:
+    <ul>
+      <li>Use proper file and directory permissions to protect keystore and truststore
+        files. </li>
+      <li>If your applications are importing the servers' certificate to a truststore,
+        you must ensure that the user validates the certificates received before
+        adding them to a truststore or keystore.</li>
+      <li>Do not use less than 1024 bit keysize to create keystores.</li>
+      <li>Keystores/truststores should not be readable or writeable by anyone
+        other than the user who owns them.</li>
+    </ul>
+  </li>
+  <li><u>General programming standards</u>
+    <ul>
+      <li>Do not use world-writeable files or directories (including /tmp and
+        /var/tmp).&nbsp; Make sure all credentials (passwords/certificates) are
+        readable only by their owner.</li>
+      <li>Do not cache passwords unless directed to do so by the user.&nbsp; The
+        user should be aware that their password is being stored permanently on
+        the client machine.</li>
+      <li>Do not pass passwords as an option on the command-line in non-windows
+        clients.&nbsp; Command-lines are visible to all users on the system in
+        some operating systems.</li>
+    </ul>
+  </li>
+</ol>
+<h4><font color="#000000">General client best-practices:</font></h4>
+<ol>
+  <li><u>Limit access to client data</u>: Each user of a WBEM client should have
+    his/her own WBEM client instance.&nbsp; The WBEM client process should run
+    as the correct user on the client machine.</li>
+  <li><u>Local vs. Remote Requests and Username/Password Authentication</u>: Use
+    the connectLocal() API call to connect to the CIM server whenever possible.&nbsp;
+    To use this API call properly, the process must run with the correct userid
+    <br>
+    <br>
+    <font face="Courier">Warning: &nbsp;For Pegasus earlier than 2.5, doing client
+    operations from a CIM provider significantly increases your security risk
+    if the initial client requester was not running as root.&nbsp; This is due
+    to the implementation which runs the provider in the CIM Server process space
+    with a single, often privileged, user so the provider it connects to will
+    be unable to use built-in authentication.&nbsp; Providers issuing WBEM client
+    operations must adequately address the security risk.&nbsp; A few alternatives
+    to address the security concern are: 1) ensure (either at design time or at
+    runtime in the provider) that the user is authorized to access the data being
+    requested from the second provider, and 2) the provider could launch another
+    process and issue the request to the second provider as the intended user.</font>
+    <p>Background on connectLocal():&nbsp; <br>
+      A local connection mechanism exists for clients to communicate with the
+      CIM Server on the same system. The connectLocal() function is used for this
+      purpose, and does not take any arguments. In the case where PEGASUS_LOCAL_DOMAIN_SOCKET
+      is defined, (default on all but Windows, as currently the Windows connectLocal
+      authentication is not functional as of 2.5) the user ID passed to the provider
+      is that of the process in which the client program is running. The CIM Server
+      verifies that the user ID of the request is indeed that of the requesting
+      process. Namespace authorization, if enabled, is still performed.&nbsp;
+      When the client must be able to connect to a CIM Server on a remote system,
+      or when it must be able to specify a different user than that of the process,
+      it must use the connect() function. This function allows a hostname and
+      port number to be specified, as well as a username and password.&nbsp; If
+      you need to use the connect() API, the WBEM client has several responsibilities
+      to ensure correct authentication and to protect confidential information.&nbsp;&nbsp;
+      Because connectLocal() does not use SSL, these guidelines only apply to
+      the connect() interface. Using connectLocal() bypasses these requirements
+      except where PEGASUS_LOCAL_DOMAIN_SOCKET is not defined.&nbsp; In that case,
+      it behaves like connect(), using HTTPS and/or HTTP as defined in Pegasus
+      settings.<br>
+      &nbsp;</li>
+  <li><u>General programming standards</u>
+    <ul>
+      <li>Design for belligerent input.&nbsp; A separate module should be responsible
+        for validating all input before taking any action.&nbsp; Invalid input
+        should be discarded.&nbsp; If you client has high availability requirements,
+        deal with invalid input quickly to avoid Denial of Service attacks.</li>
+      <li>Use a strongly-typed language if possible (i.e. Java).&nbsp; If your
+        client is in C++, then use a security scanner such as RATS (<a href="http://www.securesoftware.com/resources/download_rats.html">http://www.securesoftware.com/resources/download_rats.html</a>)
+        to identify problem areas and follow the recommendations.&nbsp; (Note:
+        code scanners such as these tend to make a lot of recommendations, so
+        plan on adequate time for manual analysis and focus on your input validation
+        module.)</li>
+      <li>Do not use world-writeable files or directories (including /tmp and
+        /var/tmp).&nbsp; Make sure all credentials (passwords/certificates) are
+        readable only by their owner.</li>
+      <li>Do not cache passwords unless directed to do so by the user.&nbsp; The
+        user should be aware that their password is being stored permanently on
+        the client machine.</li>
+      <li>Do not pass passwords as an option on the command-line on non-windows
+        systems.&nbsp; Command-lines on non-windows systems are visible to all
+        users on the system.</li>
+      <li>If possible, do not make any server-initiated changes on the client
+        system.&nbsp; Doing so increases the risk of security vulnerabilities
+        in your client, and a security reviewer should be consulted.</li>
+      <li>If possible, log events of interest, including certificate warning messages
+        and invalid responses sent from the server. Doing so increases the ability
+        of a user or system administrator to track down unauthorized actions.&nbsp;
+        Use either a user-specific logfile or syslog.&nbsp; Be sure to check for
+        corner cases like disk-space limitations.</li>
+      <li>HTTP Indications should only be used to send confidential information
+        in environments where the risk of exposure to man-in-the-middle type attacks
+        is low (e.g. where a rogue CIM Listener could intercept indications).&nbsp;
+        If your listener expects to receive confidential information, be sure
+        to document that this information will be visible to anyone on the network
+        clearly to the customer initiating the subscription.</li>
+    </ul>
+  </li>
+  <li><u>Security Testing Guidelines</u>
+    <ul>
+      <li>Run the following tests, and ensure that your client gives a useful
+        error message and does not crash.&nbsp; Crashes on strange and unexpected
+        input are, at a minimum, a denial-of-service, and often represent buffer
+        or format-string vulnerabilities.:
+        <ul>
+          <li>CIM server you are connecting to is not available (disabled or network
+            problems)</li>
+          <li>CIM server responds with an extremely large response</li>
+          <li>CIM server or provider responds with invalid characters or garbage
+            in the response</li>
+          <li>CIM server returns 'access denied'</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>
+<h2><font color="#000000">Platform Considerations</font></h2>
+<p><font color="#000000
+">The coding guidelines may not help, but will not hurt implementations where
+  Pegasus and its providers are not run at elevated privilege. Examples of this
+  include environments with only one user or where Pegasus itself is executed
+  as the requesting user.</font></p>
+<hr>
+<p>Licensed to The Open Group (TOG) under one or more contributor license
+agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+this work for additional information regarding copyright ownership.
+Each contributor licenses this file to you under the OpenPegasus Open
+Source License; you may not use this file except in compliance with the
+License.</p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:</p>
+<p>The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.</p>
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+<hr>
+</body>
+</html>

@@ -1,0 +1,438 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+
+#
+# This script performs an automated Pegasus build and test and sends a status
+# message to the OpenPegasus Nightly Build & Regression Testing Status web
+# page.  It is not required to use this script to generate a build report.
+# This script is known to run on Linux and HP-UX platforms.
+#
+# These environment variables must be set before running this script:
+#
+# PEGASUS_ROOT
+# PEGASUS_HOME
+# PEGASUS_BUILD_BRANCH
+# PEGASUS_BUILD_PLATFORM
+# PEGASUS_BUILD_CONTRIBUTOR
+#
+# These environment variables are also used if set:
+#
+# PEGASUS_BUILD_REPORT_EMAIL_RECIPIENTS (pegasus-build-status at opengroup.org)
+# PEGASUS_BUILD_FAILURE_EMAIL_RECIPIENTS (Send failure emails to more addresses)
+# PEGASUS_CADVISE=TRUE
+# PEGASUS_CCOVER=TRUE
+# PEGASUS_PMCCABE_COMPLEXITY_REPORT=TRUE
+# PEGASUS_PMCCABE_LINECOUNT=TRUE
+# PEGASUS_RPM_BUILD=TRUE
+# PEGASUS_RPM_BUILD_SQLITE_REPOSITORY=TRUE
+# PEGASUS_TEST_ENABLE_DEBUG_TRACE=true (Check for DiscardedData trace messages)
+# PEGASUS_TEST_VALGRIND_LOG_DIR
+# PEGASUS_TMP
+#
+# This script must be run from the level above the PEGASUS_ROOT directory after
+# checking out the Pegasus source.
+#
+
+# Ensure the environment is configured
+
+if [ "$PEGASUS_BUILD_BRANCH" = "" ]; then
+    echo "Error: PEGASUS_BUILD_BRANCH is not defined."
+    exit 1
+fi
+
+if [ "$PEGASUS_BUILD_PLATFORM" = "" ]; then
+    echo "Error: PEGASUS_BUILD_PLATFORM is not defined."
+    exit 1
+fi
+
+if [ "$PEGASUS_BUILD_CONTRIBUTOR" = "" ]; then
+    echo "Error: PEGASUS_BUILD_CONTRIBUTOR is not defined."
+    exit 1
+fi
+
+if [ ! -d pegasus ]; then
+    echo "Error: pegasus directory does not exist.  Please run this script from"
+    echo "the directory above PEGASUS_ROOT and ensure the source tree has been"
+    echo "checked out."
+    exit 1
+fi
+
+if [ `uname` = "HP-UX" ]; then
+    MAIL_PROGRAM=mailx
+else
+    MAIL_PROGRAM=mail
+fi
+
+# Set up log files
+
+reportFile=make.out  # The report file that emailed
+logFile=make.log     # A build log to facilitate failure analysis
+rm -f $reportFile
+rm -f $logFile
+
+# Create the report header
+
+branch=$PEGASUS_BUILD_BRANCH
+
+platform=$PEGASUS_BUILD_PLATFORM
+if [ "$PEGASUS_CADVISE" = "TRUE" ]; then
+    platform="$platform cadvise"
+elif [ "$PEGASUS_PMCCABE_LINECOUNT" = "TRUE" ]; then 
+    platform="$platform pmccabe linecount"
+elif [ "$PEGASUS_PMCCABE_COMPLEXITY_REPORT" = "TRUE" ]; then 
+    platform="$platform pmccabe complexity report"
+fi
+
+datestamp=`date -u +%y%m%d`
+timestamp=`date -u +%H%M`
+dayofyear=`date -u +'%j'`
+
+echo "Platform: $platform" > $reportFile
+echo "Branch: $branch" >> $reportFile
+echo "Contributor: $PEGASUS_BUILD_CONTRIBUTOR" >> $reportFile
+echo "Date: $datestamp" >> $reportFile
+echo "Time: $timestamp" >> $reportFile
+
+OPTION_SUMMARY=`make -f pegasus/TestMakefile option_summary 2> $logFile`
+if [ $? -eq 0 ]; then
+    echo "Options: $OPTION_SUMMARY" >> $reportFile
+fi
+
+# Create the PEGASUS_TMP directory
+
+if [ "$PEGASUS_RPM_BUILD" != "TRUE" ]; then
+   if [ "$PEGASUS_TMP" = "" ]; then
+      export PEGASUS_TMP=$PEGASUS_HOME/tmp
+   fi
+   if [ ! -d "$PEGASUS_TMP" ]; then
+      mkdir -p $PEGASUS_TMP
+      chmod 777 $PEGASUS_TMP
+   fi
+fi
+
+# Remove the previous test files
+
+if [ "$PEGASUS_CCOVER" = "TRUE" ]; then
+    # Note: The COVFILE environment variable is used by C-Cover directly
+    rm -f $COVFILE
+fi
+
+if [ "$PEGASUS_TEST_VALGRIND_LOG_DIR" != "" ]; then
+    # Create valgrind log dir
+    rm -rf $PEGASUS_TEST_VALGRIND_LOG_DIR
+    mkdir -p $PEGASUS_TEST_VALGRIND_LOG_DIR
+    chmod a+wr $PEGASUS_TEST_VALGRIND_LOG_DIR
+fi
+
+if [ "$PEGASUS_PMCCABE_LINECOUNT" = "TRUE" ]; then
+   rm -rf $PEGASUS_TMP/SourceList
+   rm -rf $PEGASUS_TMP/SortedSourceList
+   rm -rf $PEGASUS_TMP/RelativePathSortedSourceList
+fi
+
+# Build and run the tests
+
+if [ "$PEGASUS_CCOVER" = "TRUE" ]; then
+    make -f pegasus/TestMakefile build alltests standardtests check_for_cores \
+        >> $logFile 2>&1
+elif [ "$PEGASUS_RPM_BUILD" == "TRUE" ]; then
+    SQLiteOption=""
+    if [ "$PEGASUS_RPM_BUILD_SQLITE_REPOSITORY" == "TRUE" ]; then
+       SQLiteOption="enableSQLiteRepository"
+    fi
+    rpmMakeOptions="$SQLiteOption cleanRPM buildRPM install tests"
+    make -f ./pegasus/rpm/RPMMakefile $rpmMakeOptions >> $logFile 2>&1
+elif [ "$PEGASUS_TEST_VALGRIND_LOG_DIR" != "" ]; then
+    make -i -f pegasus/TestMakefile build alltests check_for_cores \
+        >> $logFile 2>&1
+elif [ "$PEGASUS_CADVISE" = "TRUE" ]; then
+    pdb_dir=$PEGASUS_HOME/cadvise.pdb
+    mkdir $pdb_dir
+    make -f pegasus/TestMakefile build >> $logFile 2>&1
+elif [ "$PEGASUS_PMCCABE_LINECOUNT" = "TRUE" ] || \
+        [ "$PEGASUS_PMCCABE_COMPLEXITY_REPORT" = "TRUE" ]; then
+    make --directory=pegasus buildmu >> $logFile 2>&1
+    make -s --directory=pegasus general -i OPTION=1 > $PEGASUS_TMP/SourceList
+    sort -u $PEGASUS_TMP/SourceList > $PEGASUS_TMP/SortedSourceList
+    sizeofpathprefix=`echo $PEGASUS_ROOT | wc -c`
+    sizeofpathprefix=`expr $sizeofpathprefix - 7` # Don't count "pegasus" chars
+    cut -c $sizeofpathprefix- $PEGASUS_TMP/SortedSourceList \
+        > $PEGASUS_TMP/RelativePathSortedSourceList
+    if [ "$PEGASUS_PMCCABE_LINECOUNT" = "TRUE" ]; then
+        pmccabe -n -v -t `cat $PEGASUS_TMP/RelativePathSortedSourceList` \
+            > $PEGASUS_TMP/LineCountReport.$dayofyear.$datestamp.txt
+    else
+        pmccabe -v < /dev/null \
+            > $PEGASUS_TMP/ComplexityReport.$dayofyear.$datestamp.txt
+        pmccabe \
+            `cat $PEGASUS_TMP/RelativePathSortedSourceList | sed /.h/d` \
+            | sort -nr | head -500 \
+            >> $PEGASUS_TMP/ComplexityReport.$dayofyear.$datestamp.txt
+    fi
+else
+    make -f pegasus/TestMakefile build alltests check_for_cores >> $logFile 2>&1
+fi
+build_status=$?
+
+# Check the results
+
+if [ $build_status -eq 0 ]; then
+    status="SUCCESS"
+    echo >> $logFile
+    echo "************ Build and Test Successful *************" >> $logFile
+
+    # Generate CCover report
+    if [ "$PEGASUS_CCOVER" = "TRUE" ]; then
+        covsrc -w100 `cat ccover-exclusion-list` \
+            > cov/covsrc.report.$dayofyear.$datestamp.txt 2>/dev/null
+        covsrc -w200 \
+            > cov/covsrc.full.$dayofyear.$datestamp.txt 2>/dev/null
+        covsrc -w200 `cat ccover-exclusion-list` \
+            > cov/covsrc.exclusion.$dayofyear.$datestamp.txt 2>/dev/null
+        covbr -w100 \
+            > cov/covbr.report.$dayofyear.$datestamp.txt 2>/dev/null
+    elif [ "$PEGASUS_CADVISE" = "TRUE" ]; then
+        # The reports generated by HP Code Advisor differ based on the version.
+        # From Version C.02.05 onwards a new option -noheader has been introduced 
+        # to suppress Cadvise headers and the mesg, 
+        # "Report: Warning: No data found", will be printed to stderr if no 
+        # errors are reported.
+
+        cadviseVer=`cadvise -V 2>&1 | cut -f 4 -d " "`
+        if [[ $cadviseVer > C.02.00 ]]; then
+            noheaderOption="-noheader"
+        fi
+
+        /opt/cadvise/bin/cadvise report $noheaderOption -all -pdb $pdb_dir \
+            -severity 6 2>&1 | grep -v -e "Report: Warning: No data found" \
+            > cadvise.report
+        if [ -s "cadvise.report" ]; then
+            status="FAILURE"
+        fi
+    fi
+else
+    status="FAILURE"
+fi
+
+# Sort the valgrind logs into categories, if applicable
+
+if [ "$PEGASUS_TEST_VALGRIND_LOG_DIR" != "" ]; then
+
+    valgrind_clean_dir=$PEGASUS_HOME/valgrind_clean
+    mkdir -p $valgrind_clean_dir
+    chmod a+wr $valgrind_clean_dir
+    valgrind_error_dir=$PEGASUS_HOME/valgrind_error
+    mkdir -p $valgrind_error_dir
+    chmod a+wr $valgrind_error_dir
+    valgrind_leak_dir=$PEGASUS_HOME/valgrind_leak
+    mkdir -p $valgrind_leak_dir
+    chmod a+wr $valgrind_leak_dir
+    valgrind_ignore_dir=$PEGASUS_HOME/valgrind_ignore
+    mkdir -p $valgrind_ignore_dir
+    chmod a+wr $valgrind_ignore_dir
+
+    for fname in `ls $PEGASUS_TEST_VALGRIND_LOG_DIR/`;
+    do
+        # Find the reports with leaks
+
+        grep -e 'definitely lost: [1-9]' \
+             -e 'possibly lost: [1-9]' \
+             $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname > /dev/null;
+        if [ $? -eq 0 ]; then
+            # Ignore the reports with known leak issues
+
+            # This test provider intentionally exits without cleaning up memory
+            grep -e "OOPModuleFailureTestProviderModule" \
+                $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname > /dev/null;
+            if [ $? -eq 0 ]; then
+                mv $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname $valgrind_ignore_dir;
+                continue;
+            fi
+
+            # This test provider intentionally exits without cleaning up memory
+            grep -e "TestGroup1" $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname > \
+                /dev/null;
+            if [ $? -eq 0 ]; then
+                mv $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname $valgrind_ignore_dir;
+                continue;
+            fi
+
+            # This test provider intentionally exits without cleaning up memory
+            grep -e "TestPLI" $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname > \
+                /dev/null;
+            if [ $? -eq 0 ]; then
+                mv $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname $valgrind_ignore_dir;
+                continue;
+            fi
+
+
+            # These providers have leaks which are reported in Bug 7437
+            grep -e "CMPIInstanceProviderModule" \
+                 -e "TestCMPIEnumerationProviderModule" \
+                 -e "TestCMPIErrorProviderModule" \
+                 -e "TestCMPIIndicationProviderModule" \
+                 -e "TestCMPIInstanceProviderModule" \
+                 -e "TestCMPIMethodProviderModule" \
+                 -e "TestCMPIIndicationStressTestProviderModule" \
+                $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname > /dev/null;
+            if [ $? -eq 0 ]; then
+                mv $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname $valgrind_ignore_dir;
+                continue;
+            fi
+
+            # This is not a known leak
+
+            mv $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname $valgrind_leak_dir;
+            status="FAILURE"
+            continue;
+        fi
+
+        # Find the reports with errors
+
+        grep -e 'ERROR SUMMARY: [1-9]' \
+            $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname > /dev/null;
+        if [ $? -eq 0 ]; then
+            mv $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname $valgrind_error_dir;
+            status="FAILURE"
+            continue;
+        fi
+
+        # The remaining log files are believed to be clean reports
+
+        mv $PEGASUS_TEST_VALGRIND_LOG_DIR/$fname $valgrind_clean_dir;
+    done
+fi
+
+# Add the test results to the report file
+
+echo "Status: $status" >> $reportFile
+echo >> $reportFile
+
+if [ "$PEGASUS_PMCCABE_LINECOUNT" != "TRUE" ] && \
+        [ "$PEGASUS_PMCCABE_COMPLEXITY_REPORT" != "TRUE" ]; then
+    tail -n 20 $logFile >> $reportFile
+fi
+
+if [ "$PEGASUS_CCOVER" = "TRUE" ]; then
+    if [ -f "cov/covsrc.report.$dayofyear.$datestamp.txt" ]; then
+        cat "cov/covsrc.report.$dayofyear.$datestamp.txt" >> $reportFile
+    fi
+elif [ "$PEGASUS_CADVISE" = "TRUE" ]; then
+    if [ -s "cadvise.report" ]; then
+        cat "cadvise.report" >> $reportFile
+    fi
+elif [ "$PEGASUS_PMCCABE_LINECOUNT" = "TRUE" ]; then
+    if [ -f $PEGASUS_TMP/LineCountReport.$dayofyear.$datestamp.txt ]; then
+        cat "$PEGASUS_TMP/LineCountReport.$dayofyear.$datestamp.txt" \
+            >> $reportFile
+    fi
+elif [ "$PEGASUS_PMCCABE_COMPLEXITY_REPORT" = "TRUE" ]; then
+    if [ -f $PEGASUS_TMP/ComplexityReport.$dayofyear.$datestamp.txt ]; then
+        cat "$PEGASUS_TMP/ComplexityReport.$dayofyear.$datestamp.txt" \
+            >> $reportFile
+    fi
+fi
+
+if [ "$PEGASUS_TEST_VALGRIND_LOG_DIR" != "" ]; then
+    for fname in `ls $valgrind_leak_dir/`;
+    do
+        echo "-------------------------------------------------------------------------------" >> $reportFile
+        echo "Memory leak:" >> $reportFile
+        echo >> $reportFile
+        cat $valgrind_leak_dir/$fname >> $reportFile
+    done
+
+    for fname in `ls $valgrind_error_dir/`;
+    do
+        echo "-------------------------------------------------------------------------------" >> $reportFile
+        echo "Memory error:" >> $reportFile
+        echo >> $reportFile
+        cat $valgrind_error_dir/$fname >> $reportFile
+    done
+fi
+
+# Check the Discarded data trace.
+
+if [ "$PEGASUS_TEST_ENABLE_DEBUG_TRACE" = "true" ]; then
+    # A delay is introduced here to allow timeout related traces to be captured.
+    sleep 300
+
+    traceFile=$PEGASUS_HOME/trace/cimserver.trc
+    # These DiscardedData trace messages are known to be generated by test cases
+    grep -v -e "peer did not return a certificate" \
+            -e "no certificate returned" \
+            -e "SSL_accept() failed" \
+            -e "Test_IndicationProviderClass" \
+            -e "idle connection" \
+            -e "The repository throws the following exception: TestCMPI_Instance" \
+            -e "HTTPAcceptor: accept() failed.  errno: 24" \
+            -e "Socket write failed with error: Broken pipe (error code 32)" \
+            -e "arrived after the client disconnected." \
+            -e "no shared cipher" \
+            -e "UnavailabeTestClass" \
+            -e "test/NoProvider" \
+            -e "^$" \
+            $traceFile > $PEGASUS_HOME/trace/trace.out
+
+    if [ $? -eq 0 ]; then
+        echo "\n*********** FAILURE: Unexpected trace found. ************\n" \
+            >> $PEGASUS_HOME/trace/trace.out
+
+        # If tests failed, add discarded data trace to the main report.
+        if [ "$status" = "FAILURE" ]; then
+            echo >> $reportFile
+            cat $PEGASUS_HOME/trace/trace.out >> $reportFile
+        else
+            if [ "$PEGASUS_BUILD_FAILURE_EMAIL_RECIPIENTS" != "" ]; then
+                # Tests succeeded, send trace report only to extra recipients.
+                trcHeader="Discarded data trace report: $branch: $platform: $datestamp"
+                $MAIL_PROGRAM -s "$trcHeader" \
+                    $PEGASUS_BUILD_FAILURE_EMAIL_RECIPIENTS \
+                    < $PEGASUS_HOME/trace/trace.out
+            fi
+        fi
+    fi
+fi
+
+# Mail the report 
+
+header="$status: $branch: $platform: $datestamp"
+
+if [ "$PEGASUS_BUILD_REPORT_EMAIL_RECIPIENTS" != "" ]; then
+    $MAIL_PROGRAM -s "$header" $PEGASUS_BUILD_REPORT_EMAIL_RECIPIENTS \
+        < $reportFile
+fi
+if [ "$status" = "FAILURE" ]; then
+    if [ "$PEGASUS_BUILD_FAILURE_EMAIL_RECIPIENTS" != "" ]; then
+        $MAIL_PROGRAM -s "$header" $PEGASUS_BUILD_FAILURE_EMAIL_RECIPIENTS \
+            < $reportFile
+    fi
+fi
+
+exit 0

@@ -1,0 +1,185 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+Common Management Programming Interface (CMPI) Providers in a nutshell
+============================
+
+Aug 1st, 2005
+
+Pegasus 2.5 *NEWS*
+------------------
+
+The CMPI macro header files (cmpimacs.h) shipped is OpenPegasus specific. This
+will change once OpenGroup releases a specification with the macro definitions.
+
+The CMPI Function Table (cmpift.h) file and CMPI Data Types (cmpidt.h) file are
+ composed from the CMPI v1.0 specification + Technical Corrigenda and are
+binary compatible with the "historical implementations" and the 1.0 specification
+augmented with the Technical Corrigenda.
+
+
+Build CMPI from sources
+-----------------------
+
+The Common Manageability Programming Interface (CMPI) has been integrated into
+Pegasus as a pluggable provider manager.
+
+CMPI is by default enabled on Linux. For other platforms it must be enabled
+during Pegasus build.
+
+For CMPI enablement, set the following environment variables prior to make:
+
+   PEGASUS_ENABLE_CMPI_PROVIDER_MANAGER=1
+
+
+Using CMPI
+----------
+If you plan to write your own CMPI providers you are kindly referred to the
+WBEMSource homepage where the draft specification document for CMPI resides.
+You can find at http://www.wbemsource.org/doc.tpl?CALLER=index.tpl&gdid=3712 .
+If you are looking for samples you should have a look at the SBLIM project.
+The packages prefixed by the string sblim-cmpi contain CMPI providers for
+various classes. See http://www-124.ibm.com/developerworks/projects/sblim .
+
+Using CMPI with threads
+-----------------------
+
+CMPI provides API functions for low-level thread, mutex and conditional constructs.
+Hence you can compile your provider without needing to link to pthread or other
+threading library.
+
+However, the developer is responsible for memory management of these constructs and
+as well of exiting the threads before the cleanup function is exited. If this is not
+done, the thread will be forcefully terminated. This can have the nasty consequence of
+hanging CIMServer, or bringing down the CIMServer, or just the Out-of-Process Provider
+Agent if you run OpenPegasus with 'run-as-requester' configuration flag turned on.
+Please refer to the Admin Guide or the readme files for more details about this flag.
+
+Using CQL with CMPI
+-------------------
+
+ To use CQL support for indications and exec query you will have to use
+ the Pegasus/Provider/CMPI/cmpi_cql.h header file with one new function.
+ You also  you need to define PEGASUS_USE_EXPERIMENTAL in your
+ code to take advantage of these CQL utility functions. The reason is that
+ the CMPI standard 1.0 is unclear on one thing:
+
+   - CMNewSelectExp. One of arguments passed is a 'projection' array. The
+     spec does not explain exactly what in such array. Implementation of
+     CMPI that also implemented WQL put a string representation of the
+     properties, as "SystemName", "Hostname", etc. But that is not neccesarily
+     the case with CQL, where you can have chained identifiers such as
+     "CIM_OperatingSystem::SystemName". In other words, the CMPI standard
+     needs to clarify this and to make the existing providers backward
+     supported, this utility function - CMPI_CQL_NewSelectExp is provided
+     until the CMPI standard comes up with a conclusion on this.
+
+  When the CMPI provides a resolution on these issues, this utility
+  interface will be gone and unsupported.
+
+  Questions and Answers:
+Q1: Is the CMPI Specification really ambiguous or does it
+just not support CQL? If it's ambiguous should it be fixed
+before it goes final?
+
+A1:. Page 96 of the CMPI review spec states (line 2899-2901): The *projection output argument is
+a pointer to a CMPIArray structure of CMPIString entries containing projection specification.
+It shall be set to NULL if no projection is defined.. To clarify any ambigiuity, an e-mail to the
+ CMPI review group was sent, which would add the following: The projection specification is query
+language specific. Hence the entries format of the projection output array CMPIString might be
+different depending on the query language. Be sure to check the lang argument for the query language your
+provider will support. . To guard the provider from DMTF's CQL possible ways it can be represented in
+a string format, and since the CQL is experimental, the CMNewSelectExp will NOT support CQL.
+The CMPI_CQL_NewSelect will support both CQL and WQL.
+
+
+AQ:What happens if an existing Provider is passed a CQL
+statement and issues a newSelectExp call?  Does it return
+an error?
+
+A2: The error code CMPI_RC_ERR_QUERY_LANGUAGE_NOT_SUPPORTED would be set.
+
+
+Q3: Both CMNewSelectExp and CMPI_CQL_NewSelectExp return a
+CMPISelectExp. Is there anyway to determine whether the
+CMPISelectExp represents a CQL or WQL expression?
+
+A3:Not from the scope of the CMPISelectExp structure. Please note that the routine
+ that would exercise the CMPISelectExp has a char *lang passed in as argument.
+This char *lang* can be used to easily determine what query language is used.
+
+
+
+Registering CMPI providers with Pegasus
+---------------------------------------
+
+Once you have a CMPI provider library you want to register it with Pegasus.
+How? Well it's almost the same as for C++ providers. The only difference is
+that the Provider.Interface property must be set to "CMPI".
+
+Here's an excerpt from the SBLIM Linux Computer System provider registration
+
+// ===================================================================
+// 	Linux_ComputerSystem
+// ===================================================================
+
+
+instance of PG_ProviderModule
+{
+   Name = "OSBase_ComputerSystemProviderModule";
+   //The library name on disk
+   Location = "cmpiOSBase_ComputerSystemProvider";
+   Vendor = "SBLIM";
+   Version = "1.2.2";
+   InterfaceType = "CMPI";
+   InterfaceVersion = "0.86.0";
+};
+
+instance of PG_Provider
+{
+   //The provider module as defined in PG_ProviderModule
+   ProviderModuleName = "OSBase_ComputerSystemProviderModule";
+   // The provider name as referenced in the code
+   Name = "OSBase_ComputerSystemProvider";
+};
+
+instance of PG_ProviderCapabilities
+{
+   //The provider module as defined in PG_ProviderModule
+   ProviderModuleName = "OSBase_ComputerSystemProviderModule";
+   //The provider name as defined in PG_Provider
+   ProviderName = "OSBase_ComputerSystemProvider";
+   CapabilityID = "1";
+   //Name of the CIM class as defined in the mof
+   ClassName = "Linux_ComputerSystem";
+   Namespaces = {"root/cimv2"};
+   ProviderType = { 2,5 }; // Instance, Method
+   SupportedProperties = NULL; // All properties
+   SupportedMethods = NULL; // All methods
+};
+

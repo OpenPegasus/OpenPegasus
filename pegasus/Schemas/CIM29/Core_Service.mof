@@ -1,0 +1,968 @@
+// ===================================================================
+// Title: Core_Service
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Core_Service.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Core Model defines basic management concepts.
+//              This file defines the concepts for a Help Service
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1205 - Update ProtocolIFType definitions to match latest
+//          IANAifType-MIB definitions
+// CR1210 - Removal of experimental Qualifiers for core.
+// 
+// Change Log for v2.8 Preliminary
+// CR1092  - Move Service and SAP related classes to their own file
+// CR1124 - Add CIM_SAPAvailableForElement
+// CR1128 - Addition of HostedDependency
+// ==================================================================
+
+#pragma locale ("en_US")
+
+// ==================================================================
+// Service
+// ==================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "A CIM_Service is a Logical Element that contains the "
+       "information necessary to represent and manage the "
+       "functionality provided by a Device and/or SoftwareFeature. A "
+       "Service is a general-purpose object to configure and manage "
+       "the implementation of functionality. It is not the "
+       "functionality itself.")]
+class CIM_Service : CIM_EnabledLogicalElement {
+
+      [Key, Propagated ( "CIM_System.CreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_System.Name" ), Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "The Name property uniquely identifies the Service and "
+          "provides an indication of the functionality that is "
+          "managed. This functionality is described in more detail in "
+          "the object's Description property."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Write, Description (
+          "The name of the primary owner for the service, if one is "
+          "defined. The primary owner is the initial support contact "
+          "for the Service."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|General Information|001.3" }]
+   string PrimaryOwnerName;
+
+      [Write, Description (
+          "A string that provides information on how the primary owner "
+          "of the Service can be reached (e.g. phone number, email "
+          "address, ...)."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIF.DMTF|General Information|001.4" }]
+   string PrimaryOwnerContact;
+
+      [Deprecated { "CIM_Service.EnabledDefault" }, Description (
+          "StartMode is a string value indicating whether the Service "
+          "is automatically started by a System, Operating System, "
+          "etc. or only started upon request. This property is "
+          "deprecated in lieu of the EnabledDefault property inherited "
+          "from EnabledLogicalElement, which addresses the same "
+          "semantics. The change to a uint16 data type was discussed "
+          "when CIM V2.0 was defined. However, existing V1.0 "
+          "implementations used the string property and did not want "
+          "to modify their code. Therefore, StartMode was "
+          "grandfathered into the Schema. Use of the Deprecated "
+          "qualifier allows the maintenance of the existing property, "
+          "but also permits an improved, clarified definition using "
+          "EnabledDefault."), 
+       ValueMap { "Automatic", "Manual" }, MaxLen ( 10 )]
+   string StartMode;
+
+      [Description (
+          "Started is a boolean indicating whether the Service has "
+          "been started (TRUE), or stopped (FALSE).")]
+   boolean Started;
+
+      [Description (
+          "The StartService method places the Service in the started "
+          "state. Note that this method's function overlaps with the "
+          "RequestedState property. RequestedState was added to the "
+          "model to maintain a record (i.e., a persisted value) of the "
+          "last state request. Invoking the StartService method should "
+          "set the RequestedState property appropriately. The method "
+          "returns an integer value of 0 if the Service was "
+          "successfully started, 1 if the request is not supported and "
+          "any other number to indicate an error. In a subclass, the "
+          "set of possible return codes could be specified, using a "
+          "ValueMap qualifier on the method. The strings to which the "
+          "ValueMap contents are 'translated' may also be specified in "
+          "the subclass as a Values array qualifier. \n"
+          "\n"
+          "Note that this method overlaps in semantics with the "
+          "RequestStateChange method inherited from "
+          "EnabledLogicalElement. This method is maintained since it "
+          "has been widely implemented, and its simple 'start' "
+          "semantics are convenient to use.")]
+   uint32 StartService(); 
+
+      [Description (
+          "The StopService method places the Service in the stopped "
+          "state. Note that this method's function overlaps with the "
+          "RequestedState property. RequestedState was added to the "
+          "model to maintain a record (i.e., a persisted value) of the "
+          "last state request. Invoking the StopService method should "
+          "set the RequestedState property appropriately. The method "
+          "returns an integer value of 0 if the Service was "
+          "successfully stopped, 1 if the request is not supported and "
+          "any other number to indicate an error. In a subclass, the "
+          "set of possible return codes could be specified, using a "
+          "ValueMap qualifier on the method. The strings to which the "
+          "ValueMap contents are 'translated' may also be specified in "
+          "the subclass as a Values array qualifier. \n"
+          "\n"
+          "Note that this method overlaps in semantics with the "
+          "RequestStateChange method inherited from "
+          "EnabledLogicalElement. This method is maintained since it "
+          "has been widely implemented, and its simple 'stop' "
+          "semantics are convenient to use.")]
+   uint32 StopService(); 
+};
+
+
+// ==================================================================
+// HostedService
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_HostedService is an association between a Service and the "
+       "System on which the functionality resides. The cardinality of "
+       "this association is 1-to-many. A System may host many "
+       "Services. Services are weak with respect to their hosting "
+       "System. Heuristic: A Service is hosted on the System where the "
+       "LogicalDevices or SoftwareFeatures that implement the Service "
+       "are located. The model does not represent Services hosted "
+       "across multiple systems. This is modeled as an "
+       "ApplicationSystem that acts as an aggregation point for "
+       "Services, that are each located on a single host.")]
+class CIM_HostedService : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The hosting System.")]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The Service hosted on the System.")]
+   CIM_Service REF Dependent;
+};
+
+
+// ==================================================================
+// ProvidesServiceToElement
+// ==================================================================
+   [Association, Deprecated { "CIM_ServiceAvailableToElement" },
+    Version ( "2.7.0" ), Description (
+       "The use of the CIM_ProvidesServiceToElement class has been "
+       "deprecated. Instead, ServiceAvailableToElement conveys the "
+       "semantics of 'use', while the subclasses of ProvidesService "
+       "ToElement (or the ConcreteDependency association) describe "
+       "dependency relationships. CIM_ProvidesServiceToElement was "
+       "meant to generalize the ServiceServiceDependency association. "
+       "It tried to indicate that ManagedElements may use the "
+       "functionality provided by one or more Services. An example is "
+       "that a Processor and an enclosure (a PhysicalElement) may use "
+       "AlertOnLAN Services to signal an incomplete or erroneous boot. "
+       "In reality, AlertOnLAN is simply a HostedService on a computer "
+       "system that is generally 'available for 'use' and not a "
+       "dependency of the processor or enclosure. To describe that use "
+       "of the service may be restricted or have limited availability/ "
+       "applicability, then the CIM_ServiceAvailableToElement "
+       "association would be instantiated.")]
+class CIM_ProvidesServiceToElement : CIM_Dependency {
+
+      [Deprecated { "CIM_ServiceAvailableToElement.ServiceProvided" },
+       Override ( "Antecedent" ), Description (
+          "The Service provided.")]
+   CIM_Service REF Antecedent;
+
+      [Deprecated { "CIM_ServiceAvailableToElement.UserOfService" },
+       Override ( "Dependent" ), Description (
+          "The ManagedElement dependent on the Service.")]
+   CIM_ManagedElement REF Dependent;
+};
+
+
+// ==================================================================
+// ServiceAvailableToElement
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "CIM_ServiceAvailableToElement conveys the semantics of a "
+       "Service being available for the 'use' of a ManagedElement. An "
+       "example is that a Processor and an enclosure (a "
+       "PhysicalElement) may use AlertOnLAN Services to signal an "
+       "incomplete or erroneous boot. In reality, AlertOnLAN is simply "
+       "a HostedService on a computer system that is generally "
+       "'available for use', and not a dependency of the processor or "
+       "enclosure. To describe that use of this service is restricted "
+       "or has limited availability/applicability, then the "
+       "CIM_ServiceAvailableToElement association would be "
+       "instantiated between the Service and specific CIM_Processors "
+       "and CIM_Chassis .")]
+class CIM_ServiceAvailableToElement {
+
+      [Key, Description (
+          "The Service that is available.")]
+   CIM_Service REF ServiceProvided;
+
+      [Key, Description (
+          "The ManagedElement that may use the Service.")]
+   CIM_ManagedElement REF UserOfService;
+};
+
+
+// ===================================================================
+// ServiceAffectsElement
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "ServiceAffectsElement represents an association between a "
+       "Service and the ManagedElement(s) that may be affected by its "
+       "execution. Instantiating this association indicates that "
+       "running the service will pose some burden on the "
+       "ManagedElement that may affect performance, throughput, "
+       "availability, etc.")]
+class CIM_ServiceAffectsElement {
+
+      [Key, Description (
+          "The Managed Element affected by the Service.")]
+   CIM_ManagedElement REF AffectedElement;
+
+      [Key, Description (
+          "The Service that is affecting the ManagedElement.")]
+   CIM_Service REF AffectingElement;
+
+      [Description (
+          "An enumeration describing the 'effect' on the "
+          "ManagedElement. This array corresponds to the "
+          "OtherElementEffectsDescriptions array, where the latter "
+          "provides details related to the high-level 'effects' "
+          "enumerated by this property. Additional detail is required "
+          "if the ElementEffects array contains the value 1, "
+          "\"Other\"."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Exclusive Use",
+          "Performance Impact", "Element Integrity" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_ServiceAffectsElement.OtherElementEffectsDescriptions" }]
+   uint16 ElementEffects[];
+
+      [Description (
+          "Provides details for the 'effect' at the corresponding "
+          "array position in ElementEffects. This information is "
+          "required ElementEffects contains the value 1 (\"Other\")."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ServiceAffectsElement.ElementEffects" 
+          }]
+   string OtherElementEffectsDescriptions[];
+};
+
+
+// ==================================================================
+// ServiceServiceDependency
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "CIM_ServiceServiceDependency is an association between a "
+       "Service and another Service, indicating that the latter is "
+       "required to be present, required to have completed, or must be "
+       "absent for the former Service to provide its functionality. "
+       "For example, Boot Services may be dependent upon underlying "
+       "system initialization Services. In the case of the "
+       "initialization Services, the Boot Service may be dependent on "
+       "the init Services completing. \n"
+       "Examining the ServiceServiceDependency class definition, note "
+       "that its superclass ProvidesServiceToElement is deprecated. "
+       "Unfortunately, ProvidesServiceToElement cannot be removed from "
+       "the object hierarchy without a major Schema release. When/if "
+       "this occurs, the ProvidesServiceToElement superclass will be "
+       "removed, and ServiceServiceDependency will subclass from "
+       "CIM_Dependency directly.")]
+class CIM_ServiceServiceDependency : CIM_ProvidesServiceToElement {
+
+      [Override ( "Antecedent" ), Description (
+          "The required Service.")]
+   CIM_Service REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Service that is dependent on an underlying Service.")]
+   CIM_Service REF Dependent;
+
+      [Description (
+          "The nature of the Service to Service dependency. This "
+          "property describes that the associated Service must have "
+          "completed (value=2), must be started (3) or must not be "
+          "started (4) in order for the Service to function."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Service Must Have Completed",
+          "Service Must Be Started", "Service Must Not Be Started" }]
+   uint16 TypeOfDependency;
+
+      [Description (
+          "This property describes that the Antecedent Service must be "
+          "restarted after the Dependent operation is complete.")]
+   boolean RestartService;
+};
+
+
+// ==================================================================
+// ServiceComponent
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "The ServiceComponent aggregation models a set of subordinate "
+       "Services that are aggregated together to form a higher-level "
+       "service.")]
+class CIM_ServiceComponent : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The parent Service.")]
+   CIM_Service REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The component Service.")]
+   CIM_Service REF PartComponent;
+};
+
+
+// ==================================================================
+// ServiceAccessPoint
+// ==================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "CIM_ServiceAccessPoint represents the ability to utilize or "
+       "invoke a Service. Access points represent that a Service is "
+       "made available to other entities for use.")]
+class CIM_ServiceAccessPoint : CIM_EnabledLogicalElement {
+
+      [Key, Propagated ( "CIM_System.CreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_System.Name" ), Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "The Name property uniquely identifies the "
+          "ServiceAccessPoint and provides an indication of the "
+          "functionality that is managed. This functionality is "
+          "described in more detail in the object's Description "
+          "property."), 
+       MaxLen ( 256 )]
+   string Name;
+};
+
+
+// ==================================================================
+// HostedAccessPoint
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_HostedAccessPoint is an association between a Service "
+       "AccessPoint and the System on which it is provided. The "
+       "cardinality of this association is 1-to-many and is weak with "
+       "respect to the System. Each System may host many "
+       "ServiceAccessPoints. Heuristic: If the implementation of the "
+       "ServiceAccessPoint is modeled, it must be implemented by a "
+       "Device or SoftwareFeature that is part of the System hosting "
+       "the ServiceAccessPoint.")]
+class CIM_HostedAccessPoint : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The hosting System.")]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The SAP(s) that are hosted on this System.")]
+   CIM_ServiceAccessPoint REF Dependent;
+};
+
+// ==================================================================
+// SAPAvailableForElement
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_SAPAvailableForElement conveys the semantics of a Service "
+       "Access Point being available for a ManagedElement. When "
+       "CIM_SAPAvailableForElement is not instantiated then the SAP is "
+       "assumed to be generally available. If instantiated, the SAP is "
+       "only available for the associated ManagedElements. For "
+       "example, a device might provide management access through a "
+       "URL. This association allows the URL to be advertised for the "
+       "device.")]
+class CIM_SAPAvailableForElement {
+
+      [Key, Description (
+          "The Service Access Point that is available.")]
+   CIM_ServiceAccessPoint REF AvailableSAP;
+
+      [Key, Description (
+          "The ManagedElement for which the SAP is available.")]
+   CIM_ManagedElement REF ManagedElement;
+};
+
+// ==================================================================
+// ServiceSAPDependency
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_ServiceSAPDependency is an association between a Service "
+       "and a ServiceAccessPoint indicating that the referenced SAP is "
+       "utilized by the Service to provide its functionality. For "
+       "example, Boot Services may invoke BIOS' Disk Services "
+       "(interrupts) in order to function.")]
+class CIM_ServiceSAPDependency : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The required ServiceAccessPoint.")]
+   CIM_ServiceAccessPoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Service that is dependent on an underlying SAP.")]
+   CIM_Service REF Dependent;
+};
+
+
+// ==================================================================
+// ServiceAccessBySAP
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_ServiceAccessBySAP is an association that identifies the "
+       "access points for a Service. For example, a printer may be "
+       "accessed by Netware, MacIntosh or Windows ServiceAccess "
+       "Points, potentially hosted on different Systems.")]
+class CIM_ServiceAccessBySAP : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Service.")]
+   CIM_Service REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "An Access Point for a Service. Access points are dependent "
+          "in this relationship since they have no function without a "
+          "corresponding Service.")]
+   CIM_ServiceAccessPoint REF Dependent;
+};
+
+
+// ==================================================================
+// SAPSAPDependency
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_SAPSAPDependency is an association between a Service "
+       "AccessPoint and another ServiceAccessPoint indicating that the "
+       "latter is required in order for the former ServiceAccess Point "
+       "to utilize or connect with its Service. For example, to print "
+       "at a network printer, local Print Access Points must utilize "
+       "underlying network-related SAPs, or ProtocolEndpoints, in "
+       "order to send the print request.")]
+class CIM_SAPSAPDependency : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The required ServiceAccessPoint.")]
+   CIM_ServiceAccessPoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The ServiceAccessPoint that is dependent on an underlying "
+          "SAP.")]
+   CIM_ServiceAccessPoint REF Dependent;
+};
+
+
+// ==================================================================
+// ActiveConnection
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association defines a connection that is currently "
+       "communicating, or is configured to communicate, between two "
+       "ServiceAccessPoints. It is used when the connection is not "
+       "treated as a ManagedElement itself (i.e., with Status, "
+       "statistics, etc.), but its existence is known. The SAPs that "
+       "are connected are typically at the same networking or "
+       "application layer.")]
+class CIM_ActiveConnection : CIM_SAPSAPDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "A ServiceAccessPoint that is configured to communicate "
+          "and/or is actively communicating with the Dependent SAP. In "
+          "a unidirectional connection, this is the SAP which is "
+          "transmitting.")]
+   CIM_ServiceAccessPoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "A second SeriveAccessPoint that is/can communicate with the "
+          "Antecedent SAP. In a unidirectional connection, this is the "
+          "SAP that is receiving the communication.")]
+   CIM_ServiceAccessPoint REF Dependent;
+
+      [Deprecated { "No value" }, Description (
+          "The type of traffic that is carried over this connection. "
+          "This property is deprecated since it is incorrectly placed "
+          "on the association. Unicast, broadcast or other traffic "
+          "types are not a function of the connection between the "
+          "referenced endpoints, but on the addressing, protocol, and "
+          "basic functionality of the endpoints."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Unicast", "Broadcast",
+          "Multicast", "Anycast" }, 
+       ModelCorrespondence { 
+          "CIM_ActiveConnection.OtherTrafficDescription" }]
+   uint16 TrafficType;
+
+      [Deprecated { "No value" }, Description (
+          "A string describing the type of traffic that is being "
+          "carried over this instance when its Type property is set to "
+          "1 (e.g., 'Other'). This property is deprecated since it is "
+          "incorrectly placed on the association. Unicast, broadcast "
+          "or other traffic types are not a function of the connection "
+          "between the referenced endpoints, but on the addressing, "
+          "protocol, and basic functionality of the endpoints."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_ActiveConnection.TrafficType" }]
+   string OtherTrafficDescription;
+
+      [Description (
+          "TRUE means that this connection is uni-directional; FALSE "
+          "means that this connection is bi-directional. When the "
+          "connection is unidirectional, the 'speaker' should be "
+          "defined as the Antecedent reference. In a bidirectional "
+          "connection, the selection of which AccessPoint is the "
+          "Antecedent or Dependent is immaterial.")]
+   boolean IsUnidirectional;
+};
+
+
+// ==================================================================
+// RemoteServiceAccessPoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "RemoteServiceAccessPoint describes access and/or addressing "
+       "information for a remote connection, that is known to a "
+       "'local' network element. This information is scoped/contained "
+       "by the 'local' network element, since this is the context in "
+       "which it is 'remote'. \n"
+       "\n"
+       "Why the remote access point is relevant and information on its "
+       "use are described by subclassing RemoteService AccessPoint, or "
+       "by associating to it.")]
+class CIM_RemoteServiceAccessPoint : CIM_ServiceAccessPoint {
+
+      [Description (
+          "Access and/or addressing information for a remote "
+          "connection. This can be a host name, network address or "
+          "similar information."), 
+       ModelCorrespondence { "CIM_RemoteServiceAccessPoint.InfoFormat" 
+          }]
+   string AccessInfo;
+
+      [Description (
+          "An enumerated integer describing the format and "
+          "interpretation of the AccessInfo property."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "100", "101", "102", "103", "104", "200",
+          "201", "202", "203", "204", "205", "..", "32768..65535" }, 
+       Values { "Other", "Host Name", "IPv4 Address", "IPv6 Address",
+          "IPX Address", "DECnet Address", "SNA Address",
+          "Autonomous System Number", "MPLS Label",
+          "IPv4 Subnet Address", "IPv6 Subnet Address",
+          "IPv4 Address Range", "IPv6 Address Range", "Dial String",
+          "Ethernet Address", "Token Ring Address", "ATM Address",
+          "Frame Relay Address", "URL", "FQDN", "User FQDN",
+          "DER ASN1 DN", "DER ASN1 GN", "Key ID", "DMTF Reserved",
+          "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_RemoteServiceAccessPoint.OtherInfoFormatDescription" }]
+   uint16 InfoFormat;
+
+      [Description (
+          "Describes the format when the property InfoFormat is set to "
+          "1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_RemoteServiceAccessPoint.InfoFormat" 
+          }]
+   string OtherInfoFormatDescription;
+};
+
+
+// ==================================================================
+// RemotePort
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "RemotePort adds port information to the access data (such as "
+       "IP Address), specified in and inherited from "
+       "RemoteServiceAccessPoint. For example, using the additional "
+       "properties in this class, one could indicate that UDP Port 123 "
+       "is accessed at IP Address xyz. The IP Address would be "
+       "specified in the inherited AccessInfo property, while the UDP "
+       "Port number would be specified in this class' property, "
+       "PortInfo.")]
+class CIM_RemotePort : CIM_RemoteServiceAccessPoint {
+
+      [Description (
+          "Port information that may further specify the remote access "
+          "information."), 
+       ModelCorrespondence { "CIM_RemotePort.PortProtocol" }]
+   string PortInfo;
+
+      [Description (
+          "An enumerated integer describing the protocol of the port "
+          "addressed by PortInformation."), 
+       ValueMap { "1", "2", "3", "32768..65535" }, 
+       Values { "Other", "TCP", "UDP", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_RemotePort.OtherProtocolDescription" 
+          }]
+   uint16 PortProtocol;
+
+      [Description (
+          "Describes the protocol when the property PortProtocol is "
+          "set to 1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_RemotePort.PortProtocol" }]
+   string OtherProtocolDescription;
+};
+
+
+// ==================================================================
+// ServiceAccessURI
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "CIM_ServiceAccessURI represents the ability to utilize or "
+       "invoke a Service via a uniform resource identifier. RFC 1738 "
+       "describes the Uniform Resource Locator which is a more "
+       "specific form of a URI, and RFC 2396 describes the broader, "
+       "inclusive URI. Quoting from the RFC, 'A Uniform Resource "
+       "Identifier (URI) is a compact string of characters for "
+       "identifying an abstract or physical resource.' In the context "
+       "of a ServiceAccessPoint, a URI contains the information "
+       "necessary to access an associated service (associated via "
+       "ServiceAccessBySAP), using a syntax specific to that service.")]
+class CIM_ServiceAccessURI : CIM_ServiceAccessPoint {
+
+      [Required, Description (
+          "The LabeledURI property is based on RFC 2079 and its value "
+          "and syntax is service specific."), 
+       MaxLen ( 256 )]
+   string LabeledURI;
+};
+
+
+// ==================================================================
+// ProtocolEndpoint
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A communication point from which data may be sent or received. "
+       "ProtocolEndpoints link system/computer interfaces to "
+       "LogicalNetworks.")]
+class CIM_ProtocolEndpoint : CIM_ServiceAccessPoint {
+
+      [Override ( "Description" ), 
+       MappingStrings { "MIB.IETF|IF-MIB.ifDescr" }]
+   string Description;
+
+      [Override ( "OperationalStatus" ), 
+       MappingStrings { "MIB.IETF|IF-MIB.ifOperStatus" }]
+   uint16 OperationalStatus[];
+
+      [Override ( "EnabledState" ), 
+       MappingStrings { "MIB.IETF|IF-MIB.ifAdminStatus" }]
+   uint16 EnabledState;
+
+      [Override ( "TimeOfLastStateChange" ), 
+       MappingStrings { "MIB.IETF|IF-MIB.ifLastChange" }]
+   datetime TimeOfLastStateChange;
+
+      [Override ( "Name" ), Description (
+          "A string which identifies this ProtocolEndpoint with either "
+          "a port or an interface on a device. To ensure uniqueness, "
+          "the Name property should be prepended or appended with "
+          "information from the Type or OtherTypeDescription "
+          "properties. The method chosen is described in the "
+          "NameFormat property of this class."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "NameFormat contains the naming heuristic that is chosen to "
+          "ensure that the value of the Name property is unique. For "
+          "example, one might choose to prepend the name of the port "
+          "or interface with the Type of ProtocolEndpoint that this "
+          "instance is (e.g., IPv4) followed by an underscore."), 
+       MaxLen ( 256 )]
+   string NameFormat;
+
+      [Deprecated { "CIM_ProtocolEndpoint.ProtocolIFType" }, 
+       Description (
+          "ProtocolType is an enumeration providing information to "
+          "categorize and classify different instances of this class. "
+          "For most instances, information in this enumeration and the "
+          "subclass' definition overlap. However, there are several "
+          "cases where a specific subclass of ProtocolEndpoint is not "
+          "required (for example, there is no Fibre Channel subclass "
+          "of ProtocolEndpoint). Hence, this property is needed to "
+          "define the type of Endpoint. \n"
+          "\n"
+          "This property is deprecated in lieu of the ProtocolIFType "
+          "enumeration. This is done to have better alignment between "
+          "the IETF's IF-MIB and this CIM class."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27" }, 
+       Values { "Unknown", "Other", "IPv4", "IPv6", "IPX", "AppleTalk",
+          "DECnet", "SNA", "CONP", "CLNP", "VINES", "XNS", "ATM",
+          "Frame Relay", "Ethernet", "TokenRing", "FDDI", "Infiniband",
+          "Fibre Channel", "ISDN BRI Endpoint",
+          "ISDN B Channel Endpoint", "ISDN D Channel Endpoint", 
+          // 22                
+          "IPv4/v6", "BGP", "OSPF", "MPLS", "UDP", "TCP" }, 
+       ModelCorrespondence { 
+          "CIM_ProtocolEndpoint.OtherTypeDescription" }]
+   uint16 ProtocolType;
+
+      [Description (
+          "ProtocolIFType is an enumeration synchronized with the IANA "
+          "ifType MIB, maintained at the URL, http: "
+          "//www.iana.org/assignments/ianaiftype-mib. Also, // // // "
+          "// additional values defined by the DMTF are included. The "
+          "property is used to categorize and classify instances of "
+          "the ProtocolEndpoint class. Note that if the ProtocolIFType "
+          "is set to 1 (\"Other\"), then the type information should "
+          "be provided in the OtherTypeDescription string property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+          "60", "61", "62", "63", "64", "65", "66", "67", "68", "69",
+          "70", "71", "72", "73", "74", "75", "76", "77", "78", "79",
+          "80", "81", "82", "83", "84", "85", "86", "87", "88", "89",
+          "90", "91", "92", "93", "94", "95", "96", "97", "98", "99",
+          "100", "101", "102", "103", "104", "105", "106", "107",
+          "108", "109", "110", "111", "112", "113", "114", "115",
+          "116", "117", "118", "119", "120", "121", "122", "123",
+          "124", "125", "126", "127", "128", "129", "130", "131",
+          "132", "133", "134", "135", "136", "137", "138", "139",
+          "140", "141", "142", "143", "144", "145", "146", "147",
+          "148", "149", "150", "151", "152", "153", "154", "155",
+          "156", "157", "158", "159", "160", "161", "162", "163",
+          "164", "165", "166", "167", "168", "169", "170", "171",
+          "172", "173", "174", "175", "176", "177", "178", "179",
+          "180", "181", "182", "183", "184", "185", "186", "187",
+          "188", "189", "190", "191", "192", "193", "194", "195",
+          "196", "197", "198", "199", "200", "201", "202", "203",
+          "204", "205", "206", "207", "208", "209", "210", "211",
+          "212", "213", "214", "215", "216", "217", "218", "219",
+          "220", "221", "222", "223", "224", "..4095", "4096", "4097",
+          "4098", "4099", "4100", "4101", "4102", "4103", "4104",
+          "4105", "4106", "4107", "4108", "4109", "4110", "4111",
+          "4112", "4113", "4114", "4115", "..32767", "32768.." }, 
+       Values { "Unknown", "Other", "Regular 1822", "HDH 1822",
+          "DDN X.25", "RFC877 X.25", "Ethernet CSMA/CD",
+          "ISO 802.3 CSMA/CD", "ISO 802.4 Token Bus",
+          "ISO 802.5 Token Ring", "ISO 802.6 MAN", "StarLAN",
+          "Proteon 10Mbit", "Proteon 80Mbit", "HyperChannel", "FDDI",
+          "LAP-B", "SDLC", "DS1", "E1", "Basic ISDN", "Primary ISDN",
+          "Proprietary Point-to-Point Serial", "PPP",
+          "Software Loopback", "EON", "Ethernet 3Mbit", "NSIP", "SLIP",
+          "Ultra", "DS3", "SIP", "Frame Relay", "RS-232", "Parallel",
+          "ARCNet", "ARCNet Plus", "ATM", "MIO X.25", "SONET",
+          "X.25 PLE", "ISO 802.211c", "LocalTalk", "SMDS DXI",
+          "Frame Relay Service", "V.35", "HSSI", "HIPPI", "Modem",
+          "AAL5", "SONET Path", "SONET VT", "SMDS ICIP",
+          "Proprietary Virtual/Internal", "Proprietary Multiplexor",
+          "IEEE 802.12", "Fibre Channel", "HIPPI Interface",
+          "Frame Relay Interconnect", "ATM Emulated LAN for 802.3",
+          "ATM Emulated LAN for 802.5", "ATM Emulated Circuit",
+          "Fast Ethernet (100BaseT)", "ISDN", "V.11", "V.36",
+          "G703 at 64K", "G703 at 2Mb", "QLLC",
+          "Fast Ethernet 100BaseFX", "Channel", "IEEE 802.11",
+          "IBM 260/370 OEMI Channel", "ESCON", "Data Link Switching",
+          "ISDN S/T Interface", "ISDN U Interface", "LAP-D",
+          "IP Switch", "Remote Source Route Bridging", "ATM Logical",
+          "DS0", "DS0 Bundle", "BSC", "Async", "Combat Net Radio",
+          "ISO 802.5r DTR", "Ext Pos Loc Report System",
+          "AppleTalk Remote Access Protocol",
+          "Proprietary Connectionless", "ITU X.29 Host PAD",
+          "ITU X.3 Terminal PAD", "Frame Relay MPI", "ITU X.213",
+          "ADSL", "RADSL", "SDSL", "VDSL", "ISO 802.5 CRFP", "Myrinet",
+          "Voice Receive and Transmit",
+          "Voice Foreign Exchange Office",
+          "Voice Foreign Exchange Service", "Voice Encapsulation",
+          "Voice over IP", "ATM DXI", "ATM FUNI", "ATM IMA",
+          "PPP Multilink Bundle", "IP over CDLC", "IP over CLAW",
+          "Stack to Stack", "Virtual IP Address", "MPC", "IP over ATM",
+          "ISO 802.5j Fibre Token Ring", "TDLC", "Gigabit Ethernet",
+          "HDLC", "LAP-F", "V.37", "X.25 MLP", "X.25 Hunt Group",
+          "Transp HDLC", "Interleave Channel", "FAST Channel",
+          "IP (for APPN HPR in IP Networks)", "CATV MAC Layer",
+          "CATV Downstream", "CATV Upstream", "Avalon 12MPP Switch",
+          "Tunnel", "Coffee", "Circuit Emulation Service",
+          "ATM SubInterface", "Layer 2 VLAN using 802.1Q",
+          "Layer 3 VLAN using IP", "Layer 3 VLAN using IPX",
+          "Digital Power Line", "Multimedia Mail over IP", "DTM",
+          "DCN", "IP Forwarding", "MSDSL", "IEEE 1394",
+          "IF-GSN/HIPPI-6400", "DVB-RCC MAC Layer",
+          "DVB-RCC Downstream", "DVB-RCC Upstream", "ATM Virtual",
+          "MPLS Tunnel", "SRP", "Voice over ATM",
+          "Voice over Frame Relay", "ISDL", "Composite Link",
+          "SS7 Signaling Link", "Proprietary P2P Wireless",
+          "Frame Forward", "RFC1483 Multiprotocol over ATM", "USB",
+          "IEEE 802.3ad Link Aggregate", "BGP Policy Accounting",
+          "FRF .16 Multilink FR", "H.323 Gatekeeper", "H.323 Proxy",
+          "MPLS", "Multi-Frequency Signaling Link", "HDSL-2", "S-HDSL",
+          "DS1 Facility Data Link", "Packet over SONET/SDH",
+          "DVB-ASI Input", "DVB-ASI Output", "Power Line",
+          "Non Facility Associated Signaling", "TR008", "GR303 RDT",
+          "GR303 IDT", "ISUP", "Proprietary Wireless MAC Layer",
+          "Proprietary Wireless Downstream",
+          "Proprietary Wireless Upstream", "HIPERLAN Type 2",
+          "Proprietary Broadband Wireless Access Point to Mulipoint",
+          "SONET Overhead Channel", "Digital Wrapper Overhead Channel",
+          "ATM Adaptation Layer 2", "Radio MAC", "ATM Radio",
+          "Inter Machine Trunk", "MVL DSL", "Long Read DSL",
+          "Frame Relay DLCI Endpoint", "ATM VCI Endpoint",
+          "Optical Channel", "Optical Transport", "Proprietary ATM",
+          "Voice over Cable", "Infiniband", "TE Link", "Q.2931",
+          "Virtual Trunk Group", "SIP Trunk Group", "SIP Signaling",
+          "CATV Upstream Channel", "Econet", "FSAN 155Mb PON",
+          "FSAN 622Mb PON", "Transparent Bridge", "Line Group",
+          "Voice E&M Feature Group", "Voice FGD EANA", "Voice DID",
+          "MPEG Transport", "6To4", "GTP", "Paradyne EtherLoop 1",
+          "Paradyne EtherLoop 2", "Optical Channel Group", "HomePNA",
+          "GFP", "ciscoISLvlan", "actelisMetaLOOP", "Fcip",
+          "IANA Reserved", "IPv4", "IPv6", "IPv4/v6", "IPX", "DECnet",
+          "SNA", "CONP", "CLNP", "VINES", "XNS",
+          "ISDN B Channel Endpoint", "ISDN D Channel Endpoint", "BGP",
+          "OSPF", "UDP", "TCP", "802.11a", "802.11b", "802.11g",
+          "802.11h", "DMTF Reserved", "Vendor Reserved" }, 
+       MappingStrings { "MIB.IETF|IF-MIB.ifType" }, 
+       ModelCorrespondence { 
+          "CIM_ProtocolEndpoint.OtherTypeDescription" }]
+   uint16 ProtocolIFType;
+
+      [Description (
+          "A string describing the type of ProtocolEndpoint when the "
+          "Type property of this class (or any of its subclasses) is "
+          "set to 1 (i.e., \"Other\"). This property should be set to "
+          "NULL when the Type property is any value other than 1."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_ProtocolEndpoint.ProtocolType",
+          "CIM_ProtocolEndpoint.ProtocolIFType" }]
+   string OtherTypeDescription;
+};
+
+
+// ==================================================================
+// BindsTo
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association establishes a ServiceAccessPoint as a "
+       "requestor of protocol services from a ProtocolEndpoint. "
+       "Typically, this association runs between SAPs and endpoints on "
+       "a single system. Since a ProtocolEndpoint is a kind of "
+       "ServiceAccessPoint, this binding can be used to establish a "
+       "layering of two protocols, the upper layer represented by the "
+       "Dependent and the lower layer represented by the Antecedent.")]
+class CIM_BindsTo : CIM_SAPSAPDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The lower-level endpoint which is accessed by the SAP.")]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The AccessPoint or ProtocolEndpoint dependent on the lower "
+          "level endpoint.")]
+   CIM_ServiceAccessPoint REF Dependent;
+};
+
+
+// ==================================================================
+// ProvidesEndpoint
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association represents a ProtocolEndpoint provided by a "
+       "Service, to allow access to the Service.")]
+class CIM_ProvidesEndpoint : CIM_ServiceAccessBySAP {
+
+      [Override ( "Antecedent" ), Description (
+          "The Service that is accessed by the ProtocolEndpoint.")]
+   CIM_Service REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The ProtocolEndpoint that provides access to the Service.")]
+   CIM_ProtocolEndpoint REF Dependent;
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

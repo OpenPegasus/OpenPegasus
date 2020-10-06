@@ -1,0 +1,231 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+// Example of use of Instance Alias
+
+// Defines a Class with String key properties
+[Version ("2.2.0")]
+class X
+{
+     [key]
+     string key1;
+     [key]
+     string key2;
+     string valuePropertya;
+};
+// Defines a Class with String, numberic, Bool key properties
+[Version ("2.2.0")]
+class X2
+{
+     [key]
+     string key1;
+     [key]
+     string key2;
+     [key]
+     boolean key3;
+     [key]
+     Uint32 key4;
+     string valuePropertya;
+};
+
+// define the class Y
+[Version ("2.2.0")]
+class Y
+{
+     [key]
+     string keya;
+      [key]
+     string keyb;
+     string valuePropertyb;
+};
+
+// Define as association between X and Y
+[association, Version ("2.2.0")]
+class A
+{
+     [key] X ref left;
+     [key] Y ref right;
+};
+
+// Define as association between X2 and X2
+[association, Version ("2.2.0")]
+class X2_Association
+{
+     [key] X2 ref left;
+     [key] X2 ref right;
+};
+
+
+// Define as association between A and Y
+[association, Version ("2.2.0")]
+class B
+{
+     [key] A ref left1;
+     [key] Y ref right1;
+};
+
+// Define as association between B and Y
+[association, Version ("2.2.0")]
+class C
+{
+     [key] B ref left;
+     [key] Y ref right;
+};
+
+// Create an instance of X
+instance of X
+{
+     key1 = "Jimmy Smith";
+     key2 = "son";
+     valuePropertya= "an instance of class X";
+};
+
+// Create instance of X2
+instance of X2 as $X2_Alias1
+{
+     key1 = "Jimmy Smith";
+     key2 = "son";
+     key3 = true;
+     key4 = 999;
+     valuePropertya= "an instance of class X2";
+};
+// Create instance of X2
+instance of X2 as $X2_Alias2
+{
+     key1 = "Jimmy Smith";
+     key2 = "son";
+     key3 = false;
+     key4 = 333;
+     valuePropertya= "an instance of class X2";
+};
+
+
+// Instance of X2_Association with left key as alias and right key
+// manually created.
+instance of X2_Association
+{
+    left = $X2_Alias1;
+    //right should be same path as left.
+    right = "X2.key1=\"Jimmy Smith\",key2=\"son\",key3=true,key4=999";
+};
+
+// Create an instance of X
+instance of X as $X_Alias
+{
+     key1 = "John Smith";
+     key2 = "father";
+     valuePropertya= "instance of class X";
+};
+
+
+instance of Y as $Y_Alias
+{
+     keya = "John Jones";
+     keyb = "Grandfather";
+     valuePropertyb= "instance of class Y";
+};
+
+// Instance of the association using instance Alias
+
+instance of A as $A_Alias
+{
+     left = $X_Alias;
+     right = $Y_Alias;
+};
+
+instance of B as $B_Alias
+{
+     left1 = $A_Alias;
+     right1 = $Y_Alias;
+};
+
+instance of C as $C_Alias
+{
+     left = $B_Alias;
+     right = $Y_Alias;
+};
+
+// More stuff to compile using classes from the CIM_InterOp.mof
+// to better test aliases
+
+// instances of registered profile for test.
+
+instance of CIM_RegisteredProfile as $PROF1
+//instance of CIM_RegisteredProfile
+{
+    InstanceID = "PEG_12345678";
+    RegisteredOrganization = 2;
+    REgisteredName = "profile1";
+    RegisteredVersion = "1.0.0";
+    AdvertiseTypes = {3};
+};
+
+instance of CIM_RegisteredProfile as $PROF2
+//instance of CIM_RegisteredProfile
+{
+    InstanceID = "PEG_12345679";
+    RegisteredOrganization = 2;
+    REgisteredName = "profile2";
+    RegisteredVersion = "1.0.0";
+    AdvertiseTypes = {3};
+};
+
+// associaton that establishs reference  from profile2 to profile 1
+// I.E. profile2 is dependent on profile 1
+Instance of CIM_ReferencedProfile
+{
+    Antecedent = $PROF1;
+    // Antecedent = CIM_RegisteredProfile.InstanceID="PEG_12345678";
+    Dependent = $PROF2;
+    // Dependent  = CIM_RegisteredProfile.InstanceID="PEG_12345679";
+};
+
+// Sample subprofile
+instance of CIM_RegisteredSubProfile as $PROF3
+// instance of CIM_RegistgredSubProfile
+{
+
+    InstanceID = "PEG_12345678-1";
+    RegisteredOrganization = 2;
+    REgisteredName = "subprofile1";
+    RegisteredVersion = "1.0.0";
+    AdvertiseTypes = {3};
+};
+
+instance of CIM_SubProfileRequiresProfile
+{
+    Antecedent = $PROF1;
+    // Antecedent = CIM_RegisteredProfile.InstanceID="PEG_12345678";
+    Dependent = $PROF3;
+    // Dependent  = CIM_RegisteredSDubProfile.InstanceID="PEG_12345679-1";
+};
+
+
+
+

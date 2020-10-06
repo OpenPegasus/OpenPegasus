@@ -1,0 +1,72 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+// This class extends CIM_namespace to define characteristics associated
+// with the Pegasus Shared namespace mechanisms. The characteristics
+// of the shared namespace concept is defined in Pegasus PEP 129 that
+// is available on the openpegasus web site. 
+// ==================================================================
+// PG_Namespace
+// ==================================================================
+
+    [Version ("2.0.1"), Description (
+        "This class extends CIM_Namepsace to define characteristics "
+        "associated with the Pegasus Shared Namespace mechanisms. "
+        "Namespace sharing allows the schema entities (class and "
+        "qualifiers) to be shared between parent and child namespaces so that"
+        "the schema entites from the parent are visible in the child as if "
+        "they were defined in the child."
+        "This class adds definitions necessary to understand if a "
+        "Namespace is shared or not and if schema updates are allowed "
+        "in the shared namespace. The shared namespace capabilities defined "
+        "in this class are proprietary to Pegasus today.")
+    ]
+class PG_NameSpace : CIM_Namespace {
+   [ Description (
+         "Defines whether the schema entities (qualifiers and classes) "
+         "can be added or modified in this namespace.  If true, "
+         "class and qualifiers can be manipulated in this namespace." ) 
+   ]
+   Boolean SchemaUpdatesAllowed = TRUE;
+   [ Description (
+         "Defines whether the schema parts of this namespace can be shared "
+         "by other namespaces. " )
+   ]
+   Boolean IsShareable = FALSE;
+   [ Description (
+         "The parent namespace name for this namespace if this  is "
+         "a secondary namespace. "
+         "If NULL, this is NOT a shared namespace. Note that this is the "
+         "only indication that this is the secondary/shared namespace. "
+         "The implication is that the classes and qualifiers in the parent "
+         "namespace are visible as if they were in this namespace. "
+         "It is illegal to define a ParentNamespace that is not "
+         "shareable (isShareable == false)." )
+  ]
+   String ParentNamespace = NULL;
+};

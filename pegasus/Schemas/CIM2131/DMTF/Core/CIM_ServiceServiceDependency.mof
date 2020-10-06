@@ -1,0 +1,51 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="SysDevCR00722.000" type ="change">Update of
+// descriptions based on Tech Edit review.</
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_ServiceServiceDependency
+// ==================================================================
+   [Association, UMLPackagePath ( "CIM::Core::Service" ),
+       Version ( "2.10.0" ), Description (
+       "CIM_ServiceServiceDependency is an association between a "
+       "Service and another Service, which indicates that the latter "
+       "is required to be present, required to have completed, or must "
+       "be absent for the former Service to provide its functionality. "
+       "For example, Boot Services might be dependent upon underlying "
+       "system initialization Services. In the case of the "
+       "initialization Services, the Boot Service might be dependent "
+       "on the completion of the init Services. \n"
+       "When examining the ServiceServiceDependency class definition, "
+       "note that its superclass ProvidesServiceToElement is "
+       "deprecated. Unfortunately, ProvidesServiceToElement cannot be "
+       "removed from the object hierarchy without a major Schema "
+       "release. When or if a major release occurs, the "
+       "ProvidesServiceToElement superclass will be removed, and "
+       "ServiceServiceDependency will subclass from CIM_Dependency "
+       "directly.")]
+class CIM_ServiceServiceDependency : CIM_ProvidesServiceToElement {
+
+      [Override ( "Antecedent" ), Description (
+          "The required Service.")]
+   CIM_Service REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Service that is dependent on an underlying Service.")]
+   CIM_Service REF Dependent;
+
+      [Description (
+          "The nature of the Service-to-Service dependency. This "
+          "property describes that the associated Service must have "
+          "completed (value=2), must be started (value=3) or must not "
+          "be started (value=4) for the Service to function."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Service Must Have Completed",
+          "Service Must Be Started", "Service Must Not Be Started" }]
+   uint16 TypeOfDependency;
+
+      [Description (
+          "This property describes that the Antecedent Service must be "
+          "restarted after the Dependent operation is complete.")]
+   boolean RestartService;
+};

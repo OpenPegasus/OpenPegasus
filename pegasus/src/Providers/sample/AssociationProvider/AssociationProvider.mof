@@ -1,0 +1,103 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+// Class definitions for the Sample Association Provider
+
+// =======================================================================
+// Sample_Person
+// =======================================================================
+    [Version("1.0.0"), Description ("Top level class that defines a person.")]
+class Sample_Person
+{
+    [key]
+    string Name;
+};
+
+// =======================================================================
+// Sample_Teacher
+// =======================================================================
+    [Version("1.0.0"), Description ("A subclass that defines a teacher.")]
+class Sample_Teacher : Sample_Person
+{
+    Uint8 Identifier;
+};
+
+// =======================================================================
+// Sample_Student
+// =======================================================================
+    [Version("1.0.0"), Description ("A subclass that defines a student.")]
+class Sample_Student : Sample_Person
+{
+    Uint8 Identifier;
+};
+
+// =======================================================================
+// Sample_TeacherStudent
+// =======================================================================
+// A simple association that associates teacher and student in the
+// Sample_Teacher and Sample_Student classes.
+//
+// It shows a many-to-many relationship between a teacher and a student.
+//
+// A teacher can have MANY students, and a student can have MANY teachers.
+//
+
+    [Association, Version("1.0.0"), Description (
+        "The Sample_TeacherStudent association defines the relationship "
+        "between teachers and students.") ]
+class Sample_TeacherStudent
+{
+    [key]
+    Sample_Teacher REF Teaches;
+    [key]
+    Sample_Student REF TaughtBy;
+};
+
+// =======================================================================
+// Sample_AdvisorStudent
+// =======================================================================
+// A simple association class that associates teacher and student in the
+// Sample_Teacher and Sample_Student classes.
+//
+// It shows a one-to-many relationship between a teacher and student.
+//
+// A student can have only ONE teacher as advisor, and a teacher who
+// is an advisor can have MANY students.
+//
+
+    [Association, Version("1.0.0"), Description (
+        "The Sample_AdvisorStudent association identifies the students for "
+        "a particular teacher who is also an advisor.")]
+class Sample_AdvisorStudent
+{
+    [key, Min (1), Max (1)]
+    Sample_Teacher REF advises;
+    [key]
+    Sample_Student REF advisedBy;
+};
+

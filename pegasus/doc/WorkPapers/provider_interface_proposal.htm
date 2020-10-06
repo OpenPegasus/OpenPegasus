@@ -1,0 +1,385 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Provider Interface Proposal</title>
+</head>
+
+<body>
+<H1 align="center">Pegasus Project Working Paper</H1>
+
+<H1 align="center">Expanding the Pegasus Provider Interface Proposal</H1>
+
+<b>AUTHORS:</b> Mike Brasher, Karl Schopmeyer, Chip Vincent
+22 May 2001
+<p><font size="1">Last Update <!--webbot bot="Timestamp" startspan
+S-Type="EDITED" S-Format="%A, %B %d, %Y %I:%M %p" -->Thursday, May 31, 2001 02:38 PM<!--webbot
+bot="Timestamp" I-CheckSum="62134" endspan -->
+</font></p>
+<p>Revision Status</p>
+<table border="1" width="80%">
+  <tr>
+    <td width="25%">Revision</td>
+    <td width="25%">Date</td>
+    <td width="25%">Author(s)</td>
+    <td width="25%">Reason</td>
+  </tr>
+  <tr>
+    <td width="25%">1.0</td>
+    <td width="25%">20 May 2001</td>
+    <td width="25%">Karl</td>
+    <td width="25%">Original</td>
+  </tr>
+  <tr>
+    <td width="25%">1.1</td>
+    <td width="25%">30 May 2001</td>
+    <td width="25%">Karl</td>
+    <td width="25%">Add comments.</td>
+  </tr>
+  <tr>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+</table>
+
+<h2>Introduction</h2>
+
+We have already defined a set of interfaces for Pegasus providers based on the CIM Operations.
+
+We recognized several limitations in that first set of interfaces, particularly the fact that there was no easy path back to the CIMOM from the provider.  The initial interfaces provides a handle to get to the repository but not to put CIM operations back into the CIMOM.
+
+At a recent work group meeting, IBM proposed a further set of changes to provide a more consistent interface and to reduce the possibility that the interface will have to change with future changes to the CIM Operations.
+<p>This document is a proposal to make these changes.</p>
+
+<h2>Objectives  </h2>
+
+<OL>
+    <LI>Extend for the next set of functionality primarily indications.
+    <LI>Provide more information to the provider
+    <LI>Enable providers to perform varying levels of operation (dump and smart providers).
+    <LI>Support implementation specific objects. 
+    <LI>Isolate the API from changes to the CIM standard and implementation specific objects. 
+    <LI>Prepare for the implementation of standardized provider registration
+</OL>
+
+<h2>Summary of Proposed Changes</h2>
+
+We propose the following changes:&nbsp;
+<OL>
+<LI>Create an operational context for each transaction.  This context would allow us to pass information such as security and locale to the provider. In addition, we have considered that this interface could also make the target CIM class available to the provider so it would not have to be specifically requested.
+
+<LI>Modify the boolean parameters passed so they get passed in a single variable. Today several of the CIM Operations include boolean parameters.  While we are not sure these will change, any change would cause a signature change to the provider
+
+<LI>Simplify and unify the object identity parameters. - Today the object ID is passed as a set of parameters, Namespace, Class/instance ID.  This could easily be consolidated into a single CIMReference parameter so that the namespace, object ID, etc. could be broken out by the provider.
+
+WHY?
+
+<LI>Subdivide the Provider interface. - Today we have a single interface to the provider that allows the provider to implement all of the possible CIM operations.  First, it is not clear that the provider needs all of the operations.  Second, there are subsets of provider functionality (method providers, property providers, etc.) that only implement a subset of the CIM Operations.  The proposal is to create specific interfaces to support just these subsets.
+
+<LI>Add a provider operation to shutdown a provider. We will have to provide a more organized shutdown than is provided today.  One of the operations will be to shutdown the providers.  To do this in an organized manner we will need to communicate the shutdown command to the providers.
+
+<LI>Add the indication interfaces. - We are beginning to do the design for indications now. One of the interfaces will be the provider interface for moving indications from the provider to the Object Manager.</p>
+</OL>
+<h2>Definition of the Proposed Changes</h2>
+
+This section defines the proposed implementation for each of these changes.
+
+<h3>Context for each Provider and for each Operation</h3>
+
+Operations do not currently support parameters to describe context information (such as security or localization parameters).
+In addition, there will be additional requirements for the provider to request
+information for things like system parameters, system state information, etc.
+<p>As part of this we also want to create a handle so that CIM Operations can be
+effecitively passed from the provider back to the Object Manager.</p>
+<p>We propose modifying both the provider context and adding an operational
+context parameter.&nbsp;&nbsp;</p>
+<h4>Provider Context</h4>
+<p>Today - one parameter, the CIM Repository handle provided with the initialize
+as follows:</p>
+<pre>virtual void initialize(CIMOMHandle&amp; repository);</pre>
+The provider saves the repository handle for later access using the CIMRepository interface.  We don't want providers to have access to the repository
+but we do want them to have easy access back to the Object Manager with CIM
+Operations.
+<p>We could provide access to the Object Manager delegator except that this
+would bypass any security features that we would want to implement.&nbsp; We
+propose adding a new interface which will provide:</p>
+<ul>
+  <li>A way to put&nbsp; CIM Operations (getClass, etc.) back into the Object
+    Manager</li>
+  <li>Additional specific operations required by the provider -</li>
+  <li>&nbsp;</li>
+</ul>
+<h4>Operation Context</h4>
+<p>Introduce OperationContext which communicates context information to operation methods and allows implementation specific context information to be passed to providers.<br>
+OperationContext encapsulates<br>
+Locale information<br>
+User credentials<br>
+Implementation TBD</p>
+
+<pre>CIMInstance MyProvider::getInstance(..., const OperationContext &amp; context, ...)
+{
+    // ...
+    // get locale from operation context
+    // ...
+    // get user credentials from operation context
+    // ...
+    return(CIMInstance(instance));
+}</pre>
+
+<h3>Boolean Parameters</h3>
+
+Operations currently use multiple arguments to represent additional information (Boolean localOnly, Boolean includeQualifiers, Boolean includeClassOrigin, etc.)
+
+Replace optional request parameters with a 32 bit unsigned integer flags parameter.
+
+<pre>struct OperationFlag
+{
+    const static Uint32 localOnly = 0x00000001;
+    const static Uint32 includeQualifiers = 0x00000002;
+    const static Uint32 includeClassOrigin = 0x00000004;
+    const static Uint32 deepInheritance = 0x00000008;
+};
+The following is an example of the use of the compacted binary parameter.</pre>
+<pre>CIMInstance MyProvider::getInstance(..., const Uint32 flags, ...)
+{
+    // . . .
+    Boolean localOnly = false;
+	    CIMInstance instance;
+    if(flags &amp; OperationFlag::localOnly) 
+    {  // get only local properties
+	// . . .
+    }
+	return(CIMInstance(instance));
+}
+</pre>
+
+<h3>Simplify Object Identity Parameters</h3>
+
+Operations currently use two arguments to identify objects.
+
+<OL>
+<LI> const String& namespace, String& className for class oriented operations (e.g., getClass() and enumerateInstances()).
+<LI>const String& namespace, const CIMReference& instance in instance oriented operations (e.g., getInstance and enumInstances()).
+</OL>
+
+Use CIMReference which encapsulates namespace, class name, and key bindings (for instance references) and isolates operation methods
+from changes in object identification (such as the addition of namespace type).
+
+<pre>CIMInstance MyProvider::getInstance(const CIMReference &amp; ref, …)
+{
+    // get the namespace path (e.g., &quot;root&quot; or &quot;root//sample&quot;
+    String namespacePath = ref.getNamespace();
+
+    // get the class name
+    String className = ref.getModel().getClassName();
+
+    // get the instance keys
+    Array<KeyBinding> keySet = ref.getKeyBindings();
+
+	if(keySet().getSize() == 0)
+	{
+      	    // throw exception
+	}
+	CIMInstance instance;
+
+	// ...
+	
+	return(CIMInstance(instance));
+}
+Actually, this largely exists today. We are supplying the CIMReference including the namespacepath component normally
+and the remainder of the CIMReference is part of the defined paths today. However, it requires changing the type for
+the paths throughout the model Thus</pre>
+
+<pre>
+virtual CIMClass getClass(
+	const String&amp; nameSpace,
+	const String&amp; className,
+	Boolean localOnly = true,
+	Boolean includeQualifiers = true,
+	Boolean includeClassOrigin = false,
+	const Array<String>&amp; propertyList = EmptyStringArray());
+</pre>
+
+would become
+
+<pre>
+virtual CIMClass getClass(
+	const CIMReference&amp; className,
+	Boolean localOnly = true,
+	Boolean includeQualifiers = true,
+	Boolean includeClassOrigin = false,
+	const Array<String>&amp; propertyList = EmptyStringArray());
+</pre>
+
+
+To accomplish this:
+<OL>
+<LI> All provider operations would change to drop the nameSpace parameter.
+
+<LI>Those classes that provide className as a string would change to provide it
+and the namespace as CIMReference (this is the following class operations.
+    <UL>
+	<LI>getClass
+	<LI>deleteClass
+	<LI>enumerateClassNames
+	<LI>enumerateClasses
+    </UL>
+At the same time, it is not certain that we need the class interfaces for the provider.  We have no plans to implement
+ a class provider at this point because we have not seen the requirement.
+
+<LI>Most instance operations remaine the same except that the namespace parameter would be removed.
+
+    Thus, getInstance which today is:
+    <PRE>
+    virtual CIMInstance getInstance(
+	    const String&amp; nameSpace,
+	    const CIMReference&amp; instanceName,
+	    Boolean localOnly = true,
+	    Boolean includeQualifiers = false,
+	    Boolean includeClassOrigin = false,
+	    const Array<String>&amp; propertyList = EmptyStringArray());
+    </PRE>
+    Becomes:
+    <PRE>
+    virtual CIMInstance getInstance(
+
+	    const CIMReference&amp; instanceName,
+	    Boolean localOnly = true,
+	    Boolean includeQualifiers = false,
+	    Boolean includeClassOrigin = false,
+	    const Array<String>&amp; propertyList = EmptyStringArray());
+    </PRE>
+
+    The following instance functions can be modified this way:
+    <UL>
+	<LI>getInstance
+	<LI>deleteInstance
+	<LI>enumerateInstances
+	<LI>getProperty
+	<LI>setProperty
+	<LI>invokeMethod
+    </UL>
+
+<LI>The qualifier functions probably do not need to be implemented in any case.  It is not clear that we need class qualifier
+ modification tools in the provider.
+
+<LI> The functions that will be different are those operations tha move entire clases or instances as part of the operation.
+ This includes
+    <UL>
+	<LI>createClass
+	<LI>createInstance
+	<LI>modifyClass
+	<LI>modifyInstance
+    </UL>
+    Today, for example, the modifyInstance is as follows:
+
+    <PRE>
+	virtual void modifyInstance(
+	    const String&amp; nameSpace,
+	    CIMInstance&amp; modifiedInstance);
+    </PRE>
+    Could become:
+    <PRE>
+    TBD
+    </PRE>
+
+<LI> Association operation - These functions represent minimal change since they use CIMReference today.  For example:
+
+<PRE>
+virtual Array<CIMReference> referenceNames(
+	const String&amp; nameSpace,
+	const CIMReference&amp; objectName,
+	const String&amp; resultClass = String::EMPTY,
+	const String&amp; role = String::EMPTY);
+</PRE>
+
+Would be modified simply be modified by removing the nameSpace parameter.
+
+<LI> Exec Query - The execQuery is a special case since the parameter set for this is unique.
+
+    <PRE>
+    virtual Array<CIMInstance> execQuery(
+	    const String&amp; queryLanguage,
+	    const String&amp; query) ;
+    </PRE>
+
+    There is no reason to change this functional interface.
+
+</OL>
+<h3>Subdivide Provider Interface</h3>
+
+Today the provider interface consists of all of the possible operations gathered
+together.&nbsp; It has been requested that we break this down into multiple
+interfaces that represent the major catagory of provider
+<ol>
+  <li>Instance Provider</li>
+  <li>Property Provider</li>
+  <li>Method Provider</li>
+  <li>Association Provider</li>
+  <li>Indication Provider</li>
+</ol>
+<p>Generally the provider writers feel that they would prefer these simpler
+interfaces.&nbsp; The proposal made by IBM is that the operations be broken up
+as follows:</p>
+<ol>
+  <li>Instance Provider - All Instance operations</li>
+  <li>Property Provider - Get and Set Properyt</li>
+  <li>Method Provider - Invoke method</li>
+  <li>Association provider - The association and reference operations</li>
+  <li>Indication Provider - TBD</li>
+</ol>
+<p>This implies that a single provider that does all of the above then must set
+up interfaces for all of the different provider types.</p>
+<p>Today, the current interface has one provider type with all of the operations
+built in.&nbsp; In effect, we view this as our interpretation of the instance
+provider.&nbsp; It provides for instances and those other entities such as
+properties, etc.&nbsp;&nbsp; We can provide either type of interface or both (we
+are preparing a separate proposal on a solution to maintaining multiple provider
+interfaces.).</p>
+
+<h3>Terminate Provider Operations</h3>
+
+Requirement: We need a way to quies providers - to tell them to stop what they
+are doing.&nbsp; This is probably not very important in the case of simple
+responding providers.&nbsp; They simply respond to requests and await the next
+request.&nbsp; However, providers that do their own monitoring, that establish
+and manage separate threads (and in the future remote providers) should be shut
+down systematically as part of the shutdown of the CIMOM environment.&nbsp;
+Thus, an additional provider interface is needed that can issue a terminate
+command.
+<p>
+
+    This one is simple.  The method name is:</p>
+    <pre>
+    Terminate();
+    </pre>
+
+    It will be issued by the Object Manager to all active providers in the process of Object Manager
+shutdown, possibly operator command, etc..&nbsp; Note that in the future when
+providers are visible through the CIM_Services objects, they could be stopped
+through methods attached to the provider CIM_Service objects. This means that ALL providers must implement this interface just as they must implement the <TT>Initialize()</TT> interface today.    
+    Normally the requirement on the provider would be to stop any continuous operations that are in process and then return a response.
+    
+    At this point we have not proposed any special requirements such as timers for shutdown,etc.
+<p>Our proposed behavior is that the provider not return completion on this
+request until it has terminated operations and is prepared to be shutdonwn.</p>
+<p>QUESTION: Is this a problem?.&nbsp;</p>
+
+<h3>Indication Interface</h3>
+
+We will discuss this as part of another document on indication implementation.
+<p>&nbsp;</p>
+<p>---END OF _DOCUMENT---</p>
+</body>
+
+</html>

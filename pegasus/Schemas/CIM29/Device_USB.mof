@@ -1,0 +1,300 @@
+// ===================================================================
+// Title: Device_USB
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_USB.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines
+//              the modeling constructs to manage USB devices.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 - None
+// 
+// Change Log for v2.7 - None
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// USBDevice
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The management characterisitics of a USB Device.")]
+class CIM_USBDevice : CIM_LogicalDevice {
+
+      [Description (
+          "Indicates the latest USB Version supported by the USB "
+          "Device. The property is expressed as a Binary-Coded Decimal "
+          "(BCD) where a decimal point is implied between the 2nd and "
+          "3rd digits. For example, a value of 0x201 indicates that "
+          "version 2.01 is supported.")]
+   uint16 USBVersion;
+
+      [Description (
+          "Indicates the USB class code.")]
+   uint8 ClassCode;
+
+      [Description (
+          "Indicates the USB subclass code.")]
+   uint8 SubclassCode;
+
+      [Description (
+          "Indicates the USB protocol code.")]
+   uint8 ProtocolCode;
+
+      [Description (
+          "Number of device configurations that are defined for the "
+          "Device.")]
+   uint8 NumberOfConfigs;
+
+      [Description (
+          "Indicates the configuration currently selected for the "
+          "Device. If this value is zero, the Device is unconfigured."), 
+       ModelCorrespondence { "CIM_USBDevice.CurrentAlternateSettings" }]
+   uint8 CurrentConfigValue;
+
+      [Description (
+          "An array of USB 'alternate settings' for each interface in "
+          "the currently selected configuration (indicated by the "
+          "CurrentConfigValue property). This array has one entry for "
+          "each interface in the configuration. If the property, "
+          "CurrentConfigValue, is zero (indicating the Device is not "
+          "configured), the array is undefined. To understand how to "
+          "parse this octet string, refer to the USB Specification."), 
+       ModelCorrespondence { "CIM_USBDevice.CurrentConfigValue" }]
+   uint8 CurrentAlternateSettings[];
+
+      [Description (
+          "This method returns the USBDevice Descriptor as specified "
+          "by the input parameters. Each parameter is briefly "
+          "described here with more detail in its Qualifier list. "
+          "RequestType is an input parameter that defines whether the "
+          "request is for standard, class or vendor-specific "
+          "information, as well as specifying the recipient. "
+          "RequestValue is also an input parameter and defines the USB "
+          "Descriptor Type and Index. RequestIndex is an input "
+          "parameter which describes the language used to return a "
+          "string Descriptor. RequestLength is both an input and "
+          "output parameter. It specifies the length of the Descriptor "
+          "that should be returned (on input) and what is actually "
+          "returned in the Buffer parameter (on output). Buffer is an "
+          "output parameter, containing the Descriptor data. The "
+          "GetDescriptor method returns an integer value of 0 if the "
+          "USB Descriptor is successfully returned, 1 if the request "
+          "is not supported and any other number to indicate an error. "
+          "\nIn a subclass, the set of possible return codes could be "
+          "specified, using a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' may "
+          "also be specified in the subclass as a Values array "
+          "qualifier.")]
+   uint32 GetDescriptor( 
+         [IN, Description (
+             "RequestType is bit-mapped and identifies the type of "
+             "Descriptor request and the recipient. The type of "
+             "request may be 'standard', 'class' or 'vendor-specific'. "
+             "The recipient may be 'device', 'interface', 'endpoint' "
+             "or 'other'. Refer to the USB Specification for the "
+             "appropriate values for each bit.")]
+      uint8 RequestType, 
+         [IN, Description (
+             "RequestValue contains the Descriptor Type in the high "
+             "byte and the Descriptor Index (for example, index or "
+             "offset into the Descriptor array) in the low byte. Refer "
+             "to the USB Specification for more information.")]
+      uint16 RequestValue, 
+         [IN, Description (
+             "RequestIndex defines the 2 byte Language ID code used by "
+             "the USBDevice when returning string Descriptor data. The "
+             "parameter is typically 0 for non-string Descriptors. "
+             "Refer to the USB Specification for more information.")]
+      uint16 RequestIndex, 
+         [IN, OUT, Description (
+             "On input, RequestLength is the length (in octets) of the "
+             "Descriptor that should be returned. If this value is "
+             "less than the actual length of the Descriptor, only the "
+             "requested length will be returned. If it is more than "
+             "the actual length, the actual length is returned. On "
+             "output, this parameter is the length, in octets, of the "
+             "Buffer being returned. If the requested Descriptor does "
+             "not exist, the contents of this parameter are undefined.")]
+      uint16 RequestLength, 
+         [IN ( false ), OUT, Description (
+             "Buffer returns the requested Descriptor information. If "
+             "the Descriptor does not exist, the contents of the "
+             "Buffer are undefined.")]
+      uint8 Buffer[]); 
+};
+
+
+// ===================================================================
+// USBHub
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "USB Hub Device.")]
+class CIM_USBHub : CIM_USBDevice {
+
+      [Description (
+          "Indicates whether power to the Hub Ports is individually or "
+          "gang-switched. If this value is FALSE, power is switched "
+          "individually for each Port. If this value is TRUE, power is "
+          "switched to all Ports on the Hub at once.")]
+   boolean GangSwitched;
+
+      [Description (
+          "Number of downstream Ports on the Hub, including those "
+          "embedded in the Hub's silicon. Individual USBPorts are "
+          "associated with the Hub using the USBPortOnHub association.")]
+   uint8 NumberOfPorts;
+};
+
+
+// ===================================================================
+// USBPort
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A Port on a USBHub.")]
+class CIM_USBPort : CIM_LogicalPort {
+
+      [Override ( "Speed" ), Description (
+          "USB Port Speed in bits per second. This speed is determined "
+          "and set by the attached Device. The 'attached Device' is "
+          "indicated using the USBConnection association. At this "
+          "time, only several Port speeds are valid. These are: "
+          "1.5Mbps and 12Mbps. The value 0 can also be specified to "
+          "indicate that the current speed is 'unknown' or 1 to "
+          "indicate that the speed is 'other' than 1.5 or 12Mbps."), 
+       ValueMap { "0", "1", "1500000", "12000000" }]
+   uint64 Speed;
+
+      [Override ( "StatusInfo" ), Description (
+          "Indicates whether the Port is currently enabled."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Unknown", "Enabled", "Disabled" }]
+   uint16 StatusInfo;
+
+      [Override ( "Availability" ), Description (
+          "Indicates whether the Port is currently Powered."), 
+       ValueMap { "2", "3", "7" }, 
+       Values { "Unknown", "Running/Full Power", "Power Off" }]
+   uint16 Availability;
+
+      [Description (
+          "The USB Port's power capability. The current specification "
+          "defines that 1 or 5 loads can be supported (values 2 or 3 "
+          "would be specified, respectively)."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "1 Unit Load", "5 Unit Loads" }]
+   uint16 Power;
+
+      [Description (
+          "Indicates whether the Port is currently Suspended.")]
+   boolean Suspended;
+
+      [Description (
+          "Indicates whether the Port is disabled due to an "
+          "overcurrent event.")]
+   boolean Overcurrent;
+};
+
+
+// ===================================================================
+// USBPortOnHub
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "USBPortOnHub associates a USBPort or connection point with the "
+       "USBHub that includes it.")]
+class CIM_USBPortOnHub : CIM_PortOnDevice {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The Hub that includes the USBPort.")]
+   CIM_USBHub REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The Port on the USBHub.")]
+   CIM_USBPort REF Dependent;
+};
+
+
+// ===================================================================
+// USBControllerHasHub
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "USBControllerHasHub defines the Hub(s) that are downstream of "
+       "the USBController.")]
+class CIM_USBControllerHasHub : CIM_ControlledBy {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The USBController.")]
+   CIM_USBController REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The USBHub that is associated with the Controller.")]
+   CIM_USBHub REF Dependent;
+};
+
+
+// ===================================================================
+// USBConnection
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "USBConnection associates a Device with the USBPort to which it "
+       "is connected.")]
+class CIM_USBConnection : CIM_DeviceConnection {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The USBPort.")]
+   CIM_USBPort REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The USBDevice that is connected to the Port.")]
+   CIM_USBDevice REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

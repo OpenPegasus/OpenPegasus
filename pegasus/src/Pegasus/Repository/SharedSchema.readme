@@ -1,0 +1,121 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+Shared Schema support - PEP 129
+
+Shared Schema support has been added, see PEP 130 for a detailed description.
+
+The namespace directories now carry additional informatio about namespace sharing.
+
+In addition to the classes, qualifiers and instances directories a special direcory entry
+is used to carry namespace sharing information. This directory start with the letter "S",
+its format is: the letter "S" followed by either the letter "R" or "W" (defining read-only
+or read-write), followed by the letter "S or "F" (defining whether this namspace can be shared
+or not), optionally followed by the name of the parent namespace directory name. The directory
+itself is empty.
+
+examples:
+
+SRF                     Meaning a read-only, non-shareable primary namespace. This is
+                        normally set after the namespace is loaded with schema data.
+
+SWF                     Meaning a read-write, non-shareable primary namespace. This is
+                        the default namespace setting. If no sharing information is found,
+			this is assumed.
+
+SWS                     Meaning a read-write, shareable primary namespace.
+
+SWSroot#cim_v27         Meaning this is a secondary, read-write, shareable namespace.
+                        Its parent namespace directory is root#cim_v27
+
+SRSroot#cim_v27         Meaning this is a secondary, read-only, shareable namespace.
+                        Its parent namespace directory is root#cim_v27
+
+SRFroot#cim_v27         Meaning this is a secondary, read-only, non-shareable namespace.
+                        Its parent namespace directory is root#cim_v27
+
+This special directory entry is the sole soure of shared schema information. The CIM_Namespace
+provider uses this information. This implies, that by modifying this diretory entry (and performing
+a subsequent cimserver restart) one can modify the schema sharing characteristics.
+
+Since the CIM_Namespace control provider is not ready yet, the following script can be used
+to create a shared schema environment for Pegasus 2.4 basd im CIM schema version 2.7:
+
+When executed, the repository will have the following charecteristics:
+
+root#PG_Internal        Default primary namespace (implied SWF)
+root#cim_v27            Read-write, shareable, primary namespace containing all CIM 2.7 schemas
+root#PG_InterOp         Read-write, non-shareable secondaty namespace. Parent is root#cim_v27.
+                        Contains InterOp schema only
+root#cimv2              Read-write, shareable, secondary namespace. Parent is root#cim_v27.
+                        This namespace is empty and can be used to hold provider schemata.
+
+echo clear repository directory structure
+mkdir -p $PEGASUS_HOME/repository/
+rm -rf $PEGASUS_HOME/repository/*
+
+echo create root/PG_Internal - primary namespace directory structure
+mkdir -p $PEGASUS_HOME/repository/root#PG_Internal/classes
+mkdir -p $PEGASUS_HOME/repository/root#PG_Internal/qualifiers
+mkdir -p $PEGASUS_HOME/repository/root#PG_Internal/instances
+
+echo create root/cim_v27 - primary namespace directory structure
+mkdir -p $PEGASUS_HOME/repository/root#cim_v27/classes
+mkdir -p $PEGASUS_HOME/repository/root#cim_v27/qualifiers
+mkdir -p $PEGASUS_HOME/repository/root#cim_v27/instances
+mkdir -p $PEGASUS_HOME/repository/root#cim_v27SWS
+
+echo create root/PG_InterOp - secondary RW namespace directory structure - parent root/cim_v27
+mkdir -p $PEGASUS_HOME/repository/root#PG_InterOp/classes
+mkdir -p $PEGASUS_HOME/repository/root#PG_InterOp/qualifiers
+mkdir -p $PEGASUS_HOME/repository/root#PG_InterOp/instances
+mkdir -p $PEGASUS_HOME/repository/root#PG_InterOp/SWFroot#cim_v27
+
+echo create root/cimv2 - secondary RW namespace directory structure - parent root/cim_v27
+mkdir -p $PEGASUS_HOME/repository/root#cimv2/classes
+mkdir -p $PEGASUS_HOME/repository/root#cimv2/qualifiers
+mkdir -p $PEGASUS_HOME/repository/root#cimv2/instances
+mkdir -p $PEGASUS_HOME/repository/root#cimv2/SWSroot#cim_v27
+
+
+echo +++++ Loading Core27_Qualifiers.mof into root/PG_Internal namespace ...
+cimmofl -R$PEGASUS_HOME -nroot/PG_Internal $PEGASUS_HOME/Schemas/CIM27/Core27_Qualifiers.mof
+echo +++++ Loading PG_InternalSchema20.mof into root/PG_Internal namespace...
+cimmofl -R$PEGASUS_HOME -I$PEGASUS_HOME/Schemas/Pegasus/Internal/VER20 -nroot/PG_Internal $PEGASUS_HOME/Schemas/Pegasus/Internal/VER20/PG_InternalSchema20.mof
+
+echo +++++ Loading CIM_Schema27 into root/cim_v27 namespace ...
+cimmofl -R$PEGASUS_HOME -I$PEGASUS_HOME/Schemas/CIM27 -nroot/cim_v27 $PEGASUS_HOME/Schemas/CIM27/CIM_Schema27.mof
+echo +++++ Loading PG_ManagedSystemSchema20 into root/cim_v27 namespace ...
+cimmofl -R$PEGASUS_HOME -I$PEGASUS_HOME/Schemas/Pegasus/ManagedSystem/VER20 -nroot/cim_v27 $PEGASUS_HOME/Schemas/Pegasus/ManagedSystem/VER20/PG_ManagedSystemSchema20.mof
+
+echo +++++ Loading PG_InterOpSchema20.mof into root/PG_InterOp namespace...
+cimmofl -R$PEGASUS_HOME -I$PEGASUS_HOME/Schemas/Pegasus/InterOp/VER20 -nroot/PG_InterOp $PEGASUS_HOME/Schemas/Pegasus/InterOp/VER20/PG_InterOpSchema20.mof
+
+echo +++++ Registering Providers for PG_ManagedSystemSchema20 ...
+cimmofl -R$PEGASUS_HOME -I$PEGASUS_HOME/Schemas/Pegasus/ManagedSystem/VER20 -nroot/PG_InterOp $PEGASUS_HOME/Schemas/Pegasus/ManagedSystem/VER20/PG_ManagedSystemSchema20R.mof

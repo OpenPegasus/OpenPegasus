@@ -1,0 +1,92 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+Multiple threads creation Test
+------------------------------
+
+The source files present in this directory implements a test case for checking
+provider behaviour when new sub-processes are created from inside the provider
+methods.
+Source programs included:
+MultithreadingSampleProviderMain.cpp
+MultithreadingSampleProvider.cpp
+MultithreadingSampleProvider.h
+MultithreadingSampleProvider.mof - MultithreadSampleClass MOF
+MultithreadingSampleProviderR.mof - Provider Registration MOF
+
+build
+-----
+This script builds the MultithreadingSample provider sources, registers the
+classes into the CIM repository and registers the provider(by compiling the 2
+mof files using cimmofl).
+It also stops and restarts the cimserver in order to re-read the repository to
+make sure that new classes are registered.
+
+-------------------------------------------------------------------------------
+The implementation is done in the following manner:
+
+1. MultithreadingSampleProviderMain.cpp is the source file which contains the
+provider entry point routine.
+
+2. MultithreadingSampleProvider.cpp [h] are the main provider sources that
+implement the MultithreadingSampleClass.
+
+3. The Base class has 3 derived classes called ThreadSampleOne, ThreadSampleTwo
+and ThreadSampleThree.
+
+4. ThreadSampleOne class instances are created inside the enumerateInstances
+method of the provider. After the instances creation this method calls
+explicitly the CreateThread function, which spawns a new sub-process and
+executes the command line cim client CLI.
+
+5. The additional functions added in the provider source program other than the
+standard methods are:
+CreateThread() - Function creating the sub-process (by using fork())
+reader() - child process reads from the input stream
+writer() - Parent process writing to the output stream
+
+This test program is currently tested only on Linux and AIX (on x86 arch.).
+It might not be working on non-unix platforms because of the usage of platform
+specific system calls like fork(), and sleep();
+
+The parent process after writing to the output stream sleeps in the function
+writer() which makes the CLI command give a timeout error.
+
+TEST the Provider Working
+-------------------------
+
+1. Run the following command for checking the working of this provider:
+
+CLI niall -n root/SampleProvider ThreadSampleOne
+
+2. Run "TestClient" program present in the pegasus sources (to check for the
+new classes registered by any new providers) as follows:
+	TestClient --n root/SampleProvider
+[You need to make sure that the TestClient is run for the SampleProvider
+repository because by default it runs only for root/cimv2]
+

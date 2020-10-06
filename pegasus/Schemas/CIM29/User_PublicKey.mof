@@ -1,0 +1,345 @@
+// ===================================================================
+// Title: User_PublicKey
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: User_PublicKey.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The User Model extends the management concepts that
+//              are related to users and security.
+//              This file defines the classes modeling public key
+//              security services, credentials and the certificate\
+//              authority.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ===================================================================
+// Change Log for v2.8 Final
+//  CR1235 - Accepted changes in CR1011 and corrected
+//  ModelCorrespondence
+//           in UnsignedPublicKey.PeerIdentity and PeerIdentityType
+// 
+// Change Log for v2.8 Preliminary
+//  CR1011 - Modified Descriptions for CertificateAuthority,
+//          PublicKeyCertificate, CAHasPublicKey and UnsignedPublicKey
+// 
+// Change Log for v2.7
+//  CR784 - Deprecated Expires property from CASignsPublicKeyCertificate
+//  CR980 - All deprecations taken to Final status
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// CertificateAuthority
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A Certificate Authority (CA) is a credential management "
+       "service that issues and cryptographically signs certificates. "
+       "It acts as an trusted third-party intermediary in establishing "
+       "trust relationships. The CA authenticates the identity of the "
+       "holder of the 'private' key, related to the certificate's "
+       "'public' key.")]
+class CIM_CertificateAuthority : CIM_CredentialManagementService {
+
+      [Description (
+          "The CAPolicyStatement describes what care is taken by the "
+          "CertificateAuthority when signing a new certificate. The "
+          "CAPolicyStatment may be a dot-delimited ASN.1 OID string "
+          "which identifies to the formal policy statement.")]
+   string CAPolicyStatement;
+
+      [Description (
+          "A CRL, or CertificateRevocationList, is a list of "
+          "certificates which the CertificateAuthority has revoked and "
+          "which are not yet expired. Revocation is necessary when the "
+          "private key associated with the public key of a certificate "
+          "is lost or compromised, or when the person for whom the "
+          "certificate is signed no longer is entitled to use the "
+          "certificate."), 
+       OctetString]
+   string CRL[];
+
+      [Description (
+          "Certificate revocation lists may be available from a number "
+          "of distribution points. CRLDistributionPoint array values "
+          "provide URIs for those distribution points.")]
+   string CRLDistributionPoint[];
+
+      [Description (
+          "Certificates refer to their issuing CA by its Distinguished "
+          "Name (as defined in X.501)."), 
+       Dn]
+   string CADistinguishedName;
+
+      [Description (
+          "The frequency, expressed in hours, at which the CA will "
+          "update its Certificate Revocation List. Zero implies that "
+          "the refresh frequency is unknown."), 
+       Units ( "Hours" )]
+   uint8 CRLRefreshFrequency;
+
+      [Description (
+          "The maximum number of certificates in a certificate chain "
+          "permitted for credentials issued by this certificate "
+          "authority or it's subordinate CAs. \n"
+          "The MaxChainLength of a superior CA in the trust hierarchy "
+          "should be greater than this value and the MaxChainLength of "
+          "a subordinate CA in the trust hierarchy should be less than "
+          "this value.")]
+   uint8 MaxChainLength;
+};
+
+
+// ==================================================================
+// PublicKeyManagementService
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "CIM_PublicKeyManagementService is a credential management "
+       "service that provides local system management of public keys "
+       "used by the local system.")]
+class CIM_PublicKeyManagementService : CIM_LocalCredentialManagementService {
+};
+
+
+// ==================================================================
+// PublicKeyCertificate
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A PublicKeyCertificate is a credential that is "
+       "cryptographically signed by a trusted Certificate Authority "
+       "(CA) and issued to an authenticated entity (e.g., human user, "
+       "service, etc.) called the Subject in the certificate. The "
+       "public key in the certificate is cryptographically related to "
+       "a private key that is held and kept private by the "
+       "authenticated Subject. The certificate and its related private "
+       "key can then be used for establishing trust relationships and "
+       "securing communications with the Subject. Refer to the "
+       "ITU/CCITT X.509 standard as an example of such certificates.")]
+class CIM_PublicKeyCertificate : CIM_Credential {
+
+      [Key,
+          Propagated ( "CIM_CertificateAuthority.SystemCreationClassName" 
+          ), Description (
+          "The scoping System's CCN."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_CertificateAuthority.SystemName" ), 
+       Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Propagated ( "CIM_CertificateAuthority.CreationClassName" ), 
+       Description (
+          "The scoping Service's CCN."), 
+       MaxLen ( 256 )]
+   string ServiceCreationClassName;
+
+      [Key, Propagated ( "CIM_CertificateAuthority.Name" ), 
+       Description (
+          "The scoping Service's Name."), 
+       MaxLen ( 256 )]
+   string ServiceName;
+
+      [Key, Description (
+          "Certificate subject identifier."), 
+       MaxLen ( 256 )]
+   string Subject;
+
+      [Description (
+          "Alternate subject identifier for the Certificate."), 
+       MaxLen ( 256 )]
+   string AltSubject;
+
+      [Description (
+          "The DER-encoded raw public key."), 
+       OctetString]
+   uint8 PublicKey[];
+};
+
+
+// ===================================================================
+// CAHasPublicCertificate
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "A CertificateAuthority may have certificates issued by other "
+       "CAs or self-signed. This association is essentially an "
+       "optimization of the CA having an external identity established "
+       "by itself or another Authority. This maps closely to "
+       "LDAP-based certificate authority implementations.")]
+class CIM_CAHasPublicCertificate : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Certificate used by the CA.")]
+   CIM_PublicKeyCertificate REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The CA that uses a Certificate.")]
+   CIM_CertificateAuthority REF Dependent;
+};
+
+
+// ===================================================================
+// CASignsPublicKeyCertificate
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This relationship associates a CertificateAuthority with the "
+       "certificates it signs.")]
+class CIM_CASignsPublicKeyCertificate : CIM_ManagedCredential {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The CA which signed the certificate.")]
+   CIM_CertificateAuthority REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The certificate issued by the CA.")]
+   CIM_PublicKeyCertificate REF Dependent;
+
+      [Description (
+          "The Serial Number.")]
+   string SerialNumber;
+
+      [Description (
+          "The Signature."), 
+       OctetString]
+   uint8 Signature[];
+
+      [Deprecated { "CIM_Credential.Expires" }, Description (
+          "The time it expires.")]
+   datetime Expires;
+
+      [Description (
+          "The Authority's revocation list distribution points.")]
+   string CRLDistributionPoint[];
+};
+
+
+// ==================================================================
+// UnsignedPublicKey
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A CIM_UnsignedPublicKey represents an unsigned public key "
+       "credential. Services accept the public key as authentic "
+       "because of a direct trust relationship, rather than via a "
+       "third-party Certificate Authority.")]
+class CIM_UnsignedPublicKey : CIM_Credential {
+
+      [Key,
+          Propagated ( "CIM_PublicKeyManagementService.SystemCreationClassName" 
+          ), Description (
+          "The scoping System's CCN."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_PublicKeyManagementService.SystemName" ), 
+       Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key,
+          Propagated ( "CIM_PublicKeyManagementService.CreationClassName" 
+          ), Description (
+          "The scoping Service's CCN."), 
+       MaxLen ( 256 )]
+   string ServiceCreationClassName;
+
+      [Key, Propagated ( "CIM_PublicKeyManagementService.Name" ), 
+       Description (
+          "The scoping Service's Name."), 
+       MaxLen ( 256 )]
+   string ServiceName;
+
+      [Key, Description (
+          "The Identity of the Peer with whom a direct trust "
+          "relationship exists. The public key may be used for "
+          "security functions with the Peer."), 
+       MaxLen ( 256 ), 
+       ModelCorrespondence { "CIM_UnsignedPublicKey.PeerIdentityType" }]
+   string PeerIdentity;
+
+      [Description (
+          "PeerIdentityType is used to describe the type of the "
+          "PeerIdentity. The currently defined values are used for IKE "
+          "identities."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11" }, 
+       Values { "Other", "IPV4_ADDR", "FQDN", "USER_FQDN",
+          "IPV4_ADDR_SUBNET", "IPV6_ADDR", "IPV6_ADDR_SUBNET",
+          "IPV4_ADDR_RANGE", "IPV6_ADDR_RANGE", "DER_ASN1_DN",
+          "DER_ASN1_GN", "KEY_ID" }, 
+       ModelCorrespondence { "CIM_UnsignedPublicKey.PeerIdentity" }]
+   uint16 PeerIdentityType;
+
+      [Description (
+          "The DER-encoded raw public key."), 
+       OctetString]
+   uint8 PublicKey[];
+};
+
+
+// ==================================================================
+// LocallyManagedPublicKey
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_LocallyManagedPublicKey association provides the "
+       "relationship between a PublicKeyManagementService and an "
+       "UnsignedPublicKey.")]
+class CIM_LocallyManagedPublicKey : CIM_ManagedCredential {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The PublicKeyManagementService that manages an unsigned "
+          "public key.")]
+   CIM_PublicKeyManagementService REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "An unsigned public key.")]
+   CIM_UnsignedPublicKey REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

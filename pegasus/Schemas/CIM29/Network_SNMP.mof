@@ -1,0 +1,202 @@
+// ===================================================================
+// Title: Network_SNMP
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_SNMP.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines classes to manage
+//              SNMP (Simple Network Management Protocol) services.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR791 - Add classes to support the configuration and management
+//         of SNMP services
+// CR982 - Removal of Experimental for preliminary to final
+// Change Log for v2.8 - None
+// Change Log for V2.9.0
+// CR1465 - Added missing value map to TypeOfAccess
+//          ValueMap { "0", "1", "2"},  
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// SNMPService
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "SNMPService represents an SNMP agent running on a hosting "
+       "system. The UDP port to use to contact the agent is an "
+       "instance of UDPProtocolEndpoint. The endpoint is associated "
+       "with the SNMPService via a Dependency relationship. The "
+       "community string(s) to use when contacting the SNMP agent "
+       "reside in instances of SNMPCommunityString, that are "
+       "associated with the SNMPService via the ServiceAccessBySAP "
+       "relationship.")]
+class CIM_SNMPService : CIM_Service {
+};
+
+
+// ==================================================================
+// SNMPCommunityString
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "SNMPCommunityString is an access point for an SNMPService. "
+       "Each instance stores a community string that can be used for "
+       "making SNMP requests.")]
+class CIM_SNMPCommunityString : CIM_ServiceAccessPoint {
+
+      [Description (
+          "The SNMP community string/password used for read or "
+          "read/write access to the agent's data."), 
+       MappingStrings { "MIB.IETF|ENTITY-MIB.entLogicalCommunity" }]
+   string CommunityString;
+
+      [Description (
+          "An enumerated integer describing whether read or read/ "
+          "write access is granted, or whether this information is "
+          "unknown."), 
+       ValueMap { "0", "1", "2"},  
+       Values { "Unknown", "Read Only", "Read/Write" }]
+   uint16 TypeOfAccess;
+
+      [Description (
+          "This array contains one or more object identifiers "
+          "indicating the MIB modules/object subtrees that are "
+          "accessed using the CommunityString. Either text strings of "
+          "numbers (such as 1.2.3.4.5), or words (such as 'system') "
+          "are specified. When using text strings of numbers, an "
+          "asterisk (*) can replace any subidentifier to specify a "
+          "subtree family - for example, 1.2.*.5. Descriptions related "
+          "to each entry in the array are found at the corresponding "
+          "index of the LogicalEntitiesDescriptions property."), 
+       MappingStrings { "MIB.IETF|ENTITY-MIB.entLogicalType" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SNMPCommunityString.LogicalEntitiesDescriptions" }]
+   string LogicalEntitiesAccessed[];
+
+      [Description (
+          "Free-form textual descriptions of the logical entities "
+          "indicated in the LogicalEntitiesAccessed array. There is a "
+          "correspondence between the entity identifier in the "
+          "LogicalEntitiesAccessed array, and the description in this "
+          "array at the corresponding index."), 
+       MappingStrings { "MIB.IETF|ENTITY-MIB.entLogicalDescr" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SNMPCommunityString.LogicalEntitiesAccessed" }]
+   string LogicalEntitiesDescriptions[];
+};
+
+
+// ==================================================================
+// SNMPTrapTarget
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "SNMPTrapTarget contains information describing a remote "
+       "system, to which Informs and Traps are sent. An SNMPService is "
+       "related via a ServiceSAPDependency association to one or more "
+       "instances of this class.")]
+class CIM_SNMPTrapTarget : CIM_RemotePort {
+
+      [Override ( "AccessInfo" ), Description (
+          "The host address.")]
+   string AccessInfo;
+
+      [Override ( "PortProtocol" ), Description (
+          "A UDP port to which the traps/informs are sent.")]
+   uint16 PortProtocol = 3;
+
+      [Override ( "PortInfo" ), Description (
+          "The UDP port number to which the traps/informs are sent. "
+          "The default is port 162.")]
+   string PortInfo = "162";
+
+      [Description (
+          "Allows the selection of the notification message - Traps or "
+          "Informs. By default, Traps are selected."), 
+       ValueMap { "1", "2" }, 
+       Values { "Traps", "Informs" }]
+   uint16 NotificationMessage = 1;
+
+      [Description (
+          "The SNMP version used to send the traps or informs. Note "
+          "that v1 does not support informs."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "v1", "v2C", "v3" }]
+   uint16 SNMPVersion;
+
+      [Description (
+          "A community string/password to send with the trap "
+          "operation.")]
+   string CommunityString;
+};
+
+
+// ==================================================================
+// TrapSourceForSNMPService
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "TrapSourceForSNMPService specifies the protocol "
+       "endpoint/interface (and hence its IP address) from which traps "
+       "originate.")]
+class CIM_TrapSourceForSNMPService : CIM_ServiceSAPDependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The endpoint that acts as the trap source.")]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The SNMP service that sends the notifications.")]
+   CIM_SNMPService REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

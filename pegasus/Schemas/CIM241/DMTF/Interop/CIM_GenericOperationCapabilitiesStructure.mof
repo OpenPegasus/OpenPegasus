@@ -1,0 +1,100 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Indication, Version ( "2.38.0" ), 
+    UMLPackagePath ( "CIM::Interop::Operations" ), 
+    Description ( 
+       "CIM_GenericOperationCapabilitiesStructure defines a structure "
+       "of the generic operations capabilities supported by a WBEM "
+       "implementation (e.g. WBEM Server, WBEM Protocol, WBEM "
+       "Provider, ...). One use of this strucutre would be to add to a "
+       "capabilities class and associate via CIM_ElementCapabilities. "
+       "For more information, see Generic Operations (DSP0223)." ), 
+    Structure]
+class CIM_GenericOperationCapabilitiesStructure {
+
+      [Description ( 
+          "Is FQL (Filter Query Language, DSP0212) supported?" )]
+   boolean FQLSupported;
+
+      [Description ( 
+          "CQLSupport describes the levels of CQL Supported. If Not "
+          "Supported the array shall have a single entry of 0 (Not "
+          "Supported). For more information refer to the CIM Query "
+          "Language Specification, DSP0202." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", ".." }, 
+       Values { "Not Supported", "Basic Query", "Simple Join", 
+          "Complex Join", "Subquery", "Result Set Operations", 
+          "Extended Select List", "Embedded Properties", 
+          "Aggregations", "Regular Expression Like", "Array Range", 
+          "Satisfies Array", "Foreign Namespace Support", 
+          "Arithmetic Expression", "Full Unicode Support", 
+          "Conversion Utilities", "Property Scoping", 
+          "Association Traversal", "DMTF Reserved" }]
+   uint32 CQLSupport[];
+
+      [Description ( 
+          "The list of Generic Operations supported. Generic "
+          "Operations are defined in DSP0223." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", 
+          "29", "30", "31", "32", "33", "34", "35", "36", "37", 
+          "38", "39", "40", ".." }, 
+       Values { "Other", "GetInstance", "DeleteInstance", 
+          "ModifyInstance", "CreateInstance", "EnumerateInstances", 
+          "EnumerateInstanceNames", "Associators", 
+          "AssociatorNames", "References", "ReferenceNames", 
+          "OpenEnumerateInstances", "OpenEnumerateInstancePaths", 
+          "OpenAssociators", "OpenAssociatorPaths", 
+          "OpenReferences", "OpenReferencePaths", 
+          "OpenQueryInstances", "PullInstancesWithPath", 
+          "PullInstancePaths", "PullInstances", "CloseEnumeration", 
+          "EnumerationCount", "InvokeMethod", "InvokeStaticMethod", 
+          "GetClass", "DeleteClass", "ModifyClass", "CreateClass", 
+          "EnumerateClasses", "EnumerateClassNames", 
+          "AssociatorClasses", "AssociatorClassPaths", 
+          "ReferenceClasses", "ReferenceClassPaths", 
+          "GetQualifierType", "DeleteQualifierType", 
+          "ModifyQualifierType", "CreateQualifierType", 
+          "EnumerateQualifierTypes", "DMTF Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_GenericOperationCapabilitiesStructure.OtherOperationsSupportedDescriptions" }]
+   uint32 OperationsSupported[];
+
+      [Description ( 
+          "If OperationsSupported has the value 1 (Other), then the "
+          "corresponding element in this array shall have the name "
+          "of the operation." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_GenericOperationCapabilitiesStructure.OperationsSupported" }]
+   string OtherOperationsSupportedDescriptions[];
+
+      [Description ( 
+          "Is ContinueOnError supported as defined in Generic "
+          "Operations (DSP0223)?" )]
+   boolean ContinueOnErrorSupported;
+
+      [Description ( 
+          "OperationTimeout is defined in Generic Operations "
+          "(DSP0223). It is used to determine when the WBEM Server "
+          "can close an enumeration session. "
+          "MinimumOperationTimeout is the minimum number of seconds "
+          "allowed for the OperationTimeout parameter." ), 
+       PUnit ( "second" )]
+   uint32 MinimumOperationTimeout;
+
+      [Description ( 
+          "OperationTimeout is defined in Generic Operations "
+          "(DSP0223). It is used to determine when the WBEM Server "
+          "can close an enumeration session. "
+          "MaximumOperationTimeout is the maximum number of seconds "
+          "allowed for the OperationTimeout parameter. If the value "
+          "is 0, then there is no operation timeout. That is, the "
+          "enumeration session is never closed based on time." ), 
+       PUnit ( "second" )]
+   uint32 MaximumOperationTimeout;
+
+
+};

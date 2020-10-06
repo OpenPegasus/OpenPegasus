@@ -1,0 +1,363 @@
+// ===================================================================
+// Title: User_Account
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: User_Account.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The User Model extends the management concepts that
+//              are related to users and security.
+//              This file defines the concepts and classes related to
+//              Accounts.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ===================================================================
+// Change Log for v2.8 Final
+//  CR1218 - Accepted AccountIdentity and the deprecation of
+//  UsersAccount
+//           as Final
+//  CR1235 - Added Descriptions to the properties of ManagesAccount and
+//           SecurityServiceUsesAccount / Accepted Account's Description
+//           change as Final
+// 
+// Change Log for v2.8 Preliminary
+//  CR1013 - Related the Account class with Identity, changed Account's
+//           Description, added AccountIdentity and deprecated
+//           UsersAccount
+// 
+// Change Log for v2.7 - None
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// Account
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_Account is the information held by a SecurityService to "
+       "track identity and privileges managed by that service. Common "
+       "examples of an Account are the entries in a UNIX /etc/passwd "
+       "file. Several kinds of security services use various "
+       "information from those entries - the /bin/login program uses "
+       "the account name ('root') and hashed password to authenticate "
+       "users, and the file service, for instance, uses the UserID "
+       "field ('0') and GroupID field ('0') to record ownership and "
+       "determine access control privileges on files in the file "
+       "system. This class is defined so as to incorporate "
+       "commonly-used LDAP attributes to permit implementations to "
+       "easily derive this information from LDAP-accessible "
+       "directories. \n"
+       "\n"
+       "The semantics of Account overlap with that of the class, "
+       "CIM_Identity. However, aspects of Account - such as its "
+       "specific tie to a System - are valuable and have been widely "
+       "implemented. For this reason, the Account and Identity classes "
+       "are associated using a subclass of LogicalIdentity "
+       "(AccountIdentity), instead of deprecating the Account class in "
+       "the CIM Schema. When an Account has been authenticated, the "
+       "corresponding Identity's TrustEstablished Boolean would be set "
+       "to TRUE. Then, the Identity class can be used as defined for "
+       "authorization purposes.")]
+class CIM_Account : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_System.CreationClassName" ), 
+       Description (
+          "The scoping System's CCN."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_System.Name" ), Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "The Name property defines the label by which the object is "
+          "known. The value of this property may be set to be the same "
+          "as that of the UserID property or, in the case of an "
+          "LDAP-derived instance, the Name property value may be set "
+          "to the distinguishedName of the LDAP-accessed object "
+          "instance."), 
+       MaxLen ( 1024 )]
+   string Name;
+
+      [Description (
+          "UserID is the value used by the SecurityService to "
+          "represent identity. For an authentication service, the "
+          "UserID may be the name of the user, or for an authorization "
+          "service the value which serves as a handle to a mapping of "
+          "the identity."), 
+       MaxLen ( 256 )]
+   string UserID;
+
+      [Description (
+          "In the case of an LDAP-derived instance, the ObjectClass "
+          "property value(s) may be set to the objectClass attribute "
+          "values.")]
+   string ObjectClass[];
+
+      [Description (
+          "The Descriptions property values may contain human-readable "
+          "descriptions of the object. In the case of an LDAP-derived "
+          "instance, the description attribute may have multiple "
+          "values that, therefore, cannot be placed in the inherited "
+          "Description property."), 
+       MaxLen ( 1024 )]
+   string Descriptions[];
+
+      [Description (
+          "Based on RFC1274, the host name of the system(s) for which "
+          "the account applies. The host name may be a fully-qualified "
+          "DNS name or it may be an unqualified host name.")]
+   string Host[];
+
+      [Description (
+          "This property contains the name of a locality, such as a "
+          "city, county or other geographic region.")]
+   string LocalityName[];
+
+      [Required, Description (
+          "The name of the organization related to the account.")]
+   string OrganizationName[];
+
+      [Description (
+          "The name of an organizational unit related to the account.")]
+   string OU[];
+
+      [Description (
+          "In the case of an LDAP-derived instance, the SeeAlso "
+          "property specifies distinguished name of other Directory "
+          "objects which may be other aspects (in some sense) of the "
+          "same real world object.")]
+   string SeeAlso[];
+
+      [Description (
+          "Based on inetOrgPerson and for directory compatibility, the "
+          "UserCertificate property may be used to specify a public "
+          "key certificate for the person."), 
+       OctetString]
+   string UserCertificate[];
+
+      [Description (
+          "In the case of an LDAP-derived instance, the UserPassword "
+          "property may contain an encrypted password used to access "
+          "the person's resources in a directory."), 
+       OctetString]
+   string UserPassword[];
+};
+
+
+// ==================================================================
+// AccountIdentity
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_AccountIdentity relates a system Account with the Identity "
+       "that is established. Since Account also carries Identity "
+       "semantics, the LogicalIdentity association is defined as the "
+       "superclass of this association.")]
+class CIM_AccountIdentity : CIM_LogicalIdentity {
+
+      [Override ( "SystemElement" ), Description (
+          "The Account that establishes Identity.")]
+   CIM_Account REF SystemElement;
+
+      [Override ( "SameElement" ), Description (
+          "The Identity established by the Account.")]
+   CIM_Identity REF SameElement;
+};
+
+
+// ===================================================================
+// AccountOnSystem
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "A system (e.g., ApplicationSystem, ComputerSystem, "
+       "AdminDomain) aggregates Accounts and scopes the uniqueness of "
+       "the Account names (i.e., userids).")]
+class CIM_AccountOnSystem : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The aggregating system also provides name scoping for the "
+          "Account.")]
+   CIM_System REF GroupComponent;
+
+      [Override ( "PartComponent" ), Weak, Description (
+          "The subordinate Account.")]
+   CIM_Account REF PartComponent;
+};
+
+
+// ===================================================================
+// UsersAccount
+// ===================================================================
+   [Association, Deprecated { "CIM_AccountIdentity" },
+       Version ( "2.8.0" ), Description (
+       "This relationship associates UsersAccess with the Accounts "
+       "with which they're able to interact. This association is "
+       "deprecated in lieu of AccountIdentity, which defines similar "
+       "semantics. This was done since the UsersAccess reference in "
+       "UsersAccount has been deprecated and replaced by the more "
+       "specific semantics of CIM_Identity.")]
+class CIM_UsersAccount : CIM_Dependency {
+
+      [Deprecated { "CIM_AccountIdentity.SystemElement" },
+          Override ( "Antecedent" ), Description (
+          "The user's Account.")]
+   CIM_Account REF Antecedent;
+
+      [Deprecated { "CIM_AccountIdentity.SameElement" },
+          Override ( "Dependent" ), Description (
+          "The User as identified by their UsersAccess instance.")]
+   CIM_UsersAccess REF Dependent;
+};
+
+
+// ===================================================================
+// AccountMapsToAccount
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This relationship may be used to associate an Account used by "
+       "an AuthenticationService to an Account used for Authorization. "
+       "For instance, this mapping occurs naturally in the UNIX "
+       "/etc/passwd file, where the AuthenticationService Account "
+       "('root') is mapped to the AuthorizationService Account ('0'). "
+       "The two are separate accounts, as evidenced by the ability to "
+       "have another AuthenticationService Account which ALSO maps to "
+       "the AuthorizationService Account ('0') without ambiguity. This "
+       "association may be used for other account mappings as well "
+       "such as for coordinating single signon for multiple accounts "
+       "for the same user.")]
+class CIM_AccountMapsToAccount : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "An Account.")]
+   CIM_Account REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "A related Account.")]
+   CIM_Account REF Dependent;
+};
+
+
+// ===================================================================
+// SecurityServiceUsesAccount
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This relationship associates SecurityService instances to the "
+       "Accounts they use in the course of their work.")]
+class CIM_SecurityServiceUsesAccount : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "Account used by the SecurityService.")]
+   CIM_Account REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Service using the Account.")]
+   CIM_SecurityService REF Dependent;
+};
+
+
+// ==================================================================
+// AccountManagementService
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "CIM_AccountManagementService creates, manages, and if "
+       "necessary destroys Accounts on behalf of other "
+       "SecuritySerices.")]
+class CIM_AccountManagementService : CIM_SecurityService {
+};
+
+
+// ===================================================================
+// ManagesAccount
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This relationship associates the AccountManagement security "
+       "service to the Accounts for which it is responsible.")]
+class CIM_ManagesAccount : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The account management service.")]
+   CIM_AccountManagementService REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "An account managed by the service.")]
+   CIM_Account REF Dependent;
+};
+
+
+// ===================================================================
+// ManagesAccountOnSystem
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The CIM_ManagesAccountOnSystem provides the association "
+       "between a System and the AccountManagementService that manages "
+       "accounts for that system.")]
+class CIM_ManagesAccountOnSystem : CIM_SecurityServiceForSystem {
+
+      [Override ( "Antecedent" ), Description (
+          "An AccountManagementService that manages accounts for the "
+          "system.")]
+   CIM_AccountManagementService REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The system that is dependent on the "
+          "AccountManagementService.")]
+   CIM_System REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

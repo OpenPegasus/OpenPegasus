@@ -1,0 +1,143 @@
+// ===================================================================
+// Title: Application_SystemSoftware
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Application_SystemSoftware.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: These object classes define the DMTF Application Model
+//              and include classes to represent software features and
+//              elements that are associated to the OS, diagnostics,
+//              etc.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// V 2.8 14 January 2003 CIM 2.8 Final
+//             - CR 1240 13 January 2004 - Change Model Correspondence
+//                         for DiagnosticTestSoftware from
+//                         ServiceSoftwareIdentity to
+//                         ElementSoftwareIdentity
+// 
+// V 2.8 23 May 2003 CIM 2.8 Preliminary
+//             - CR 1020 - Deprecate class CIM_DiagnosticTestSoftware
+//             - CR 1049 - Update the deprecation of CIM_
+//                         DiagnosticTestSoftware
+// 
+// V2.7 Change Requests - None
+//    03/17/2003 CIM 2.7 Final
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// InstalledSoftwareElement
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The InstalledSoftwareElement association allows the "
+       "identification of the ComputerSystem on which a particular "
+       "SoftwareElement is installed.")]
+class CIM_InstalledSoftwareElement {
+
+      [Key, Description (
+          "Reference to the Software Element that is installed.")]
+   CIM_SoftwareElement REF Software;
+
+      [Key, Max ( 1 ), Description (
+          "Reference to the ComputerSystem hosting a particular "
+          "SoftwareElement.")]
+   CIM_ComputerSystem REF System;
+};
+
+
+// ==================================================================
+// OperatingSystemSoftwareFeature
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "Indicates the SoftwareFeatures that make up the Operating "
+       "System. The SoftwareFeatures can be part of different "
+       "Products.")]
+class CIM_OperatingSystemSoftwareFeature : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The OperatingSystem.")]
+   CIM_OperatingSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The SoftwareFeatures that make up the OperatingSystem.")]
+   CIM_SoftwareFeature REF PartComponent;
+};
+
+// ==================================================================
+// DiagnosticTestSoftware
+// ==================================================================
+   [Association, Deprecated { "CIM_ElementSoftwareIdentity" },
+    Version ( "2.8.0" ), Description (
+       "This class is being deprecated to promote its usage to the "
+       "DiagnosticService level. \n"
+       "This is an association class relating DiagnosticTest to the "
+       "SoftwareElements that provide this test. SoftwareElement "
+       "describes vendor/version information and other deployment "
+       "data.")]
+class CIM_DiagnosticTestSoftware : CIM_Dependency {
+
+      [Deprecated { "CIM_ElementSoftwareIdentity.Antecedent" },
+       Override ( "Antecedent" ), Description (
+          "This reference is deprecated and replaced (in "
+          "ServiceSoftwareIdentity) with a reference to the "
+          "SoftwareIdentity class, which has been determined to be a "
+          "better choice for diagnostics services. It defines "
+          "vendor/version and other information about the software "
+          "that runs as the DiagnosticTest.")]
+   CIM_SoftwareElement REF Antecedent;
+
+      [Deprecated { "CIM_ElementSoftwareIdentity.Dependent" },
+       Override ( "Dependent" ), Description (
+          "The DiagnosticTest whose software is described.")]
+   CIM_DiagnosticTest REF Dependent;
+};
+
+
+// ==================================================================
+// end of file
+// ==================================================================

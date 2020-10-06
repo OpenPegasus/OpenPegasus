@@ -1,0 +1,96 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+// ===================================================================
+// Title      : PG_ListenerDestinationQueue MOF
+// Filename   : PG_ListenerDestinationQueue20.mof
+// Version    : 1.0
+// Date       : 06/22/2010
+// Description: This MOF file defines the PG_ListenerDestinationQueue class.
+//              The PG_ListenerDestinationQueue class represents the queue
+//              maintained for the listener destination for the delivery of
+//              indications
+// ===================================================================
+
+// ===================================================================
+// PG_ListenerDestinationQueue
+// ===================================================================
+[Version("2.11.0"), Description (
+    "PG_ListenerDestinationQueue is a representation of queue maintained "
+    "for the listener destination for indication delivery.")]
+
+class PG_ListenerDestinationQueue
+{
+        [Key, Propagated ("CIM_ListenerDestination.Name"),
+         Description ("Name of the listener destination.")]
+    string ListenerDestinationName;
+
+         [Description ("Listener destination queue creation time "
+             "in microseconds since epoch")]
+    uint64 CreationTime;
+
+        [Key, Propagated ("CIM_Indication.SequenceContext"),
+         Description ("SequenceContext of the listener destination.")]
+    string SequenceContext;
+
+        [Key, Propagated ("CIM_Indication.SequenceNumber"),
+        Description ("Next available sequenceNumber for the listener "
+             "destination.")]
+    sint64 NextSequenceNumber;
+
+        [Description ("The Sequence Identifier Lifetime in seconds.")]
+    uint32 SequenceIdentifierLifetime;
+
+        [Description ("The maximum number of indications that queue can hold.")]
+    uint32 MaxQueueLength;
+
+        [Description ("The number of indications in the queue at present.")]
+    uint32 CurrentIndications;
+
+        [Description ("The number of indications dropped because of the "
+            "maximum indications that queue can hold were exceeded.")]
+    uint64 QueueFullDroppedIndications;
+
+        [Description ("The number of indications dropped because of the "
+            "sequence-identifier-lifetime was expired.")]
+    uint64 LifetimeExpiredIndications;
+
+        [Description ("The number of indications dropped because of the "
+            "DeliveryRetryAttempts were exceeded.")]
+    uint64 RetryAttemptsExceededIndications;
+
+        [Description ("The number of indications dropped because of the "
+            "corresponding subscription has been disabled.")]
+    uint64 SubscriptionDisableDroppedIndications;
+
+         [Description ("Last indication successful delivery time for this queue "
+             "in microseconds since epoch")]
+    uint64 LastSuccessfulDeliveryTime;
+};
+

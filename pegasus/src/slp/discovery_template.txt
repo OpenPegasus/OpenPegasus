@@ -1,0 +1,145 @@
+Name of submitter: "DMTF Interop Working Group" <wg-interop@dmtf.org>
+Language of service template: en
+Security Considerations:
+	 Information about the specific CIM OM implementation or the
+	 Host OS platform may be deemed a security risk in certain
+	 environments. Therefore these attributes are optional but
+	 recommended.
+
+Template Text:
+-------------------------template begins here-----------------------
+template-type=wbem
+
+template-version=0.1
+
+template-description=
+  This template describes the attributes used for advertising
+  CIM Servers.
+
+template-url-syntax=
+  "serviceid:" 1*(HEXDIGIT / "-")
+  ; The Service URLs registered with this template follow the
+  ; serviceid: scheme.  What follows the scheme is the hex bytes
+  ; of a unique ID, see [ISO-11578]; however, any method that is
+  ; sufficiently random can be used [RFC1750].  This URI is used
+  ; every time *the same service* is advertised with SLP.  That
+  ; is, if a service goes down and comes back up, it should use
+  ; the same URI.  If it comes back up stateless, or with a new
+  ; configuration, it may make sense to advertise with a new URI.
+  ; Example: "service-id:9a783b42-12783401-78FB92D0-9E82B83AA"
+
+service-hi-name=string O
+  ; This string is used as a name of the CIM service for human
+  ; interfaces.
+  ; Example: "(service-hi-name=Blip subsystem CIMOM)"
+  ; See draft-guttman-svrloc-serviceid-01.txt
+
+service-hi-description=string O
+  ; This string is used as a description of the CIM service for
+  ; human interfaces.
+  ; Example: "(service-hi-description=The Blip subsystem is
+  ;   managed by a Blip-Version-0.92 CIMOM.")
+  ; See draft-guttman-svrloc-serviceid-01.txt
+
+service-id=string
+  ; This attribute is set to the same value as the unique ID
+  ; used in the service URL registered with SLP.  A UA can use
+  ; this attribute to discover a CIM service which the UA
+  ; discovered previously.  For example, the query
+  ; "(service-id=9a783b42-12783401-78FB92D0-9E82B83AA)"
+  ; would discover the service advertised with the service URI
+  ; described above.
+
+; CIM Object Manager Capabilities Attributes;
+; The following attributes that are common to all CIM object managers:
+
+service-location-tcp=string M
+; The location of all services offered by the CIM Server
+; over TCP transport. This attribute must provide sufficient addressing
+; information that the CIMServer can be addressed directly using only
+; this attribute.
+; Example: (service-location-tcp=http://example.com:38294,
+;    )
+
+CommunicationMechanism = string L M
+	"Unknown", "Other", "cim-xml"
+# The communication mechanism (protocol) used by the CIM Object Manager. This
+# is derived from instances of the Interop Schema CIM Class CIM_CommunicationMechanism.
+# It has the M flag because there may be multiple instances representing
+# multiple Communication Mechanisms defined for the target CIM Server.
+
+OtherCommunicationMechanismDescription = String L O
+# The other communication mechanism defined for the CIM Server in the case
+# the "Other" value is received in the CommunicationMechanism string.
+# This attribute is derived from the
+# CommunicationMechanismOtherCommunicationMechanismDescription property.
+# This attribute is optional because it is only required if the
+# "other" value is set in CommunicationMechansim. The value returned is
+# a free-form string.
+
+CIM_InteropSchemaNamespace = string L M
+# Namespace within the target CIMOM where the CIM Interop Schema can be
+# accessed. Multiple namespaces may be provided.
+
+cim-xmlProtocolVersion = String O L M
+# Version of the cim-xml protocol if this is defined. Derived from
+# CIM-CIMXMLCommunicationMechanism class CIMXMLProtocolVersion property.
+
+ProfilesSupported = string L M
+		"Unknown", "Other", "Basic Read", "Basic Write",
+                "Schema Manipulation", "Instance Manipulation",
+                "Association Traversal", "Query Execution",
+                "Qualifier Declaration", "Indications"
+# ProfilesSupported defines the CIM Operation profiles supported by the
+# CIM Object Manager. This attribute is derived from the Interop Schema
+# CIM_CommunicationMechansim.ProfilesSupported property.
+
+OtherProfileDescription = string L O M
+# Other profile description if the "other" value is set in the ProfilesSupported
+# attribute.  This attribute is optional because it is returned only if the "other"
+# value is set in the ProfilesSupported attribute.   Derived from the
+# CIM_CommunicationMechanism OtherProfileDescription property, it is a
+# free-form string.
+
+MultipleOperationsSupported = Boolean
+# Defines whether the CIM Object Manager supports batch operations.
+# Derived from the  Interop schema
+# CIM_CommunicationMechanism.MultipleOperationsSupported
+# property.
+
+AuthenticationMechanismSupported = String L
+		"Unknown", "None", "Other", "Basic", "Digest"
+# Defines the authentication mechanism supported by the CIM Object Manager.
+# Derived from the Interop schema
+# CIM_CommunicationMechanism Class.AuthenticationMechanismSupported property
+
+OtherAuthenticationDescription String L O
+# Defines other Authentication mechanism supported by the CIM Object Manager
+# in the case where the "Other" value is set in the
+# AuthenticationMechanismSupported attribute. Derived from the
+# Interop schema CIM_CommunicationMechanism.OtherAuthenticationDescription
+# property,
+# this attribute is optional and is to be provided only when the
+# AuthenticationMechanismSupported attribute is "other".
+
+Namespace= string L M
+# Namespace(s) supported on the CIM Object Manager.
+# Derived from the Interop Schema CIM_Namespaces.name property which has
+# an instance for each namespace supported by the CIM Object Manager.
+# This attribute is optional (O), may have multiple values (one for each
+# namespace defined in the CIM Object Manager, and is literal (L) because
+# the namespace names may not be translated into other languages.
+
+classinfo=string M O
+# The values are taken from the interop schema Namespace.classinfo
+# property.
+# The values represent the classinfo (CIM Schema version, etc.) for
+# the namespaces defined in the corresponding namespace listed in the
+# Namespace attribute. Each entry in this attribute MUST correspond
+# to the namespace defined in the same position of the namespace
+# attribute. There must be one entry in this attribute for each
+# entry in the namespace attribute.
+# ----------------------------------------------------------------
+
+
+--------------------------template ends here------------------------

@@ -1,0 +1,226 @@
+.TA c \" lowercase initial letter of .TH name
+.TH cimserver 8
+.SH NAME
+cimserver \- start or stop the CIM Server; display the version number or running status of the CIM Server
+.SH SYNOPSIS
+
+.B cimserver
+.RI [ configProperty\c
+.RI = value ] \ ...
+
+\fBcimserver -s\fP [ \fBshutdownTimeout\fP = value ]
+
+.B cimserver -v
+
+.B cimserver -h
+
+.B cimserver --help
+
+.B cimserver --version
+
+.B cimserver --status
+.SS Remarks
+This command can only be executed by a privileged user.
+.SH DESCRIPTION
+.PP
+The 
+.B cimserver 
+command provides a command line interface to stop
+and start the CIM Server, as well as to display the version number
+or running status of the CIM Server. 
+.PP
+After installation, the CIM Server must be started using the
+.B cimserver 
+command.  If the system is rebooted, the CIM Server
+will automatically restart, with the exception of the case
+where the CIM Server was shutdown prior to the reboot. Generally, once
+the CIM Server is started, it is expected to be always running and
+ready to serve CIM requests.  However, if the CIM Server must be 
+stopped and restarted, the 
+.B cimserver 
+command can be used to shutdown 
+the CIM Server gracefully and restart it at a later time.
+.SS Starting the CIM Server
+.PP
+Issuing the 
+.B cimserver 
+command without any options starts the
+CIM Server process.
+.PP
+When starting the CIM Server using the 
+.B cimserver 
+command, the
+.RI < configProperty\c
+.RI = value > 
+syntax can be used to set the configuration properties to be used by the CIM Server.
+It is important to know that the values specified in the 
+.B cimserver
+command apply only to the current CIM Server process
+that gets started.  The default values for the configuration
+properties do not change.  For a list of the CIM Server configuration
+properties, see the man page for the 
+.B cimconfig
+command.
+.SS Shutting down the CIM Server
+.PP
+Issuing the 
+.B cimserver 
+command with the 
+.B -s
+option stops the CIM Server.  Optionally, a timeout value can be specified
+by setting the 
+.B shutdownTimeout
+configuration property.
+.PP
+Under normal operation, CIM Server should be able to be shutdown
+fairly quickly without problem.  There are, however, situations
+that may prevent CIM Server from shutting down within a reasonable
+amount of time.  For example, a provider that is not responding
+to requests, or a provider that is servicing a long-running CIM
+request.  To handle such situations and to ensure that the CIM Server
+can be shutdown without having the user wait a long period of time
+(or indefinitely), a shutdown timeout value is used.
+.PP
+The shutdown timeout value is the maximum amount of time (in seconds) 
+the user is willing to wait for the CIM Server to complete all the 
+outstanding CIM operation requests before shutting down the CIM Server.
+If the specified shutdown timeout period expires, the CIM Server will be 
+shutdown even if there are CIM operations in progress.  
+The shutdown timeout value is a CIM Server configuration property
+(\c
+.B shutdownTimeout )
+that can be changed using the 
+.CR cimconfig
+command.  The default shutdown timeout value is 10 seconds.  
+.PP
+A timeout value (in seconds) can be specified in the 
+.B cimserver
+command to shutdown the CIM Server using the 
+.RC < shutdownTimeout\c
+.RI = value > 
+syntax.  This overrides the
+default shutdown timeout value.  The minimum timeout value is 2 seconds.
+.PP
+While CIM Server is shutting down, a client connection request
+will result in a connection error (the same as if the CIM Server
+were not running).  For clients who have already established a
+connection to the CIM Server, new CIM requests will be rejected
+with a CIM error indicating that the CIM Server is shutting down.
+.PP
+When a client receives a response containing a CIM error indicating
+that the CIM Server is shutting down, it should close the
+connection and reconnect to CIM Server at a later time.
+.SS Options
+.PP
+The 
+.B cimserver
+command recognizes the following options:
+.RS
+.TP 15
+.B -v, --version
+Display the version number or running status of the CIM Server.
+.TP
+.B -h, --help
+Display the command usage.
+.TP
+.B  --status
+Display the running status of the CIM Server.
+.TP
+.B -s
+Stop the CIM Server. 
+.TP
+.CI shutdownTimeout= value
+Specify the timeout value for shutting down the CIM Server.
+This can only be used in conjunction with the 
+.B -s 
+option.  The
+minimum timeout value is 2 seconds.  If this is not specified,
+the default configurable timeout value will be used.
+.TP
+.IR configProperty=value
+Set the value for the specified configuration property to be used in
+starting the CIM Server.  
+.SH EXIT STATUS
+.PP
+The 
+.B cimserver 
+command returns one of the following values:
+.RS
+.TP
+.B 0
+Success
+.PD 0
+.TP
+.B 1 
+Error
+.PD
+.RE
+.PP
+The 
+.B cimserver --status 
+command returns one of the following values:
+.RS
+.TP
+.B 0
+The CIM Server is running
+.PD 0
+.TP
+.B 1 
+Error
+.PD 0
+.TP
+.B 2 
+The CIM Server is not running
+.PD
+.RE
+.PP
+When an error occurs, an error message is written to stderr and an error
+value of 1 is returned.
+.SH DIAGNOSTICS
+.PP
+.B "unable to connect to CIM Server.  CIM Server may not be running."
+.IP
+The 
+.B cimserver
+command was issued to stop the CIM Server when CIM Server was not running.
+An exit status value of 1 is returned.  
+.PP
+.B "Error: Bind failed: Failed to bind socket." 
+.IP
+The 
+.B cimserver
+command was issued to start the CIM Server and the CIM Server was already running.
+An exit status value of 1 is returned.
+.SH EXAMPLES 
+.PP
+Stop the CIM Server with the default timeout value of 10 seconds.
+.IP
+.B "cimserver -s"
+.PP
+Stop the CIM Server with a timeout value of 5 seconds.
+.IP
+.B "cimserver -s shutdownTimeout=5"
+.PP
+Start the CIM Server.
+.IP
+.B cimserver
+.PP
+Start the CIM Server with the configuration
+property 
+.B enableNamespaceAuthorization
+set to true.
+.IP
+.B "cimserver enableNamespaceAuthorization=true"
+.PP
+Display the version number of the CIM Server.  This version number is used
+to identify the release version of the CIM Server in the OpenPegasus 
+release.
+.IP
+.B "cimserver -v"
+.PP
+Display the command usage.
+.IP
+.B "cimserver -h"
+.SH SEE ALSO 
+.PP
+cimconfig(8).

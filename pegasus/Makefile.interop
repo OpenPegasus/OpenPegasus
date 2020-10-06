@@ -1,0 +1,115 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+
+##########################################################################
+#
+# This makefile is used in pegasus/Makefile. 
+# Added as part of PEP304(renaming interop namespace), build time option.
+# There are many test cases and result files where namespace name
+# root/PG_InterOp is hardcoded. So this searches for root/PG_InterOp
+# and changes that to "interop" or "root/interop". If any new test cases
+# are added with hardcoded string "root/PG_InterOp", add the file here.
+#
+# This uses mu replace internally. The original files are all saved as
+# filename.save. These file can be restored by running
+# make -f Makefile.interop restore
+# in future if any one using root/PG_Interop in any of .master or .xml files
+# they should add them in the below lists.
+# Its a good practice to use PEGASUS_NAMESPACENAME_INTEROP variable in .cpp
+# and .h files ,instead of hard coded value of root/PG_InterOp
+# In make files PEGASUS_INTEROP_NAMESPACE build variable value can be used.
+#
+##########################################################################
+
+
+include $(PEGASUS_ROOT)/mak/config.mak
+include $(PEGASUS_ROOT)/mak/commands.mak
+
+
+LIST:=src/slp/tests/slptests/SLP_SA_Tests.cpp \
+src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Client/testIndications.java \
+src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Providers/Properties/JMPIPropertyProvider.java \
+src/Providers/TestProviders/CLITestProvider/tests/namespacetestresult.master \
+src/Pegasus/msg/Server/pegasusServer_en.txt \
+src/SDK/samples/Clients/DefaultC++/SendTestIndications/SendTestIndications.cpp
+
+LISTXML:=src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Static/ErrorXml/MissingInstanceNameClassName01.xml \
+src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Static/ErrorXml/DuplicateProperty01.xml \
+src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Static/ErrorXml/MissingPropertyReferenceEndTag01.xml \
+src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Static/ErrorXml/MissingValueArray01.xml \
+src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Static/ErrorXml/MissingKeyValueEndTag01.xml \
+src/Pegasus/ProviderManager2/JMPI/org/pegasus/jmpi/tests/Static/ErrorXml/MissingKeyValue01.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaFilter.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaProvider.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaSubXmlLocal.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaHandlerV1.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaHandlerV2.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaCapability.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaHandlerXmlLocal.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaSubXmlRemote.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaModule.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaSubv1.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaSubv2.xml \
+src/Providers/sample/SNMPIndicationProvider/nsaHandlerXmlRemote.xml \
+test/wetest/static/ErrorXml/MissingInstanceNameClassName01.xml \
+test/wetest/static/ErrorXml/DuplicateProperty01.xml \
+test/wetest/static/ErrorXml/MissingPropertyReferenceEndTag01.xml \
+test/wetest/static/ErrorXml/MissingValueArray01.xml \
+test/wetest/static/ErrorXml/MissingKeyValueEndTag01.xml \
+test/wetest/static/ErrorXml/MissingKeyValue01.xml
+
+
+replace: 
+ifeq ($(PEGASUS_INTEROP_NAMESPACE),root/interop)
+	@$(foreach i,$(LIST) $(LISTXML), mu replace $i 'PG_InterOp' 'interop'; )
+        @$(ECHO) "Makefile.interop: Replacing the PG_InterOp with interop."
+else
+ifeq ($(PEGASUS_INTEROP_NAMESPACE),interop)
+	@$(foreach i,$(LISTXML), mu replace $i '<NAMESPACE NAME="root"/>' '<!--NAMESPACE NAME="root"/-->'; \
+               mu replace $i 'PG_InterOp' $(PEGASUS_INTEROP_NAMESPACE); )
+	@$(foreach i,$(LIST), mu replace $i 'root/PG_InterOp' $(PEGASUS_INTEROP_NAMESPACE); )
+        @$(ECHO) "Makefile.interop: Replacing root/interop with the interop."
+endif
+endif
+        @$(ECHO) "Makefile.interop: Replacing is over."
+
+# This restore command can be used to restore all the files mentioned above 
+# with the previously set interop namespace.
+restore:
+ifeq ($(PEGASUS_INTEROP_NAMESPACE),root/interop)
+	@$(foreach i,$(LIST) $(LISTXML), mu replace $i 'interop' 'PG_InterOp'; )
+else
+ifeq ($(PEGASUS_INTEROP_NAMESPACE),interop)
+	@$(foreach i,$(LISTXML), mu replace $i '<!--NAMESPACE NAME="root"/-->' '<NAMESPACE NAME="root"/>'; \
+        mu replace $i 'interop' 'PG_InterOp');
+	@$(foreach i,$(LIST), mu replace $i 'interop' 'root/PG_InterOp');
+
+endif
+endif
+	

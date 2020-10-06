@@ -1,0 +1,320 @@
+// ===================================================================
+// Title: User_UsersAccess
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: User_UsersAccess.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The User Model extends the management concepts that
+//              are related to users and security.
+//              This file defines the concepts and classes related to
+//              users' access to a target, and a notary service that
+//              may verify biometrics defined in the UsersAccess class.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ===================================================================
+// Change Log for v2.8 Final:
+//  CR1218: Modified the Deprecations of biometric information and
+//          promoted all deprecations to Final
+//  CR1235: Accepted the Description changes in CR1011 and added
+//          Descriptions for the references in PublicPrivateKeyPair
+// 
+// Change Log for v2.8 Preliminary:
+//  CR1011: Modified Notary's Description, deprecated UsersAccess,
+//          ElementAsUser, UsersCredential, PublicPrivateKeyPair,
+//          and NotaryVerifiesBiometric
+// 
+// Change Log for v2.7: None
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// UsersAccess
+// ==================================================================
+   [Deprecated { "CIM_Identity" }, Version ( "2.8.0" ), Description (
+       "The UsersAccess object class is used to specify a 'user' that "
+       "is permitted access to resources. The ManagedElement that has "
+       "access to the resources (represented in the model using the "
+       "ElementAsUser association) may be a person, a service, a "
+       "service access point or any collection thereof. \n"
+       "\n"
+       "This class is deprecated in lieu of the simpler CIM_Identity "
+       "abstraction. The UsersAccess class combines credential "
+       "requirements (in the form of biometric requirements) with the "
+       "concepts of organizational information (via its position in "
+       "the inheritance hierarchy), and identity management. These "
+       "concepts need to be separated to be better understood and "
+       "managed - hence, the deprecation.")]
+class CIM_UsersAccess : CIM_UserEntity {
+
+      [Deprecated { "No value" }, Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Deprecated { "CIM_Identity.ElementName" }, Key, Description (
+          "The Name property defines the label by which the object is "
+          "known."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Deprecated { "CIM_Identity.InstanceID" }, Key, Description (
+          "The ElementID property uniquely specifies the "
+          "ManagedElement object instance that is the user represented "
+          "by the UsersAccess object instance. The ElementID is "
+          "formatted similarly to a model path except that the "
+          "property-value pairs are ordered in alphabetical order (US "
+          "ASCII lexical order).")]
+   string ElementID;
+
+      [Deprecated { "No value" }, Description (
+          "Biometric information used to identify a person. The "
+          "property value is left null or set to 'N/A' for non-human "
+          "user or a user not using biometric information for "
+          "authentication. This property is deprecated as it "
+          "represents required Credential information and is more "
+          "correctly modeled as a specific biometric credential."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "N/A", "Other", "Facial", "Retina", "Mark", "Finger",
+          "Voice", "DNA-RNA", "EEG" }]
+   uint16 Biometric[];
+};
+
+
+// ==================================================================
+// ElementAsUser
+// ==================================================================
+   [Association, Deprecated { "CIM_AssignedIdentity" },
+       Version ( "2.8.0" ), Description (
+       "CIM_ElementAsUser is an association used to establish the "
+       "'ownership' of UsersAccess object instances. That is, the "
+       "ManagedElement may have UsersAccess to systems and, therefore, "
+       "be 'users' on those systems. UsersAccess instances must have "
+       "an 'owning' ManagedElement. Typically, the ManagedElements "
+       "will be limited to Collection, Person, Service and "
+       "ServiceAccessPoint. Other non-human ManagedElements that might "
+       "be thought of as having UsersAccess (e.g., a device or system) "
+       "have services that have the UsersAccess. \n"
+       "\n"
+       "Since the UsersAccess class is deprecated in lieu of "
+       "CIM_Identity, this association is also deprecated and replaced "
+       "by one of similar semantics, AssignedIdentity. It should be "
+       "noted that the new class is NOT defined as a Dependency "
+       "relationship, since it was felt that the association was not "
+       "truly a dependency of the element on its access.")]
+class CIM_ElementAsUser : CIM_Dependency {
+
+      [Deprecated { "CIM_AssignedIdentity.ManagedElement" },
+          Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The ManagedElement that has UsersAccess.")]
+   CIM_ManagedElement REF Antecedent;
+
+      [Deprecated { "CIM_AssignedIdentity.IdentityInfo" },
+          Override ( "Dependent" ), Description (
+          "The 'owned' UsersAccess.")]
+   CIM_UsersAccess REF Dependent;
+};
+
+
+// ==================================================================
+// UsersCredential
+// ==================================================================
+   [Association, Deprecated { "CIM_AuthenticationCondition" },
+    Version ( "2.8.0" ), Description (
+       "CIM_UsersCredential is an association used to establish the "
+       "credentials that may be used for a UsersAccess to a system or "
+       "set of systems. \n"
+       "\n"
+       "Since the UsersAccess class is deprecated in lieu of "
+       "CIM_Identity, this association is also deprecated and replaced "
+       "by policy - where the AuthenticationCondition class describes "
+       "the credentials that SHOULD be authenticated in order to "
+       "establish the Identity.")]
+class CIM_UsersCredential : CIM_Dependency {
+
+      [Deprecated { "CIM_AuthenticationCondition" },
+          Override ( "Antecedent" ), Description (
+          "The issued credential that may be used.")]
+   CIM_Credential REF Antecedent;
+
+      [Deprecated { "CIM_Identity" }, Override ( "Dependent" ), 
+       Description (
+          "The UsersAccess that has use of a credential.")]
+   CIM_UsersAccess REF Dependent;
+};
+
+
+// ==================================================================
+// Notary
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_Notary is an AuthenticationService which compares the "
+       "biometric characteristics of a person with known "
+       "characteristics, to establish identity. An example is a bank "
+       "teller who compares a picture ID with the person trying to "
+       "cash a check, or a biometric login service that uses voice "
+       "recognition to identify a 'user'.")]
+class CIM_Notary : CIM_CredentialManagementService {
+
+      [Description (
+          "The types of biometric information which this Notary can "
+          "compare."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "N/A", "Other", "Facial", "Retina", "Mark", "Finger",
+          "Voice", "DNA-RNA", "EEG" }]
+   uint16 Comparitors;
+
+      [Description (
+          "The SealProtocol is how the decision of the Notary is "
+          "recorded for future use by parties who will rely on its "
+          "decision. For instance, a drivers licence frequently "
+          "includes tamper-resistent coatings and markings to protect "
+          "the recorded decision that a driver, having various "
+          "biometric characteristics of height, weight, hair and eye "
+          "color, using a particular name, has features represented in "
+          "a photograph of their face.")]
+   string SealProtocol;
+
+      [Description (
+          "CharterIssued documents when the Notary is first "
+          "authorized, by whoever gave it responsibility, to perform "
+          "its service.")]
+   datetime CharterIssued;
+
+      [Description (
+          "CharterExpired documents when the Notary is no longer "
+          "authorized, by whoever gave it responsibility, to perform "
+          "its service.")]
+   datetime CharterExpired;
+};
+
+
+// ===================================================================
+// NotaryVerifiesBiometric
+// ===================================================================
+   [Association, Deprecated { "CIM_ManagedCredential" },
+       Version ( "2.8.0" ), Description (
+       "This relationship associates a Notary service with the Users "
+       "Access whose biometric information is verified. It is "
+       "deprecated since one of its references (UsersAccess) is "
+       "deprecated, and because specific biometric credentials are "
+       "defined in a new subclass of CIM_Credential (specifically, "
+       "BiometricCredential). Given the latter, the relationship of a "
+       "Credential to its management service (ManagedCredential) can "
+       "be used directly.")]
+class CIM_NotaryVerifiesBiometric : CIM_Dependency {
+
+      [Deprecated { "CIM_ManagedCredential.Antecedent" },
+          Override ( "Antecedent" ), Description (
+          "The Notary service that verifies biometric information.")]
+   CIM_Notary REF Antecedent;
+
+      [Deprecated { "CIM_ManagedCredential.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The UsersAccess that represents a person using biometric "
+          "information for authentication.")]
+   CIM_UsersAccess REF Dependent;
+};
+
+
+// ===================================================================
+// PublicPrivateKeyPair
+// ===================================================================
+   [Association, Deprecated { "CIM_AuthenticationCondition" },
+    Version ( "2.8.0" ), Description (
+       "This relationship associates a PublicKeyCertificate with the "
+       "Principal who has the PrivateKey used with the PublicKey. The "
+       "PrivateKey is not modeled, since it is not a data element that "
+       "ever SHOULD be accessible via management applications, other "
+       "than key recovery services, which are outside our scope. \n"
+       "\n"
+       "Since the UsersAccess class and this association's superclass "
+       "are deprecated, this association is also deprecated. There is "
+       "no need to have a special subclass for public-private "
+       "credentials. This is especially true since the properties of "
+       "the association describe aspects of the certificate and its "
+       "handling. The latter is currently out of scope for the model.")]
+class CIM_PublicPrivateKeyPair : CIM_UsersCredential {
+
+      [Deprecated { "CIM_AuthenticationCondition" },
+          Override ( "Antecedent" ), Description (
+          "The public key certificate.")]
+   CIM_PublicKeyCertificate REF Antecedent;
+
+      [Deprecated { "CIM_Identity" }, Override ( "Dependent" ), 
+       Description (
+          "The Principal holding the private key (that corresponds to "
+          "the public key.")]
+   CIM_UsersAccess REF Dependent;
+
+      [Deprecated { "No value" }, Description (
+          "The Certificate may be used for signature only or for "
+          "confidentiality as well as signature."), 
+       ValueMap { "0", "1" }, 
+       Values { "SignOnly", "ConfidentialityOrSignature" }]
+   uint16 Use;
+
+      [Deprecated { "No value" }, Description (
+          "Indicates if the certificate canNOT be repudiated.")]
+   boolean NonRepudiation;
+
+      [Deprecated { "No value" }, Description (
+          "Indicates if the certificate can be backed up.")]
+   boolean BackedUp;
+
+      [Deprecated { "No value" }, Description (
+          "The repository in which the certificate is backed up.")]
+   string Repository;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

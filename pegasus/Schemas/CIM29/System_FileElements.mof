@@ -1,0 +1,828 @@
+// ===================================================================
+// Title: System_FileElements
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: System_FileElements.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The System Model defines system related management
+//              concepts. This file defines the specific concepts to
+//              manage file systems.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1204 - Removal of Experimental Qualifier  for Preliminary to Final
+// CR1177 - Share to use InstanceID as key vs. propagated keys.
+// 
+// Change Log for v2.8 Preliminary
+// CR1056 - Database Storage:
+//     -- modify ResidesOnExtent
+//     -- add PersistenceType and NumberOfFiles to FileSystem
+//     -- add FileSystemCapabilities and FileSystemSettingData
+// CR883 - Add IsFixedSize and ResizeIncrement properties
+//         to CIM_LogicalFile
+// CR1128  - Addition of HostedDependency
+// 
+// Change Log for v2.7 Final
+// CR969 - Remove Share, NFSShare, CIFSShare, SharedElement,
+//         ImportedShare, and HostedShare so they can remain
+//         experimental in 2.8.
+// 
+// Change Log for v2.7
+// CR598 - Add Share, NFSShare, CIFSShare, SharedElement,
+//         ImportedShare, and HostedShare
+// CR644 - Modify Share, NFSShare, CIFSShare, and ImportedShare
+//       - Add FileShare
+// CR748 - Promote HostedFileSystem.GroupComponent from ComputerSystem
+//         to System.  Fix the class description and the propagated
+//         key descriptions in FileSystem.
+// CR757 - Change the subclassing of FileSystem from LogicalElement
+//         to EnabledLogicalElement
+// CR767 - Add the Compostion qualifer to DirectoryContainsFile,
+//         FileStorage, and HostedFileSystem
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// FileSystem
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "A file or dataset store local to a System (such as a "
+       "ComputerSystem or an ApplicationSystem) or remotely mounted "
+       "from a file server.")]
+class CIM_FileSystem : CIM_EnabledLogicalElement {
+
+      [Key, Propagated ( "CIM_System.CreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName. Note that this "
+          "class was originally defined in the scope of a "
+          "ComputerSystem, and was later allowed to be scoped by any "
+          "System (for example, a computer or application system). "
+          "Unfortunately, the property name, CSCreationClassName, "
+          "could not be changed (for example, to SystemCreationClass "
+          "Name) without deprecating the class. This change was not "
+          "deemed critical to the semantics and therefore did not "
+          "merit deprecation. So, the property name remains."), 
+       MaxLen ( 256 )]
+   string CSCreationClassName;
+
+      [Key, Propagated ( "CIM_System.Name" ), Description (
+          "The scoping System's Name. Note that this class was "
+          "originally defined in the scope of a ComputerSystem, and "
+          "was later allowed to be scoped by any System (for example, "
+          "a computer or application system). Unfortunately, the "
+          "property name, CSName, could not be changed (for example, "
+          "to SystemName) without deprecating the class. This change "
+          "was not deemed critical to the semantics and therefore did "
+          "not merit deprecation. So, the property name remains."), 
+       MaxLen ( 256 )]
+   string CSName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "The inherited Name serves as key of a FileSystem instance "
+          "within a ComputerSystem."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "Path name or other information defining the root of the "
+          "FileSystem."), 
+       MappingStrings { "MIB.IETF|HOST-RESOURCES-MIB.hrFSMountPoint",
+          "MIF.DMTF|Host File System|001.2" }]
+   string Root;
+
+      [Description (
+          "FileSystems can read/write data in blocks which are defined "
+          "independently of the underlying StorageExtents. This "
+          "property captures the FileSystem's block size for data "
+          "storage and retrieval."), 
+       Units ( "Bytes" )]
+   uint64 BlockSize;
+
+      [Description (
+          "The FileSystemSize property stores the total size of the "
+          "File System in bytes. If unknown, enter 0."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Host File System|001.13" }]
+   uint64 FileSystemSize;
+
+      [Description (
+          "AvailableSpace indicates the total amount of free space for "
+          "the FileSystem, in bytes. If unknown, enter 0."), 
+       Units ( "Bytes" ), Gauge, 
+       MappingStrings { "MIF.DMTF|Host File System|001.14",
+          "MIF.DMTF|Partition|002.4" }]
+   uint64 AvailableSpace;
+
+      [Description (
+          "Indicates that the FileSystem is designated as read only."), 
+       MappingStrings { "MIB.IETF|HOST-RESOURCES-MIB.hrFSAccess",
+          "MIF.DMTF|Host File System|001.5" }]
+   boolean ReadOnly;
+
+      [Description (
+          "A free form string indicating the algorithm or tool used to "
+          "encrypt the FileSystem. If it is not possible or not "
+          "desired to describe the encryption scheme (perhaps for "
+          "security reasons), recommend using the following words: "
+          "\"Unknown\" to represent that it is not known whether the "
+          "FileSystem is encrypted or not, \"Encrypted\" to represent "
+          "that the File System is encrypted but either its encryption "
+          "scheme is not known or not disclosed, and \"Not Encrypted\" "
+          "to represent that the FileSystem is not encrypted."), 
+       MappingStrings { "MIF.DMTF|Partition|002.8" }]
+   string EncryptionMethod;
+
+      [Description (
+          "A free form string indicating the algorithm or tool used to "
+          "compress the FileSystem. If it is not possible or not "
+          "desired to describe the compression scheme (perhaps because "
+          "it is not known), recommend using the following words: "
+          "\"Unknown\" to represent that it is not known whether the "
+          "FileSystem is compressed or not, \"Compressed\" to "
+          "represent that the File System is compressed but either its "
+          "compression scheme is not known or not disclosed, and \"Not "
+          "Compressed\" to represent that the FileSystem is not "
+          "compressed."), 
+       MappingStrings { "MIF.DMTF|Partition|002.7" }]
+   string CompressionMethod;
+
+      [Description (
+          "Indicates that case sensitive file names are supported.")]
+   boolean CaseSensitive;
+
+      [Description (
+          "Indicates that the case of file names are preserved.")]
+   boolean CasePreserved;
+
+      [Description (
+          "Array defining the character sets or encoding supported by "
+          "the FileSystem. For example, the values, \"ASCII\" (2) or "
+          "\"ISO2022\" (4), may be specified."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "ASCII", "Unicode", "ISO2022",
+          "ISO8859", "Extended UNIX Code", "UTF-8", "UCS-2" }]
+   uint16 CodeSet[];
+
+      [Description (
+          "Integer indicating the maximum length of a file name within "
+          "the FileSystem. 0 indicates that there is no limit on file "
+          "name length.")]
+   uint32 MaxFileNameLength;
+
+      [Description (
+          "The minimum file allocation size (an integral number of "
+          "blocks), imposed by the FileSystem. (The size of a block is "
+          "specified in the BlockSize property for the FileSystem.) "
+          "Minimum allocation size is the smallest amount of storage "
+          "allocated to a LogicalFile by the FileSystem. This is not a "
+          "mandatory minimum allocation for all FileSystems. Under "
+          "stress conditions, some FileSystems may allocate storage in "
+          "amounts smaller than the ClusterSize.")]
+   uint32 ClusterSize;
+
+      [Description (
+          "String describing the type of FileSystem and therefore, its "
+          "conventions. For example, \"NTFS\" or \"S5\" may be listed "
+          "as well as any additional information on the FileSystem's "
+          "implementation. Since various flavors of FileSystems (like "
+          "S5) exist, this property is defined as a string."), 
+       MappingStrings { "MIF.DMTF|Partition|002.6",
+          "MIF.DMTF|Host File System|001.4" }]
+   string FileSystemType;
+
+      [Description (
+          "An enumerated value representing the FileSystem's "
+          "perception of its own persistence characteristics. This "
+          "property would typically be set at the time the FileSystem "
+          "is instantiated and would not be changed by external "
+          "actions. A value of \"Persistent\" indicates that the "
+          "FileSystem is persistent, will be preserved through an "
+          "orderly shutdown and should be protected. A value of "
+          "\"Temporary\" indicates that the FileSystem is "
+          "non-persistent, should not be protected and may not survive "
+          "a shutdown. A value of \"External\" indicates that the "
+          "FileSystem is controlled outside of the scope of the "
+          "operating environment and may need to be protected by "
+          "specialized means. A value of \"Other\" is provided to "
+          "allow for additional persistence types, to be described in "
+          "the OtherPersistenceType attribute, and is expected to be "
+          "rarely, if ever, used. A value of \"Unknown\" indicates "
+          "that the persistence of the FileSystem can not be "
+          "determined."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Persistent", "Temporary",
+          "External" }, 
+       ModelCorrespondence { "CIM_FileSystem.OtherPersistenceType" }]
+   uint16 PersistenceType;
+
+      [Description (
+          "A string describing the persistence characteristics when "
+          "PersistenceType is \"Other\"."), 
+       ModelCorrespondence { "CIM_FileSystem.PersistenceType" }]
+   string OtherPersistenceType;
+
+      [Description (
+          "The number of files contained in the FileSystem.")]
+   uint64 NumberOfFiles;
+
+};
+
+
+// ===================================================================
+// LocalFileSystem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A class derived from FileSystem that represents the file store "
+       "controlled by a ComputerSystem through local means (e.g., "
+       "direct device driver access). In this case, the file store is "
+       "managed directly by the ComputerSystem without the need for "
+       "another computer to act as a file server. This definition does "
+       "not breakdown in the case of a Clustered File System. In this "
+       "scenario, the FileSystem is a LocalFileSystem, weak to the "
+       "Cluster.")]
+class CIM_LocalFileSystem : CIM_FileSystem {
+};
+
+
+// ===================================================================
+// RemoteFileSystem
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A class derived from FileSystem that represents access of the "
+       "FileSystem via a network-related service. In this case, the "
+       "file store is hosted by a computer, acting as a file server. "
+       "For example, the file store for an NFS FileSystem is typically "
+       "NOT on a ComputerSystem's locally controlled media, nor is it "
+       "directly accessed through a device driver. Subclasses of "
+       "RemoteFileSystem contain client-side configuration information "
+       "related to the access of the FileSystem.")]
+class CIM_RemoteFileSystem : CIM_FileSystem {
+};
+
+
+// ===================================================================
+// NFS (NetworkFileSystem)
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A class derived from RemoteFileSystem representing that the "
+       "FileSystem is mounted, using the NFS protocol, from a "
+       "ComputerSystem. The properties of the NFS object deal with the "
+       "operational aspects of the mount and represent the client-side "
+       "configuration for NFS access. The FileSystemType (inherited "
+       "from FileSystem) should be set to indicate the type of this "
+       "FileSystem as it appears to the client.")]
+class CIM_NFS : CIM_RemoteFileSystem {
+
+      [Description (
+          "If set to true: Once the FileSystem is mounted, NFS "
+          "requests are retried until the hosting System responds. \n"
+          "If set to false: Once the FileSystem is mounted, an error "
+          "is returned if the hosting System does not respond.")]
+   boolean HardMount;
+
+      [Description (
+          "If set to true: Retries are performed in the foreground. \n"
+          "If set to false: If the first mount attempt fails, retries "
+          "are performed in the background.")]
+   boolean ForegroundMount;
+
+      [Description (
+          "If set to true: Interrupts are permitted for hard mounts. \n"
+          "If set to false : Interrupts are ignored for hard mounts.")]
+   boolean Interrupt;
+
+      [Description (
+          "Maximum number of mount failure retries allowed.")]
+   uint16 MountFailureRetries;
+
+      [Description (
+          "Maximum number of NFS retransmissions allowed.")]
+   uint16 RetransmissionAttempts;
+
+      [Description (
+          "NFS timeout in tenths of a second."), 
+       Units ( "Tenths of Seconds" )]
+   uint32 RetransmissionTimeout;
+
+      [Description (
+          "Read buffer size in bytes."), 
+       Units ( "Bytes" )]
+   uint64 ReadBufferSize;
+
+      [Description (
+          "Write buffer size in bytes."), 
+       Units ( "Bytes" )]
+   uint64 WriteBufferSize;
+
+      [Description (
+          "The remote ComputerSystem's (ie, the NFS File 'Server's) "
+          "UDP port number.")]
+   uint32 ServerCommunicationPort;
+
+      [Description (
+          "If set to true: Control attribute caching is enabled. \n"
+          "If set to false: Control attribute caching is disabled.")]
+   boolean AttributeCaching;
+
+      [Description (
+          "Minimum number of seconds that cached attributes are held "
+          "after file modification."), 
+       Units ( "Seconds" )]
+   uint16 AttributeCachingForRegularFilesMin;
+
+      [Description (
+          "Maximum number of seconds that cached attributes are held "
+          "after file modification."), 
+       Units ( "Seconds" )]
+   uint16 AttributeCachingForRegularFilesMax;
+
+      [Description (
+          "Minimum number of seconds that cached attributes are held "
+          "after directory update."), 
+       Units ( "Seconds" )]
+   uint16 AttributeCachingForDirectoriesMin;
+
+      [Description (
+          "Maximum number of seconds that cached attributes are held "
+          "after directory update."), 
+       Units ( "Seconds" )]
+   uint16 AttributeCachingForDirectoriesMax;
+};
+
+// ===================================================================
+// FileSystemCapabilities
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "This class defines the abilities for persistence and "
+       "recoverability of a FileSystem. This information is tied to "
+       "the FileSystem using the ElementCapabilities association.")]
+class CIM_FileSystemCapabilities : CIM_Capabilities {
+
+      [Description (
+          "An array of enumerated values representing the persistence "
+          "capabilities of the FileSystem. A value of \"Persistent\" "
+          "indicates that the FileSystem supports persistence, can be "
+          "preserved through an orderly shutdown and could be "
+          "protected. A value of \"Temporary\" indicates that the "
+          "FileSystem supports non-persistence, may not be protected "
+          "and may not survive a shutdown. A value of \"External\" "
+          "indicates that the FileSystem could controlled outside of "
+          "the operating environment and may need to be protected by "
+          "specialized means. A value of \"Other\" is provided to "
+          "allow for additional persistence types, to be described in "
+          "the OtherPersistenceType attribute, and is expected to be "
+          "rarely, if ever, used."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Persistent", "Temporary", "External" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_FileSystemCapabilities.SupportedPersistenceTypes",
+          "CIM_FileSystem.PersistenceType" }]
+   uint16 SupportedPersistenceTypes[];
+
+
+      [Description (
+          "An array of strings describing the persistence capabilities "
+          "where the corresponding entry in SupportedPersistenceTypes "
+          "has a value of \"Other\". This value is ignored in all "
+          "other cases."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_FileSystemCapabilities.SupportedPersistenceTypes",
+          "CIM_FileSystem.OtherPersistenceType" }]
+   string SupportedOtherPersistenceTypes[];
+};
+
+// ===================================================================
+// FileSystemSettingData
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "This class allows a client to specify the desired persistence "
+       "of a FileSystem. This information is tied to the FileSystem "
+       "using the ElementSettingData association.")]
+class CIM_FileSystemSettingData : CIM_ScopedSettingData {
+
+      [Write, Description (
+          "An enumerated value representing the intended persistence "
+          "characteristics of the FileSystem. A value of "
+          "\"Persistent\" indicates that the FileSystem should be "
+          "persistent, should be preserved through an orderly shutdown "
+          "and should be protected. A value of \"Temporary\" indicates "
+          "that the FileSystem should be non-persistent, should not be "
+          "protected and may not survive a shutdown. A value of "
+          "\"External\" indicates that the FileSystem should be "
+          "controlled outside of the operating environment and may "
+          "need to be protected by specialized means. A value of "
+          "\"Other\" is provided to allow for additional persistence "
+          "types, to be described in the OtherPersistenceType "
+          "attribute, and is expected to be rarely, if ever, used."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Persistent", "Temporary", "External" }, 
+       ModelCorrespondence { 
+          "CIM_FileSystemSettingData.OtherPersistenceType",
+          "CIM_FileSystem.PersistenceType" }]
+   uint16 PersistenceType;
+
+      [Write, Description (
+          "A string describing the persistence characteristics when "
+          "PersistenceType is \"Other\"."), 
+       ModelCorrespondence { 
+          "CIM_FileSystemSettingData.PersistenceType",
+          "CIM_FileSystem.OtherPersistenceType" }]
+   string OtherPersistenceType;
+};
+
+// ===================================================================
+// LogicalFile
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A LogicalFile is a named collection of data or executable "
+       "code, or represents a LogicalDevice or Directory. It is "
+       "located within the context of a FileSystem, on a Storage "
+       "Extent.")]
+class CIM_LogicalFile : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_FileSystem.CSCreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string CSCreationClassName;
+
+      [Key, Propagated ( "CIM_FileSystem.CSName" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string CSName;
+
+      [Key, Propagated ( "CIM_FileSystem.CreationClassName" ), 
+       Description (
+          "The scoping FileSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string FSCreationClassName;
+
+      [Key, Propagated ( "CIM_FileSystem.Name" ), Description (
+          "The scoping FileSystem's Name."), 
+       MaxLen ( 256 )]
+   string FSName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "The inherited Name serves as part of the key of a "
+          "LogicalFile instance within a FileSystem. A unique "
+          "identifier (such as a full path name) is required as a Name "
+          "value. Since Files are weak to their FileSystem (and not to "
+          "a Directory which would provide a more granular naming "
+          "algorithm), care must be taken to make LogicalFile's Name "
+          "unique for a given Creation ClassName and FileSystem. A "
+          "full path name is one way to do this."), 
+       MaxLen ( 1024 )]
+   string Name;
+
+      [Description (
+          "Size of the File in bytes."), 
+       Units ( "Bytes" ), Gauge]
+   uint64 FileSize;
+
+      [Description (
+          "File's creation date.")]
+   datetime CreationDate;
+
+      [Description (
+          "Time that the File was last modified.")]
+   datetime LastModified;
+
+      [Description (
+          "Time that the File was last accessed.")]
+   datetime LastAccessed;
+
+      [Description (
+          "Boolean indicating that the File can be read.")]
+   boolean Readable;
+
+      [Description (
+          "Boolean indicating that the File can be written.")]
+   boolean Writeable;
+
+      [Description (
+          "Indicates the file is executable.")]
+   boolean Executable;
+
+      [Description (
+          "A free form string indicating the algorithm or tool used to "
+          "compress the LogicalFile. If it is not possible or not "
+          "desired to describe the compression scheme (perhaps because "
+          "it is not known), recommend using the following words: "
+          "\"Unknown\" to represent that it is not known whether the "
+          "LogicalFile is compressed or not, \"Compressed\" to "
+          "represent that the File is compressed but either its "
+          "compression scheme is not known or not disclosed, and \"Not "
+          "Compressed\" to represent that the LogicalFile is not "
+          "compressed.")]
+   string CompressionMethod;
+
+      [Description (
+          "A free form string indicating the algorithm or tool used to "
+          "encrypt the LogicalFile. If it is not possible or not "
+          "desired to describe the encryption scheme (perhaps for "
+          "security reasons), recommend using the following words: "
+          "\"Unknown\" to represent that it is not known whether the "
+          "LogicalFile is encrypted or not, \"Encrypted\" to represent "
+          "that the File is encrypted but either its encryption scheme "
+          "is not known or not disclosed, and \"Not Encrypted\" to "
+          "represent that the LogicalFile is not encrypted.")]
+   string EncryptionMethod;
+
+      [Description (
+          "Integer indicating the number of 'file opens' that are "
+          "currently active against the File."), 
+       Counter]
+   uint64 InUseCount;
+};
+
+
+// ===================================================================
+// DataFile
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "DataFile is a type of LogicalFile that is a named collection "
+       "of data or executable code.")]
+class CIM_DataFile : CIM_LogicalFile {
+};
+
+
+// ===================================================================
+// Directory
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Directory is a type of File that logically groups Files "
+       "'contained' in it, and provides path information for the "
+       "grouped Files.")]
+class CIM_Directory : CIM_LogicalFile {
+};
+
+
+// ===================================================================
+// DeviceFile
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "DeviceFile is a special type of LogicalFile that represents a "
+       "Device. This convention is useful for some operating systems "
+       "that manage devices using a byte stream I/O model. The Logical "
+       "Device that is associated with this file is specified using "
+       "the DeviceAccessedByFile relationship.")]
+class CIM_DeviceFile : CIM_LogicalFile {
+};
+
+
+// ===================================================================
+// FIFOPipeFile
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "FIFOPipeFile is a special type of LogicalFile that represents "
+       "an interprocess FIFO (sometimes referred to as a \"named "
+       "pipe\"). Operating systems use this convention to manage "
+       "interprocess communication through processes reading and "
+       "writing the FIFO. The FIFO can be accessed by unrelated "
+       "processes, in contrast to the more well-known command line "
+       "redirection mechanism (e.g. UNIX's 'ps -eaf | grep foo', also "
+       "known as an \"unnamed pipe\"). An exemplary operating system "
+       "implementation (using the FIFO concept) is the UNIX S_IFIFO "
+       "file type.")]
+class CIM_FIFOPipeFile : CIM_LogicalFile {
+};
+
+
+// ===================================================================
+// SymbolicLink
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "This class is a special type of LogicalFile that represents a "
+       "Symbolic Link. This convention is useful for some operating "
+       "systems that want to represent a single file in multiple "
+       "places or a single file that is represented via multiple "
+       "names.")]
+class CIM_SymbolicLink : CIM_LogicalFile {
+
+      [Required, Description (
+          "The target file of the symbolic link.")]
+   string TargetFile;
+};
+
+
+// ===================================================================
+// DeviceAccessedByFile
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Specifies the LogicalDevice that is associated with, and "
+       "accessed using the referenced DeviceFile.")]
+class CIM_DeviceAccessedByFile : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The DeviceFile.")]
+   CIM_DeviceFile REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The Device that is accessed using the DeviceFile.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+
+// ===================================================================
+// DirectoryContainsFile
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "Specifies the hierarchical arrangement of LogicalFiles in a "
+       "Directory.")]
+class CIM_DirectoryContainsFile : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The Directory.")]
+   CIM_Directory REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The LogicalFile 'contained within' the Directory.")]
+   CIM_LogicalFile REF PartComponent;
+};
+
+
+// ===================================================================
+// Mount
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "An association between a FileSystem and a Directory which "
+       "indicates that the Directory is being attached to the "
+       "FileSystem. The semantics of this relationship require that "
+       "the mounted Directory be contained by a FileSystem (via the "
+       "FileStorage association) that is different from the FileSystem "
+       "referenced as the Dependent. The Directory's containing "
+       "FileSystem could be either local or remote. For example, a "
+       "LocalFileSystem on a Solaris ComputerSystem can mount a "
+       "Directory from the FileSystem accessed via the machine's CDROM "
+       "drive, i.e., another LocalFile System. On the other hand, in a "
+       "'remote' case, the Directory is first exported by its "
+       "FileSystem, which is hosted on another ComputerSystem acting "
+       "(for example) as a file server. In order to distinguish these "
+       "two types of Mount, it is recommended that a CIM_Export "
+       "association always be defined for the remotely "
+       "accessed/mounted Directories.")]
+class CIM_Mount : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The Directory mounted.")]
+   CIM_Directory REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The FileSystem the Directory is mounted on.")]
+   CIM_FileSystem REF Dependent;
+};
+
+
+// ===================================================================
+// Export
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "An association between a LocalFileSystem and its Directories "
+       "indicating that the specified Directories are available for "
+       "mount. When exporting an entire FileSystem, the Directory "
+       "should reference the topmost directory of the FileSystem.")]
+class CIM_Export {
+
+      [Key, Max ( 1 ), Description (
+          "The LocalFileSystem.")]
+   CIM_LocalFileSystem REF LocalFS;
+
+      [Key, Description (
+          "The Directory exported for mount.")]
+   CIM_Directory REF Directory;
+
+      [Description (
+          "Name under which the Directory is exported.")]
+   string ExportedDirectoryName;
+};
+
+
+// ===================================================================
+// HostedFileSystem
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "A link between the System (such as a Computer or Application "
+       "System) and the FileSystem that is a part of it.")]
+class CIM_HostedFileSystem : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The System that hosts the FileSystem.")]
+   CIM_System REF GroupComponent;
+
+      [Override ( "PartComponent" ), Weak, Description (
+          "The FileSystem that is part of the System and hosted on it.")]
+   CIM_FileSystem REF PartComponent;
+};
+
+
+// ===================================================================
+// FileStorage
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "A link between the FileSystem and the LogicalFile(s) addressed "
+       "through this FileSystem.")]
+class CIM_FileStorage : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The FileSystem.")]
+   CIM_FileSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Weak, Description (
+          "The LogicalFile stored in the context of the FileSystem.")]
+   CIM_LogicalFile REF PartComponent;
+};
+
+// ===================================================================
+// ResidesOnExtent
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "An association between a LogicalElement and the StorageExtent "
+       "where it is located. Typically, a FileSystem ResidesOn a "
+       "LogicalDisk. However, it is possible for a logical file or "
+       "other internal data store to reside directly on a "
+       "StorageExtent or appropriate subclass.")]
+class CIM_ResidesOnExtent : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The StorageExtent.")]
+   CIM_StorageExtent REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalElement that is located on the StorageExtent.")]
+   CIM_LogicalElement REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

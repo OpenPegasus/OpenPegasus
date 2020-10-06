@@ -1,0 +1,60 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// <change cr=CIMCoreCR00880.004" type="change"> Change 
+// OverwritePolicy in this class and make non-experimental.
+// ==================================================================
+//  CIM_Log 
+// ==================================================================
+   [Abstract, Version ( "2.14.0" ), 
+    UMLPackagePath ( "CIM::System::Logs" ), 
+    Description ( 
+       "Log represents any type of event, error or informational "
+       "register or chronicle. The object describes the existence of "
+       "the log and its characteristics. Log does not dictate the form "
+       "of the data represented or how records/messages are stored in "
+       "the log and/or accessed. Subclasses will define the "
+       "appropriate methods and behavior." )]
+class CIM_Log : CIM_EnabledLogicalElement {
+
+      [Description ( 
+          "Maximum number of records that can be captured in the "
+          "Log. If undefined, a value of zero should be specified." )]
+   uint64 MaxNumberOfRecords;
+
+      [Description ( "Current number of records in the Log." ), 
+       Gauge]
+   uint64 CurrentNumberOfRecords;
+
+      [Description ( 
+          "OverwritePolicy is an integer enumeration that indicates "
+          "whether the log, represented by the CIM_Log subclasses, "
+          "can overwrite its entries.Unknown (0) indicates the "
+          "log\'s overwrite policy is unknown. \n"
+          "Wraps when Full (2) indicates that the log overwrites "
+          "its entries with new entries when the log has reached "
+          "its maximum capacity. \n"
+          "Never Overwrites (7) indicates that the log never "
+          "overwrites its entries by the new entries." ), 
+       ValueMap { "0", "2", "7", "..", "32768..65535" }, 
+       Values { "Unknown", "Wraps When Full", "Never Overwrites", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 OverwritePolicy = 0;
+
+
+      [Description ( 
+          "Requests that the Log be cleared of all entries. \n"
+          "The return value should be 0 if the request was "
+          "successfully executed, 1 if the request is not "
+          "supported, and some other value, as indicated by the "
+          "ValueMap/Values qualifiers, if an error occurred." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6..0x0FFF", 
+          "0x1000..0x7FFF", "0x8000.." }, 
+       Values { "Completed with no error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "DMTF_Reserved", "Method_Reserved", 
+          "Vendor_Reserved" }]
+   uint32 ClearLog(
+);
+
+};

@@ -1,0 +1,1129 @@
+// ===================================================================
+// Title: Application_J2eeAppServer
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Application_J2eeAppServer.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: These classes represent the characterization of the
+//      management of a Java application server as defined in JSR 77
+//      Version 1.0. They are maintained in a separate MOF file as
+//      an extension to the Application Model.
+// 
+//      The object classes below are listed in an order that
+//      avoids forward references. Required objects, defined
+//      by other working groups, are omitted.
+// ==================================================================
+// Change Log
+// v 2.8 Final (14 January 2004)
+//         - CR 1240 13 January 2004 - Change file names and description
+//         - CR 1191 21 Nov 2003 Remove the second "_" from
+//                   J2eeRMI_IIOPResource class names and change the
+//                   "Boolean" declarations to "boolean".
+//         - CR 1199 6 January 2004 CR 1199 - Move complete model from
+//                   preliminary to final status.
+// v2.8 Preliminary (Company Review)
+//      31 July 2003
+//         - CR 1109 Changes to properties of core J2ee classes.
+//         - CR 1110 Remove subclasses of HostedService connecting
+//                   elements to the Server.
+//         - CR 1112 Change Association names to singular form
+//         - CR 1113 Change the J2eeNotification's IndicationType
+//                   property to integer, and add a ValueMap qualifier
+//                   to the property. Add the Octetstring qualifier to
+//                   the UserData property. Update several Descriptions
+//                   in J2ee_Notification in the AppServer Sub-Model.
+//         - CR 1115 Move to use Instance ID in App Server Model
+//         - CR 1116 Fix Cardinalities
+//         - CR 1118 Remove Start and Stop Methods from
+//                   J2eeManagedObject
+//                   and use RequestStateChange instead.
+//         - CR 1119 Add a line to the overall MOF description stating
+//                   that the classes are based on JSR77 V1.0
+//         - CR 1120 Add a line to the overall MOF description stating
+//                   that the classes are based on JSR77 V1.0
+//         - CR 1128 Change subclassing for J2eeModulesUsesJVMs,
+//                   J2eeJDBCResourceUsesDataSources,
+//                   J2eeJDBCDataSourceDriver,
+//                   J2eeConnectionFactoriesAvailableToJCAResource,
+//                   and
+//                   J2eeJCAConnectionFactoryManagedConnectionFactory
+//                   from Dependency to HostedDependency.
+//         - CR 1138 Fix missing model Correspondence
+//         - CR 1140 Remove ManagementState from J2eeManagedObject
+//                   and map to OperationalStatus instead. Override
+//                   OperationalStatus and use the Description to
+//                   define the mapping.
+// 
+// Change Log for v2.8 Preliminary
+//      15 May 2003
+//         - CR 1008 - Original Application Server Model
+// ===================================================================
+
+#pragma locale ("en_US")
+// ====================================================================
+// CIM_J2eeManagedObjectCapabilities
+// ====================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "CIM_J2eeManagedObjectCapabilities is a class for defining "
+       "additional capabilities of J2EE managed objects. It contains "
+       "the attributes that are common to all J2EE managed objects. "
+       "These common attributes are mapped to the corresponding J2EE "
+       "classes using the CIM_ElementCapabilities association.")]
+class CIM_J2eeManagedObjectCapabilities : CIM_Capabilities {
+
+      [Override ( "InstanceID" ), Description (
+          "InstanceID identifies a unique instance of a J2EE "
+          "ManagedObject's Capabilities in a given namespace. In order "
+          "to ensure uniqueness, the value of InstanceID MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { 
+          "CIM_J2eeManagedObjectCapabilities.ElementName" }]
+   string InstanceID;
+
+      [Override ( "ElementName" ), Description (
+          "The name of a J2EE managed object. The name MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { 
+          "CIM_J2eeManagedObjectCapabilities.InstanceID" }]
+   string ElementName;
+
+      [Description (
+          "A property that indicates whether the managed object "
+          "implements the state management model as defined in State "
+          "Management chapter of the JSR77 specification. A value of "
+          "true indicates that the managed object implements the state "
+          "management interface. A value of false indicates that the "
+          "managed object does not implement the state management "
+          "interface."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.2 stateManageable|V1.0" 
+          }]
+   Boolean StateManageable;
+
+      [Description (
+          "A property that indicates whether the managed object "
+          "implements the statistics provider model as defined in "
+          "Performance Monitoring chapter of the JSR77 specification. "
+          "A value of true indicates that the managed object "
+          "implements the statistics provider interface. A value of "
+          "false indicates that the managed object does not implement "
+          "the statistics provider interface."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.3 " 
+          "statisticsProvider|V1.0" }]
+   Boolean StatisticsProvider;
+
+      [Description (
+          "A property that indicates whether the managed object "
+          "implements the event provider model as defined in the "
+          "Events chapter of the JSR77 specification. A value of true "
+          "indicates that the managed object implements the event "
+          "provider interface. A value of false indicates that the "
+          "managed object does not implement the event provider "
+          "interface."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.4 eventProvider|V1.0" }]
+   boolean EventProvider;
+};
+
+// ====================================================================
+// CIM_J2eeManagedObject
+// ====================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "CIM_J2eeManagedObject is a class for defining operations that "
+       "may supported by all J2EE managed objects. It contains the "
+       "attributes and methods that are common to all J2EE managed "
+       "objects. The J2EE Managed objects - for eg. J2eeServer should "
+       "participate in instances of the CIM_LogicalIdentity "
+       "association with the corresponding instance of the "
+       "J2eeManagedObject class. The start and stop methods of JSR77's "
+       "J2eeManagedObject find an equivalent in the RequestStateChange "
+       "method inherited from EnabledLogicalElement. Using "
+       "Enabled/Disabled as inputs to RequestStateChange, one can "
+       "effect start and stop.")]
+class CIM_J2eeManagedObject : CIM_EnabledLogicalElement {
+
+      [Key, Description (
+          "InstanceID identifies a unique instance of a J2EE "
+          "ManagedObject's Capabilities in a given namespace. In order "
+          "to ensure uniqueness, the value of InstanceID MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { "CIM_J2eeManagedObject.ElementName" }]
+   string InstanceID;
+
+      [Override ( "ElementName" ), Description (
+          "The name of a J2EE managed object. The name MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { "CIM_J2eeManagedObject.InstanceID" }]
+   string ElementName;
+
+      [Override ( "OperationalStatus" ), Description (
+          "The current state of the entity for J2ee managed objects "
+          "that support state management. If the StateManageable "
+          "property is FALSE, the value of this property MUST be set "
+          "to 0 - Unknown. The mapping from the J2ee management states "
+          "to OperationalStatus is as follows - j2ee.state.starting - "
+          "Starting, j2ee.state.running - OK, j2ee.state.stopping - "
+          "Stopping, j2ee.state.stopped - Stopped, and "
+          "j2ee.state.failed - Error."), 
+       ValueMap { "0", "2", "6", "8", "9", "10" }, 
+       Values { "Unknown", "OK", "Error", "Starting", "Stopping",
+          "Stopped" }, 
+       MappingStrings { "JSR77.JCP|JSR77.5.1.1.1 state|V1.0" }, 
+       ModelCorrespondence { 
+          "CIM_J2eeManagedObjectCapabilities.StateManageable" }]
+   uint16 OperationalStatus[];
+
+      [Description (
+          "The time that the J2EE managed object was started, "
+          "represented as a datetime interval measured as the time "
+          "interval since January 1, 1970, 00:00:00. If the "
+          "StateManageable property of the "
+          "CIM_J2eeManagedObjectCapabilities class is false, this "
+          "value MUST be set to a zero time interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.5.1.1.2 startTime|V1.0" }, 
+       ModelCorrespondence { 
+          "CIM_J2eeManagedObjectCapabilities.StateManageable" }]
+   datetime StartTime = "00000000000000.000000:000";
+
+      [Description (
+          "Starts the J2EE managed object. This operation can only be "
+          "invoked in when State is Stopped. This method, causes State "
+          "to become Starting initially, and eventually becomes the "
+          "RUNNING state. Additionally, StartRecursive() is called on "
+          "all the child StateManageable instances that are registered "
+          "with this entity and are in the Stopped state. The method "
+          "returns 0 on success and non-zero for failure."), 
+       MappingStrings { "JSR77.JCP|JSR77.5.1.2.2 startRecursive|V1.0" }]
+   uint32 StartRecursive(); 
+
+      [Description (
+          "This method starts the J2EE managed object. This operation "
+          "can only be invoked when the OperationalStatus is Stopped. "
+          "Note that StartService() will not be called on any of the "
+          "child StateManageable instances that are registered with "
+          "this instance. It is the responsibility of the calling "
+          "application to start the child if required. The method "
+          "returns 0 on success and non-zero for failure."), 
+       MappingStrings { "JSR77.JCP|JSR77.5.1.2.1 start|V1.0" }]
+   uint32 Start(); 
+
+      [Description (
+          "This method stops the J2EE managed object and all dependent "
+          "objects that can be identified by following the "
+          "Dependency/Component associations this object's identity "
+          "participates in."), 
+       MappingStrings { "JSR77.JCP|JSR77.5.1.2.3 stop|V1.0" }]
+   uint32 Stop(); 
+};
+
+
+// ====================================================================
+// CIM_J2eeDomain - JSR77.3.2
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeDomain identifies the J2EE Domains that are part of "
+       "the J2EE management environment. Domains provide a structure "
+       "for grouping J2EE Server objects.")]
+class CIM_J2eeDomain : CIM_AdminDomain {
+
+      [Override ( "Name" ), Description (
+          "The name of the J2EE server domain. The name MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1.1 Domain Name|V1.0" }]
+   string Name;
+};
+
+
+// ====================================================================
+// CIM_J2eeServer - JSR77.3.3
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeServer class represents the J2EE Server core of "
+       "one instance of a J2EE platform product as described in the "
+       "Java 2 Enterprise Edition Platform specification.")]
+class CIM_J2eeServer : CIM_ApplicationSystem {
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE Server. The name MUST be constructed "
+          "using the form specified in JSR77.3.1.1.1 in order to avoid "
+          "the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }]
+   string Name;
+
+      [Description (
+          "The name of the server's vendor."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.3.1.4 serverVendor|V1.0" }]
+   string Vendor;
+
+      [Description (
+          "The J2EE implementation version of the J2EE server."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.3.1.5 serverVersion|V1.0" }]
+   string Version;
+};
+
+
+// ==================================================================
+// CIM_J2eeServerInDomain (Association) - JSR77.3.2.1.1
+// ==================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeServerInDomain association identifies the J2EE "
+       "Server that are part of a J2EE Domain for management purposes.")]
+class CIM_J2eeServerInDomain : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The J2ee Management Domain.")]
+   CIM_J2eeDomain REF GroupComponent;
+
+      [Override ( "PartComponent" ), Min ( 1 ), Description (
+          "The J2ee Server that is a member of the domain.")]
+   CIM_J2eeServer REF PartComponent;
+};
+
+
+// ====================================================================
+// CIM_J2eeJVM - JSR77.3.4
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJVM class identifies a Java VM that is utilized by "
+       "a J2EE server. For each Java VM that is running threads "
+       "associated with the J2EE server, its containers or resources, "
+       "there must be an instance in this class. The instance must be "
+       "removed when the Java VM is no longer running. The reason this "
+       "class subclasses from a class as high up in the hierarchy as "
+       "CIM_EnabledLogicalElement is the absence of a class that "
+       "models Interpreters, Emulators and the like. The JVM is not an "
+       "OS, but then neither is it just a process. In v2.9, we hope to "
+       "plug this hole by introducing a class that will model "
+       "interpreters and emulators. At this point, the JVM class can "
+       "be pushed down in the hierarchy.")]
+class CIM_J2eeJVM : CIM_EnabledLogicalElement {
+
+      [Key, Description (
+          "InstanceID identifies a unique instance of a J2ee JVM In "
+          "order to ensure uniqueness, the value of InstanceID MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       ModelCorrespondence { "CIM_J2eeJVM.Name" }]
+   string InstanceID;
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE JVM. The name MUST be constructed using "
+          "the form specified in JSR77.3.1.1.1 in order to avoid the "
+          "need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { "CIM_J2eeJVM.InstanceID" }]
+   string Name;
+
+      [Description (
+          "The Java Runtime Environment version of the JVM."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.4.1.1 javaVersion|V1.0" }]
+   string JavaVersion;
+
+      [Description (
+          "The Java Runtime Environment vendor of the JVM."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.4.1.2 javaVendor|V1.0" }]
+   string JavaVendor;
+
+      [Description (
+          "The node (machine) this JVM is running on."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.4.1.3 node|V1.0" }]
+   string Node;
+};
+
+
+// ====================================================================
+// CIM_J2eeServerUsesJVM (association) - JSR77.3.4
+// ====================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "The association between a J2EE server and the Java virtual "
+       "machine on which the J2EE server has running threads.")]
+class CIM_J2eeServerUsesJVM : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The Java VM that is used by the J2ee Server.")]
+   CIM_J2eeJVM REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The J2ee Server that has threads running on the JVM.")]
+   CIM_J2eeServer REF Dependent;
+};
+
+
+// ==================================================================
+// CIM_J2eeDeployedObject - JSR77.3.5
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeDeployedObject class is an abstract class that is "
+       "used to define CIM_J2eeModule objects that are deployed in the "
+       "CIM_J2eeServer. The Deployed Objects are hosted by a J2ee "
+       "Server and should hence be associated to a J2eeServer instance "
+       "through the CIM_HostedService association. The scoping keys in "
+       "the instance are provided by the J2eeServer hosting the "
+       "deployed object.")]
+class CIM_J2eeDeployedObject : CIM_Service {
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE deployed object. The name MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }]
+   string Name;
+
+      [Description (
+          "Contains the original XML deployment descriptor that was "
+          "created for this module during the deployment process."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.5.0.1 " 
+          "deploymentDescriptor|V1.0" }]
+   string DeploymentDescriptor;
+};
+
+
+// ====================================================================
+// CIM_J2eeModule - JSR77.3.7
+// ====================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeModule class is an abstract class from which all "
+       "J2EE module type classes extend. These represent EAR, JAR, "
+       "WAR, and RAR files that have been deployed.")]
+class CIM_J2eeModule : CIM_J2eeDeployedObject {
+};
+
+
+// ====================================================================
+// CIM_J2eeApplication - JSR77.3.6
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeApplication identifies a J2EE application that resides "
+       "on a J2ee Server.")]
+class CIM_J2eeApplication : CIM_ApplicationSystem {
+      [Override ( "Name" ), Description (
+          "The name of a J2EE Application. The name MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }]
+   string Name;
+
+      [Description (
+          "Contains the original XML deployment descriptor that was "
+          "created for this application during the deployment process."), 
+       MappingStrings { "JSR77.JCP|JSR77.3.5.0.1 " 
+          "deploymentDescriptor|V1.0" }]
+   string DeploymentDescriptor;
+};
+
+// ==================================================================
+// CIM_J2eeApplicationModule (Association) - JSR77.3.6.1.1
+// ==================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeApplicationModule association identifies a "
+       "software module for a particular J2EE Application.")]
+class CIM_J2eeApplicationModule : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The J2ee Application that is comprised of modules.")]
+   CIM_J2eeApplication REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The Module that is part of a J2ee Application.")]
+   CIM_J2eeModule REF PartComponent;
+};
+
+// ==================================================================
+// CIM_J2eeApplicationHostedOnServer (Association)
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeApplicationHostedOnServer association identifies a "
+       "hosting J2ee Server for a particular J2EE Application.")]
+class CIM_J2eeApplicationHostedOnServer : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The hosting J2ee Server.")]
+   CIM_J2eeServer REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The hosted J2ee Application.")]
+   CIM_J2eeApplication REF Dependent;
+};
+
+// ==================================================================
+// CIM_J2eeModuleUsesJVM (Association) - JSR77.3.7.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeModuleUsesJVM association identifies the JVM that "
+       "a specific Module runs in.")]
+class CIM_J2eeModuleUsesJVM : CIM_HostedDependency {
+
+      [Override ( "Dependent" ), Description (
+          "The Module that uses a Java Virtual Machine.")]
+   CIM_J2eeModule REF Dependent;
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The Java VM on which the module is running.")]
+   CIM_J2eeJVM REF Antecedent;
+};
+
+
+// ====================================================================
+// CIM_J2eeAppClientModule - JSR77.3.8
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeAppClientModule identifies a deployed Application "
+       "Client Module.")]
+class CIM_J2eeAppClientModule : CIM_J2eeModule {
+};
+
+
+// ==================================================================
+// CIM_J2eeEJBModule - JSR77.3.9
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeEJBModule identifies a deployed EJB module and is a "
+       "container for CIM_J2eeEJBs.")]
+class CIM_J2eeEJBModule : CIM_J2eeModule {
+};
+
+
+// ==================================================================
+// CIM_J2eeEJB - JSR77.3.10
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeEJB class is base class that represents different "
+       "types of deployed Enterprise JavaBean components. The EJB is "
+       "hosted by a J2ee Server and should hence be associated to a "
+       "J2eeServer instance through the CIM_HostedService association. "
+       "The scoping keys in the instance are provided by the "
+       "J2eeServer hosting the EJB.")]
+class CIM_J2eeEJB : CIM_Service {
+
+      [Override ( "Name" ), Description (
+          "The name of an EJB. The name MUST be constructed using the "
+          "form specified in JSR77.3.1.1.1 in order to avoid the need "
+          "for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }]
+   string Name;
+};
+
+
+// ==================================================================
+// CIM_J2eeMessageDrivenBean - JSR77.3.11
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "Identifies a deployed message driven bean within an EJB "
+       "module.")]
+class CIM_J2eeMessageDrivenBean : CIM_J2eeEJB {
+};
+
+
+// ==================================================================
+// CIM_J2eeEntityBean - JSR77.3.12
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "Identifies a deployed entity bean within an EJB module.")]
+class CIM_J2eeEntityBean : CIM_J2eeEJB {
+};
+
+
+// ==================================================================
+// CIM_J2eeSessionBean - JSR77.3.13
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeSessionBean class is a base class that represents "
+       "specific types of deployed Session beans.")]
+class CIM_J2eeSessionBean : CIM_J2eeEJB {
+};
+
+
+// ==================================================================
+// CIM_J2eeStatefulSessionBean - JSR77.3.14
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "Identifies a deployed stateful session bean within an EJB "
+       "module.")]
+class CIM_J2eeStatefulSessionBean : CIM_J2eeSessionBean {
+};
+
+
+// ==================================================================
+// CIM_J2eeStatelessSessionBean - JSR77.3.15
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "Identifies a deployed stateless session bean within an EJB "
+       "module.")]
+class CIM_J2eeStatelessSessionBean : CIM_J2eeSessionBean {
+};
+
+
+// ==================================================================
+// CIM_J2eeEJBInModule (Association) - JSR77.3.9.1.1
+// ==================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "CIM_J2eeEJBInModule is a aggregation of the EJB components "
+       "within a deployed EJB JAR module.")]
+class CIM_J2eeEJBInModule : CIM_ServiceComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The EJB Module that is comprised of EJBs.")]
+   CIM_J2eeEJBModule REF GroupComponent;
+
+      [Override ( "PartComponent" ), Min ( 1 ), Description (
+          "The EJB that is a part of the EJB Module.")]
+   CIM_J2eeEJB REF PartComponent;
+};
+
+// ====================================================================
+// CIM_J2eeWebModule - JSR77.3.16
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeWebModule identifies a deployed WAR module and is a "
+       "container for Servlets.")]
+class CIM_J2eeWebModule : CIM_J2eeModule {
+};
+
+
+// ==================================================================
+// CIM_J2eeServlet - JSR77.3.17
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "Identifies a deployed servlet component. The Servlet is hosted "
+       "by a J2ee Server and should hence be associated to a "
+       "J2eeServer instance through the CIM_HostedService association. "
+       "The scoping keys in the instance are provided by the "
+       "J2eeServer hosting the servlet.")]
+class CIM_J2eeServlet : CIM_Service {
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE Servlet. The name MUST be constructed "
+          "using the form specified in JSR77.3.1.1.1 in order to avoid "
+          "the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }]
+   string Name;
+};
+
+// ==================================================================
+// CIM_J2eeServletInModule (Association) - JSR77.3.16.1.1
+// ==================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "CIM_J2eeServletInModule is a aggregation of the servlet "
+       "components within a deployed WAR module.")]
+class CIM_J2eeServletInModule : CIM_ServiceComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The Web Module that is comprised of servlets.")]
+   CIM_J2eeWebModule REF GroupComponent;
+
+      [Override ( "PartComponent" ), Min ( 1 ), Description (
+          "The Servlet that is a part of the Web Module.")]
+   CIM_J2eeServlet REF PartComponent;
+};
+
+
+// ====================================================================
+// CIM_J2eeResourceAdapterModule - JSR77.3.18
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeResourceAdapterModule identifies a deployed Resource "
+       "Adapter Module and is a container for resource adapters.")]
+class CIM_J2eeResourceAdapterModule : CIM_J2eeModule {
+};
+
+
+// ==================================================================
+// CIM_J2eeResourceAdapter - JSR77.3.19
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "Identifies a deployed Resource Adapter within a Resource "
+       "Adapter Module. The resource adapter is hosted by a J2ee "
+       "Server and should hence be associated to a J2eeServer instance "
+       "through the CIM_HostedService association. The scoping keys in "
+       "the instance are provided by the J2eeServer hosting the "
+       "resource adapter.")]
+class CIM_J2eeResourceAdapter : CIM_Service {
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE Resource Adapter. The name MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }]
+   string Name;
+};
+
+// ==================================================================
+// CIM_J2eeResourceAdapterInModule (Association) - JSR77.3.18.1.1
+// ==================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "CIM_J2eeResourceAdapterInModule is an aggregation of the "
+       "resource adapters contained within a deployed RAR Module.")]
+class CIM_J2eeResourceAdapterInModule : CIM_ServiceComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), 
+       Description (
+          "The ResourceAdapter Module that is comprised of resource "
+          "adapters.")]
+   CIM_J2eeResourceAdapterModule REF GroupComponent;
+
+      [Override ( "PartComponent" ), Min ( 1 ), Description (
+          "The resource adapter that is a part of the resource adapter "
+          "Module.")]
+   CIM_J2eeResourceAdapter REF PartComponent;
+};
+
+
+// ==================================================================
+// CIM_J2eeResource - JSR77.3.20
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The J2eeResource class is a base class for all managed object "
+       "types that represent J2EE resources. J2EE resources are "
+       "resources that are utilized by the J2EE server to provide the "
+       "J2EE standard services required by the J2EE platform "
+       "architecture. The J2EEResource class has several subclasses "
+       "that do not add any new properties. The option of using a type "
+       "property to identify the different resource types while doing "
+       "away with the numerous empty subclasses was not chosen because "
+       "the subclasses, when enhanced by vendor specific extensions "
+       "are significantly different from each other.")]
+class CIM_J2eeResource : CIM_SystemResource {
+
+      [Key, Description (
+          "InstanceID identifies a unique instance of a J2ee Resource. "
+          "In order to ensure uniqueness, the value of InstanceID MUST "
+          "be constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       ModelCorrespondence { "CIM_J2eeResource.Name" }]
+   string InstanceID;
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE Resource. The name MUST be constructed "
+          "using the form specified in JSR77.3.1.1.1 in order to avoid "
+          "the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { "CIM_J2eeResource.InstanceID" }]
+   string Name;
+};
+
+
+// ==================================================================
+// CIM_J2eeResourceOnServer (Association) JSR77.3.3.1.2
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeResourceOnServer is an association that establishes "
+       "the relationship between a J2EE server and its resources.")]
+class CIM_J2eeResourceOnServer : CIM_ResourceOfSystem {
+
+      [Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The Server exposing the resources.")]
+   CIM_J2eeServer REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The resource that is a component of the server.")]
+   CIM_J2eeResource REF PartComponent;
+};
+
+
+// ==================================================================
+// CIM_J2eeJavaMailResource - JSR77.3.21
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeJavaMailResource identifies a JavaMail resource.")]
+class CIM_J2eeJavaMailResource : CIM_J2eeResource {
+};
+
+
+// ==================================================================
+// CIM_J2eeJCAResource - JSR77.3.22
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeJCAResource identifies a JCA resource.")]
+class CIM_J2eeJCAResource : CIM_J2eeResource {
+};
+
+
+// ==================================================================
+// CIM_J2eeJCAConnectionFactory - JSR77.3.23
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJCAConnectionFactory class identifies individual "
+       "JCA connection factories.")]
+class CIM_J2eeJCAConnectionFactory : CIM_EnabledLogicalElement {
+
+      [Key, Description (
+          "InstanceID identifies a unique instance of a J2ee "
+          "JCAConnectionFactory. In order to ensure uniqueness, the "
+          "value of InstanceID MUST be constructed using the form "
+          "specified in JSR77.3.1.1.1 in order to avoid the need for "
+          "manual key propagation."), 
+       ModelCorrespondence { "CIM_J2eeJCAConnectionFactory.Name" }]
+   string InstanceID;
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE JCAConnectionFactory. The name MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { "CIM_J2eeJCAConnectionFactory.InstanceID" 
+          }]
+   string Name;
+};
+
+
+// ==================================================================
+// CIM_J2eeJDBCResource - JSR77.3.25
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeJDBCResource identifies a JDBC resource. A JDBC "
+       "resource manages one or more JDBC data sources.")]
+class CIM_J2eeJDBCResource : CIM_J2eeResource {
+};
+
+
+// ==================================================================
+// CIM_J2eeJMSResource - JSR77.3.28
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeJMSResource identifies a JMS resource.")]
+class CIM_J2eeJMSResource : CIM_J2eeResource {
+};
+
+
+// ==================================================================
+// CIM_J2eeJNDIResource - JSR77.3.29
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeJNDIResource identifies a Java Naming and Directory "
+       "Interface (JNDI) resource.")]
+class CIM_J2eeJNDIResource : CIM_J2eeResource {
+};
+
+
+// ==================================================================
+// CIM_J2eeJTAResource - JSR77.3.30
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeJTAResource identifies a Java Transaction API (JTA) "
+       "resource.")]
+class CIM_J2eeJTAResource : CIM_J2eeResource {
+};
+
+
+// ==================================================================
+// CIM_J2eeRMI_IIOPResource - JSR77.3.31
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeRMI_IIOPResource identifies an RMI_IIOP resource.")]
+class CIM_J2eeRMI_IIOPResource : CIM_J2eeResource {
+};
+
+
+// ==================================================================
+// CIM_J2eeURLResource - JSR77.3.32
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "CIM_J2eeURLResource identifies a URL resource.")]
+class CIM_J2eeURLResource : CIM_J2eeResource {
+};
+
+
+// ==================================================================
+// CIM_J2eeJCAManagedConnectionFactory - JSR77.3.24
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "This class identifies JCA managed connection factories.")]
+class CIM_J2eeJCAManagedConnectionFactory : CIM_EnabledLogicalElement {
+
+      [Key, Description (
+          "InstanceID identifies a unique instance of a J2ee "
+          "JCAManagedConnectionFactory. In order to ensure uniqueness, "
+          "the value of InstanceID MUST be constructed using the form "
+          "specified in JSR77.3.1.1.1 in order to avoid the need for "
+          "manual key propagation."), 
+       ModelCorrespondence { "CIM_J2eeJCAManagedConnectionFactory.Name" 
+          }]
+   string InstanceID;
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE JCAManagedConnectionFactory. The name "
+          "MUST be constructed using the form specified in "
+          "JSR77.3.1.1.1 in order to avoid the need for manual key "
+          "propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { 
+          "CIM_J2eeJCAManagedConnectionFactory.InstanceID" }]
+   string Name;
+};
+
+
+// ==================================================================
+// CIM_J2eeJDBCDataSource - JSR77.3.26
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJDBCDataSource class contains instances that "
+       "identify physical JDBC data sources.")]
+class CIM_J2eeJDBCDataSource : CIM_EnabledLogicalElement {
+
+      [Key, Description (
+          "InstanceID identifies a unique instance of a J2ee "
+          "JDBCDataSource. In order to ensure uniqueness, the value of "
+          "InstanceID MUST be constructed using the form specified in "
+          "JSR77.3.1.1.1 in order to avoid the need for manual key "
+          "propagation."), 
+       ModelCorrespondence { "CIM_J2eeJDBCDataSource.Name" }]
+   string InstanceID;
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE JDBCDataSource. The name MUST be "
+          "constructed using the form specified in JSR77.3.1.1.1 in "
+          "order to avoid the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { "CIM_J2eeJDBCDataSource.InstanceID" }]
+   string Name;
+};
+
+
+// ==================================================================
+// CIM_J2eeJDBCDriver - JSR77.3.27
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJDBCDriver class identifies individual JDBC "
+       "drivers.")]
+class CIM_J2eeJDBCDriver : CIM_EnabledLogicalElement {
+
+      [Key, Description (
+          "InstanceID identifies a unique instance of a J2ee "
+          "JDBCDriver. In order to ensure uniqueness, the value of "
+          "InstanceID MUST be constructed using the form specified in "
+          "JSR77.3.1.1.1 in order to avoid the need for manual key "
+          "propagation."), 
+       ModelCorrespondence { "CIM_J2eeJDBCDriver.Name" }]
+   string InstanceID;
+
+      [Override ( "Name" ), Description (
+          "The name of a J2EE JDBCDriver. The name MUST be constructed "
+          "using the form specified in JSR77.3.1.1.1 in order to avoid "
+          "the need for manual key propagation."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "JSR77.JCP|JSR77.3.1.1.1 objectName|V1.0" }, 
+       ModelCorrespondence { "CIM_J2eeJDBCDriver.InstanceID" }]
+   string Name;
+};
+
+
+// ==================================================================
+// CIM_J2eeJDBCResourceUsesDataSource (Association) - JSR77.3.25.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJDBCResourceUsesDataSource is an association that "
+       "identifies the JDBC data sources that are available to a "
+       "CIM_J2eeJDBCResource.")]
+class CIM_J2eeJDBCResourceUsesDataSource : CIM_HostedDependency {
+
+      [Override ( "Dependent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The JDBC Resource that requires a Data Source.")]
+   CIM_J2eeJDBCResource REF Dependent;
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The Data Source that is being used by a JDBC Resource.")]
+   CIM_J2eeJDBCDataSource REF Antecedent;
+};
+
+
+// ==================================================================
+// CIM_J2eeJDBCDataSourceDriver (Association) - JSR77.3.26.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJDBCDataSourceDriver associates the JDBC driver with a "
+       "JDBC data source.")]
+class CIM_J2eeJDBCDataSourceDriver : CIM_HostedDependency {
+
+      [Override ( "Dependent" ), Min ( 1 )]
+   CIM_J2eeJDBCDataSource REF Dependent;
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 )]
+   CIM_J2eeJDBCDriver REF Antecedent;
+};
+
+
+// ==================================================================
+// CIM_J2eeConnectionFactoryAvailableToJCAResource(Association)
+//                   JSR77.3.22.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeConnectionFactoryAvailableToJCAResource is an "
+       "association that identifies the connection factory that is "
+       "available to a CIM_J2eeJCAResource object.")]
+class CIM_J2eeConnectionFactoryAvailableToJCAResource : CIM_HostedDependency {
+
+      [Override ( "Dependent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The JCA Resource that requires a Connection Factory.")]
+   CIM_J2eeJCAResource REF Dependent;
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The Connection Factory being used by a JCA Resource.")]
+   CIM_J2eeJCAConnectionFactory REF Antecedent;
+};
+
+
+// ==================================================================
+// CIM_J2eeJCAConnectionFactoryManagedConnectionFactory (Association)
+//      JSR77.3.23.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJCAConnectionFactoryManagedConnectionFactory "
+       "identifies the JCA managed connection factory associated with "
+       "the corresponding JCA connection factory .")]
+class CIM_J2eeJCAConnectionFactoryManagedConnectionFactory : CIM_HostedDependency {
+
+      [Override ( "Dependent" ), Min ( 1 )]
+   CIM_J2eeJCAConnectionFactory REF Dependent;
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 )]
+   CIM_J2eeJCAManagedConnectionFactory REF Antecedent;
+};
+
+
+// ====================================================================
+// CIM_J2eeNotification - JSR77.4.2
+// ====================================================================
+   [Indication, Version ( "2.8.0" ), Description (
+       "The J2eeNotification class specifies the properties that must "
+       "be included in every event that is generated by a J2EE managed "
+       "object that supports the event model. All management systems "
+       "that support event notification must support all of the "
+       "properties in this class.")]
+class CIM_J2eeNotification : CIM_ProcessIndication {
+
+      [Override ( "IndicationIdentifier" ), Description (
+          "The identifier for the indication, represented as the name "
+          "of the source J2EE managed object that generated the event. "
+          "The name MUST be constructed using the form specified in "
+          "JSR77.3.1.1.1."), 
+       MappingStrings { "JSR77.JCP|JSR77.4.2.1.1 source|V1.0" }, 
+       ModelCorrespondence { "CIM_J2eeManagedObject.InstanceID" }]
+   string IndicationIdentifier;
+
+      [Description (
+          "The sequence number of the indication. Identifies the "
+          "position of the indication in a stream of indications. The "
+          "sequence number provides a means of determining the order "
+          "of sequential indications that occurred with the same "
+          "timestamp (within the minimum supported unit of time)."), 
+       MappingStrings { "JSR77.JCP|JSR77.4.2.1.3 sequence|V1.0" }]
+   sint64 SequenceNumber;
+
+      [Description (
+          "The type of the indication. The type is assigned by the "
+          "source object that generated the indication. It conveys the "
+          "semantic meaning of the particular indication. The standard "
+          "types (starting, stopping, running, etc.) MUST be described "
+          "by this property's enumeration. Other values MAY also be "
+          "specified by entering 1 (\"Other\") in this property and "
+          "placing the type's string value in OtherIndicationType. The "
+          "latter SHOULD be interpreted as a number of dot-separated "
+          "components. This allows some structure in the naming of "
+          "indication types. Source objects are free to define any "
+          "types that they wish to use when naming the indications "
+          "that they generate. \n"
+          "\n"
+          "Note that this enumeration is defined by examining "
+          "J2eeManagedObject's OperationalStatus property, by the "
+          "creation or deletion of the J2eeManagedObject instance, or "
+          "is the decision of the JSR77 experts or the implementation. "
+          "It is not a one-to-one mapping of the OperationalStatus "
+          "property in ManagedSystemElement, and is therefore a unique "
+          "enumeration and specific ProcessIndication."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "j2ee.object.created",
+          "j2ee.object.deleted", "j2ee.state.starting",
+          "j2ee.state.running", "j2ee.state.stopping",
+          "j2ee.state.stopped", "j2ee.state.failed" }, 
+       MappingStrings { "JSR77.JCP|JSR77.4.2.1.4 type|V1.0" }, 
+       ModelCorrespondence { "CIM_J2eeNotification.OtherIndicationType" 
+          }]
+   uint16 IndicationType;
+
+      [Description (
+          "The type of the indication when a non-standard event is "
+          "generated by the source object. This value MUST be "
+          "specified when IndicationType is set to 1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_J2eeNotification.IndicationType" }]
+   string OtherIndicationType;
+
+      [Description (
+          "An informational message about the indication.")]
+   string Message;
+
+      [Description (
+          "Optional data that the notication broadcaster wishes to "
+          "communicate to listeners. The content of the data is user "
+          "specific. The UserData property may be null."), 
+       OctetString]
+   string UserData;
+};
+
+
+// ==================================================================
+// end of file
+// ==================================================================

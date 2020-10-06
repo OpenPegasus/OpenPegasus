@@ -1,0 +1,2805 @@
+// ===================================================================
+// Title:       User-Security MOF specification 2.5
+// Filename:    CIM_UserSec25a.mof
+// Version:     2.5
+// Release:     0
+// Date:        01/23/2001
+// Description: These object classes define the user and security 
+//              model for CIM and includes classes needed to represent
+//              users, groups and organizational entities as well as 
+//              security services and authentication and authorization 
+//              information.
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined 
+//		    by other working groups, are omitted. 
+// ===================================================================
+// Author:      DMTF User and Security Working Group
+//
+// 14 Mar 2000  - Version 2.3
+//
+// 09 Jun 2000  - ERRATA to Version 2.3 creating V2.4
+//		- CR493a, Correction of Antecedent/Dependent references
+//			References are reversed from the original 2.3 model
+//		- CR497: Corrections to antecedent/dependent references
+//			1.  ElementAsUser should run between an ME and a 
+//                UsersAccess.  Both references are ME in the MOF.  
+//                UsersAccess is the Dependent reference.
+//
+//			2.  ManagesAccount should subclass from Dependency.
+//
+//			3.  ServiceUsesSecurityService - antecedent and 
+//                dependent are backwards.  SecurityService should 
+//			be the antecedent and Service the dependent.
+//
+//			4.  SecurityServiceForSystem - should subclass from 
+//			ProvidesServiceToElement.
+//
+//			5.  UsersCredentials - The antecedent and dependent 
+//			references are backwards.  The UsersAccess is 
+//			dependent on the Credentials - the credentials 
+//			are the antecedent.
+//
+//			6.  The change in UsersCredentials affects 
+//			PublicPrivateKeyPair, since it inherits from 
+//			UsersCredentials.
+//
+//			7.  CAHasPublicCertificate - The antecedent and 
+//			dependent references are backwards.  The CA USES 
+//			the public certificate - therefore, it is dependent
+//			on the certificate.
+//
+//			8.  AuthenticateForUse - The antecedent and 
+//			dependent are backwards. The association "provides 
+//			an AuthenticationService with the 
+//			AuthenticationRequirement it needs to do its job". 
+//			AuthenticationService is Dependent on the 
+//			Requirement.
+//
+//			9.  RequireCredentialsFrom - Antecedent and 
+//			dependent are backwards.  The requirement is for 
+//			a specific credential mgmt service - the service 
+//			has no dependencies at all on the requirement.
+//
+//			10.  AuthenticationTarget - Clarification that the 
+//			"target" is dependent on the requirement to protect 
+//			it.
+//
+//			11.  AuthorizedUse - The antecedent and dependent 
+//			are backwards since the description says that the 
+//			association "provides an AuthorizationService
+//			with the AccessControlInformation it needs to do 
+//			its job". AuthorizationService is Dependent on the 
+//			ACI.
+//
+// 21 June 2000 - ERRATA to Version 2.3 creating Version 2.4
+//          - CR515: CIM Account keys.  CIM_Account currently has two
+//			local keys, Name and UserID. 
+//                The intent was to have CreationClassName and Name 
+//			as keys where name could be set to a value equal to 
+//			the UserID or to some other value, e.g., a DN from 
+//			a directory.
+//
+// 10 Nov 2000  - Changes to Version 2.4 creating V2.5
+//          - CR544a, Adds classes and properties needed for Network 
+//                IPsec submodel.  
+//                Classes added are:
+//			CredentialManagementSAP 
+//                LocalCredentialManagementService
+//                PublicKeyManagementService
+//                UnsignedPublicKey
+//                NamedSharedIKESecret
+//                TrustHierarchy
+//                LocallyManagedPublicKey
+//                IKESecretIsNamed
+//                Properties added are:
+//                CertificateAuthority.CADistinguishedName
+//                CertificateAuthority.MaxChainLength
+//                CertificateAuthority.CRLRefreshFrequency
+//          - CR560, ERRATA renames KerberosTicket.Type to 
+//                KerberosTicket.TicketType and changes it from an
+//                array to a scalar property 
+// 23 Jan 2001  - ERRATA to Version 2.5 creating V2.6
+//          - CR591, Corrections to PROPAGATE qualifiers on 
+//			Credential Subclasses
+//
+// ===================================================================
+
+// ===================================================================
+// ===                         Pragmas                             ===
+// ===================================================================
+#pragma Locale ("en_US")
+
+
+
+// ==================================================================
+// ===                  Data class definitions                    ===
+// ==================================================================
+
+
+// ==================================================================
+// Group
+// ==================================================================
+   [Description (
+   "The Group class is used to collect ManagedElements into groups. "
+   "This class is defined so as to incorporate commonly-used LDAP "
+   "attributes to permit implementations to easily derive this "
+   "information from LDAP-accessible directories.  This class's "
+   "properties are a subset of a related class, "
+   "OtherGroupInformation, which defines all the group properties "
+   "and in array form for directory compatibility." ) ]
+class CIM_Group : CIM_Collection
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024), Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name "
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+	[MaxLen (128), Description (  
+      "The BusinessCategory property may be used to describe the "
+	"kind of business activity performed by the members of the "
+	"group.")]
+   string BusinessCategory;
+      [Required, Description (
+	"A Common Name is a (possibly ambiguous) name by which the "
+	"group is commonly known in some limited scope (such as an "
+	"organization) and conforms to the naming conventions of the "
+	"country or culture with which it is associated.")]
+   string CommonName;
+   };
+
+// ==================================================================
+// OtherGroupInformation
+// ==================================================================
+   [Description (
+   "The OtherGroupInformation class provides additional information "
+   "about an associated Group instance.  This class is defined so as "
+   "to incorporate commonly-used LDAP attributes to permit "
+   "implementations to easily derive this information from "
+   "LDAP-accessible directories.") ]
+class CIM_OtherGroupInformation : CIM_ManagedElement
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024), Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name "
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+      [Description (  
+      "In the case of an LDAP-derived instance, the ObjectClass "
+      "property value(s) may be set to the objectClass attribute "
+	"values.")]
+   string ObjectClass[];
+	[MaxLen (128), Description (  
+      "The BusinessCategory property may be used to describe the "
+	"kind of business activity performed by the members of the "
+	"group.")]
+   string BusinessCategory[];
+      [Description (
+	"A Common Name is a (possibly ambiguous) name by which the "
+	"group is commonly known in some limited scope (such as an "
+	"organization) and conforms to the naming conventions of the "
+	"country or culture with which it is associated.")]
+   string CommonName[];
+      [MaxLen (1024), Description (  
+      "The Descriptions property values may contain human-readable "
+	"descriptions of the object.  In the case of an LDAP-derived "  
+	"instance, the description attribute may have multiple values "
+	"that, therefore, cannot be placed in the inherited "
+	"Description property.")]
+   string Descriptions[];
+      [Description (  
+      "The name of an organization related to the group.")]
+   string OrganizationName[];
+      [Description (  
+      "The name of an organizational unit related to the group.")]
+   string OU[];
+      [Description (  
+	"The Owner property specifies the name of some object that "
+	"has some responsibility for the group.  In the case of an "
+	"LDAP-derived instance, a property value for Owner may be a "
+	"distinguishedName of owning persons, groups, roles, etc.")]
+   string Owner[];
+      [Description (  
+	"In the case of an LDAP-derived instance, the See Also "
+	"property specifies distinguishedName of other Directory "
+	"objects which may be other aspects (in some sense) of the "
+	"same real world object.")]
+   string SeeAlso[];
+   };
+
+// ==================================================================
+// Role
+// ==================================================================
+   [Description (  
+   "The Role object class is used to represent a position or set of "
+   "responsibilities within an organization, organizational unit or "
+   "system administration scope and is filled by a person or persons "
+   "(or non-human entities represented by ManagedSystemElement "
+   "subclasses) that may be explicitly or implicitly members of this "
+   "collection subclass.  The class is defined so as to incorporate "
+   "commonly-used LDAP attributes to permit implementations to "
+   "easily derive this information from LDAP-accessible directories. "
+   "The members of a role are frequently called role occupants. "
+   "This class's properties are a subset of a related class, "
+   "OtherRoleInformation, which defines all the group properties "
+   "and in array form for directory compatibility. ")]
+class CIM_Role : CIM_Collection
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024),Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name " 
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+      [MaxLen (128), Description (  
+      "This property may be used to describe the kind of business "
+	"activity performed by the members (role occupants) in the "
+	"position or set of responsibilities represented by the Role. "
+	)]
+   string BusinessCategory;
+      [Required, Description (
+	"A Common Name is a (possibly ambiguous) name by which the "
+	"role is commonly known in some limited scope (such as an "
+	"organization) and conforms to the naming conventions of the "
+	"country or culture with which it is associated.")]
+   string CommonName;
+   };
+
+// ==================================================================
+// OtherRoleInformation
+// ==================================================================
+   [Description (  
+   "The OtherRoleInformation class is used to provide additional "
+   "information about an associated Role instance.  This class is "
+   "defined so as to incorporate commonly-used LDAP attributes to "
+   "permit implementations to easily derive this information from "
+   "LDAP-accessible directories.") ]
+class CIM_OtherRoleInformation : CIM_ManagedElement
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024),Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name " 
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+      [Description (  
+      "In the case of an LDAP-derived instance, the ObjectClass "
+      "property value(s) may be set to the objectClass attribute "
+	"values.")]
+   string ObjectClass[];
+      [MaxLen (128), Description (  
+      "This property may be used to describe the kind of business "
+	"activity performed by the members (role occupants) in the "
+	"position or set of responsibilities represented by the Role. "
+	)]
+   string BusinessCategory[];
+      [Description (
+	"A Common Name is a (possibly ambiguous) name by which the "
+	"role is commonly known in some limited scope (such as an "
+	"organization) and conforms to the naming conventions of the "
+	"country or culture with which it is associated.")]
+   string CommonName[];
+      [MaxLen (1024), Description (  
+      "The Descriptions property values may contain human-readable "
+	"descriptions of the object.  In the case of an LDAP-derived "  
+	"instance, the description attribute may have multiple values "
+	"that, therefore, cannot be placed in the inherited "
+	"Description property.")]
+   string Descriptions[];
+      [MaxLen (128), Description (  
+	"This property is used for the role occupants' telegram "
+	"service.")]
+   string DestinationIndicator[];
+      [Description (  
+      "The role occupants' facsimile telephone number.")]
+   string FacsimileTelephoneNumber[];
+      [MaxLen (16), Description (  
+      "The role occupants' International ISDN number.")]
+   string InternationaliSDNNumber[];
+      [Description (  
+      "The name of an organizational unit related to the role.")]
+   string OU[];
+      [MaxLen (128), Description (  
+      "The Physical Delivery Office Name property specifies the name "
+	"of the city, village, etc. where a physical delivery office "
+	"is situated.")]
+   string PhysicalDeliveryOfficeName[];
+      [Description (  
+	"The Postal Address property values specify the address "
+	"information required for the physical delivery of postal "
+	"messages by the postal authority to the role occupants.")]
+   string PostalAddress[];
+      [MaxLen (40), Description (  
+	"The Postal Code property specifies the postal code for the "
+	"role occupants.  If this value is present it will be part of "
+	"the object's postal address.")]
+   string PostalCode[];
+      [MaxLen (40), Description (  
+	"The Post Office Box property specifies the Post Office Box "
+	"by which the role occupants will receive physical postal "
+	"delivery. If present, the property value is part of the "
+	"object's postal address.")]
+   string PostOfficeBox[];
+      [Description (   
+	"The Preferred Delivery Method property specifies the "
+	"role occupants' preferred method to be used for contacting "
+	"them in their role.")]
+   string PreferredDeliveryMethod;
+      [Description (  
+	"This property specifies a postal address suitable for receipt "
+	"of telegrams or expedited documents, where it is necessary to "
+	"have the recipient accept delivery.")]
+   string RegisteredAddress[];
+      [Description (  
+	"In the case of an LDAP-derived instance, the See Also "
+	"property specifies distinguishedName of other Directory "
+	"objects which may be other aspects (in some sense) of the "
+	"same real world object.")]
+   string SeeAlso[];
+      [Description (  
+ 	"The State or Province Name property specifies a state or "
+	"province." )]
+   string StateOrProvince[];
+      [MaxLen (128), Description (  
+	"The Street Address property specifies a site for the local "
+	"distribution and physical delivery in a postal address, i.e. "
+	"the street name, place, avenue, and the number." )]
+   string Street[];
+      [MaxLen (32), Description (  
+	"The Telephone Number property specifies a telephone number of "
+	"the role occupants, e.g. + 44 582 10101)." )]
+   string TelephoneNumber[];
+      [Description (  
+	"The Teletex Terminal Identifier property specifies the "
+	"Teletex terminal identifier (and, optionally, parameters) for "
+	"a teletex terminal associated with the role occupants." )]
+   string TeletexTerminalIdentifier[];
+      [Description (  
+	"The Telex Number property specifies the telex number, country "
+	"code, and answerback code of a telex terminal for the "
+	"role occupants." )]
+   string TelexNumber[];
+      [MaxLen (15), Description (  
+      "An X.121 address for the role occupants.")]
+   string X121Address[];
+   };
+
+// ==================================================================
+// OrganizationalEntity
+// ==================================================================
+   [Abstract, Description (  
+   "OrganizationalEntity is an abstract class from which classes "
+   "that fit into an organizational structure are derived.") ]
+class CIM_OrganizationalEntity : CIM_ManagedElement   
+   {  
+   };
+
+// ==================================================================
+// Organization
+// ==================================================================
+   [Description (  
+   "The Organization class is used to represent an organization such "
+   "as a corporation or other autonomous entity.  The class is "
+   "defined so as to incorporate commonly-used LDAP attributes to "
+   "permit implementations to easily derive this information from "
+   "LDAP-accessible directories.  This class's properties are a "
+   "subset of a related class, OtherOrganizationInformation, which "
+   "defines all the group properties and in array form for "
+   "directory compatibility.") ]
+class CIM_Organization : CIM_OrganizationalEntity  
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024),Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name "
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+      [MaxLen (128), Description (  
+      "This property describes the kind of business performed by an "
+	"organization.")]
+   string BusinessCategory;
+      [Description (  
+      "The organization's facsimile telephone number.")]
+   string FacsimileTelephoneNumber;
+      [Description (  
+	"This property contains the name of a locality, such as a "
+	"city, county or other geographic region.")]
+   string LocalityName;
+      [Description (  
+      "Based on RFC1274, the mail box addresses for the organization "
+	"as defined in RFC822.")]
+   string Mail;
+      [Required, Description (  
+      "The name of the organization.")]
+   string OrganizationName;
+      [Description (  
+	"The Postal Address property values specify the address "
+	"information required for the physical delivery of postal "
+	"messages by the postal authority to the organization.")]
+   string PostalAddress[];
+      [MaxLen (40), Description (  
+	"The Postal Code property specifies the postal code of the "
+	"organization.  If this value is present it will be part of "
+	"the object's postal address.")]
+   string PostalCode;
+      [Description (  
+ 	"The State or Province Name property specifies a state or "
+	"province." )]
+   string StateOrProvince;
+      [MaxLen (32), Description (  
+	"The Telephone Number property specifies a telephone number of "
+	"the organization, e.g. + 44 582 10101)." )]
+   string TelephoneNumber;
+   };
+
+// ==================================================================
+// OtherOrganizationInformation
+// ==================================================================
+   [Description (  
+   "The OtherOrganizationInformation class is used to provide "
+   "additional information about an associated Organization instance. "
+   "This class is defined so as to incorporate commonly-used LDAP "
+   "attributes to permit implementations to easily derive this "
+   "information from LDAP-accessible directories.") ]
+class CIM_OtherOrganizationInformation : CIM_ManagedElement  
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024),Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name "
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+      [Description (  
+      "In the case of an LDAP-derived instance, the ObjectClass "
+      "property value(s) may be set to the objectClass attribute "
+	"values.")]
+   string ObjectClass[];
+      [MaxLen (128), Description (  
+      "This property describes the kind of business performed by an "
+	"organization.")]
+   string BusinessCategory[];
+      [MaxLen (1024), Description (  
+      "The Descriptions property values may contain human-readable "
+	"descriptions of the object.  In the case of an LDAP-derived "  
+	"instance, the description attribute may have multiple values "
+	"that, therefore, cannot be placed in the inherited "
+	"Description property.")]
+   string Descriptions[];
+      [MaxLen (128), Description (  
+	"This property is used for the organization's telegram "
+	"service.")]
+   string DestinationIndicator[];
+      [Description (  
+      "The organization's facsimile telephone number.")]
+   string FacsimileTelephoneNumber[];
+      [MaxLen (16), Description (  
+      "The organization's International ISDN number.")]
+   string InternationaliSDNNumber[];
+      [Description (  
+      "Uniform Resource Identifier with optional label as defined in "
+	"RFC2079.")]
+   string LabeledURI[]; 
+      [Description (  
+	"This property contains the name of a locality, such as a "
+	"city, county or other geographic region.")]
+   string LocalityName[];
+      [Description (  
+      "Based on RFC1274, the mail box addresses for the organization "
+	"as defined in RFC822.")]
+   string Mail[];
+      [Description (  
+      "The manager for the organization.  In the case of an "
+	"LDAP-derived instance, the Manager property value may contain "
+	"the distinguishedName of the Manager.")]
+   string Manager[];
+      [Description (  
+      "The name of the organization.")]
+   string OrganizationName[];
+      [Description (  
+      "Based on RFC1274, this property may be used for electronic "
+	"mail box addresses other than RFC822 and X.400.")]
+   string OtherMailbox[];
+      [MaxLen (128), Description (  
+      "The Physical Delivery Office Name property specifies the name "
+	"of the city, village, etc. where a physical delivery office "
+	"is situated.")]
+   string PhysicalDeliveryOfficeName[];
+      [Description (  
+	"The Postal Address property values specify the address "
+	"information required for the physical delivery of postal "
+	"messages by the postal authority to the organization.")]
+   string PostalAddress[];
+      [MaxLen (40), Description (  
+	"The Postal Code property specifies the postal code of the "
+	"organization.  If this value is present it will be part of "
+	"the object's postal address.")]
+   string PostalCode[];
+      [MaxLen (40), Description (  
+	"The Post Office Box property specifies the Post Office Box "
+	"by which the organization will receive physical postal "
+	"delivery. If present, the property value is part of the "
+	"object's postal address.")]
+   string PostOfficeBox[];
+      [Description (  
+	"The Preferred Delivery Method property specifies the "
+	"organization's preferred method to be used for communicating "
+	"with it.")]
+   string PreferredDeliveryMethod;
+      [Description (  
+	"This property specifies a postal address suitable for receipt "
+	"of telegrams or expedited documents, where it is necessary to "
+	"have the recipient accept delivery.")]
+   string RegisteredAddress[];
+      [Description (  
+      "This property value is for use by X.500 clients in "
+	"constructing search filters.")]
+   string SearchGuide[];
+      [Description (  
+	"In the case of an LDAP-derived instance, the See Also "
+	"property specifies distinguishedName of other Directory "
+	"objects which may be other aspects (in some sense) of the "
+	"same real world object.")]
+   string SeeAlso[];
+      [Description (  
+ 	"The State or Province Name property specifies a state or "
+	"province." )]
+   string StateOrProvince[];
+      [MaxLen (128), Description (  
+	"The Street Address property specifies a site for the local "
+	"distribution and physical delivery in a postal address, i.e. "
+	"the street name, place, avenue, and the number." )]
+   string Street[];
+      [MaxLen (32), Description (  
+	"The Telephone Number property specifies a telephone number of "
+	"the organization, e.g. + 44 582 10101)." )]
+   string TelephoneNumber[];
+      [Description (  
+	"The Teletex Terminal Identifier property specifies the "
+	"Teletex terminal identifier (and, optionally, parameters) for "
+	"a teletex terminal associated with the organization." )]
+   string TeletexTerminalIdentifier[];
+      [Description (  
+	"The Telex Number property specifies the telex number, country "
+	"code, and answerback code of a telex terminal for the "
+	"organization." )]
+   string TelexNumber[];
+      [Octetstring, Description (  
+      "An image of the organization logo")]
+   string ThumbnailLogo[];
+      [Description (  
+	"A unique identifier that may be assigned in an environment to "
+	"differentiate between uses of a given named organization "
+	"instance.")]
+   string UniqueIdentifier[];
+      [Octetstring, Description (  
+      "In the case of an LDAP-derived instance, the UserPassword "
+	"property may contain an encrypted password used to access "
+	"the organization's resources in a directory." )]
+   string UserPassword[];
+      [MaxLen (15), Description (  
+      "An X.121 address for the organization.")]
+   string X121Address[];
+   };
+
+// ==================================================================
+// OrgUnit
+// ==================================================================
+   [Description (  
+   "The OrgUnit class is used to represent a sub-unit of an "
+   "organization such a division or department.  The class is "
+   "defined so as to incorporate commonly-used LDAP attributes to "
+   "permit implementations to easily derive this information from "
+   "LDAP-accessible directories.  This class's properties are a "
+   "subset of a related class, OtherOrgUnitInformation, which "
+   "defines all the group properties and in array form for "
+   "directory compatibility. ") ]
+class CIM_OrgUnit : CIM_OrganizationalEntity  
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024),Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name " 
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+      [MaxLen (128), Description (  
+      "This property describes the kind of business performed by an "
+	"organizational unit.")]
+   string BusinessCategory;
+      [Description (  
+      "The organizational unit's facsimile telephone number.")]
+   string FacsimileTelephoneNumber;
+      [Description (  
+	"This property contains the name of a locality, such as a "
+	"city, county or other geographic region.")]
+   string LocalityName;
+      [Required, Description (  
+      "The name of the organizational unit.")]
+   string OU;
+      [Description (  
+	"The Postal Address property values specify the address "
+	"information required for the physical delivery of postal "
+	"messages by the postal authority to the organizational unit."
+	)]
+   string PostalAddress[];
+      [MaxLen (40), Description (  
+	"The Postal Code property specifies the postal code of the "
+	"organizational unit.  If this value is present it will be "
+	"part of the object's postal address.")]
+   string PostalCode;
+      [Description (  
+ 	"The State or Province Name property specifies a state or "
+	"province." )]
+   string StateOrProvince;
+      [MaxLen (32), Description (  
+	"The Telephone Number property specifies a telephone number of "
+	"the organizational unit, e.g. + 44 582 10101)." )]
+   string TelephoneNumber;
+   };
+
+// ==================================================================
+// OtherOrgUnitInformation
+// ==================================================================
+   [Description (  
+   "The OtherOrgUnitInformation class is used to provide "
+   "additional information about an associated OrgUnit instance. "
+   "This class is defined so as to incorporate commonly-used LDAP "
+   "attributes to permit implementations to easily derive this "
+   "information from LDAP-accessible directories.") ]
+class CIM_OtherOrgUnitInformation : CIM_ManagedElement  
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024),Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name " 
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+      [Description (  
+      "In the case of an LDAP-derived instance, the ObjectClass "
+      "property value(s) may be set to the objectClass attribute "
+	"values.")]
+   string ObjectClass[];
+      [MaxLen (128), Description (  
+      "This property describes the kind of business performed by an "
+	"organizational unit.")]
+   string BusinessCategory[];
+      [MaxLen (1024), Description (  
+      "The Descriptions property values may contain human-readable "
+	"descriptions of the object.  In the case of an LDAP-derived "  
+	"instance, the description attribute may have multiple values "
+	"that, therefore, cannot be placed in the inherited "
+	"Description property.")]
+   string Descriptions[];
+      [MaxLen (128), Description (  
+	"This property is used for the organizational unit's telegram "
+	"service.")]
+   string DestinationIndicator[];
+      [Description (  
+      "The organizational unit's facsimile telephone number.")]
+   string FacsimileTelephoneNumber[];
+      [MaxLen (16), Description (  
+      "The organizational unit's International ISDN number.")]
+   string InternationaliSDNNumber[];
+      [Description (  
+	"This property contains the name of a locality, such as a "
+	"city, county or other geographic region.")]
+   string LocalityName[];
+      [Description (  
+      "The name of the organizational unit.")]
+   string OU[];
+      [MaxLen (128), Description (  
+      "The Physical Delivery Office Name property specifies the name "
+	"of the city, village, etc. where a physical delivery office "
+	"is situated.")]
+   string PhysicalDeliveryOfficeName[];
+      [Description (  
+	"The Postal Address property values specify the address "
+	"information required for the physical delivery of postal "
+	"messages by the postal authority to the organizational unit."
+	)]
+   string PostalAddress[];
+      [MaxLen (40), Description (  
+	"The Postal Code property specifies the postal code of the "
+	"organizational unit.  If this value is present it will be "
+	"part of the object's postal address.")]
+   string PostalCode[];
+      [MaxLen (40), Description (  
+	"The Post Office Box property specifies the Post Office Box "
+	"by which the organizational unit will receive physical "
+	"postal delivery. If present, the property value is part of "
+	"the object's postal address.")]
+   string PostOfficeBox[];
+      [Description (  
+	"The Preferred Delivery Method property specifies the "
+	"organizational unit's preferred method to be used for "
+	"communicating with it.")]
+   string PreferredDeliveryMethod;
+      [Description (  
+      "This property value is for use by X.500 clients in "
+	"constructing search filters.")]
+   string SearchGuide[];
+      [Description (  
+	"In the case of an LDAP-derived instance, the See Also "
+	"property specifies distinguishedName of other Directory "
+	"objects which may be other aspects (in some sense) of the "
+	"same real world object.")]
+   string SeeAlso[];
+      [Description (  
+ 	"The State or Province Name property specifies a state or "
+	"province." )]
+   string StateOrProvince[];
+      [MaxLen (128), Description (  
+	"The Street Address property specifies a site for the local "
+	"distribution and physical delivery in a postal address, i.e. "
+	"the street name, place, avenue, and the number." )]
+   string Street[];
+      [MaxLen (32), Description (  
+	"The Telephone Number property specifies a telephone number of "
+	"the organizational unit, e.g. + 44 582 10101)." )]
+   string TelephoneNumber[];
+      [Description (  
+	"The Teletex Terminal Identifier property specifies the "
+	"Teletex terminal identifier (and, optionally, parameters) for "
+	"a teletex terminal associated with the organizational unit."
+	)]
+   string TeletexTerminalIdentifier[];
+      [Description (  
+	"The Telex Number property specifies the telex number, country "
+	"code, and answerback code of a telex terminal for the "
+	"organization." )]
+   string TelexNumber[];
+      [Octetstring, Description (  
+      "In the case of an LDAP-derived instance, the UserPassword "
+	"property may contain an encrypted password used to access "
+	"the organizational unit's resources in a directory." )]
+   string UserPassword[];
+      [MaxLen (15), Description (  
+      "An X.121 address for the organization.")]
+   string X121Address[];
+   };
+
+// ==================================================================
+// UserEntity
+// ==================================================================
+   [Abstract, Description (  
+   "UserEntity is an abstract class that represents users.") ]
+class CIM_UserEntity : CIM_OrganizationalEntity 
+   {  
+   };
+
+// ==================================================================
+// Person
+// ==================================================================
+   [Description (  
+   "The Person object class is used to represent people.  The class "
+   "is defined so as to incorporate commonly-used LDAP attributes to "
+   "permit implementations to easily derive this information from "
+   "LDAP-accessible directories.  This class's properties are a "
+   "subset of a related class, OtherPersonInformation, which "
+   "defines all the group properties and in array form for "
+   "directory compatibility. ") ]
+class CIM_Person : CIM_UserEntity 
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024),Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name "
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+      [MaxLen (128), Description (  
+      "This property describes the kind of business performed by an "
+	"organization.")]
+   string BusinessCategory;
+      [Required, Description (
+	"A Common Name is a (possibly ambiguous) name by which the "
+	"role is commonly known in some limited scope (such as an "
+	"organization) and conforms to the naming conventions of the "
+	"country or culture with which it is associated.")]
+   string CommonName;
+      [Description (
+	"Based on inetPrgPerson, the Employee Number property "
+	"specifies a numeric or an alphanumeric identifier assigned to "
+	"a person.")]
+   string EmployeeNumber;
+      [Description (
+	"Based on inetOrgPerson, the Employee Type property is used to "
+	"identify the employer to employee relationship.  Typical "
+	"values used may include 'Contractor', 'Employee', 'Intern', "
+	"'Temp', 'External', and 'Unknown' but any value may be used."
+	)]
+   string EmployeeType;
+      [Description (  
+      "The person's facsimile telephone number.")]
+   string FacsimileTelephoneNumber;
+      [MaxLen (32), Description (  
+	"Based on RFC1274, the Home Phone property specifies a home "
+	"telephone number for the person, e.g. + 44 582 10101)." )]
+   string HomePhone;
+      [Description (  
+	"The Home Postal Address property values specify the home "
+	"address information required for the physical delivery of "
+	"postal messages by the postal authority.")]
+   string HomePostalAddress[];
+      [Description (
+	"From inetOrgPerson, the JPEG Phto property values may be used "
+	"for one or more images of a person using the JPEG File "
+	"Interchange Format.")]
+   string JPEGPhoto;
+      [Description (  
+	"This property contains the name of a locality, such as a "
+	"city, county or other geographic region.")]
+   string LocalityName;
+      [Description (  
+      "Based on RFC1274, the mail box addresses for the person "
+	"as defined in RFC822.")]
+   string Mail;
+      [Description (  
+      "The person's manager within the organization.  In the case of "
+	"an LDAP-derived instance, the Manager property value may "
+	"contain the distinguishedName of the Manager.")]
+   string Manager;
+      [MaxLen (32), Description (  
+	"Based on RFC1274, the Mobile Phone property specifies a "
+	"mobile telephone number for the person, e.g. + 44 582 10101)." 
+	)]
+   string Mobile;
+      [Description (  
+      "The name of an organizational unit related to the person.")]
+   string OU;
+      [MaxLen (32), Description (  
+	"Based on RFC1274, the Pager property specifies a pager "
+	"telephone number for the person, e.g. + 44 582 10101).")]
+   string Pager;
+      [Description (  
+	"The Postal Address property values specify the address "
+	"information required for the physical delivery of postal "
+	"messages by the postal authority to the person.")]
+   string PostalAddress[];
+      [MaxLen (40), Description (  
+	"The Postal Code property specifies the postal code of the "
+	"organization.  If this value is present it will be part of "
+	"the object's postal address.")]
+   string PostalCode;
+      [Description (
+	"Based on inetOrgPerson, the person's preferred written or "
+	"spoken language.")]
+   string PreferredLanguage;
+      [Description (
+	"Based on RFC1274, the Secretary property may be used to "
+	"specify a secretary for the person.  In the case of an "
+	"LDAP-derived object instance, the value may be a "
+	"distinguishedName.")]
+   string Secretary;
+      [Description (  
+ 	"The State or Province Name property specifies a state or "
+	"province." )]
+   string StateOrProvince;
+      [Required, Description (
+	"The Surname property specifies the linguistic construct that "
+	"normally is inherited by an individual from the individual's "
+	"parent or assumed by marriage, and by which the individual is "
+	"commonly known.")]
+   string Surname;
+      [MaxLen (32), Description (  
+	"The Telephone Number property specifies a telephone number of "
+	"the organization, e.g. + 44 582 10101)." )]
+   string TelephoneNumber;
+      [Description (
+	"The Title property may be used to specify the person's "
+	"designated position or function of the object within an "
+	"organization, e.g., Manager, Vice-President, etc.")]
+   string Title;
+   };
+
+// ==================================================================
+// OtherPersonInformation
+// ==================================================================
+   [Description (  
+   "The OtherPersonInformation class is used to provide "
+   "additional information about an associated Person instance. "
+   "This class is defined so as to incorporate commonly-used LDAP "
+   "attributes to permit implementations to easily derive this "
+   "information from LDAP-accessible directories.") ]
+class CIM_OtherPersonInformation : CIM_UserEntity 
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (1024),Description (  
+      "The Name property defines the label by which the object is "
+	"known. In the case of an LDAP-derived instance, the Name "
+	"property value may be set to the distinguishedName of the "
+	"LDAP-accessed object instance.")]
+   string Name;
+      [Description (  
+      "In the case of an LDAP-derived instance, the ObjectClass "
+      "property value(s) may be set to the objectClass attribute "
+	"values.")]
+   string ObjectClass[];
+      [Octetstring, Description (  
+	"The Audio property may be used to store an audio clip of the "
+	"person.")]
+   string Audio[];
+      [MaxLen (128), Description (  
+      "This property describes the kind of business performed by an "
+	"organization.")]
+   string BusinessCategory[];
+      [MaxLen (128), Description (
+	"The Car License property is used to record the values of the "
+	"vehicle license or registration plate associated with an "
+	"individual.")]
+   string CarLicense[];
+      [Description (
+	"A Common Name is a (possibly ambiguous) name by which the "
+	"role is commonly known in some limited scope (such as an "
+	"organization) and conforms to the naming conventions of the "
+	"country or culture with which it is associated.")]
+   string CommonName[];
+      [Description (
+	"The Country Name property specifies a country as defined in "
+	"ISO 3166.")]
+   string CountryName[];
+      [Description (
+	"Based on inetOrgPerson, the Department Number is a code for "
+	"department to which a person belongs.  This can be strictly "
+	"numeric (e.g., 1234) or alphanumeric (e.g., ABC/123).")]
+   string DepartmentNumber[];
+      [MaxLen (1024), Description (  
+      "The Descriptions property values may contain human-readable "
+	"descriptions of the object.  In the case of an LDAP-derived "  
+	"instance, the description attribute may have multiple values "
+	"that, therefore, cannot be placed in the inherited "
+	"Description property.")]
+   string Descriptions[];
+      [MaxLen (128), Description (  
+	"This property is used for the organization's telegram "
+	"service.")]
+   string DestinationIndicator[];
+      [Description (
+	"Based on inetOrgPerson, the Display Name property values are "
+	"used when displaying an entry.")]
+   string DisplayName[];
+      [Description (
+	"Based on inetPrgPerson, the Employee Number property "
+	"specifies a numeric or an alphanumeric identifier assigned to "
+	"a person.")]
+   string EmployeeNumber;
+      [Description (
+	"Based on inetOrgPerson, the Employee Type property is used to "
+	"identify the employer to employee relationship.  Typical "
+	"values used may include 'Contractor', 'Employee', 'Intern', "
+	"'Temp', 'External', and 'Unknown' but any value may be used."
+	)]
+   string EmployeeType[];
+      [Description (  
+      "The person's facsimile telephone number.")]
+   string FacsimileTelephoneNumber[];
+      [Description (
+	"Based on liPerson, the GenerationQualifier property specifies "
+	"a name qualifier that represents the person's generation "
+	"(e.g., JR., III, etc.).")]
+   string GenerationQualifier[];
+      [Description (
+	"The Given Name property is used for the part of a person's "
+	"name that is not their surname nor their middle name.")]
+   string GivenName[];
+      [Description (
+	"Based on liPerson, the Home Fax property specifies the "
+	"person's facsimile telephone number at home.")]
+   string HomeFax[];
+      [MaxLen (32), Description (  
+	"Based on RFC1274, the Home Phone property specifies a home "
+	"telephone number for the person, e.g. + 44 582 10101)." )]
+   string HomePhone[];
+      [Description (  
+	"The Home Postal Address property values specify the home "
+	"address information required for the physical delivery of "
+	"postal messages by the postal authority.")]
+   string HomePostalAddress[];
+      [Description (
+	"Based on inetOrgPerson, the Initials property specifies the "
+	"first letters of the person's name, typically the property "
+	"values will exclude the first letter of the surname.")]
+   string Initials[];
+      [MaxLen (16), Description (  
+      "The person's International ISDN number.")]
+   string InternationaliSDNNumber[];
+      [Description (
+	"From inetOrgPerson, the JPEG Phto property values may be used "
+	"for one or more images of a person using the JPEG File "
+	"Interchange Format.")]
+   string JPEGPhoto[];
+      [Description (  
+      "Uniform Resource Identifier with optional label as defined in "
+	"RFC2079.")]
+   string LabeledURI[]; 
+      [Description (  
+	"This property contains the name of a locality, such as a "
+	"city, county or other geographic region.")]
+   string LocalityName[];
+      [Description (  
+      "Based on RFC1274, the mail box addresses for the person "
+	"as defined in RFC822.")]
+   string Mail[];
+      [Description (  
+      "The person's manager within the organization.  In the case of "
+	"an LDAP-derived instance, the Manager property value may "
+	"contain the distinguishedName of the Manager.")]
+   string Manager[];
+      [Description (
+	"Based on liPerson, the middle name of the person.")]
+   string MiddleName[];
+      [MaxLen (32), Description (  
+	"Based on RFC1274, the Mobile Phone property specifies a "
+	"mobile telephone number for the person, e.g. + 44 582 10101)." 
+	)]
+   string Mobile[];
+      [Required, Description (  
+      "The name of the person's organization.")]
+   string OrganizationName[];
+      [Description (
+	"Based on RFC1274, the OrganizationalStatus property specifies "
+	"a category by which a person is often referred to within an "
+	"organization.  Examples of usage in academia might include "
+	"undergraduate student, researcher, lecturer, etc.")]
+   string OrganizationalStatus[];
+     [Description (  
+      "Based on RFC1274, this property may be used for electronic "
+	"mail box addresses other than RFC822 and X.400.")]
+   string OtherMailbox[];
+      [Description (  
+      "The name of an organizational unit related to the person.")]
+   string OU[];
+      [MaxLen (32), Description (  
+	"Based on RFC1274, the Pager property specifies a pager "
+	"telephone number for the person, e.g. + 44 582 10101).")]
+   string Pager[];
+      [Description (
+	"Based on liPerson, the PersonalTitle property may be used to "
+	"specify the person's personal title such as Mr., Ms., Dr., "
+	"Prof. etc.")]
+   string PersonalTitle[];
+      [Octetstring, Description (
+	"Based on RFC1274, the Photo property may be used to specify a "
+	"photograph for the person encoded in G3 fax as explained in "
+	"recommendation T.4, with an ASN.1 wrapper to make it "
+	"compatible with an X.400 BodyPart as defined in X.420.")]
+   string Photo[];
+      [MaxLen (128), Description (  
+      "The Physical Delivery Office Name property specifies the name "
+	"of the city, village, etc. where a physical delivery office "
+	"is situated.")]
+   string PhysicalDeliveryOfficeName[];
+      [Description (  
+	"The Postal Address property values specify the address "
+	"information required for the physical delivery of postal "
+	"messages by the postal authority to the person.")]
+   string PostalAddress[];
+      [MaxLen (40), Description (  
+	"The Postal Code property specifies the postal code of the "
+	"organization.  If this value is present it will be part of "
+	"the object's postal address.")]
+   string PostalCode[];
+      [MaxLen (40), Description (  
+	"The Post Office Box property specifies the Post Office Box "
+	"by which the person will receive physical postal delivery. "
+	"If present, the property value is part of the object's postal "
+	"address.")]
+   string PostOfficeBox[];
+      [Description (  
+	"The Preferred Delivery Method property specifies the "
+	"preferred method to be used for contacting the person.")]
+   string PreferredDeliveryMethod;
+      [Description (
+	"Based on inetOrgPerson, the person's preferred written or "
+	"spoken language.")]
+   string PreferredLanguage;
+      [Description (  
+	"This property specifies a postal address suitable for receipt "
+	"of telegrams or expedited documents, where it is necessary to "
+	"have the recipient accept delivery.")]
+   string RegisteredAddress[];
+      [Description (
+	"Based on RFC1274, the Room Number property specifies the room "
+	"number for the person.")]
+   string RoomNumber[];
+      [Description (
+	"Based on RFC1274, the Secretary property may be used to "
+	"specify a secretary for the person.  In the case of an "
+	"LDAP-derived object instance, the value may be a "
+	"distinguishedName.")]
+   string Secretary[];
+      [Description (  
+	"In the case of an LDAP-derived instance, the See Also "
+	"property specifies distinguishedName of other Directory "
+	"objects which may be other aspects (in some sense) of the "
+	"same real world object.")]
+   string SeeAlso[];
+      [Description (  
+ 	"The State or Province Name property specifies a state or "
+	"province." )]
+   string StateOrProvince[];
+      [MaxLen (128), Description (  
+	"The Street Address property specifies a site for the local "
+	"distribution and physical delivery in a postal address, i.e. "
+	"the street name, place, avenue, and the number." )]
+   string Street[];
+      [Description (
+	"The Surname property specifies the linguistic construct that "
+	"normally is inherited by an individual from the individual's "
+	"parent or assumed by marriage, and by which the individual is "
+	"commonly known.")]
+   string Surname[];
+      [MaxLen (32), Description (  
+	"The Telephone Number property specifies a telephone number of "
+	"the organization, e.g. + 44 582 10101)." )]
+   string TelephoneNumber[];
+      [Description (  
+	"The Teletex Terminal Identifier property specifies the "
+	"Teletex terminal identifier (and, optionally, parameters) for "
+	"a teletex terminal associated with the organization." )]
+   string TeletexTerminalIdentifier[];
+      [Description (  
+	"The Telex Number property specifies the telex number, country "
+	"code, and answerback code of a telex terminal for the "
+	"organization." )]
+   string TelexNumber[];
+      [Octetstring, Description (  
+      "A small image of the person's organization logo")]
+   string ThumbnailLogo[];
+      [Octetstring, Description (
+	"A small image of the person.")]
+   string ThumbnailPhoto[];
+      [Description (
+	"The Title property may be used to specify the person's "
+	"designated position or function of the object within an "
+	"organization, e.g., Manager, Vice-President, etc.")]
+   string Title[];
+      [Description (
+	"Based on RFC1274, the UserID property may be used to specify "
+	"a computer system login name.")]
+   string UserID[];
+      [Description (  
+	"A unique identifier that may be assigned in an environment to "
+	"differentiate between uses of a given named person instance."
+	)]
+   string UniqueIdentifier[];
+      [Octetstring, Description (
+	"Based on inetOrgPerson and for directory compatibility, the "
+	"User Certificate property may be used to specify a public key "
+	"certificate for the person.")]
+   string UserCertificate[];
+      [Octetstring, Description (  
+      "In the case of an LDAP-derived instance, the UserPassword "
+	"property may contain an encrypted password used to access "
+	"the person's resources in a directory." )]
+   string UserPassword[];
+      [Octetstring, Description (
+	"Based on inetOrgPerson and for directory compatibility, the "
+	"UserPKCS12 property value may be used to   provides a format "
+	"for exchange of personal identity information.  The property "
+	"values are PFX PDUs stored as Octetstrings.")]
+   string UserPKCS12[];
+      [Octetstring, Description (
+	"Based on inetOrgPerson, the User S/MIME Certificate property "
+	"may be used to specify the person's an S/MIME (RFC1847) "
+	"signed message with a zero-length body. It contains the "
+	"entire certificate chain and the signed attribute that "
+	"describes their algorithm capabilities.  If available, this "
+	"property is preferred over the UserCertificate property for "
+	"S/MIME applications.")]  
+   string UserSMIMECertificate[];
+      [MaxLen (15), Description (  
+      "An X.121 address for the organization.")]
+   string X121Address[];
+      [Octetstring, Description (  
+	"An X.500 specified unique identifier that may be assigned in "
+	"an environment to differentiate between uses of a given named "
+	"person object instance.")]
+   string X500UniqueIdentifier[];
+   };
+
+
+// ==================================================================
+// UsersAccess
+// ==================================================================
+   [Description (  
+   "The UsersAccess object class is used to specify a system user "
+   "that permitted access to system resources.  The ManagedElement "
+   "that has access to system resources (represented in the model in "
+   "the ElementAsUser association) may be a person, a service, a "
+   "service access point or any collection thereof. Whereas the "
+   "Account class represents the user's relationship to a system "
+   "from the perspective of the security services of the system, the "
+   "UserAccess class represents the relationships to the systems "
+   "independent of a particular system or service.") ]
+class CIM_UsersAccess: CIM_UserEntity 
+   {  
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (256),Description (  
+      "The Name property defines the label by which the object is "
+	"known.")]
+   string Name;
+      [Key, Description (
+	"The ElementID property uniquely specifies the ManagedElement "
+	"object instance that is the user represented by the "
+	"UsersAccess object instance.  The ElementID is formatted "
+	"similarly to a model path except that the property-value "
+	"pairs are ordered in alphabetical order (US ASCII lexical "
+	"order).")]
+   string ElementID;
+      [Description ( 
+	"Biometric information used to identify a person.  The "
+	"property value is left null or set to 'N/A' for non-human "
+	"user or a user not using biometric information for "
+	"authentication."),
+	Values { "N/A", "Other", "Facial", "Retina", "Mark", "Finger", 
+	         "Voice", "DNA-RNA", "EEG"} ]
+   uint16 Biometric[];
+   };
+
+// ================================================================== 
+//    Account
+// ==================================================================
+        [Description (
+         "CIM_Account is the information held by a SecurityService "
+         "to track identity and privileges managed by that service.  "
+         "Common examples of an Account are the entries in a UNIX "
+         "/etc/passwd file.  Several kinds of security services use "
+         "various information from those entries - the /bin/login "
+         "program uses the account name ('root') and hashed password "
+         "to authenticate users, and the file service, for instance, "
+         "uses the UserID field ('0') and GroupID field ('0') to "
+         "record ownership and determine access control privileges "
+         "on files in the file system. This class is defined so as "
+         "to incorporate commonly-used LDAP attributes to permit "
+         "implementations to easily derive this information from "
+         "LDAP-accessible directories.") ]
+class CIM_Account:CIM_LogicalElement
+{
+         [Propagated ("CIM_System.CreationClassName"), Key, 
+          MaxLen (256), Description ("Scoping System")]
+   string SystemCreationClassName;
+         [Propagated ("CIM_System.Name"), Key, 
+          MaxLen (256),Description ("Scoping System")]
+   string SystemName;
+      [Key, MaxLen (256), Description (  
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.")]
+   string CreationClassName;
+      [Key, Override("Name"), MaxLen (1024), Description (  
+      "The Name property defines the label by which the object is "
+        "known.  The value of this property may be set to be the same "
+        "as that of the UserID property or, in the case of an "
+        "LDAP-derived instance, the Name property value may be set to "
+        "the distinguishedName of the LDAP-accessed object instance.")]
+   string Name;
+        [MaxLen (256), Description (
+         "UserID is the value used by the SecurityService to "
+         "represent identity.  For an authentication service, the "
+         "UserID may be the name of the user, or for an authorization "
+         "service the value which serves as a handle to a mapping of "
+         "the identity.") ] 
+   string UserID;
+      [Description (  
+      "In the case of an LDAP-derived instance, the ObjectClass "
+      "property value(s) may be set to the objectClass attribute "
+        "values.")]
+   string ObjectClass[];
+      [MaxLen (1024), Description (  
+      "The Descriptions property values may contain human-readable "
+        "descriptions of the object.  In the case of an LDAP-derived "  
+        "instance, the description attribute may have multiple values "
+        "that, therefore, cannot be placed in the inherited "
+        "Description property.")]
+   string Descriptions[];
+        [Description (
+        "Based on RFC1274, the host name of the system(s) for which "
+        "the account applies.  The host name may be a fully-qualified "
+        "DNS name or it may be an unqualified host name.")] 
+   string Host[];
+      [Description (  
+        "This property contains the name of a locality, such as a "
+        "city, county or other geographic region.")]
+   string LocalityName[];
+      [Required, Description (  
+      "The name of the organization related to the account.")]
+   string OrganizationName[];
+      [Description (  
+      "The name of an organizational unit related to the account.")]
+   string OU[];
+      [Description (  
+        "In the case of an LDAP-derived instance, the See Also "
+        "property specifies distinguishedName of other Directory "
+        "objects which may be other aspects (in some sense) of the "
+        "same real world object.")]
+   string SeeAlso[];
+      [Octetstring, Description (
+        "Based on inetOrgPerson and for directory compatibility, the "
+        "User Certificate property may be used to specify a public key "
+        "certificate for the person.")]
+   string UserCertificate[];
+      [Octetstring, Description (  
+      "In the case of an LDAP-derived instance, the UserPassword "
+        "property may contain an encrypted password used to access "
+        "the person's resources in a directory." )]
+   string UserPassword[];
+};
+
+
+// ================================================================== 
+//    SecurityService
+// ==================================================================
+        [ Abstract, Description (
+         "CIM_SecurityService ...") ]
+class CIM_SecurityService:CIM_Service
+{
+};
+
+// ================================================================== 
+//    AccountManagementService
+// ==================================================================
+   [Description (
+   "CIM_AccountManagementService creates, manages, and if necessary "
+   "destroys Accounts on behalf of other SecuritySerices.") ]
+class CIM_AccountManagementService:CIM_SecurityService
+   {
+   };
+
+// ================================================================== 
+//    AuthenticationService
+// ==================================================================
+   [Description (
+   "CIM_AuthenticationService verifies users' identities through "
+   "some means.  These services are decomposed into a subclass that "
+   "provides credentials to users and a subclass that provides for "
+   "the verification of the validity of a credential and, perhaps, "
+   "the appropriateness of its use for access to target resources. "
+   "The persistent state information used from one such verification "
+   "to another is maintained in an Account for that Users Access on "
+   "that AuthenticationService.") ]
+class CIM_AuthenticationService:CIM_SecurityService
+   {
+   };
+
+// ================================================================== 
+//    VerificationService
+// ==================================================================
+   [Description (
+   "CIM_VerificationService is the authentication service that "
+   "verifies a credential for use and may also verify the "
+   "appropriateness of a particular credential in conjunction with a "
+   "particular target resource.")]
+class CIM_VerificationService:CIM_AuthenticationService
+   {
+   };
+
+// ================================================================== 
+//    CredentialManagementService
+// ==================================================================
+   [Description (
+   "CIM_CredentialManagementService issues credentials and manages "
+   "the credential lifecycle.") ] 
+class CIM_CredentialManagementService:CIM_AuthenticationService
+   {
+   };
+
+// ==================================================================
+//    CredentialManagementSAP
+// ==================================================================
+        [Description (
+         "CIM_CredentialManagementSAP represents the ability to "
+         "utilize or invoke a CredentialManagementService.") ] 
+class CIM_CredentialManagementSAP:CIM_ServiceAccessPoint
+{
+        [Description ("The URL for the access point.") ] 
+    string URL;
+};
+
+// ================================================================== 
+//    CertificateAuthority
+// ==================================================================
+        [Description ("A Certificate Authority (CA) is a credential "
+         "management service that issues and cryptographically "
+         "signs certificates thus acting as an trusted third-party "
+         "intermediary in establishing trust relationships. The CA "
+         "authenicates the holder of the private key related to the "
+         "certificate's public key; the authenicated entity is "
+         "represented by the UsersAccess class.") ]
+class CIM_CertificateAuthority:CIM_CredentialManagementService
+{
+        [Description (
+         "The CAPolicyStatement describes what care is taken by the "
+         "CertificateAuthority when signing a new certificate.  "
+         "The CAPolicyStatment may be a dot-delimited ASN.1 OID "
+         "string which identifies to the formal policy statement.") ] 
+    string CAPolicyStatement;
+        [Description ( "A CRL, or CertificateRevocationList, is a "
+         "list of certificates which the CertificateAuthority has "
+         "revoked and which are not yet expired.  Revocation is "
+         "necessary when the private key associated with the public "
+         "key of a certificate is lost or compromised, or when the "
+         "person for whom the certificate is signed no longer is "
+         "entitled to use the certificate."), Octetstring ]
+    string CRL[];
+        [Description ("Certificate Revocation Lists may be "
+         "available from a number of distribution points.  "
+         "CRLDistributionPoint array values provide URIs for those "
+         "distribution points.")]
+    string CRLDistributionPoint[];
+        [Description ( "Certificates refer to their issuing CA by "
+         "its Distinguished Name (as defined in X.501)."), DN]
+    string CADistinguishedName;
+        [Description ( "The frequency, expressed in hours, at which "
+	   "the CA will update its Certificate Revocation List.  Zero "
+	   "implies that the refresh frequency is unknown."),
+	   Units("Hours")]
+    uint8 CRLRefreshFrequency;
+        [Description ( "The maximum number of certificates in a "
+         "certificate chain permitted for credentials issued by "
+         "this certificate authority or it's subordinate CAs.\n"
+         "The MaxChainLength of a superior CA in the trust "
+         "hierarchy should be greater than this value and the "
+         "MaxChainLength of a subordinate CA in the trust hierarchy "
+         "should be less than this value.")]
+    uint8 MaxChainLength;
+};
+
+
+// ================================================================== 
+//    KerberosKeyDistributionCenter
+// ==================================================================
+        [Description (
+         "CIM_KerberosKeyDistributionCenter ...") ]
+class CIM_KerberosKeyDistributionCenter:CIM_CredentialManagementService
+{
+        [Override ("Name"),
+         Description ("The Realm served by this KDC.")] 
+    string Name;
+        [Description ("The version of Kerberos supported by this "
+         "service."),
+         Values {"V4", "V5", "DCE", "MS"} ]
+    uint16 Protocol[];
+};
+
+
+// ================================================================== 
+//    Notary
+// ==================================================================
+        [Description (
+         "CIM_Notary is an AuthenticationService (credential "
+         "management service) which compares the "
+         "biometric characteristics of a person with the "
+         "known characteristics of an Users Access, and determines "
+         "whether the person is the UsersAccess.  An example is "
+         "a bank teller who compares a picture ID with the person "
+         "trying to cash a check, or a biometric login service that "
+         "uses voice recognition to identify a user.") ]
+class CIM_Notary:CIM_CredentialManagementService
+{
+        [Description ( "The types of biometric information which "
+	   "this Notary can compare."),
+         Values { "N/A", "Other", "Facial", "Retina", "Mark",
+                  "Finger", "Voice", "DNA-RNA", "EEG"} ] 
+    uint16 Comparitors;
+        [Description (
+         "The SealProtocol is how the decision of the Notary is "
+         "recorded for future use by parties who will rely on its "
+         "decision.  For instance, a drivers licence frequently "
+         "includes tamper-resistent coatings and markings to protect "
+         "the recorded decision that a driver, having various "
+         "biometric characteristics of height, weight, hair and eye "
+         "color, using a particular name, has features represented in "
+         "a photograph of their face.")]
+    string SealProtocol;
+        [Description (
+         "CharterIssued documents when the Notary is first "
+         "authorized, by whoever gave it responsibility, to perform "
+         "its service.")]
+    datetime CharterIssued;
+        [Description (
+         "CharterExpired documents when the Notary is no longer "
+         "authorized, by whoever gave it responsibility, to perform "
+         "its service.")]
+    datetime CharterExpired;
+};
+
+
+// ================================================================== 
+//    LocalCredentialManagementService
+// ==================================================================
+        [Description (
+         "CIM_LocalCredentialManagementService is a credential "
+         "management service that provides local system "
+         "management of credentials used by the local system.") ]
+class CIM_LocalCredentialManagementService:CIM_CredentialManagementService
+{
+};
+
+// ================================================================== 
+//    SharedSecretService
+// ==================================================================
+        [Description (
+         "CIM_SharedSecretService is a service which ascertains "
+         "whether messages received are from the Principal with "
+         "whom a secret is shared.  Examples include a login "
+         "service that proves identity on the basis of knowledge of "
+         "the shared secret, or a transport integrity service (like "
+         "Kerberos provides) that includes a message authenticity "
+         "code that proves each message in the messsage stream came "
+         "from someone who knows the shared secret session key.")]
+class CIM_SharedSecretService:CIM_LocalCredentialManagementService
+{
+        [MaxLen (256), Description (
+         "The Algorithm used to convey the shared secret, such as "
+         "HMAC-MD5,or PLAINTEXT.") ] 
+    string Algorithm;
+        [Description (
+         "The Protocol supported by the SharedSecretService.")]
+    string Protocol;
+};
+
+// ================================================================== 
+//    PublicKeyManagementService
+// ==================================================================
+        [Description (
+         "CIM_PublicKeyManagementService is a credential management "
+         "service that provides local system management of public "
+         "keys used by the local system.") ]
+class CIM_PublicKeyManagementService:CIM_LocalCredentialManagementService
+{
+};
+
+// ================================================================== 
+//    Credential
+// ==================================================================
+        [Abstract, Description (
+         "Subclasses of CIM_Credential define materials, "
+         "information, or other data which are used to prove the "
+         "identity of a CIM_UsersAccess to a particular "
+         "CIM_SecurityService.  Generally, there may be some shared "
+         "information, or credential material which is used to "
+         "identify and authenticate ones self in the process of "
+         "gaining access to, or permission to use, an Account. "
+         "Such credential material may be used to authenticate a "
+         "users access identity  initially, as done by a "
+         "CIM_AuthenticationService (see later), and additionally on "
+         "an ongoing basis during the course of a connection or "
+         "other  security association, as proof that each received "
+         "message or communication came from the owning user access of "
+         "that credential material.") ]
+class CIM_Credential:CIM_ManagedElement
+{
+};
+
+
+// ================================================================== 
+//    PublicKeyCertificate
+// ==================================================================
+        [Description ("A Public Key Certificate is a credential "
+         "that is cryptographically signed by a trusted Certificate "
+         "Authority (CA) and issued to an authenticated entity "
+         "(e.g., human user, service,etc.) called the Subject in "
+         "the certificate and represented by the UsersAccess class. "
+         "The public key in the certificate is cryptographically "
+         "related to a private key that is to be held and kept "
+         "private by the authenticated Subject.  The certificate "
+         "and its related private key can then be used for "
+         "establishing trust relationships and securing "
+         "communications with the Subject.  Refer to the ITU/CCITT "
+         "X.509 standard as an example of such certificates.") ]
+class CIM_PublicKeyCertificate:CIM_Credential
+{
+         [Propagated ("CIM_CertificateAuthority.SystemCreationClassName"), 
+          Key, MaxLen (256), Description ("Scoping System")]
+     string SystemCreationClassName;
+         [Propagated ("CIM_CertificateAuthority.SystemName"), 
+          Key, MaxLen (256),Description ("Scoping System")]
+     string SystemName;
+         [Propagated ("CIM_CertificateAuthority.CreationClassName"),
+          Key, MaxLen (256), Description ("Scoping Service")]
+     string ServiceCreationClassName;
+         [Propagated ("CIM_CertificateAuthority.Name"), 
+          Key, MaxLen (256), Description ("Scoping Service")]
+     string ServiceName; 
+         [Key, MaxLen (256), Description (
+          "Certificate subject identifier")]
+     string Subject;
+         [MaxLen (256), Description (
+          "Alternate subject identifier for the Certificate.")]
+     string AltSubject;
+         [Description ("The DER-encoded raw public key."), Octetstring]
+     uint8 PublicKey[];
+};
+
+// ================================================================== 
+//    UnsignedPublicKey
+// ==================================================================
+        [Description (
+         "A CIM_UnsignedPublicKey represents an unsigned public "
+         "key credential.  The local UsersAccess (or subclass "
+         "thereof) accepts the public key as authentic because of "
+         "a direct trust relationship rather than via a third-party "
+         "Certificate Authority.") ]
+class CIM_UnsignedPublicKey:CIM_Credential
+{
+         [Key, MaxLen (256), Description ("Scoping System"), Propagated 	   ("CIM_PublicKeyManagementService.SystemCreationClassName")]          
+     string SystemCreationClassName;
+         [Propagated ("CIM_PublicKeyManagementService.SystemName"), 
+          Key, MaxLen (256),Description ("Scoping System")]
+     string SystemName;
+         [Propagated ("CIM_PublicKeyManagementService.CreationClassName"),
+          Key, MaxLen (256), Description ("Scoping Service")]
+     string ServiceCreationClassName;
+         [Propagated ("CIM_PublicKeyManagementService.Name"), 
+          Key, MaxLen (256), Description ("Scoping Service")]
+     string ServiceName; 
+         [Key, MaxLen (256), Description (
+          "The Identity of the Peer with whom a direct trust "
+          "relationship exists.  The public key may be used for "
+          "security functions with the Peer."),
+         ModelCorrespondence 
+           {"CIM_PublicKeyManagementService.PeerIdentityType" } ]
+     string PeerIdentity;
+	   [Description ("PeerIdentityType is used to describe the "
+          "type of the PeerIdentity.  The currently defined values "
+          "are used for IKE identities."),
+	   ValueMap {"0", "1", "2", "3", "4", "5", "6", "7", "8", 
+          "9", "10", "11"},
+	   Values {"Other", "IPV4_ADDR", "FQDN", "USER_FQDN", 
+          "IPV4_ADDR_SUBNET", "IPV6_ADDR", "IPV6_ADDR_SUBNET", 
+          "IPV4_ADDR_RANGE", "IPV6_ADDR_RANGE", "DER_ASN1_DN", 
+          "DER_ASN1_GN", "KEY_ID"},
+         ModelCorrespondence 
+           {"CIM_PublicKeyManagementService.PeerIdentity" } ]
+     uint16 PeerIdentityType;
+         [Description ("The DER-encoded raw public key."), 
+          Octetstring]
+     uint8 PublicKey[];
+};
+
+// ================================================================== 
+//    KerberosTicket
+// ==================================================================
+        [Description (
+         "A CIM_KerberosTicket represents a credential issued by a "
+         "particular Kerberos Key Distribution Center (KDC) "
+         "to a particular CIM_UsersAccess as the result of a "
+         "successful authentication process.  There are two types of "
+         "tickets that a KDC may issue to a Users Access - a "
+         "TicketGranting ticket, which is used to protect and "
+         "authenticate communications between the Users Access and the "
+         "KDC, and a Session ticket, which the KDC issues to two "
+         "Users Access to allow them to communicate with each other. "
+          ) ]
+class CIM_KerberosTicket:CIM_Credential
+{
+         [Key, MaxLen (256), Description ("Scoping System"), Propagated
+	   ("CIM_KerberosKeyDistributionCenter.SystemCreationClassName")]
+     	string SystemCreationClassName;
+         [Propagated ("CIM_KerberosKeyDistributionCenter.SystemName"), 
+	   Key, MaxLen (256),Description ("Scoping System")]
+     	string SystemName;
+         [Key, MaxLen (256), Propagated 
+         ("CIM_KerberosKeyDistributionCenter.CreationClassName"), 
+         Description ("Scoping Service")]
+     	string ServiceCreationClassName;
+         [Propagated ("CIM_KerberosKeyDistributionCenter.Name"), 
+         Key, MaxLen (256),
+         Description ("Scoping Service.  The Kerberos KDC Realm of "
+        "CIM_KerberosTicket is used to record the security "
+        "authority, or Realm, name so that tickets issued by "
+        "different Realms can be separately managed and "
+	  "enumerated.")]
+     	string ServiceName;
+        [Key, MaxLen (256), Description ("The name of the service "
+	   "for which this ticket is used.")]
+     	string AccessesService;
+        [Key, MaxLen (256), Description (
+         "RemoteID is the name by which the user is known at "
+         "the KDC security service.")]
+     	string RemoteID;
+     	datetime Issued;
+     	datetime Expires;
+	  [Description (
+	  "The Type of CIM_KerberosTicket is used to indicate whether "
+	  "the ticket in question was issued by the Kerberos Key "
+	  "Distribution Center (KDC) to support ongoing communication "
+	  "between the Users Access and the KDC (\"TicketGranting\"), "
+	  "or was issued by the KDC to support ongoing communication "
+	  "between two Users Access entities (\"Session\")." ),
+	  Values {"Session", "TicketGranting"}]
+	uint16 TicketType;
+};
+
+
+// ================================================================== 
+//    SharedSecret
+// ==================================================================
+        [Description (
+         "CIM_SharedSecret is the secret shared between a Users Access "
+         "and a particular SharedSecret security service.  Secrets "
+         "may be in the form of a password used for initial "
+         "authentication, or as with a session key, used as part of "
+         "a message authentication code to verify that a message "
+         "originated by the pricinpal with whom the secret is shared. "
+         "It is important to note that SharedSecret is not just the "
+         "password, but rather is the password used with a particular "
+         "security service.")]
+class CIM_SharedSecret:CIM_Credential
+{
+         [Propagated ("CIM_SharedSecretService.SystemCreationClassName"), 
+	    Key, MaxLen (256), Description ("Scoping System")]
+     string SystemCreationClassName;
+         [Propagated ("CIM_SharedSecretService.SystemName"), Key, 
+          MaxLen (256),Description ("Scoping System")]
+     string SystemName;
+         [Key, MaxLen (256), Propagated 
+          ("CIM_SharedSecretService.CreationClassName"), 
+          Description ("Scoping Service")]
+     string ServiceCreationClassName;
+         [Propagated ("CIM_SharedSecretService.Name"), 
+          Key, MaxLen (256),
+          Description ("Scoping Service")]
+     string ServiceName;
+        [Key, MaxLen (256), Description (
+         "RemoteID is the name by which the user is known at "
+         "the remote secret key authentication service.")]
+     string RemoteID; 
+        [Description (
+         "secret is the secret known by the Users Access.")]
+     string secret;
+        [Description (
+         "algorithm names the transformation algorithm, if any, used "
+         "to protect passwords before use in the protocol.  For "
+         "instance, Kerberos doesn't store passwords as the shared "
+         "secret, but rather, a hash of the password.")]
+     string algorithm;
+        [Description (
+         "protocol names the protocol with which the SharedSecret is "
+         "used.")]
+     string protocol;
+};
+
+// ================================================================== 
+//    NamedSharedIKESecret
+// ==================================================================
+        [Description (
+         "CIM_NamedSharedIKESecret indirectly represents a shared "
+         "secret credential.  The local identity, IKEIdentity, "
+         "and the remote peer identity share the secret that is "
+         "named by the SharedSecretName.  The SharedSecretName is "
+         "used SharedSecretService to reference the secret.") ]
+class CIM_NamedSharedIKESecret:CIM_Credential
+{
+         [Propagated ("CIM_SharedSecretService.SystemCreationClassName"), 
+          Key, MaxLen (256), Description ("Scoping System")]
+     string SystemCreationClassName;
+         [Propagated ("CIM_SharedSecretService.SystemName"), 
+          Key, MaxLen (256),Description ("Scoping System")]
+     string SystemName;
+         [Propagated ("CIM_SharedSecretService.CreationClassName"),
+          Key, MaxLen (256), Description ("Scoping Service")]
+     string ServiceCreationClassName;
+         [Propagated ("CIM_SharedSecretService.Name"), 
+          Key, MaxLen (256), Description ("Scoping Service")]
+     string ServiceName; 
+         [Key, MaxLen (256), Description (
+          "The local Identity with whom the direct trust "
+          "relationship exists."),
+         ModelCorrespondence 
+           {"CIM_NamedSharedIKESecret.LocalIdentityType" } ]
+     string LocalIdentity;
+	   [Key, Description ("LocalIdentityType is used to describe "
+          "the type of the LocalIdentity."),
+	   ValueMap {"1", "2", "3", "4", "5", "6", "7", "8", 
+          "9", "10", "11"},
+	   Values {"IPV4_ADDR", "FQDN", "USER_FQDN", 
+          "IPV4_ADDR_SUBNET", "IPV6_ADDR", "IPV6_ADDR_SUBNET", 
+          "IPV4_ADDR_RANGE", "IPV6_ADDR_RANGE", "DER_ASN1_DN", 
+          "DER_ASN1_GN", "KEY_ID"},
+         ModelCorrespondence 
+           {"CIM_NamedSharedIKESecret.LocalIdentity" } ]
+    uint16 LocalIdentityType;
+         [Key, MaxLen (256), Description (
+          "The peer identity with whom the direct trust "
+          "relationship exists."),
+         ModelCorrespondence 
+           {"CIM_NamedSharedIKESecret.PeerIdentityType" } ]
+     string PeerIdentity;
+	   [Key, Description ("PeerIdentityType is used to describe "
+          "the type of the PeerIdentity."),
+	   ValueMap {"1", "2", "3", "4", "5", "6", "7", "8", 
+          "9", "10", "11"},
+	   Values {"IPV4_ADDR", "FQDN", "USER_FQDN", 
+          "IPV4_ADDR_SUBNET", "IPV6_ADDR", "IPV6_ADDR_SUBNET", 
+          "IPV4_ADDR_RANGE", "IPV6_ADDR_RANGE", "DER_ASN1_DN", 
+          "DER_ASN1_GN", "KEY_ID"},
+         ModelCorrespondence 
+           {"CIM_NamedSharedIKESecret.PeerIdentity" } ]
+     uint16 PeerIdentityType;
+         [Description ("SharedSecretName is an indirect reference "
+          "to a shared secret.  The SecretService does not expose "
+          "the actual secret but rather provides access to the "
+          "secret via a name.")]
+     string SharedSecretName;
+};
+
+// ================================================================== 
+//    AuthorizationService
+// ==================================================================
+   [Description (
+   "CIM_AuthorizationService determines whether a user, by "
+   "association with an Account used by the AuthorizationService, is "
+   "permitted access a resource or set of resources.") ]
+class CIM_AuthorizationService:CIM_SecurityService
+   {
+   };
+
+// ================================================================== 
+//    AuthenticationRequirement
+// ==================================================================
+   [Description (
+   "CIM_AuthenticationRequirement provides, through its "
+   "associations, the authentication requirements for access to "
+   "system resources.  For a particular set of target resources, the "
+   "AuthenticationService may require that credentials be issued by "
+   "a specific CredentialManagementService.  The "
+   "AuthenticationRequirement class is weak to the system (e.g., "
+   "Computer System or Administrative Domain) for which the "
+   "requirements apply.")]
+class CIM_AuthenticationRequirement : CIM_LogicalElement
+   {
+	[Key, MaxLen (256), Propagated ("CIM_System.CreationClassName"),
+	Description ("Hosting system creation class name")]
+   string SystemCreationClassName;
+	[Key, MaxLen (256), Propagated ("CIM_System.Name"),
+	Description ("Hosting system name")]
+   string SystemName;
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (256), Override ("Name"), Description (  
+      "The Name property defines the unique label, in the context of "
+	"the hosting system, by which the AuthenticationRequirement "
+	"is known.")]
+   string Name;
+	[Description (
+	"The SecurityClassification property specifies a named level "
+	"of security associated with the AuthenticationRequirement, "
+	"e.g., 'Confidential', 'Top Secret', etc.")]
+   string SecurityClassification;
+   };
+
+
+// ================================================================== 
+//    AccessControlInformation
+// ==================================================================
+   [Description (
+   "CIM_AccessControlInformation provides, through its properties "
+   "and its associations, the specification of the access rights "
+   "granted to a set of subject users to a set of target resources. "
+   "The AccessControlInformation class is weak to the system (e.g., "
+   "Computer System or Administrative Domain) for which the access "
+   "controls apply.")]
+class CIM_AccessControlInformation: CIM_LogicalElement
+   {
+	[Key, MaxLen (256), Propagated ("CIM_System.CreationClassName"),
+	Description ("Hosting system creation class name")]
+   string SystemCreationClassName;
+	[Key, MaxLen (256), Propagated ("CIM_System.Name"),
+	Description ("Hosting system name")]
+   string SystemName;
+      [Key, MaxLen (256), Description (  
+	"CreationClassName indicates the name of the class or the "
+	"subclass used in the creation of an instance. When used "
+	"with the other key properties of this class, this property "
+	"allows all instances of this class and its subclasses to "
+	"be uniquely identified.")]
+   string CreationClassName;
+      [Key, MaxLen (256), Override ("Name"), Description (  
+      "The Name property defines the unique label, in the context of "
+	"the hosting system, by which the AccessControlInformation "
+	"is known.")]
+   string Name;
+	[Description (
+	"The SecurityClassification property specifies a named level "
+	"of security associated with the AccessControlInformation, "
+	"e.g., 'Confidential', 'Top Secret', etc.")]
+   string SecurityClassification;
+	[Description (
+	"The AccessType property is an array of string values that "
+	"specifies the type of access for which the corresponding "
+	"permission applies. For example, it can be used to specify a "
+	"generic access such as 'Read-only', 'Read/Write', etc. for "
+	"file or record access control or it can be used to specifiy "
+	"an entry point name for service access control."),  
+	ModelCorrespondence {
+		"CIM_AccessControlInformation.AccessQualifier",
+		"CIM_AccessControlInformation.Permission" } ]
+   string AccessType[];
+	[Description (
+	"The AccessQualifier property is an array of string values "
+	"may be used to further qualify the type of access for which "
+	"the corresponding permission applies. For example, it may  be "
+	"used to specify a set of parameters that are permitted or "
+	"denied in conjunction with the corresponding AccessType entry "
+	"point name."),
+	ModelCorrespondence {
+		"CIM_AccessControlInformation.AccessType",
+		"CIM_AccessControlInformation.Permission" } ]
+   string AccessQualifier[];
+	[Description (
+	"The Permission property is an array of string values "
+	"indicating the permission that applies to the corrsponding "
+	"AccessType and AccessQualifier array values.  The values "
+	"may be extended in subclasses to provide more specific access "
+	"controls."),
+	ValueMap {"Unknown", "Allow", "Deny", "Manage"},
+	ModelCorrespondence {
+		"CIM_AccessControlInformation.AccessType",
+		"CIM_AccessControlInformation.AccessQualifier" } ]
+   string Permission[];
+   };
+
+// ==================================================================
+// ===              Association class definitions                 ===
+// ==================================================================
+
+// Aggregations
+                 
+// ==================================================================
+// MemberPrincipal    
+// ==================================================================
+   [Association, Aggregation, Description (   
+   "CIM_MemberPrincipal is an aggregation used to establish "   
+   "membership of principals (i.e., users) in a Collection.  That "
+   "membership can be established either directly or indirectly as "
+   "indicated in the UsersAccessBy property.  For example, a user "
+   "may be identified directly by their userid (i.e., Account object "
+   "instance) or the user may be identified indirectly by realm from "
+   "which a ticket was issued (i.e., CredentialManagementService "
+   "object instance).  The latter case is useful, for example, for "
+   "specifying that only users identified by an internal credential "
+   "service are permitted to access very sensitive information." ) ]  
+class CIM_MemberPrincipal: CIM_MemberOfCollection  
+   {
+            [Override ("Collection") ]   
+   CIM_Collection REF Collection;
+      [Override ("Member") ]
+   CIM_ManagedElement REF Member;
+	[Description (
+	"A MemberPrincipal may be identifed in several ways that may "
+	"be either direct or indirect membership in the collection. "
+	" - A 'UsersAccess' membership directly identifies the user by "
+	"   the UsersAccess object instance. "
+	" - An 'Account' membership directly identifies the user by "
+	"   the Account object class instance. "
+	" - A 'UsingElement' membership indirectly identifies the user "
+	"   by the ManagedElement object instance that has "
+	"   ElementAsUser associations to UsersAccess object "
+	"   instances.  Hence, all UsersAccess instances are "
+	"   indirectly included in the collection. "),
+	ValueMap {"1", "2", "3", "4" },
+	Values {"UsersAccess", "Account", "UsingElement", 
+	        "CredentialManagementService"} ]
+   uint16 UserAccessBy;
+   };                    
+
+
+// ===================================================================
+//    AccountOnSystem
+// ===================================================================
+   [Association, Aggregation, Description (
+   "A system (e.g., ApplicationSystem, ComputerSystem, AdminDomain) "
+   "aggregates Accounts and scopes the uniqueness of the Account "
+   "names (i.e., userids).") ]
+class CIM_AccountOnSystem : CIM_SystemComponent
+   {
+	[Override ("GroupComponent"), Min (1), Max (1),
+	Description ("The aggregating system also provides name scoping "
+	"for the Account.")]
+   CIM_System REF GroupComponent;
+	[Override ("PartComponent"), Weak,
+	Description ("The subordinate Account")]
+   CIM_Account REF PartComponent;
+   };
+
+// ==================================================================
+// OrgStructure    
+// ==================================================================
+  [Association, Aggregation, Description (   
+   "CIM_OrgStructure is an association used to establish parent-child "
+   "relationships between OrganizationalEntity instances.  This is "
+   "used to capture organizational relationships between object " 
+   "instances such as those that are imported from an LDAP-accessible "
+   "directory.") ]    
+  class CIM_OrgStructure
+  {   
+	[Key, Max (1),  
+	Description ("The organizational parent in this association.") ]    
+   CIM_OrganizationalEntity REF Parent;   
+	[Key,  
+	Description ("The organizational child in this association,    "
+	"i.e., the sub-unit or other owned object instance.") ]    
+   CIM_OrganizationalEntity REF Child;   
+  };   
+      
+// ==================================================================
+// CollectionInOrganization
+// ==================================================================
+   [Association, Aggregation, Description (   
+   "CIM_CollectionInOrganization is an association used to establish "
+   "a parent-child relationship between a collection and an 'owning' "
+   "OrganizationalEntity.  A single collection should not have both "
+   "a CollectionInOrganization and a CollectionInSystem association." 
+   )]
+class CIM_CollectionInOrganization
+   {   
+	[Key, Max (1), 
+	Description ("The parent organization responsible for the "
+	"collection.") ]
+   CIM_OrganizationalEntity REF Parent;   
+	[Key, 
+	Description ("The collection") ]
+   CIM_Collection REF Child;   
+   };   
+
+// ==================================================================
+// CollectionInSystem
+// ==================================================================
+   [Association, Aggregation, Description (   
+   "CIM_CollectionInSystem is an association used to establish a "
+   "parent-child relationship between a collection and an 'owning' "
+   "System such as an AdminDomain or ComputerSystem.  A single "
+   "collection should not have both a CollectionInOrganization and a "
+   "CollectionInSystem association."    )]
+class CIM_CollectionInSystem
+   {   
+	[Key, Max (1), 
+	Description ("The parent system responsible for the "
+	"collection.") ]
+   CIM_System REF Parent;   
+	[Key, 
+	Description ("The collection") ]
+   CIM_Collection REF Child; 
+   };        
+
+// Associations
+
+// ==================================================================
+// ElementAsUser    
+// ==================================================================
+   [Association, Description (   
+   "CIM_ElementAsUser is an association used to establish the "
+   "'ownership' of UsersAccess object instances.  That is, the "
+   "ManagedElement may have UsersAccess to systems and, therefore, "
+   "be 'users' on those systems.  UsersAccess instances must have an "
+   "'owning' ManagedElement.  Typically, the ManagedElements will be "
+   "limited to Collection, Person, Service and ServiceAccessPoint. "
+   "Other non-human ManagedElements that might be thought of as "
+   "having UsersAccess (e.g., a device or system) have services that "
+   "have the UsersAccess.")]
+class CIM_ElementAsUser : CIM_Dependency
+   {   
+	[Min (1), Max (1), Override ("Antecedent"), 
+	Description ("The ManagedElement that has UsersAccess") ]
+   CIM_ManagedElement REF Antecedent;   
+	[Override ("Dependent"), 
+	Description ("The 'owned' UsersAccess") ]
+   CIM_UsersAccess REF Dependent;   
+   }; 
+
+
+// ==================================================================
+// MoreOrganizationInfo
+// ==================================================================
+   [Association, Description (   
+   "CIM_MoreOrganizationInfo is an association used to extend the "
+   "information in a CIM_Organization class instance."
+   )]
+class CIM_MoreOrganizationInfo : CIM_Dependency
+   {   
+	[Max (1), Override ("Antecedent"), 
+	Description (" "
+	" ") ]
+   CIM_Organization REF Antecedent;   
+	[Min (0), Max (1), Override ("Dependent"), 
+	Description (" ") ]
+   CIM_OtherOrganizationInformation REF Dependent; 
+   };        
+
+// ==================================================================
+// MoreOrgUnitInfo
+// ==================================================================
+   [Association, Description (   
+   "CIM_MoreOrgUnitInfo is an association used to extend the "
+   "information in an CIM_OrgUnit class instance."
+   )]
+class CIM_MoreOrgUnitInfo : CIM_Dependency
+   {   
+	[Max (1), Override ("Antecedent"), 
+	Description (" "
+	" ") ]
+   CIM_OrgUnit REF Antecedent;   
+	[Min (0), Max (1), Override ("Dependent"), 
+	Description (" ") ]
+   CIM_OtherOrgUnitInformation REF Dependent; 
+   };        
+
+// ==================================================================
+// MoreGroupInfo
+// ==================================================================
+   [Association, Description (   
+   "CIM_MoreGroupInfo is an association used to extend the "
+   "information in a CIM_Group class instance."
+   )]
+class CIM_MoreGroupInfo : CIM_Dependency
+   {   
+	[Max (1), Override ("Antecedent"), 
+	Description (" "
+	" ") ]
+   CIM_Group REF Antecedent;   
+	[Min (0), Max (1), Override ("Dependent"), 
+	Description (" ") ]
+   CIM_OtherGroupInformation REF Dependent; 
+   };        
+
+// ==================================================================
+// MoreRoleInfo
+// ==================================================================
+   [Association, Description (   
+   "CIM_MoreRoleInfo is an association used to extend the "
+   "information in a CIM_Role class instance."
+   )]
+class CIM_MoreRoleInfo : CIM_Dependency
+   {   
+	[Max (1), Override ("Antecedent"), 
+	Description (" "
+	" ") ]
+   CIM_Role REF Antecedent;   
+	[Min (0), Max (1), Override ("Dependent"), 
+	Description (" ") ]
+   CIM_OtherRoleInformation REF Dependent; 
+   };        
+
+// ==================================================================
+// MorePersonInfo
+// ==================================================================
+   [Association, Description (   
+   "CIM_MorePersonInfo is an association used to extend the "
+   "information in a CIM_Person class instance."
+   )]
+class CIM_MorePersonInfo : CIM_Dependency
+   {   
+	[Max (1), Override ("Antecedent"), 
+	Description (" "
+	" ") ]
+   CIM_Person REF Antecedent;   
+	[Min (0), Max (1), Override ("Dependent"), 
+	Description (" ") ]
+   CIM_OtherPersonInformation REF Dependent; 
+   };        
+
+       
+// ==================================================================
+// SystemAdministrator    
+// ==================================================================
+  [Association, Description (   
+   "CIM_SystemAdministrator is an association used to identify "
+   "the UserEntity as a system administrator of a CIM_System." ) ]    
+  class CIM_SystemAdministrator: CIM_Dependency  
+  {   
+    [Override ("Antecedent"), Description (   
+    "The administered system.") ]    
+   CIM_System REF Antecedent;   
+   [Override ("Dependent"), Description (   
+    "The UserEntity that provides the admininstrative function "
+    "for the associated system.") ]    
+   CIM_UserEntity REF Dependent;   
+
+  };   
+
+// ==================================================================
+// SystemAdministratorGroup
+// ==================================================================
+   [Association, Description (   
+   "CIM_SystemAdministratorGroup is an association used to identify "
+   "a Group that has system administrator responsibilities for a "
+   "CIM_System. "   )]
+class CIM_SystemAdministratorGroup : CIM_Dependency
+   {   
+	[Override ("Antecedent"), 
+	Description ("The administered system") ]
+   CIM_System REF Antecedent;   
+	[Override ("Dependent"), 
+	Description ("The Group of administrators") ]
+   CIM_Group REF Dependent;   
+   }; 
+  
+// ==================================================================
+// SystemAdministratorRole
+// ==================================================================
+   [Association, Description (   
+   "CIM_SystemAdministratorRole is an association used to identify "
+   "a system administrator Role for a CIM_System.")]
+class CIM_SystemAdministratorRole : CIM_Dependency
+   {   
+	[Override ("Antecedent"), 
+	Description ("The administered system") ]
+   CIM_System REF Antecedent;   
+	[Override ("Dependent"), 
+	Description ("The system administration role") ]
+   CIM_Role REF Dependent;   
+   };   
+
+// ===================================================================
+//    UsersAccount
+// ===================================================================
+        [Association, Description (
+         "This relationship associates UsersAccess with the Accounts "
+         "with which they're able to interact.") ]
+class CIM_UsersAccount : CIM_Dependency
+{
+	[Override ("Antecedent"), 
+	Description ( "The user's Account") ]
+   CIM_Account REF Antecedent;
+	[Override ("Dependent"),
+	Description ( "The User as identified by their UsersAccess "
+	"instance")]
+   CIM_UsersAccess REF Dependent;
+};
+
+
+// ===================================================================
+//    AccountMapsToAccount
+// ===================================================================
+   [Association, Description (
+   "This relationship may be used to associate an Account used by an "
+   "AuthenticationService to an Account used for Authorization.  For "
+   "instance, this mapping occurs naturally in the UNIX /etc/passwd "
+   "file, where the AuthenticationSerice Account ('root') is mapped "
+   "to the AuthorizationService Account ('0').  The two are separate "
+   "accounts, as evidenced by the ability to have another "
+   "AuthenticationService Account which ALSO maps to the "
+   "AuthorizationService Account ('0') without ambiguity.  This "
+   "association may be used for other account mappings as well such "
+   "as for coordinating single signon for multiple accounts for the "
+   "same user.") ]
+class CIM_AccountMapsToAccount : CIM_Dependency
+{
+	[Override ("Antecedent"), 
+	Description ( "An Account") ]
+   CIM_Account REF Antecedent;
+	[Override ("Dependent"),
+	Description ( "A related Account")]
+   CIM_Account REF Dependent;
+};
+
+// ===================================================================
+//    SecurityServiceUsesAccount
+// ===================================================================
+        [Association, Description (
+         "This relationship associates SecurityService instances to "
+         "the Accounts they use in the course of their work.") ]
+class CIM_SecurityServiceUsesAccount : CIM_Dependency
+{
+      [ Override ("Antecedent") ]
+   CIM_Account REF Antecedent;
+      [ Override ("Dependent") ]
+   CIM_SecurityService REF Dependent;
+};
+
+
+// ===================================================================
+//    ManagesAccount
+// ===================================================================
+        [Association, Description (
+         "This relationship associates the AccountManagement security "
+         "service to the Accounts for which it is responsible.") ]
+class CIM_ManagesAccount:CIM_Dependency
+{
+      [ Override ("Antecedent") ]
+   CIM_AccountManagementService REF Antecedent;
+      [ Override ("Dependent") ]
+   CIM_Account REF Dependent;
+};
+
+// ===================================================================
+//    ServiceUsesSecurityService
+// ===================================================================
+        [Association, Description (
+         "This relationship associates a Services with the Security "
+         "Service it uses.") ]
+class CIM_ServiceUsesSecurityService : CIM_ServiceServiceDependency
+{
+      [ Override ("Antecedent") ]
+   CIM_SecurityService REF Antecedent;
+      [ Override ("Dependent") ]
+   CIM_Service REF Dependent;
+};
+
+// ===================================================================
+//    SecurityServiceForSystem
+// ===================================================================
+   [Association, Description (
+   "The CIM_SecurityServiceForSystem provides the association between "
+   "a System and a SecurityService that provides services for that "
+   "system." ) ]
+class CIM_SecurityServiceForSystem : CIM_ProvidesServiceToElement
+{
+	[Override ("Antecedent"), Description ( 
+	"The SecurityService that provides services for the system.")]
+   CIM_SecurityService REF Antecedent;
+	[Override ("Dependent"), Description (
+	"The system that is dependent on the security service.")]
+   CIM_System REF Dependent;
+};
+
+
+// ===================================================================
+//    ManagesAccountOnSystem
+// ===================================================================
+   [Association, Description (
+   "The CIM_ManagesAccountOnSystem provides the association between a "
+   "System and the AccountManagementService that manages accounts for "
+   "that system." ) ]
+class CIM_ManagesAccountOnSystem:CIM_SecurityServiceForSystem
+{
+	[Override ("Antecedent"), Description ( 
+	"An AccountManagementService that manages accounts for the "
+	"system.")]
+   CIM_AccountManagementService REF Antecedent;
+	[Override ("Dependent"), Description (
+	"The system that is dependent on the AccountManagementService."
+	)]
+   CIM_System REF Dependent;
+};
+
+// ==================================================================
+//    TrustHierarchy
+// ==================================================================
+        [Association, Description (
+         "CIM_TrustHierarchy is an association between two "
+         "CredentialManagementService instances that establishes "
+         "the trust hierarchy between them.") ]
+class CIM_TrustHierarchy:CIM_Dependency
+{
+        [Override ("Antecedent"), Max (1),
+         Description ("The superior CredentialManagementService "
+         "from which the dependent service gets its authority.") ] 
+    CIM_CredentialManagementService  REF Antecedent;
+        [Override ("Dependent"), Description (
+         "The subordinate CredentialManagementService.") ] 
+    CIM_CredentialManagementService  REF Dependent;
+};
+
+// ==================================================================
+// UsersCredential
+// ==================================================================
+   [Association, Description (   
+   "CIM_UsersCredential is an association used to establish the "
+   "credentials that may be used for a UsersAccess to a system or "
+   "set of systems. "    )]
+class CIM_UsersCredential : CIM_Dependency
+   {   
+	[Override ("Antecedent"), 
+	Description ("The issued credential that may be used.") ]
+   CIM_Credential REF Antecedent;   
+	[Override ("Dependent"), 
+	Description ("The UsersAccess that has use of a credential") ]
+   CIM_UsersAccess REF Dependent;   
+   };   
+
+// ===================================================================
+//    PublicPrivateKeyPair
+// ===================================================================
+        [Association, Description (
+         "This relationship associates a PublicKeyCertificate with "
+         "the Principal who has the PrivateKey used with the "
+         "PublicKey.  The PrivateKey is not modeled, since it is not "
+         "a data element that ever SHOULD be accessible via "
+         "management applications, other than key recovery services, "
+         "which are outside our scope.") ]
+class CIM_PublicPrivateKeyPair:CIM_UsersCredential
+{
+      [ Override ("Antecedent") ]
+   CIM_PublicKeyCertificate REF Antecedent;
+      [ Override ("Dependent") ]
+   CIM_UsersAccess REF Dependent;
+	[Description ( "The Certificate may be used for signature only "
+	"or for confidentiality as well as signature"),
+	Values { "SignOnly", "ConfidentialityOrSignature"} ]
+   uint16 Use;
+   boolean NonRepudiation;
+   boolean BackedUp;
+	[Description ("The repository in which the certificate is "
+	"backed up.")]
+   string Repository;
+};
+
+
+// ===================================================================
+//    CAHasPublicCertificate
+// ===================================================================
+   [Association, Description (
+   "A CertificateAuthority may have certificates issued by other CAs. "
+   "This association is essentially an optimization of the CA having "
+   "a UsersAccess instance with an association to a certificate thus "
+   "mapping more closely to LDAP-based certificate authority "
+   "implementations.") ]
+class CIM_CAHasPublicCertificate:CIM_Dependency
+{
+	[Max (1), Override ("Antecedent"),
+	Description ("The Certificate used by the CA")]
+   CIM_PublicKeyCertificate REF Antecedent;
+	[Override ("Dependent"), 
+	Description ("The CA that uses a Certificate")]
+   CIM_CertificateAuthority REF Dependent;
+};
+
+
+// ===================================================================
+//    ManagedCredential
+// ===================================================================
+        [Association, Description (
+         "This relationship associates a CredentialManagementService "
+         "with the Credential it manages.") ]
+class CIM_ManagedCredential:CIM_Dependency
+{
+	[Override ("Antecedent"), Min (1), Max (1),
+	Description ( "The credential management service")] 
+   CIM_CredentialManagementService REF Antecedent;
+	[Override ("Dependent"),
+	Description ( "The managed credential")]
+   CIM_Credential REF Dependent;
+};
+
+// ===================================================================
+//    CASignsPublicKeyCertificate
+// ===================================================================
+        [Association, Description (
+         "This relationship associates a CertificateAuthority with "
+         "the certificates it signs.") ]
+class CIM_CASignsPublicKeyCertificate:CIM_ManagedCredential
+{
+	[Override ("Antecedent"), Min (1), Max (1),
+	Description ( "The CA which signed the certificate")] 
+   CIM_CertificateAuthority REF Antecedent;
+	[Override ("Dependent"), Weak,
+	Description ( "The certificate issued by the CA")]
+   CIM_PublicKeyCertificate REF Dependent;
+   string SerialNumber;
+      [ Octetstring ]
+   uint8 Signature[];
+   datetime Expires;
+   string CRLDistributionPoint[];
+};
+
+// ==================================================================
+//    LocallyManagedPublicKey
+// ==================================================================
+        [Association, Description (
+         "CIM_LocallyManagedPublicKey association provides the "
+         "relationship between a PublicKeyManagementService and an "
+         "UnsignedPublicKey.") ]
+class CIM_LocallyManagedPublicKey:CIM_ManagedCredential
+{
+        [Override ("Antecedent"), Min (1), Max (1), 
+         Description ("The PublicKeyManagementService that manages "
+         "an unsigned public key.") ] 
+    CIM_PublicKeyManagementService REF Antecedent;
+        [Override ("Dependent"), Weak, Description (
+         "An unsigned public key.") ] 
+    CIM_UnsignedPublicKey REF Dependent;
+};
+
+// ===================================================================
+//    SharedSecretIsShared
+// ===================================================================
+        [Association, Description (
+         "This relationship associates a SharedSecretService with the "
+         "SecretKey it verifies.") ]
+class CIM_SharedSecretIsShared : CIM_ManagedCredential
+{
+	[Override ("Antecedent"), Min (1), Max (1),
+	Description ("The credential management service")]
+   CIM_SharedSecretService REF Antecedent;
+	[Override ("Dependent"), Weak,
+	Description ( "The managed credential")]
+   CIM_SharedSecret REF Dependent;
+};
+
+// ==================================================================
+//    IKESecretIsNamed
+// ==================================================================
+        [Association, Description (
+         "CIM_IKESecretIsNamed association provides the "
+         "relationship between a SharedSecretService and a "
+         "NamedSharedIKESecret.") ]
+class CIM_IKESecretIsNamed:CIM_ManagedCredential
+{
+        [Override ("Antecedent"), Min (1), Max (1), 
+         Description ("The SharedSecretService that manages a "
+         "NamedSharedIKESecret.")] 
+    CIM_SharedSecretService REF Antecedent;
+        [Override ("Dependent"), Weak, Description (
+         "The managed NamedSharedIKESecret.") ] 
+    CIM_NamedSharedIKESecret  REF Dependent;
+};
+
+// ===================================================================
+//    KDCIssuesKerberosTicket
+// ===================================================================
+   [Association, Description (
+   "The KDC issues and owns Kerberos tickets.  This association "
+   "captures the relationship between the KDC and its issued tickets."
+   ) ]
+class CIM_KDCIssuesKerberosTicket:CIM_ManagedCredential
+{
+	[Override ("Antecedent"), Min (1), Max (1),
+	Description ( "The issuing KDC") ] 
+   CIM_KerberosKeyDistributionCenter REF Antecedent;
+	[Override ("Dependent"), Weak,
+	Description ( "The managed credential")]
+   CIM_KerberosTicket REF Dependent;
+};
+
+// ===================================================================
+//    NotaryVerifiesBiometric
+// ===================================================================
+        [Association, Description (
+         "This relationship associates a Notary service with the "
+         "Users Access whose biometric information is verified.") ]
+class CIM_NotaryVerifiesBiometric : CIM_Dependency
+{
+	[Override ("Antecedent"), 
+	Description ("The Notary service that verifies biometric "
+	"information ") ]
+   CIM_Notary REF Antecedent;
+	[Override ("Dependent"),
+	Description ( "The UsersAccess that represents a person using "
+	"biometric information for authentication.")]
+   CIM_UsersAccess REF Dependent;
+};
+
+
+// ==================================================================
+// HostedAuthenticationRequirement
+// ==================================================================
+   [Association, Description (   
+   "CIM_HostedAuthenticationRequirement is an association used to "
+   "provide the namespace scoping of AuthenticationRequirement.  The "
+   "hosted requirements may or may not apply to resources on the "
+   "hosting system." )]
+class CIM_HostedAuthenticationRequirement : CIM_Dependency
+   {   
+	[Min (1), Max (1), Override ("Antecedent"), 
+	Description ("The hosting system") ]
+   CIM_System REF Antecedent;   
+	[Override ("Dependent"), Weak, 
+	Description ("The hosted AuthenticationRequirement") ]
+   CIM_AuthenticationRequirement REF Dependent;   
+   };   
+
+// ==================================================================
+// AuthenticateForUse 
+// ==================================================================
+   [Association, Description (   
+   "CIM_AuthenticateForUse is an association used to provide an "
+   "AuthenticationService with the AuthenticationRequirement it "
+   "needs to do its job.")]
+class CIM_AuthenticateForUse : CIM_Dependency
+   {   
+	[Override ("Antecedent"), 
+	Description ("AuthenticationRequirement for use") ]
+   CIM_AuthenticationRequirement REF Antecedent;   
+	[Override ("Dependent"), 
+	Description ("AuthenticationService that uses the requirements"
+	) ]
+   CIM_AuthenticationService REF Dependent;   
+   };  
+ 
+// ==================================================================
+// RequireCredentialsFrom 
+// ==================================================================
+   [Association, Description (   
+   "CIM_RequireCredentialsFrom is an association used to require "
+   "that credentials are issued by particular Credential Management "
+   "Services in order to authenticate a user."   )]
+class CIM_RequireCredentialsFrom : CIM_Dependency
+   {   
+	[Override ("Antecedent"),
+	Description ("CredentialManagementService from which "
+	"credentials are accepted for the associated "
+	"AuthenticationRequirement.") ]
+   CIM_CredentialManagementService REF Antecedent;   
+	[Override ("Dependent"), 
+	Description ("AuthenticationRequirement that limit acceptable "
+	"credentials. ") ]
+   CIM_AuthenticationRequirement REF Dependent;   
+   };   
+
+// ==================================================================
+// AuthenticationTarget 
+// ==================================================================
+   [Association, Description (   
+   "CIM_AuthenticationTarget is an association used to apply "
+   "authentication requirements for access to specific resources. "
+   "For example, a shared secret may be sufficient for access to "
+   "unclassified resources, but for confidential resources, a "
+   "stronger authentication may be required."   )]
+class CIM_AuthenticationTarget : CIM_Dependency
+   {   
+	[Override ("Antecedent"), 
+	Description ("AuthenticationRequirement that apply to "
+	"specific resources") ]
+   CIM_AuthenticationRequirement REF Antecedent;   
+	[Override ("Dependent"), 
+	Description ("Target resources that may be in a Collection or "
+	"an individual ManagedElement.  These resources are protected "
+      "by the AuthenticationRequirement.") ]
+   CIM_ManagedElement REF Dependent;   
+   };  
+ 
+// ==================================================================
+// HostedACI 
+// ==================================================================
+   [Association, Description (   
+   "CIM_HostedACI is an association used to provide the namespace "
+   "scoping of AccessControlInformation.  The hosted ACI may or may "
+   "not apply to resources on the hosting system." )]
+class CIM_HostedACI : CIM_Dependency
+   {   
+	[Min (1), Max (1), Override ("Antecedent"), 
+	Description ("The hosting system") ]
+   CIM_System REF Antecedent;   
+	[Override ("Dependent"), Weak,
+	Description ("The hosted AccessControlInformation") ]
+   CIM_AccessControlInformation REF Dependent;   
+   };   
+
+// ==================================================================
+// AuthorizedUse 
+// ==================================================================
+   [Association, Description (   
+   "CIM_AuthorizedUse is an association used to provide an "
+   "AuthorizationService with the AccessControlInformation it needs "
+   "to do its job."   )]
+class CIM_AuthorizedUse : CIM_Dependency
+   {   
+	[Override ("Antecedent"), 
+	Description ("AccessControlInformation") ]
+   CIM_AccessControlInformation REF Antecedent;   
+	[Override ("Dependent"), 
+	Description ("AuthorizationService that uses an ACI.") ]
+   CIM_AuthorizationService REF Dependent;   
+   };   
+
+// ==================================================================
+// AuthorizationSubject 
+// ==================================================================
+   [Association, Description (   
+   "CIM_AuthorizationSubject is an association used to apply "
+   "authorization decisions to specific subjects (i.e., users).  The "
+   "subjects may be identified directly or they may be aggregated "
+   "into a collection that may, in turn, use the MemberPrincipal "
+   "association to provide further indirection in the specification "
+   "of the subject set."   )]
+class CIM_AuthorizationSubject : CIM_Dependency
+   {   
+	[Override ("Antecedent"), Description (
+	"AccessControlInformation that applies to a subject set.") ]
+   CIM_AccessControlInformation REF Antecedent;   
+	[Override ("Dependent"), Description (
+	"The subject set may be specified as a collection or as a set "
+	"of associations to ManagedElements that represent users.") ]
+   CIM_ManagedElement REF Dependent;   
+   };
+  
+// ==================================================================
+// AuthorizationTarget 
+// ==================================================================
+   [Association, Description (   
+   "CIM_AuthorizationTarget is an association used to apply "
+   "authorization decisions to specific target resources.  The "
+   "target resources may be aggregated into a collection or may be "
+   "represented as a set of associations to ManagedElements."   )]
+class CIM_AuthorizationTarget : CIM_Dependency
+   {   
+	[Override ("Antecedent"), Description (
+	"AccessControlInformation that applies to the target set.") ]
+   CIM_AccessControlInformation REF Antecedent;   
+	[Override ("Dependent"), Description (
+	"The target set of resources may be specified as a collection "
+	"or as a set of associations to ManagedElements that represent "
+	"target resources.") ]
+   CIM_ManagedElement REF Dependent;   
+   };   
+
+
+// End of file
+
+
+
+

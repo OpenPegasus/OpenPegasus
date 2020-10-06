@@ -1,0 +1,49 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_MemoryCapacity
+// ==================================================================
+   [UMLPackagePath ( "CIM::Physical::Misc" ), Version ( "2.9.0" ), 
+    Description (
+       "MemoryCapacity describes the type of Memory that can be "
+       "installed on a PhysicalElement and its minimum/maximum "
+       "configurations. Information on what memory is currently "
+       "'installed', versus an Element's min/max requirements, is "
+       "located in instances of the PhysicalMemory class.")]
+class CIM_MemoryCapacity : CIM_PhysicalCapacity {
+
+      [Key, Override ( "Name" ), Description (
+          "The inherited Name serves as a part of the MemoryCapacity "
+          "object key.")]
+   string Name;
+
+      [Key, Description (
+          "The type of memory. This is a part of the object key. "
+          "Values correspond to the list of possible memory types in "
+          "the PhysicalMemory class."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21" }, 
+       Values { "Unknown", "Other", "DRAM", "Synchronous DRAM",
+          "Cache DRAM", "EDO", "EDRAM", "VRAM", "SRAM", "RAM", 
+          // 10                
+          "ROM", "Flash", "EEPROM", "FEPROM", "EPROM", "CDRAM",
+          "3DRAM", "SDRAM", "SGRAM", "RDRAM", 
+          // 20                
+          "DDR", "DDR2" }, 
+       ModelCorrespondence { "CIM_PhysicalMemory.MemoryType" }]
+   uint16 MemoryType;
+
+      [Description (
+          "Minimum amount of memory, in Kbytes, that is needed for the "
+          "associated PhysicalElement to operate correctly."), 
+       Units ( "KiloBytes" )]
+   uint64 MinimumMemoryCapacity;
+
+      [Description (
+          "Maximum amount of memory, in Kbytes, that can be supported "
+          "by the associated PhysicalElement."), 
+       Units ( "KiloBytes" )]
+   uint64 MaximumMemoryCapacity;
+};

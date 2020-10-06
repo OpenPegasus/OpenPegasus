@@ -1,0 +1,229 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+ROOT = ../../../../..
+
+DIR = Clients/cimtrust/tests/tests
+
+include $(ROOT)/mak/config.mak
+include $(ROOT)/mak/test.mak
+include $(ROOT)/mak/commands.mak
+
+RESULTFILE =  $(TMP_DIR)/result
+MASTERRESULTFILE = $(ROOT)/src/$(DIR)/result.master
+OPENSSL_CNF = openssl.cnf
+
+ifeq ($(OPENSSL_SET_SERIAL_SUPPORTED),true)
+    SETSERIAL_0 = -set_serial 0
+    SETSERIAL_1 = -set_serial 1
+    SETSERIAL_2 = -set_serial 2
+    SETSERIAL_3 = -set_serial 3
+else
+    SETSERIAL_0 =
+    SETSERIAL_1 =
+    SETSERIAL_2 =
+    SETSERIAL_3 =
+endif
+
+tests:
+
+poststarttests:
+
+clean:
+	@$(RM) $(RESULTFILE)
+	@$(RM) $(PEGASUS_HOME)/testchca.cert
+	@$(RM) $(PEGASUS_HOME)/testchca.key
+	@$(RM) $(PEGASUS_HOME)/testchca.srl
+	@$(RM) $(PEGASUS_HOME)/testinter.cert
+	@$(RM) $(PEGASUS_HOME)/testinter.key
+	@$(RM) $(PEGASUS_HOME)/testinter.srl
+	@$(RM) $(PEGASUS_HOME)/testleaf.cert
+	@$(RM) $(PEGASUS_HOME)/testleaf.key
+	@$(RM) index.txt
+	@$(RM) .rnd
+	@$(RM) $(PEGASUS_HOME)/ssltest_setup
+
+#
+# Create certificates and CRLs required for running the tests
+#
+test_setup: $(PEGASUS_HOME)/ssltest_setup
+
+$(PEGASUS_HOME)/ssltest_setup: $(OPENSSL_CNF) testchca.cert testchca.key testinter.cert testinter.key testleaf.cert testleaf.key
+	@$(MAKE) -i -s clean
+	@$(TOUCH) $(PEGASUS_HOME)/ssltest_setup
+ifdef PEGASUS_HAS_SSL
+	@#
+	@# Copy the test chain root certificate to the staging area
+	@#
+	@$(COPY) testchca.cert $(PEGASUS_HOME)/testchca.cert
+	@$(COPY) testchca.key $(PEGASUS_HOME)/testchca.key
+	@#
+	@# Copy the test chain intermediate certificate to the staging area
+	@#
+	@$(COPY) testinter.cert $(PEGASUS_HOME)/testinter.cert
+	@$(COPY) testinter.key $(PEGASUS_HOME)/testinter.key
+	@#
+	@# Copy the leaf certificate to the staging area
+	@#
+	@$(COPY) testleaf.cert $(PEGASUS_HOME)/testleaf.cert
+	@$(COPY) testleaf.key $(PEGASUS_HOME)/testleaf.key
+	@#
+	@$(COPY) invalid_x509.cert $(PEGASUS_HOME)/invalid_x509.cert
+endif
+
+SSLCertificateTest1: test_setup
+ifdef PEGASUS_HAS_SSL
+	@$(RM) $(RESULTFILE)
+	@$(MAKE) -i -s SSLCertificateTest1_ignoreerror
+	@$(STRIPCRS)
+	$(COMPARERESULTS)
+endif
+	@$(ECHO) +++ Test passed +++
+	#@$(RM) $(RESULTFILE) Leaving this file here for now, so we have it to debug any poststarttest failures
+
+SSLCertificateTest1_ignoreerror:
+ifdef PEGASUS_HAS_SSL
+	@$(ECHO) ++++cimtrust tests
+ifndef PEGASUS_PAM_AUTHENTICATION
+    ifneq ($(OS), zos)
+	cimuser -a -u $(CURRENT_USER) -w $(CURRENT_USER)
+    endif
+endif	
+	
+	@$(ECHO) "Duplicate list option." >> $(RESULTFILE)
+	@cimtrust -l -l  -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "No command options specified." >> $(RESULTFILE)
+	@cimtrust >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Help option." >> $(RESULTFILE)
+	@cimtrust --help >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Help option." >> $(RESULTFILE)
+	@cimtrust -h >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Duplicate help option." >> $(RESULTFILE)
+	@cimtrust -h -h >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Duplicate -a option." >> $(RESULTFILE)
+	@cimtrust -a -a -U $(CURRENT_USER) -f $(PEGASUS_HOME)/testinter.cert >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Missing option, certfile not specified." >> $(RESULTFILE)
+	@cimtrust -a -U $(CURRENT_USER) >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Invalid option, non-existent cert." >> $(RESULTFILE)
+	@cimtrust -a -U $(CURRENT_USER) -f $(PEGASUS_HOME)/nosuch.cert >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Remove the CA certificate from the truststore, this should succeed" >> $(RESULTFILE)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Duplicate -r option." >> $(RESULTFILE)
+	@cimtrust -r -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Missing option issuerName." >> $(RESULTFILE)
+	@cimtrust -r -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Missing value for serial number." >> $(RESULTFILE)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Duplicate option, issuer specified twice." >> $(RESULTFILE)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -i test -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Duplicate option, serial number specified twice." >> $(RESULTFILE)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 0 -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Invalid remove option, incorrect serial numer." >> $(RESULTFILE)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n abc >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+
+	@$(ECHO) "Unexpected option, combine remove and help." >> $(RESULTFILE)
+	@cimtrust -r -h >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Invalid option, invalid system user." >> $(RESULTFILE)
+	@cimtrust -a -U nosuchuser -f $(PEGASUS_HOME)/testinter.cert >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Invalid X509 certificate." >> $(RESULTFILE)
+	@cimtrust -a -U $(CURRENT_USER) -f $(PEGASUS_HOME)/invalid_x509.cert >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+addthese:
+	@$(ECHO) "Add the self-signed root certificate to the truststore." >> $(RESULTFILE)
+	@cimtrust -a -U $(CURRENT_USER) -f $(PEGASUS_HOME)/testchca.cert >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "Add the intermediate CA signed certificate to the truststore." >> $(RESULTFILE)
+	@cimtrust -a -U $(CURRENT_USER) -f $(PEGASUS_HOME)/testinter.cert >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "List the certificates." >> $(RESULTFILE)
+	@cimtrust -l >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "List certificates, specify the issuername." >> $(RESULTFILE)
+	@cimtrust -l -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+	@$(ECHO) "List certificates, specify the issuername & serial number." >> $(RESULTFILE)
+	@cimtrust -l -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@$(ECHO) >> $(RESULTFILE)
+
+
+
+
+ifndef PEGASUS_PAM_AUTHENTICATION
+    ifneq ($(OS), zos)
+	cimuser -r -u $(CURRENT_USER)
+    endif
+endif
+	@$(ECHO) ++++cimtrust tests completed
+endif
+
+depend:
+
+general:
+
+strip-license:
+
+prepend-license:

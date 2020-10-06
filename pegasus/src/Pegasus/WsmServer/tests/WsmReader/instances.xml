@@ -1,0 +1,90 @@
+<!--Soap Envelope is needed to declare namespaces-->
+
+<SOAP-ENV:Envelope
+  xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope"
+  xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:wsmb="http://schemas.dmtf.org/wbem/wsman/1/cimbinding.xsd"
+  xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd"
+  xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"
+  xmlns:wxf="http://schemas.xmlsoap.org/ws/2004/09/transfer"
+  xmlns:wsen="http://schemas.xmlsoap.org/ws/2004/09/enumeration"
+  xmlns:tns="http://schemas.microsoft.com/wmx/2005/06"
+  xmlns:wse="http://schemas.xmlsoap.org/ws/2004/08/eventing"
+  xmlns:wsmid="http://schemas.dmtf.org/wbem/wsman/identity/1/wsmanidentity.xsd">
+
+<!--Simple instances have already been tested by the property tester-->
+
+
+<!--Test instance with multiple array properties of different types-->
+<mc:Class xmlns:mc="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/Class">
+
+  <mc:property_1>100</mc:property_1>
+  <mc:property_1>101</mc:property_1>
+  <mc:property_1>102</mc:property_1>
+  <mc:property_1>103</mc:property_1>
+
+  <mc:property_2>
+      <wsa:Address>http://www.acme_1.com:5988/wsman</wsa:Address>
+      <wsa:ReferenceParameters>
+        <wsman:ResourceURI>ResourceURI_1</wsman:ResourceURI>
+        <wsman:SelectorSet>
+          <wsman:Selector Name="first">John</wsman:Selector>
+        </wsman:SelectorSet>
+      </wsa:ReferenceParameters>
+  </mc:property_2>
+  <mc:property_2>
+      <wsa:Address>http://www.acme_2.com:5988/wsman</wsa:Address>
+      <wsa:ReferenceParameters>
+        <wsman:ResourceURI>ResourceURI_2</wsman:ResourceURI>
+        <wsman:SelectorSet>
+          <wsman:Selector Name="first">Jack</wsman:Selector>
+        </wsman:SelectorSet>
+      </wsa:ReferenceParameters>
+  </mc:property_2>
+  <mc:property_2>
+      <wsa:Address>http://www.acme_3.com:5988/wsman</wsa:Address>
+      <wsa:ReferenceParameters>
+        <wsman:ResourceURI>ResourceURI_3</wsman:ResourceURI>
+        <wsman:SelectorSet>
+          <wsman:Selector Name="first">Fred</wsman:Selector>
+        </wsman:SelectorSet>
+      </wsa:ReferenceParameters>
+  </mc:property_2>
+
+  <mc:property_3>
+    <mc1:Class1 xmlns:mc1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/Class1">
+      <mc:prop_1>1111</mc:prop_1>
+    </mc1:Class1>
+  </mc:property_3>
+  <mc:property_3>
+    <mc1:Class1 xmlns:mc1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/Class1">
+      <mc:prop_1>2222</mc:prop_1>
+    </mc1:Class1>
+  </mc:property_3>
+  <mc:property_3>
+    <mc1:Class1 xmlns:mc1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/Class1">
+      <mc:prop_1>3333</mc:prop_1>
+    </mc1:Class1>
+  </mc:property_3>
+
+</mc:Class>
+
+
+
+<!--Test instance specific errors-->
+
+<!--Invalid class name: namespace schema prefix is wrong-->
+<mc:Class xmlns:mc="http://schemas.dmtf.org/BAD/wscim/1/cim-schema/2/Class">
+  <mc:property_1>100</mc:property_1>
+</mc:Class>
+
+
+<!--Invalid instance: not namespace qualified-->
+<Class>
+  <property_1>100</property_1>
+</Class>
+
+
+</SOAP-ENV:Envelope>

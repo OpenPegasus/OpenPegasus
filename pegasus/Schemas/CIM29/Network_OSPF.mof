@@ -1,0 +1,453 @@
+// ===================================================================
+// Title: Network_OSPF
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_OSPF.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines classes to manage OSPF
+//              (Open Shortest Path First).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR788 - Add classes to support OSPF
+// CR806 - Update the OSPF model to take into account the
+//         RangeOfIPAddresses class (vs IPAddressRange)
+// CR837 - Add the property RFC1583Compatibility to OSPFService, and
+//         add the property StubMetricType to OSPFAreaConfiguration
+// CR863 - Update the format of the MappingStrings qualifier when
+//         referencing IETF RFCs
+// CR903 - Correction of EndpointInLink.Member reference.
+// CR959 - Reposition OSPFLink using the ConnectivityCollection class
+// CR982 - Removal of Experimental for preliminary to final
+// CR994 - Update of the InstanceID property Description
+// Change Log for v2.8
+// CR1231 - Update references
+//        Property CIM_OSPFService.RunningMOSPF
+//        (CIM_OSPFServiceCapabillities.SupportMOSPF)
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ====================================================================
+// OSPFArea
+// ====================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class represents an OSPF area. The definition of an OSPF "
+       "area from RFC2328, is 'OSPF allows sets of networks to be "
+       "grouped together. Such a grouping is called an area. The "
+       "topology of an area is hidden from the rest of the Autonomous "
+       "System. This information hiding enables a significant "
+       "reduction in routing traffic. Also, routing within the area is "
+       "determined only by the area's own topology, lending the area "
+       "protection from bad routing data.' This class has a 'Type' "
+       "propery, which distinguishes between the different area types. "
+       "This approach was chosen, because it provides a simpler way to "
+       "indicate the type of an area, and additional subclassing is "
+       "not needed at this time.")]
+class CIM_OSPFArea : CIM_RoutingProtocolDomain {
+
+      [Description (
+          "The area ID of this OSPF area, see C.2 in RFC 2328."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfAreaId" }]
+   uint32 AreaID;
+
+      [Required, Description (
+          "The type of the OSPF area."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Plain", "Stub", "NSSA" }]
+   uint16 AreaType;
+
+      [Description (
+          "When the number of non-default AS-external-LSAs in a "
+          "router's link-state database reaches this limit, the router "
+          "enters OverflowState, see 2.1 in RFC 1765."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfExtLsdbLimit" }]
+   uint32 ExtLsdbLimit;
+};
+
+
+// ====================================================================
+// OSPFService
+// ====================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class is used to represent the basic operation of OSPF. "
+       "It is derived from the RouteCalculationService, the superclass "
+       "of all routing protocols.")]
+class CIM_OSPFService : CIM_RouteCalculationService {
+
+      [Description (
+          "This attribute indicates whether this router is running "
+          "MOSPF (multicast enhancements to OSPF) or not, see B.1 in "
+          "RFC 1584. This attribute only can be true, when the "
+          "SupportMOSPF property in OSPFService Capabilities is also "
+          "true. If SupportMOSPF is false, then this property has no "
+          "meaning."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfMulticastExtensions" }]
+   boolean RunningMOSPF;
+
+      [Description (
+          "This attribute indicates whether this router will forward "
+          "multicast datagrams between OSPF areas or not, see B.1 in "
+          "RFC 1584."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfMulticastExtensions" }]
+   boolean IsInterAreaMulticastForwarder;
+
+      [Description (
+          "This attribute indicates whether this router will forward "
+          "multicast datagrams between Autonomous Systems or not, see "
+          "B.1 in RFC 1584."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfMulticastExtensions" }]
+   boolean IsInterAsMulticastForwarder;
+
+      [Description (
+          "The number of seconds that, after entering OverflowState, a "
+          "router will attempt to leave OverflowState. When set to 0, "
+          "the router will not leave OverflowState until restarted, "
+          "see 2.1 in RFC 1765."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfExitOverflowInterval" }]
+   uint32 ExitOverflowInterval;
+
+      [Description (
+          "Controls the preference rules used in choosing among "
+          "multiple AS-external-LSAs advertising the same destination. "
+          "When set to TRUE, the preference rules remain those "
+          "specified by RFC 1583. When set to FALSE, the preference "
+          "rules are those stated in RFC 2328, which prevent routing "
+          "loops when AS-external-LSAs for the same destination have "
+          "been originated from different areas. See C.1 in RFC2328.")]
+   boolean RFC1583Compatibility;
+};
+
+
+// ==================================================================
+// OSPFServiceCapabilities
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "The OSPFServiceCapabilities class represents the capabilities "
+       "of an OSPF service.")]
+class CIM_OSPFServiceCapabilities : CIM_Capabilities {
+
+      [Description (
+          "This attribute indicates whether this router supports NSSA "
+          "(\"not-so-stubby\") areas or not, see RFC 1587.")]
+   boolean SupportNSSA;
+
+      [Description (
+          "This attribute indicates whether this router supports "
+          "on-demand circuits or not, see RFC 1793."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfDemandExtensions" }]
+   boolean SupportOnDemand;
+
+      [Description (
+          "This attribute indicates whether this router supports MOSPF "
+          "(multicast enhancements to OSPF) or not, see B.1 in RFC "
+          "1584."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfMulticastExtensions" }]
+   boolean SupportMOSPF;
+};
+
+
+// ====================================================================
+// OSPFAreaConfiguration
+// ====================================================================
+   [Version ( "2.7.0" ), Description (
+       "Each OSPF router has an association to one or more OSPF areas. "
+       "Into these areas, a router advertises summaries filtered by "
+       "specific address ranges. This would natively be modeled as a "
+       "ternary association (router/OSPFService to OSPFArea to "
+       "RangeOfIPAddresses), which is problematic in some "
+       "implementations. To get around this issue, the "
+       "OSPFAreaConfiguration class is defined to act as a focal point "
+       "to bring together the router (indicated as a ComputerSystem "
+       "with an instance of OSPFService, associated to the "
+       "AreaConfiguration using OSPFServiceConfiguration), the area "
+       "(indicated as an OSPFArea, associated to the AreaConfiguration "
+       "using AreaOfConfiguration) and the address ranges for "
+       "advertising (indicated as instances of RangeOfIPAddresses, "
+       "associated to the AreaConfiguration using "
+       "RangesOfConfiguration). There would be an instance of "
+       "OSPFAreaConfiguration for each connected area of a "
+       "router/OSPFService. \n"
+       "\n"
+       "When network administrators want to control the advertisements "
+       "of OSPF routers by filters, they first define the relevant "
+       "ranges. In order for a router to handle a range, an instance "
+       "of RangeOfIPAddresses MUST be associated to the relevant "
+       "OSPFAreaConfiguration (using the relationship, RangesOf "
+       "Configuration). The association between the range and area "
+       "configuration contains a property defining the handling "
+       "(EnableAdvertise) to allow or disallow advertisements in the "
+       "range. \n"
+       "\n"
+       "Notes: \n"
+       "- Because RangeOfIPAddresses is scoped by a System (via the "
+       "HostedCollection association), an instance of "
+       "RangeOfIPAddresses would be associated to an OSPFArea, "
+       "satisfying this semantic. \n"
+       "- This class is inherited from LogicalElement, because a "
+       "suitable subclass 'lower' in the inheritance hiearchy does not "
+       "exist.")]
+class CIM_OSPFAreaConfiguration : CIM_LogicalElement {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<OSPFService ID><Area Configuration ID> \n"
+          "where: \n"
+          "<OrgID> and the remainder of the InstanceID are separated "
+          "by a colon ':', and where <OrgID> MUST include a "
+          "copyrighted, trademarked or otherwise unique name that is "
+          "owned by the business entity creating/defining the "
+          "InstanceID, or is a registered ID that is assigned to the "
+          "business entity by a recognized global authority. (This is "
+          "similar to the <Schema Name>_<Class Name> structure of "
+          "Schema class names.) In addition, to ensure uniqueness "
+          "<OrgID> MUST NOT contain a colon (':'). When using this "
+          "algorithm, the first colon to appear in InstanceID MUST "
+          "appear between <OrgID> and the <OSPFService ID>. For DMTF "
+          "defined instances, the 'preferred' algorithm MUST be used, "
+          "and the <OrgID> set to 'CIM'. \n"
+          "<OSPFService ID> and <Area Configuration ID> MUST specify "
+          "vendor-unique identifiers for the OSPFService and "
+          "AreaConfiguration.")]
+   string InstanceID;
+
+      [Description (
+          "This attribute contains the value of the default route that "
+          "this router advertises into a stub area, see C.2 RFC 2328."), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfStubMetric" }]
+   uint32 StubDefaultCost;
+
+      [Description (
+          "This attribute contains the type of metric advertised as a "
+          "default route into a stub area, see 3. in RFC 1850."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "OSPF Metric", "Comparable Cost", "NonComparable" }, 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfStubMetricType" }]
+   uint16 StubMetricType;
+};
+
+
+// ====================================================================
+// OSPFLink
+// ====================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class is used to represent OSPF connectivity between two "
+       "or more OSPF protocol endpoints.")]
+class CIM_OSPFLink : CIM_ConnectivityCollection {
+
+      [Required, Description (
+          "The type of the OSPF link, see section 1.2 in RFC 2328."), 
+       ValueMap { "2", "3", "4", "5" }, 
+       Values { "Point-To-Point", "Point-To-Multipoint", "Broadcast",
+          "NBMA" }]
+   uint16 LinkType;
+
+      [Description (
+          "The time, in seconds, between sending OSPF Hello-packets "
+          "over the interface, see section C.3 in RFC 2328."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfHelloInterval" }]
+   uint32 HelloInterval;
+
+      [Description (
+          "After ceasing to hear a router's Hello-packets, the number "
+          "of seconds before its neighbors declare the router down, "
+          "see section C.3 in RFC 2328."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfRtrDeadInterval" }]
+   uint32 RouterDeadInterval;
+
+      [Required, Description (
+          "This parameter indicates whether IP multicast datagrams "
+          "should be forwarded over this OSPF link, and if so, how the "
+          "forwarding should be done, see section B.2 in RFC 1584."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Disabled", "Data-link Multicast",
+       "Data-link Unicast" }, 
+       MappingStrings { "MIB.IETF|OSPF-MIB.ospfIfMulticastForwarding" }]
+   uint16 MulticastForwarding;
+};
+
+// ====================================================================
+// AreaOfConfiguration
+// ====================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association connects an area configuration to its area. "
+       "The OSPFAreaConfiguration class is defined to act as a focal "
+       "point to bring together the router (indicated as a "
+       "ComputerSystem with an instance of OSPFService, associated to "
+       "the AreaConfiguration using OSPFServiceConfiguration), the "
+       "area (indicated as an OSPFArea, associated to the "
+       "AreaConfiguration using AreaOfConfiguration) and the address "
+       "ranges for advertising (indicated as instances of "
+       "RangeOfIPAddresses, associated to the AreaConfiguration using "
+       "RangesOfConfiguration). There is an instance of "
+       "OSPFAreaConfiguration for each connected area of a "
+       "router/OSPFService.")]
+class CIM_AreaOfConfiguration : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The OSPF area.")]
+   CIM_OSPFArea REF Antecedent ;
+
+      [Override ( "Dependent" ), Description (
+          "The configuration which is applied to an OSPF area. This is "
+          "the Dependent reference in this association, since it "
+          "depends on the area for any functional significance.")]
+   CIM_OSPFAreaConfiguration REF Dependent;
+};
+
+
+// ====================================================================
+// OSPFServiceConfiguration
+// ====================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "OSPFServiceConfiguration connects an OSPF service to its area "
+       "configurations. The configurations are defined for the OSPF "
+       "Service, and so do not make sense as stand alone objects. This "
+       "is the reason for the Min (1), Max (1) cardinalities on "
+       "OSPFService. They mandate the instantiation of the service and "
+       "of this association for the referenced instance of "
+       "OSPFAreaConfiguration. The area configuration acts as a focal "
+       "point to bring together the router (indicated as a "
+       "ComputerSystem with an instance of OSPFService, associated to "
+       "the AreaConfiguration using this relationship), the area "
+       "(indicated as an OSPFArea, associated to the AreaConfiguration "
+       "using AreaOfConfiguration) and the address ranges for "
+       "advertising (indicated as instances of RangeOfIPAddresses, "
+       "associated to the AreaConfiguration using "
+       "RangesOfConfiguration). There would be an instance of "
+       "OSPFAreaConfiguration for each connected area of a "
+       "router/OSPFService.")]
+class CIM_OSPFServiceConfiguration : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The OSPF service.")]
+   CIM_OSPFService REF Antecedent ;
+
+      [Override ( "Dependent" ), Description (
+          "The area configuration.")]
+   CIM_OSPFAreaConfiguration REF Dependent;
+};
+
+
+// ====================================================================
+// RangesOfConfiguration
+// ====================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association connects address ranges to the OSPF area "
+       "configuration. When network administrators want to control the "
+       "advertisements of OSPF routers by filters, they first define "
+       "the relevant ranges. In order for a router to handle a range, "
+       "an instance of RangeOfIPAddresses MUST be associated to the "
+       "router's OSPFAreaConfiguration, using this relationship. The "
+       "association between the range and area configuration contains "
+       "a property (EnableAdvertise) defining the handling - to allow "
+       "or disallow advertismenets in the range.")]
+class CIM_RangesOfConfiguration : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The address range that is in the OSPF area configuration.")]
+   CIM_RangeOfIPAddresses REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The OSPF area configuration that contains the range.")]
+   CIM_OSPFAreaConfiguration REF Dependent;
+
+      [Description (
+          "The address range is advertised (TRUE) or not (FALSE), see "
+          "C.2 in RFC 2328.")]
+   boolean EnableAdvertise;
+};
+
+
+// ====================================================================
+// EndpointInLink
+// ====================================================================
+   [Association, Aggregation, Version ( "2.7.0" ), Description (
+       "This association connects an OSPFLink to the OSPFProtocol "
+       "Endpoints that this link aggregates.")]
+class CIM_EndpointInLink : CIM_MemberOfCollection {
+
+      [Aggregate, Override ( "Collection" ), Max ( 1 ), Description (
+          "The OSPF link.")]
+   CIM_OSPFLink REF Collection;
+
+      [Override ( "Member" ), Description (
+          "The OSPF protocol endpoint.")]
+   CIM_OSPFProtocolEndpointBase REF Member;
+};
+
+
+// ====================================================================
+// EndpointInArea
+// ====================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "This relation connects an OSPF endpoint to an area.")]
+class CIM_EndpointInArea : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The OSPF area.")]
+   CIM_OSPFArea REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The OSPF endpoint in the area.")]
+   CIM_OSPFProtocolEndpointBase REF PartComponent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

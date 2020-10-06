@@ -1,0 +1,127 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+/------------------------------\
+| Remote CMPI Extension README |
+\------------------------------/
+
+
+Abstract:
+---------
+
+Remote CMPI enables providers to be run on remote systems without the need
+for an extra CIMOM. It uses a special proxying provider to relay requests
+to a remote location using so-called communication layers. The remote
+side has to start a CMPIRDaemon process, which accepts remote requests and
+passes them on to CMPI style providers.
+
+Remote providers are fully binary compatible and need not to be recompiled.
+Currently there are two types of remote provider available: out-of-process
+providers and TCP/IP providers using a separate daemon program.
+
+Remote CMPI support is now integrated in OpenPegasus.
+
+This implementation uses remote location routing based on namespace names.
+CIM requests issued against namespaces designated as remote namespaces will
+be routed automatically to remote locations.
+
+See CMPIR/tools/README for creating remote namespaces.
+
+Installation instructions:
+--------------------------
+
+1) Use the Pegasus build support to build Remote CMPI.
+   Export the ENABLE_REMOTE_CMPI=1 environment variable prior to issuing make.
+
+2) Update the provider registration by editing the MOF files to state that
+   certain providers are to be driven remotely. See CMPIR/tools/README for
+   tools to modify existig registration mof files.
+
+   Remote CMPI support is automatically invoked when CIM requests are issued
+   against remote namspaces. See CMPIR/tools/README for defining remote namespaces.
+
+   For testing purposes we recommend to use the SBLM base provider suite,
+   see http://www-124.ibm.com/sblim/ for details.
+
+   Use the following CMPIR/tools commands to prepare the remote CMPI facilites:
+
+        sh CreateExtNs.sh -n root/local -p root/cimv2 -l localhost
+
+   This will create a shared read-only remote namespace.
+
+	sh AppendNs.sh root/local $SBLIM_HOME/cmpi-base/mof/Linux_BaseRegistration.mof
+	    > new-Linux_base.mof
+
+   Use the new-Linux_base.mof file to register the sblim base providers.
+
+   CreateExtNS2 program:
+
+        CreateExtNS2 program can be used to create the remote namespaces. This program uses
+        CIMRepository interface directly to create the remote namespaces and remote namespce
+        creation is independent of underlying persistence store. Unlike other RCMPI
+        tools/programs/libraries this program uses pegasus libraries. However dynamic creation
+        of remote namespaces are not supported.
+
+2) Install the Remode CMPI Daemon at the remote location. For the moment only
+   Linux systems are supported as remote locations. Copy the following files
+   to the remote system:
+
+      $PEGASUS_HOME/bin/CMPIRDaemn
+      $PEGASUS_HOME/lib/libCMPIRNative.so
+      $PEGASUS_HOME/lib/libCMPIRTCPCommRemote.so
+
+   Copy required CMPI style providers to the remote location(s) as well.
+
+   Setup the PATH and LD_LIBRARY_PATH environment variable accordingly.
+
+3) Start CMPIRDaemon at the remote location(s) by issuing CMPIRDaemon at a comand
+   line prompt. Remote CMPI uses port 9001.
+
+4) Issue requests against CIMOM to see if its working, for example
+
+        cimcli -n root/local ni Linux_ComputerSystem
+
+   All commands against root/local will be routed to the CMPIRDaemon.
+
+
+Debugging:
+----------
+
+To enable debugging output export RCMPI_DEBUG with one of the following values:
+- critical
+- normal
+- info
+- verbose
+
+This should give you detailed description about the actions performed within
+remote CMPI, both for the daemon process and the CIMOM.
+
+
+-----------------------------------------------------------------------------
+Origial Author: Frank Scheffler (frank.scheffler@gmx.net)
+Modified by Adrian Schuur (schuur@de.ibm.com)

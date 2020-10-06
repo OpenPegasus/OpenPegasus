@@ -1,0 +1,55 @@
+# Testcases for normalizetoDOC API
+#
+#
+# Top predicate is simple
+SELECT * FROM CQL_TestPropertyTypes WHERE NOT PropertyString = 'a'
+
+#
+# Top predicate is not simple, but 2nd level predicates are simple
+SELECT * FROM CQL_TestPropertyTypes WHERE PropertyString = 'a' AND PropertyUint8 = 3
+SELECT * FROM CQL_TestPropertyTypes WHERE PropertyString = 'a' AND NOT PropertyUint8 = 3
+SELECT * FROM CQL_TestPropertyTypes WHERE NOT (PropertyString = 'a' AND PropertyString = 'b')
+#
+# Top predicate is not simple, 2nd level predicates are not simple
+# Requires distribution of AND
+SELECT * FROM CQL_TestPropertyTypes WHERE (PropertyString = 'a' OR PropertySint8 = -1) AND PropertyUint8 = 3
+#
+# Top predicate is not simple, 2nd level predicates are not simple
+# Requires DeMorgan
+SELECT * FROM CQL_TestPropertyTypes WHERE NOT(PropertyString = 'a' OR PropertySint8 = -1) AND PropertyUint8 = 3
+# Top predicate is not simple, 2nd level predicates are not simple
+# Requires DeMorgan and distribution of AND
+SELECT * FROM CQL_TestPropertyTypes WHERE NOT(PropertyString = 'a' AND PropertySint8 = -1) AND PropertyUint8 = 3
+SELECT * FROM CQL_TestPropertyTypes WHERE (PropertyUint64 = 5 OR NOT(PropertyString = 'a' AND PropertySint8 = -1)) AND PropertyUint8 = 3
+# (A v B) ^ C ---> (A ^ B) v (B ^ C)
+select * from class where ((class.propA = 'normalize') OR (class.propB = 'this')) AND (class.propC = 'you')
+# A ^ (B v C) ---> (A ^ B) v (A ^ C)
+select * from class where (class.propA = 'normalize') AND ((class.propB = 'this') OR (class.propC = 'you'))
+# !(A v B) ---> !A ^ !B
+select * from class where NOT ((class.propA = 'normalize') OR (class.propB = 'this'))
+# !(A ^ B) ---> !A v !B
+select * from class where NOT ((class.propA = 'normalize') AND (class.propB = 'this'))
+# (A OR B AND ( D OR E )) AND C ---> (A AND C) OR (B AND D AND C) OR (B AND E AND C)
+select * from x where (x.A = '1' OR x.B = '2' AND ( x.D = '3' OR x.E = '4' )) AND (x.C = '5')
+# (A OR B AND NOT( D OR E )) AND C ---> (A AND C) OR (B AND NOT(D) AND NOT(C)) OR (B AND E AND C)
+select * from x where (x.A = '1' OR x.B = '2' AND NOT( x.D = '3' OR x.E = '4' )) AND (x.C = '5')
+# ISA, LIKE, IS NULL, IS NOT NULL
+select * from class where NOT ((class.propA IS NULL) AND (class.propB = 'this'))
+select * from class where NOT ((class.propA ISA class) AND (class.propB LIKE 'this'))
+select * from x where x.A IS NOT NULL
+select * from x where x.A IS NULL AND x.B IS NULL AND NOT (x.C IS NULL)
+select * from x where x.A LIKE 'this' AND x.B LIKE 'that'
+# (A OR B AND ( D OR E )) AND C ---> (A AND C) OR (B AND D AND C) OR (B AND E AND C)
+select * from x where (x.A LIKE '1' OR x.B = '2' AND ( x.D = '3' OR x.E IS NOT NULL )) AND (x.C LIKE '5')
+select * from x where (x.A <> '1' OR x.B ISA Xclass AND ( x.D = '3' OR x.E = '4' )) AND (x.C IS NULL)
+select * from class where NOT (NOT (x LIKE 'this') OR x LIKE 'that')
+# Simple LIKE/ISA
+select * from class where NOT ('aa' LIKE 'bb')
+select * from class where NOT (class ISA Aclass)
+# the following 2 statements are equivalent
+select * from class where NOT class.prop IS NULL
+select * from class where NOT (class.prop IS NULL)
+# should cancel the NOTs
+select * from class where NOT ( NOT (class.prop LIKE 'this') )
+# should be left with one NOT
+select * from class where NOT (NOT ( NOT (class.prop IS NULL) ) )

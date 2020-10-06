@@ -1,0 +1,142 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_ComputerSystem
+// ==================================================================
+   [UMLPackagePath ( "CIM::System::SystemElements" ),
+    Version ( "2.7.0" ), Description (
+       "A class derived from System that is a special collection of "
+       "ManagedSystemElements. This collection provides compute "
+       "capabilities and serves as aggregation point to associate one "
+       "or more of the following elements: FileSystem, "
+       "OperatingSystem, Processor and Memory (Volatile and/or "
+       "NonVolatile Storage).")]
+class CIM_ComputerSystem : CIM_System {
+
+      [Override ( "NameFormat" ), Description (
+          "The ComputerSystem object and its derivatives are Top Level "
+          "Objects of CIM. They provide the scope for numerous "
+          "components. Having unique System keys is required. The "
+          "NameFormat property identifies how the ComputerSystem Name "
+          "is generated. The NameFormat ValueMap qualifier defines the "
+          "various mechanisms for assigning the name. Note that "
+          "another name can be assigned and used for the "
+          "ComputerSystem that better suit a business, using the "
+          "inherited ElementName property."), 
+       ValueMap { "Other", "IP", "Dial", "HID", "NWA", "HWA", "X25",
+          "ISDN", "IPX", "DCC", "ICD", "E.164", "SNA", "OID/OSI",
+          "WWN", "NAA" }]
+   string NameFormat;
+
+      [Description (
+          "OtherIdentifyingInfo captures additional data, beyond "
+          "System Name information, that could be used to identify a "
+          "ComputerSystem. One example would be to hold the Fibre "
+          "Channel World-Wide Name (WWN) of a node. Note that if only "
+          "the Fibre Channel name is available and is unique (able to "
+          "be used as the System key), then this property would be "
+          "NULL and the WWN would become the System key, its data "
+          "placed in the Name property."), 
+       MaxLen ( 256 ), ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_ComputerSystem.IdentifyingDescriptions" }]
+   string OtherIdentifyingInfo[];
+
+      [Description (
+          "An array of free-form strings providing explanations and "
+          "details behind the entries in the OtherIdentifying Info "
+          "array. Note, each entry of this array is related to the "
+          "entry in OtherIdentifyingInfo that is located at the same "
+          "index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ComputerSystem.OtherIdentifyingInfo" 
+          }]
+   string IdentifyingDescriptions[];
+
+      [Description (
+          "Enumeration indicating whether the ComputerSystem is a "
+          "special-purpose System (ie, dedicated to a particular use), "
+          "versus being 'general purpose'. For example, one could "
+          "specify that the System is dedicated to \"Print\" "
+          "(value=11) or acts as a \"Hub\" (value=8). \n"
+          "A clarification is needed with respect to the value 17 "
+          "(\"Mobile User Device\"). An example of a dedicated user "
+          "device is a mobile phone or a barcode scanner in a store "
+          "that communicates via radio frequency. These systems are "
+          "quite limited in functionality and programmability, and are "
+          "not considered 'general purpose' computing platforms. "
+          "Alternately, an example of a mobile system that is 'general "
+          "purpose' (i.e., is NOT dedicated) is a hand-held computer. "
+          "Although limited in its programmability, new software can "
+          "be downloaded and its functionality expanded by the user."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20" }, 
+       Values { "Not Dedicated", "Unknown", "Other", "Storage",
+          "Router", "Switch", "Layer 3 Switch",
+          "Central Office Switch", "Hub", "Access Server", "Firewall",
+          "Print", "I/O", "Web Caching", "Management", "Block Server",
+          "File Server", "Mobile User Device", "Repeater",
+          "Bridge/Extender", "Gateway" }, 
+       MappingStrings { "MIB.IETF|MIB-II.sysServices" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_ComputerSystem.OtherDedicatedDescriptions" }]
+   uint16 Dedicated[];
+
+      [Description (
+          "A string describing how or why the system is dedicated when "
+          "the Dedicated array includes the value 2, \"Other\"."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ComputerSystem.Dedicated" }]
+   string OtherDedicatedDescriptions[];
+
+      [Description (
+          "If enabled (value = 4), the ComputerSystem can be reset via "
+          "hardware (e.g. the power and reset buttons). If disabled "
+          "(value = 3), hardware reset is not allowed. In addition to "
+          "Enabled and Disabled, other Values for the property are "
+          "also defined - \"Not Implemented\" (5), \"Other\" (1) and "
+          "\"Unknown\" (2)."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Disabled", "Enabled",
+          "Not Implemented" }, 
+       MappingStrings { "MIF.DMTF|System Hardware Security|001.4" }]
+   uint16 ResetCapability;
+
+      [Deprecated { "CIM_PowerManagementCapabilities.PowerCapabilities" 
+          }, Description (
+          "An enumerated array describing the power management "
+          "capabilities of the ComputerSystem. The use of this "
+          "property has been deprecated. Instead, the Power "
+          "Capabilites property in an associated PowerManagement "
+          "Capabilities class should be used."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Not Supported", "Disabled", "Enabled",
+          "Power Saving Modes Entered Automatically",
+          "Power State Settable", "Power Cycling Supported",
+          "Timed Power On Supported" }, 
+       MappingStrings { "MIF.DMTF|System Power Controls|001.2" }]
+   uint16 PowerManagementCapabilities[];
+
+      [Deprecated { "CIM_PowerManagementService.SetPowerState" }, 
+       Description (
+          "Sets the power state of the computer. The use of this "
+          "method has been deprecated. Instead, use the SetPowerState "
+          "method in the associated PowerManagementService class.")]
+   uint32 SetPowerState( 
+         [IN, Description (
+             "The Desired state for the COmputerSystem."), 
+          ValueMap { "1", "2", "3", "4", "5", "6", "7", "8" }, 
+          Values { "Full Power", "Power Save - Low Power Mode",
+             "Power Save - Standby", "Power Save - Other",
+             "Power Cycle", "Power Off", "Hibernate", "Soft Off" }]
+      uint32 PowerState, 
+         [IN, Description (
+             "Time indicates when the power state should be set, "
+             "either as a regular date-time value or as an interval "
+             "value (where the interval begins when the method "
+             "invocation is received.")]
+      datetime Time); 
+};

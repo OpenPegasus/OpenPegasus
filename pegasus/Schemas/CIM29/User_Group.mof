@@ -1,0 +1,231 @@
+// ===================================================================
+// Title: User_Group
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: User_Group.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The User Model extends the management concepts that
+//              are related to users and security.
+//              This file defines the concepts and classes related to
+//              Groups.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ===================================================================
+// Change Log for v2.8: None
+// 
+// Change Log for v2.7
+// (ERRATA) CR855 - Changed cardinality of the Antecedent from 0..1
+//         to 1 for MoreGroupInfo
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// Group
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The Group class is used to collect ManagedElements into "
+       "groups. This class is defined so as to incorporate "
+       "commonly-used LDAP attributes to permit implementations to "
+       "easily derive this information from LDAP-accessible "
+       "directories. This class's properties are a subset of a related "
+       "class, OtherGroupInformation, which defines all the group "
+       "properties and in array form for directory compatibility.")]
+class CIM_Group : CIM_Collection {
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "The Name property defines the label by which the object is "
+          "known. In the case of an LDAP-derived instance, the Name "
+          "property value may be set to the distinguished name of the "
+          "LDAP-accessed object instance."), 
+       MaxLen ( 1024 )]
+   string Name;
+
+      [Description (
+          "The BusinessCategory property may be used to describe the "
+          "kind of business activity performed by the members of the "
+          "group."), 
+       MaxLen ( 128 )]
+   string BusinessCategory;
+
+      [Required, Description (
+          "A Common Name is a (possibly ambiguous) name by which the "
+          "group is commonly known in some limited scope (such as an "
+          "organization) and conforms to the naming conventions of the "
+          "country or culture with which it is associated.")]
+   string CommonName;
+};
+
+
+// ==================================================================
+// OtherGroupInformation
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The OtherGroupInformation class provides additional "
+       "information about an associated Group instance. This class is "
+       "defined so as to incorporate commonly-used LDAP attributes to "
+       "permit implementations to easily derive this information from "
+       "LDAP-accessible directories.")]
+class CIM_OtherGroupInformation : CIM_ManagedElement {
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "The Name property defines the label by which the object is "
+          "known. In the case of an LDAP-derived instance, the Name "
+          "property value may be set to the distinguished name of the "
+          "LDAP-accessed object instance."), 
+       MaxLen ( 1024 )]
+   string Name;
+
+      [Description (
+          "In the case of an LDAP-derived instance, the ObjectClass "
+          "property value(s) may be set to the objectClass attribute "
+          "values.")]
+   string ObjectClass[];
+
+      [Description (
+          "The BusinessCategory property may be used to describe the "
+          "kind of business activity performed by the members of the "
+          "group."), 
+       MaxLen ( 128 )]
+   string BusinessCategory[];
+
+      [Description (
+          "A Common Name is a (possibly ambiguous) name by which the "
+          "group is commonly known in some limited scope (such as an "
+          "organization) and conforms to the naming conventions of the "
+          "country or culture with which it is associated.")]
+   string CommonName[];
+
+      [Description (
+          "The Descriptions property values may contain human-readable "
+          "descriptions of the object. In the case of an LDAP-derived "
+          "instance, the description attribute may have multiple "
+          "values that, therefore, cannot be placed in the inherited "
+          "Description property."), 
+       MaxLen ( 1024 )]
+   string Descriptions[];
+
+      [Description (
+          "The name of an organization related to the group.")]
+   string OrganizationName[];
+
+      [Description (
+          "The name of an organizational unit related to the group.")]
+   string OU[];
+
+      [Description (
+          "The Owner property specifies the name of some object that "
+          "has some responsibility for the group. In the case of an "
+          "LDAP-derived instance, a property value for Owner may be a "
+          "distinguished name of owning persons, groups, roles, etc.")]
+   string Owner[];
+
+      [Description (
+          "In the case of an LDAP-derived instance, the SeeAlso "
+          "property specifies distinguished name of other Directory "
+          "objects which may be other aspects (in some sense) of the "
+          "same real world object.")]
+   string SeeAlso[];
+};
+
+
+// ==================================================================
+// MoreGroupInfo
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "CIM_MoreGroupInfo is an association used to extend the "
+       "information in a CIM_Group class instance.")]
+class CIM_MoreGroupInfo : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The Group which has more information.")]
+   CIM_Group REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "Additional data concerning the Group.")]
+   CIM_OtherGroupInformation REF Dependent;
+};
+
+
+// ==================================================================
+// SystemAdministratorGroup
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_SystemAdministratorGroup is an association used to "
+       "identify a Group that has system administrator "
+       "responsibilities for a CIM_System.")]
+class CIM_SystemAdministratorGroup : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The administered system.")]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Group of administrators.")]
+   CIM_Group REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

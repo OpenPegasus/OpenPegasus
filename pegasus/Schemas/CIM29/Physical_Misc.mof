@@ -1,0 +1,294 @@
+// ===================================================================
+// Title: Physical_Misc
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Physical_Misc.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Physical Model defines modeling concepts related
+//              to actual boxes and packaging. This file defines the
+//              concepts related to sets of physical entities that are
+//              replaced at the same time/together, and capacity.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for 2.9Final
+// CR1263 - Add DDR2 enumeration to CIM and SMBIOS
+//
+// Change Log for v2.8
+// CR1094 - Update subclassing of replacementset
+// 
+// Change Log for v2.7
+// CR901 - Clarify the description for PhysicalCapacity
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// ReplacementSet
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "The ReplacementSet class aggregates PhysicalElements that must "
+       "be 'replaced' or 'FRUed' together. For example, when replacing "
+       "a memory card, the component memory chips could be removed and "
+       "replaced as well. Or, a set of memory chips may be specified "
+       "to be replaced or upgraded together using this association.")]
+class CIM_ReplacementSet : CIM_Collection {
+
+      [Key, Description (
+          "Name is a free-form string defining a label for the "
+          "ReplacementSet. It is the key for the object."), 
+       MaxLen ( 256 )]
+   string Name;
+};
+
+
+// ==================================================================
+// ParticipatesInSet
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "ParticipatesInSet indicates which PhysicalElements should be "
+       "replaced together.")]
+class CIM_ParticipatesInSet {
+
+      [Key, Aggregate, Description (
+          "The ReplacementSet.")]
+   CIM_ReplacementSet REF Set;
+
+      [Key, Description (
+          "The PhysicalElement which should be replaced with other "
+          "Elements, as a Set.")]
+   CIM_PhysicalElement REF Element;
+};
+
+
+// ==================================================================
+// PhysicalCapacity
+// ==================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "PhysicalCapacity is an abstract class describing a "
+       "PhysicalElement's minimum/maximum requirements and ability to "
+       "support different types of hardware. For example, minimum and "
+       "maximum memory requirements can be modeled as a subclass of "
+       "CIM_PhysicalCapacity. \n"
+       "\n"
+       "Note that the items described in subclasses of "
+       "PhysicalCapacity, for example the class ConfigurationCapacity, "
+       "are either directly PhysicalElements (such as I/O slots or "
+       "storage library magazines) or closely associated to "
+       "PhysicalElements via the Realizes relationship (i.e., "
+       "LogicalDevices such as batteries or processors).")]
+class CIM_PhysicalCapacity : CIM_ManagedElement {
+
+      [Description (
+          "The Name property defines the label by which the Physical "
+          "Capacity object is known. When subclassed, the Name "
+          "property can be overridden to be a Key property."), 
+       MaxLen ( 256 )]
+   string Name;
+};
+
+
+// =================================================================
+// ElementCapacity
+// =================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "ElementCapacity associates a PhysicalCapacity object with one "
+       "or more PhysicalElements. It serves to associate a description "
+       "of min/max hardware requirements or capabilities (stored as a "
+       "kind of PhysicalCapacity), with the PhysicalElements being "
+       "described.")]
+class CIM_ElementCapacity {
+
+      [Key, Description (
+          "PhysicalCapacity describes the minimum and maximum "
+          "requirements, and ability to support different types of "
+          "hardware for a PhysicalElement.")]
+   CIM_PhysicalCapacity REF Capacity;
+
+      [Key, Min ( 1 ), Description (
+          "The PhysicalElement being described.")]
+   CIM_PhysicalElement REF Element;
+};
+
+
+// ==================================================================
+// MemoryCapacity
+// ==================================================================
+   [Version ( "2.9.0" ), Description (
+       "MemoryCapacity describes the type of Memory that can be "
+       "installed on a PhysicalElement and its minimum/maximum "
+       "configurations. Information on what memory is currently "
+       "'installed', versus an Element's min/max requirements, is "
+       "located in instances of the PhysicalMemory class.")]
+class CIM_MemoryCapacity : CIM_PhysicalCapacity {
+
+      [Key, Override ( "Name" ), Description (
+          "The inherited Name serves as a part of the MemoryCapacity "
+          "object key.")]
+   string Name;
+
+      [Key, Description (
+          "The type of memory. This is a part of the object key. "
+          "Values correspond to the list of possible memory types in "
+          "the PhysicalMemory class."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21" }, 
+       Values { "Unknown", "Other", "DRAM", "Synchronous DRAM",
+          "Cache DRAM", "EDO", "EDRAM", "VRAM", "SRAM", "RAM", 
+          // 10               
+          "ROM", "Flash", "EEPROM", "FEPROM", "EPROM", "CDRAM",
+          "3DRAM", "SDRAM", "SGRAM", "RDRAM", 
+          // 20               
+          "DDR", "DDR2" }, 
+       ModelCorrespondence { "CIM_PhysicalMemory.MemoryType" }]
+   uint16 MemoryType;
+
+      [Description (
+          "Minimum amount of memory, in Kbytes, that is needed for the "
+          "associated PhysicalElement to operate correctly."), 
+       Units ( "KiloBytes" )]
+   uint64 MinimumMemoryCapacity;
+
+      [Description (
+          "Maximum amount of memory, in Kbytes, that can be supported "
+          "by the associated PhysicalElement."), 
+       Units ( "KiloBytes" )]
+   uint64 MaximumMemoryCapacity;
+};
+
+
+// ===================================================================
+// ConfigurationCapacity
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "ConfigurationCapacity provides information on the minimum and "
+       "maximum numbers of power supplies, fans, disk drives, etc. "
+       "that can be connected to or placed on/into a PhysicalElement "
+       "(and the number that must be connected/added/removed at a "
+       "time). The PhysicalElement whose configuration is described is "
+       "identified using the ElementCapacity association, inherited "
+       "from PhysicalCapacity. The object whose capacities are "
+       "indicated (ie, the power supply or fan) is identified in the "
+       "ObjectType property of this class. Since the same min/max "
+       "configurations can apply to multiple instances, this class is "
+       "not defined as 'weak'. \n"
+       "Examples of the use of the ConfigurationCapacity class are to "
+       "describe that a 'control unit' Chassis may be connected to (at "
+       "most) 4 other I/O chassis, or to describe what a "
+       "StorageLibrary's cabinet may contain. Continuing the latter "
+       "example, a particular StorageLibrary's cabinet might hold a "
+       "minimum of 3 and a maximum of 9 TapeDrives, and a minimum of "
+       "88 and a maximum of 264 StorageMediaLocations (\"Slots\"). "
+       "This information would be described in two instances of "
+       "ConfigurationCapacity, both associated to the StorageLibrary's "
+       "PhysicalPackage. \n"
+       "This class does NOT represent the tradeoffs that are likely to "
+       "be required of one resource for another. It simply represents "
+       "capacities. In the case of the StorageLibrary, there may be "
+       "only 2 valid configurations - 9 TapeDrives with 88 Slots, or 3 "
+       "TapeDrives with 264 Slots. This class only conveys that 'up "
+       "to' 9 Drives and 'up to' 264 slots may be available and are "
+       "supported.")]
+class CIM_ConfigurationCapacity : CIM_PhysicalCapacity {
+
+      [Key, Override ( "Name" ), Description (
+          "The inherited Name serves as a part of the Configuration "
+          "Capacity object key.")]
+   string Name;
+
+      [Key, Description (
+          "The type of object (power supply, fan, disk drive, ...) "
+          "whose capacities are indicated. This information is part of "
+          "the class' key."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24" }, 
+       Values { "Other", "Processors", "Power Supplies", "Fans",
+          "Batteries", "I/O Slots", "Memory Slots",
+          "MediaAccessDevices (Drives)", "StorageMediaLocation Slots",
+          "StorageMediaLocation Magazines", 
+          // 10               
+          "StorageMediaLocation Panels",
+          "StorageMediaLocation InterLibrary Ports",
+          "StorageMediaLocation Limited Access Ports", "Doors",
+          "MediaTransferDevice Pickers",
+          "MediaTransferDevice Changers", "LabelReaders",
+          "Contained Chassis", "Connected Chassis", "Connected Frames", 
+          // 20               
+          "Front Side I/O Slots", "Back Side I/O Slots",
+          "Cache Memory", "NVS Memory", "Volatile Memory" }, 
+       ModelCorrespondence { 
+          "CIM_ConfigurationCapacity.OtherTypeDescription" }]
+   uint16 ObjectType;
+
+      [Description (
+          "A string describing the object type - used when the "
+          "ObjectType property is set to 0 (\"Other\"). OtherType "
+          "Description should be set to NULL when ObjectType is any "
+          "value other than 0."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_ConfigurationCapacity.ObjectType" }]
+   string OtherTypeDescription;
+
+      [Description (
+          "Minimum number of Elements of type, ObjectType, that must "
+          "be installed.")]
+   uint64 MinimumCapacity;
+
+      [Description (
+          "Maximum number of Elements of type, ObjectType, that may be "
+          "installed.")]
+   uint64 MaximumCapacity;
+
+      [Description (
+          "Increment in which Elements must be added or removed.")]
+   uint32 Increment;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

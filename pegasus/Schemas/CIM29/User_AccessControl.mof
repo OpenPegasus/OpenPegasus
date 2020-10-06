@@ -1,0 +1,296 @@
+// ===================================================================
+// Title: User_AccessControl
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: User_AccessControl.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The User Model extends the management concepts that
+//              are related to users and security.
+//              This file defines the concepts and classes for
+//              access control.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ===================================================================
+// Change Log for v2.8 Final
+//  CR1219 - Changes to AccessControlInfo.Description accepted for
+//  Final,
+//           as well as deprecations of AccessControlInformation,
+//           HostedACI,
+//           AuthorizedUse, AuthorizationSubject, and
+//           AuthorizationTarget
+//  CR1229 - Addition of the ArrayType qualifier to AccessControl
+//           Information's AccessType, AccessQualifier and Permission
+//           properties
+//  CR1235 - Updated the deprecation and Description of
+//           AccessControlInformation.Permission / Updated the other
+//           deprecations in AccessControlInformation such that they all
+//           referenced AuthorizedPrivilege / Accepted the subclassing
+//           change for HostedACI
+// 
+// Change Log for v2.8 Preliminary (Company Review)
+//  CR1128 - Changed subclassing of HostedACI from Dependency to
+//           HostedDependency.
+// 
+// Change Log for v2.8 Preliminary
+//  CR1011 - Deprecated AccessControlInformation, HostedACI,
+//           AuthorizedUse, AuthorizationTarget, AuthorizationSubject
+// 
+// Change Log for v2.7 - None
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// AccessControlInformation
+// ==================================================================
+   [Deprecated { "CIM_AuthorizedPrivilege", "CIM_SecuritySensitivity" },
+    Version ( "2.8.0" ), Description (
+       "CIM_AccessControlInformation provides, through its properties "
+       "and its associations, the specification of the access rights "
+       "granted to a set of subject users to a set of target "
+       "resources. The AccessControlInformation class is weak to the "
+       "system (e.g., Computer System or Administrative Domain) for "
+       "which the access controls apply. \n"
+       "\n"
+       "This class is deprecated in lieu of two others: "
+       "AuthorizedPrivilege (defining specific access details) and "
+       "SecuritySensitivity (defining individual security levels). The "
+       "reasons for this are: 1. More specific access details are "
+       "defined in Privilege (the superclass of AuthorizedPrivilege); "
+       "and, 2. SecuritySensitivity allows security levels to be "
+       "applied to other elements than access control information.")]
+class CIM_AccessControlInformation : CIM_LogicalElement {
+
+      [Deprecated { "No value" }, Key,
+          Propagated ( "CIM_System.CreationClassName" ), Description (
+          "Hosting system creation class name."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Deprecated { "No value" }, Key, Propagated ( "CIM_System.Name" ), 
+       Description (
+          "Hosting system name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Deprecated { "No value" }, Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Deprecated { "CIM_AuthorizedPrivilege.InstanceID" }, Key,
+       Override ( "Name" ), Description (
+          "The Name property defines the unique label, in the context "
+          "of the hosting system, by which the "
+          "AccessControlInformation is known."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Deprecated { "CIM_SecuritySensitivity.SecurityLevel" }, 
+       Description (
+          "The SecurityClassification property specifies a named level "
+          "of security associated with the AccessControlInformation, "
+          "e.g., 'Confidential', 'Top Secret', etc.")]
+   string SecurityClassification;
+
+      [Deprecated { "CIM_AuthorizedPrivilege.Activities" }, 
+       Description (
+          "The AccessType property is an array of string values that "
+          "specifies the type of access for which the corresponding "
+          "permission applies. For example, it can be used to specify "
+          "a generic access such as 'Read-only', 'Read/Write', etc. "
+          "for file or record access control or it can be used to "
+          "specifiy an entry point name for service access control."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_AccessControlInformation.AccessQualifier",
+          "CIM_AccessControlInformation.Permission" }]
+   string AccessType[];
+
+      [Deprecated { "CIM_AuthorizedPrivilege.ActivityQualifiers" }, 
+       Description (
+          "The AccessQualifier property is an array of string values "
+          "may be used to further qualify the type of access for which "
+          "the corresponding permission applies. For example, it may "
+          "be used to specify a set of parameters that are permitted "
+          "or denied in conjunction with the corresponding AccessType "
+          "entry point name."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_AccessControlInformation.AccessType",
+          "CIM_AccessControlInformation.Permission" }]
+   string AccessQualifier[];
+
+      [Deprecated { "CIM_AuthorizedPrivilege" }, Description (
+          "The Permission property is an array of string values "
+          "indicating the permission that applies to the corresponding "
+          "AccessType and AccessQualifier array values. The values may "
+          "be extended in subclasses to provide more specific access "
+          "controls. \n"
+          "\n"
+          "This property is deprecated in lieu of the general "
+          "AuthorizedPrivilege class. This is because the Permissions, "
+          "'Access' and 'Deny', are addressed by the PrivilegeGranted "
+          "property, while 'Manage' maps to specific activities with "
+          "their corresponding qualifiers and formats."), 
+       ValueMap { "Unknown", "Allow", "Deny", "Manage" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_AccessControlInformation.AccessType",
+          "CIM_AccessControlInformation.AccessQualifier" }]
+   string Permission[];
+};
+
+
+// ==================================================================
+// HostedACI
+// ==================================================================
+   [Association, Deprecated { "No value" }, Version ( "2.8.0" ), 
+    Description (
+       "CIM_HostedACI is an association used to provide the namespace "
+       "scoping of AccessControlInformation. Since the referenced "
+       "class, AccessControlInformation, is deprecated, this Weak "
+       "association is similarly deprecated. Also, although "
+       "Privileges/access control can be defined in the context of a "
+       "System, this is not a mandatory association nor does it "
+       "provide any additional semantics for the Privilege. Therefore, "
+       "HostedACI is deprecated with no replacement association.")]
+class CIM_HostedACI : CIM_HostedDependency {
+
+      [Deprecated { "No value" }, Override ( "Antecedent" ), Min ( 1 ),
+       Max ( 1 ), Description (
+          "The hosting system.")]
+   CIM_System REF Antecedent;
+
+      [Deprecated { "No value" }, Override ( "Dependent" ), Weak, 
+       Description (
+          "The hosted AccessControlInformation.")]
+   CIM_AccessControlInformation REF Dependent;
+};
+
+
+// ==================================================================
+// AuthorizedUse
+// ==================================================================
+   [Association, Deprecated { "No value" }, Version ( "2.8.0" ), 
+    Description (
+       "CIM_AuthorizedUse is an association used to provide an "
+       "AuthorizationService with the AccessControlInformation it "
+       "needs to do its job. This association is deprecated with no "
+       "proposed replacement, since authorization processing will be "
+       "handled via policy or static checking of Privileges.")]
+class CIM_AuthorizedUse : CIM_Dependency {
+
+      [Deprecated { "No value" }, Override ( "Antecedent" ), 
+       Description (
+          "Access Control Information.")]
+   CIM_AccessControlInformation REF Antecedent;
+
+      [Deprecated { "No value" }, Override ( "Dependent" ), 
+       Description (
+          "AuthorizationService that uses an ACI.")]
+   CIM_AuthorizationService REF Dependent;
+};
+
+
+// ==================================================================
+// AuthorizationSubject
+// ==================================================================
+   [Association, Deprecated { "CIM_AuthorizedSubject" },
+       Version ( "2.8.0" ), Description (
+       "CIM_AuthorizationSubject is an association used to apply "
+       "authorization decisions to specific subjects (i.e., users). "
+       "This association is deprecated in lieu of a semantically "
+       "equivalent one, AuthorizedSubject, since one of the referenced "
+       "classes (AccessControlInformation) has been deprecated.")]
+class CIM_AuthorizationSubject : CIM_Dependency {
+
+      [Deprecated { "CIM_AuthorizedSubject.Privilege" },
+          Override ( "Antecedent" ), Description (
+          "AccessControlInformation that applies to a subject set.")]
+   CIM_AccessControlInformation REF Antecedent;
+
+      [Deprecated { "CIM_AuthorizedSubject.PrivilegedElement" },
+       Override ( "Dependent" ), Description (
+          "The subject set may be specified as a collection or as a "
+          "set of associations to ManagedElements that represent "
+          "users.")]
+   CIM_ManagedElement REF Dependent;
+};
+
+
+// ==================================================================
+// AuthorizationTarget
+// ==================================================================
+   [Association, Deprecated { "CIM_AuthorizedTarget" },
+       Version ( "2.8.0" ), Description (
+       "CIM_AuthorizationTarget is an association used to apply "
+       "authorization decisions to specific target resources. The "
+       "target resources may be aggregated into a collection or may be "
+       "represented as a set of associations to ManagedElements. This "
+       "association is deprecated in lieu of a semantically equivalent "
+       "one, AuthorizedTarget, since one of the referenced classes "
+       "(AccessControlInformation) has been deprecated.")]
+class CIM_AuthorizationTarget : CIM_Dependency {
+
+      [Deprecated { "CIM_AuthorizedTarget.Privilege" },
+          Override ( "Antecedent" ), Description (
+          "AccessControlInformation that applies to the target set.")]
+   CIM_AccessControlInformation REF Antecedent;
+
+      [Deprecated { "CIM_AuthorizedTarget.TargetElement" },
+          Override ( "Dependent" ), Description (
+          "The target set of resources may be specified as a "
+          "collection or as a set of associations to ManagedElements "
+          "that represent target resources.")]
+   CIM_ManagedElement REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

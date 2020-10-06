@@ -1,0 +1,182 @@
+.TA c \" lowercase initial letter of .TH name
+.TH cimtrust 8 
+.SH NAME
+cimtrust \- Add, remove or list X509 certificates in a PEM format trust store.
+.SH SYNOPSIS
+
+.B cimtrust
+-a [ -U certuser ] -f file -T ( a | e | s )
+
+.B cimtrust 
+-r -i issuer ( -n serialnumber | -S subject )
+
+.B cimtrust 
+-l [ -i issuer [ -n serialnumber | -S subject ] ]
+
+.B cimtrust 
+--help
+
+.B cimtrust
+--version
+
+.SS Remarks
+The cimtrust command requires that the cimserver is running. This command operates on a truststore on the local system only.
+
+.SH DESCRIPTION
+The add option of the cimtrust command adds an X509 certificate \fPfile \fP
+of a specified \fPtype \fP to the truststore. The \fPcertuser \fPspecifies
+the username to be associated with the certificate in the file. 
+If no \fPcertuser \fPis specified, the certificate may not be used 
+to authenticate a user. 
+.PP
+The remove option of the cimtrust command removes the X509 certificate(s) 
+matching the specified 
+.B issuer 
+and either 
+.B serialnumber 
+or 
+.B subject 
+from the truststore. 
+.PP
+The list option of the cimtrust command lists the X509 certificates 
+in the truststore. The list can be filtered by 
+.B issuer 
+and either 
+.B serialnumber 
+or 
+.B subject. 
+.PP
+Certificates in the trust store may be revoked by adding a 
+Certificate Revocation List to the CRL store. For more information 
+on CRL operations see the 
+.B cimcrl(8)
+command.
+.SS Options
+.B cimtrust 
+recognizes the following options:
+.RS
+.TP 15
+.B -a
+Adds a certificate to the  truststore. If the specified 
+.B file 
+does not contain a valid X509 certificate an error message is returned 
+and no action is taken. If the X509 certificate already exists 
+in the truststore, an error message is returned. 
+.TP
+.B -r
+Removes certificate(s) from the truststore. If the truststore contains 
+multiple certificates matching the specified 
+.B issuer 
+and 
+.B subject, 
+all the matching certificates are removed. If no certificate exists for 
+the specified 
+.B issuer 
+and either 
+.B serialnumber 
+or 
+.B subject
+, an error message is returned and no action is taken.  
+.TP
+.B -l
+Displays the X509 certificates in the truststore.
+.TP
+.B -f file
+Specifies a PEM format file containing an X509 certificate. 
+.TP
+.B -U certuser
+Specifies a username to be associated with the specified certificate. 
+The username specified should be a valid system user on the target system. 
+.TP
+.B -i issuer
+Specifies the issuer name of the certificate.
+.TP
+.B -n serialnumber
+Specifies the serial number of the certificate.
+.TP
+.B -S subject
+Specifies the subject name of the certificate.
+.TP
+.B -T ( a | e | s )
+Specifies the type of a certificate. The type must be one of the following:
+
+authority (a): root/intermediate authority certificates. Certificates of this type are added to the trusted certificate store.  The certuser is optional for authority certificates.  If no certuser is specified, the certificate may not be used to authenticate a user.
+
+authority issued end-entity (e): Certificates of this type are not added to the trusted certificate store. The certuser is required for authority issued end-entity certificates. 
+
+Self-signed identity certificate (s): Certificates of this type are added to the trusted certificate store. The certuser is required for self-signed identity certificates. 
+.TP
+.B --help
+Displays the command help message.  
+.TP
+.B --version
+Displays the CIM Server version.
+.SH EXIT STATUS
+When an error occurs, an error message is written to the standard error
+stream and a non-zero exit status value is returned. The following exit
+status values are defined:
+.RS
+.TP
+.B 0
+Success
+.PD
+.TP
+.B 1
+General error
+.PD
+.TP
+.B 2
+Connection failed
+.PD
+.TP
+.B 3
+Connection timed out
+.PD
+.TP
+.B 4
+Certificate already exists
+.PD
+.TP
+.B 5
+Certificate does not exist
+.PD
+.TP
+.B 6
+Invalid system user
+.PD
+.RE
+.SH EXAMPLES
+Add the X509 self-signed identity certificate in the cert.pem file and 
+associate it to certuser guest. This certificate will be added to the 
+trusted certificate store: 
+
+cimtrust -a -U guest -f cert.pem -T s
+
+Add the X509 authority root CA certificate in the ca.pem file with no certuser 
+association. This certificate will be added to the trusted certificate store but 
+may not be used to authenticate a user:
+
+cimtrust -a -f ca.pem -T a
+
+Add the X509 authority issued end-entity certificate in the user.pem file and 
+associate it to certuser pegasus. This certificate may be used to authenticate 
+user pegasus but will not be added to the trusted certificate store:
+
+cimtrust -a -f user.pem -U pegasus -T e 
+
+Remove the certificate matching the specified issuer and serialnumber from 
+the trust store: 
+
+cimtrust -r -i "/C=US/ST=California/L=Cupertino/O=Smart & Secure/OU=Secure Software Division/CN=dev.admin.ss.com" -n 01 
+
+Remove the certificate(s) matching the specified issuer and subject from the trust store: 
+
+cimtrust -r -i "/C=US/ST=California/L=Cupertino/O=Smart & Secure/OU=Secure Software Division/CN=dev.admin.ss.com" -S "/C=US/ST=California/L=Cupertino/O=Smart & Secure/OU=Secure Software Division/CN=dev.admin.ss.com"
+
+List all the X509 certificates in the trust store: 
+
+cimtrust -l 
+
+.SH SEE ALSO
+.PP
+cimserver(8), cimcrl(8), cimconfig(8).

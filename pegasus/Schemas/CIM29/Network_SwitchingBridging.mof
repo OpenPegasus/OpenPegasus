@@ -1,0 +1,1060 @@
+// ===================================================================
+// Title: Network_SwitchingBridging
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_SwitchingBridging.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines network services and
+//              supporting information for switching and bridging.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR662 - Update the description for SourceRoutingService
+// CR863 - Update the format of the MappingStrings qualifier when
+//         referencing IETF RFCs
+// CR868 - Cleanup of the routing/switching classes
+// CR961 - Update the reference to EnabledLogicalElement.EnabledState
+// CR983 - v2.7 Deprecations promoted to final
+// Change Log for v2.8
+// CR1231 - Update reference Property
+// CIM_SwitchService.BridgeAddressType
+//          (CIM_SwitchingService.BridgeAddress)
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ===================================================================
+// SwitchService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Generic switch (bridging) service class. Additional switching "
+       "functions are incorporated as subordinate services related to "
+       "this class via ServiceComponent associations.")]
+class CIM_SwitchService : CIM_ForwardingService {
+
+      [Description (
+          "Address used by this SwitchService when it must be uniquely "
+          "identified. For an ethernet bridge, the MAC Address serves "
+          "as the BridgeAddress. When concatenated with a "
+          "SpanningTreeService Priority, a unique bridge identifier "
+          "results. The MAC address is formatted as twelve hexadecimal "
+          "digits (e.g., \"010203040506\"), with each pair "
+          "representing one of the six octets of the MAC address in "
+          "\"canonical\" bit order according to RFC 2469. In other "
+          "scenarios, like Ipv6, the address is formatted as "
+          "\"ffff:ffff:ffff:ffff\"."), 
+       MaxLen ( 32 ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dBaseBridgeAddress" }, 
+       ModelCorrespondence { "CIM_SwitchService.BridgeAddressType" }]
+   string BridgeAddress;
+
+      [Description (
+          "The number of switch ports controlled by this switching "
+          "service."), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dBaseNumPorts" }]
+   uint16 NumPorts;
+
+      [Description (
+          "Indicates what type of switching service can be performed."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Unknown", "Transparent-only", "SourceRoute-only",
+          "SRT" }, 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dBaseType" }]
+   uint8 BridgeType;
+
+      [Description (
+          "BridgeAddressType defines the type of addressing scheme "
+          "used for this Bridge and its BridgeAddress property."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "IPv4", "IPv6", "MAC",
+          "MAC + Spanning Tree Priority" }, 
+       ModelCorrespondence { "CIM_SwitchService.BridgeAddress" }]
+   uint16 BridgeAddressType;
+};
+
+
+// ===================================================================
+// SwitchesAmong
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A SwitchService switches frames between SwitchPorts. This "
+       "association makes that relationship explicit.")]
+class CIM_SwitchesAmong : CIM_ForwardsAmong {
+
+      [Override ( "Antecedent" ), Description (
+          "The switch port.")]
+   CIM_SwitchPort REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The switching service.")]
+   CIM_SwitchService REF Dependent;
+};
+
+
+// ===================================================================
+// Switchable
+// ===================================================================
+   [Association, Deprecated { "CIM_EndpointIdentity" },
+       Version ( "2.7.0" ), Description (
+       "A switch port has a LANEndpoint that is exposed via this "
+       "relationship. The associaiton is deprecated since a binding is "
+       "not the correct relationship. The SwitchPort is simply another "
+       "aspect of the LANEndpoint - which is indicated by the "
+       "EndpointIdentity relationship.")]
+class CIM_Switchable : CIM_BindsToLANEndpoint {
+
+      [Deprecated { "CIM_EndpointIdentity.SystemElement" },
+          Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The switch port.")]
+   CIM_LANEndpoint REF Antecedent;
+
+      [Deprecated { "CIM_EndpointIdentity.SameElement" },
+          Override ( "Dependent" ), Max ( 1 ), Description (
+          "The LAN endpoint.")]
+   CIM_SwitchPort REF Dependent;
+};
+
+
+// ===================================================================
+// TransparentBridgingService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This service class represents the learning/transparent "
+       "bridging aspect of a SwitchService.")]
+class CIM_TransparentBridgingService : CIM_ForwardingService {
+
+      [Description (
+          "The timeout period in seconds for aging out dynamically "
+          "learned forwarding information. 802.1D-1990 recommends a "
+          "default of 300 seconds."), 
+       Units ( "Seconds" ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dTpAgingTime" }]
+   uint32 AgingTime = 300;
+
+      [Description (
+          "Filtering Database Identifier used by VLAN-aware switches "
+          "that have more than one filtering database.")]
+   uint32 FID;
+};
+
+
+// ==================================================================
+// SwitchServiceTransparentBridging
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "An association linking a SwitchService to a component "
+       "TransparentBridgingService. The cardinality of the "
+       "TransparentBridgingService is 0..1 for a VLAN-unaware switch.")]
+class CIM_SwitchServiceTransparentBridging : CIM_ServiceComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), 
+       Description (
+          "The parent SwitchService.")]
+   CIM_SwitchService REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The component BridgingService.")]
+   CIM_TransparentBridgingService REF PartComponent;
+};
+
+
+// ===================================================================
+// SpanningTreeService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "This service class represents the capability of a switch to "
+       "participate in the distributed construction of a spanning "
+       "tree.")]
+class CIM_SpanningTreeService : CIM_ForwardingService {
+
+      [Description (
+          "The version of the spanning tree protocol used by the "
+          "switch."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Unknown", "DEC LB100", "IEEE 802d" }, 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dStpProtocolSpecification" }]
+   uint16 ProtocolSpec;
+
+      [Description (
+          "The format of the priority bits are the first two octets of "
+          "the 8-octet long Bridge ID. The other (last) 6 octets of "
+          "the Bridge ID are given by the value of the Bridge Address. "
+          "\n\n"
+          "A priority that can be assigned to the switch for use in "
+          "constructing the spanning tree. The unique identifier for a "
+          "switch is constructed by concatenating the MAC address "
+          "associated with the switch for spanning tree operations to "
+          "the two-byte priority. Choice of the priority value "
+          "influences election of the root bridge."), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpPriority" }]
+   uint16 Priority;
+
+      [Description (
+          "MAC address used by the spanning tree service when it must "
+          "be uniquely identified. When concatenated with a "
+          "SpanningTreeService Priority, a unique bridge identifier "
+          "results. This property is defined for use of switches "
+          "supporting multiple spanning tree services. \n"
+          "\n"
+          "Note that the MAC address is formatted as twelve "
+          "hexadecimal digits (e.g., \"010203040506\"), with each pair "
+          "representing one of the six octets of the MAC address in "
+          "\"canonical\" bit order according to RFC 2469.")]
+   string SpanningTreeBridgeAddress;
+
+      [Description (
+          "The complete Bridge ID (Priority + MAC Address) of the root "
+          "bridge. The format of the priority bits are the first two "
+          "octets of the 8-octet long Bridge ID. Note that the MAC "
+          "address is formatted as twelve hexadecimal digits (e.g., "
+          "\"010203040506\"), with each pair representing one of the "
+          "six octets of the MAC address in \"canonical\" bit order "
+          "according to RFC 2469."), 
+       MaxLen ( 16 ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpDesignatedRoot" }]
+   string DesignatedRoot;
+
+      [Description (
+          "The cost of the path from the switch to the root."), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpRootCost" }]
+   uint16 RootCost;
+
+      [Description (
+          "The port number of the port having the lowest cost path to "
+          "the root bridge."), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpRootPort" }]
+   uint16 RootPort;
+
+      [Description (
+          "The current value for the maximum age of Spanning Tree "
+          "information before discard, as learned from the network."), 
+       Units ( "Hundredths of Seconds" ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpMaxAge" }]
+   uint32 MaxAge;
+
+      [Description (
+          "The current value of the interval between transmission of "
+          "bridge PDUs by the switch, on any port for which it is the "
+          "spanning tree root or trying to become so, as learned from "
+          "the network."), 
+       Units ( "Hundredths of Seconds" ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpHelloTime" }]
+   uint32 HelloTime;
+
+      [Description (
+          "The minimum interval between transmission of bridge PDUs "
+          "through a given port, as learned from the network."), 
+       Units ( "Hundredths of Seconds" ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpHoldTime" }]
+   uint32 HoldTime;
+
+      [Description (
+          "The time spent by a port in the listening state before "
+          "transitioning to the learning state, and in the learning "
+          "state before transitioning to the forwarding state, as "
+          "learned from the network. This value is also used during "
+          "the period of a topology change as the maximum age of "
+          "Spanning Tree information before discard."), 
+       Units ( "Hundredths of Seconds" ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpForwardDelay" }]
+   uint32 ForwardDelay;
+
+      [Description (
+          "The MaxAge parameter to be used by all switches in the "
+          "network if this switch becomes the root."), 
+       Units ( "Hundredths of Seconds" ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpBridgeMaxAge" }]
+   uint32 BridgeMaxAge;
+
+      [Description (
+          "The HelloTime parameter to be used by all switches in the "
+          "network if this switch becomes the root."), 
+       Units ( "Hundredths of Seconds" ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpBridgeHelloTime" }]
+   uint32 BridgeHelloTime;
+
+      [Description (
+          "The ForwardDelay parameter to be used by all switches in "
+          "the network if this switch becomes the root."), 
+       Units ( "Hundredths of Seconds" ), 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dStpBridgeForwardDelay" }]
+   uint32 BridgeForwardDelay;
+};
+
+
+// ==================================================================
+// SwitchServiceSpanningTree
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "An association linking SwitchService to a component "
+       "SpanningTreeService. The cardinality of the "
+       "SpanningTreeService is 0..1 for a VLAN-unaware switch.")]
+class CIM_SwitchServiceSpanningTree : CIM_ServiceComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), 
+       Description (
+          "The parent SwitchService.")]
+   CIM_SwitchService REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The component SpanningTreeService.")]
+   CIM_SpanningTreeService REF PartComponent;
+};
+
+
+// ===================================================================
+// SwitchPortSpanningTree
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "A switch participating in the spanning tree maintains "
+       "spanning-tree specific information about each port whose "
+       "forwarding is determined by the spanning tree. This "
+       "association represents that information.")]
+class CIM_SwitchPortSpanningTree : CIM_ServiceSAPDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The SwitchPort.")]
+   CIM_SwitchPort REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The SpanningTreeService.")]
+   CIM_SpanningTreeService REF Dependent;
+
+      [Description (
+          "The priority assigned to the port. Contained in the first "
+          "octet of the two-octet port ID; the other octet is the port "
+          "number."), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpPortPriority" }]
+   uint8 Priority;
+
+      [Description (
+          "The current state of the port as determined by the spanning "
+          "tree protocol."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Disabled", "Blocking", "Listening", "Learning",
+          "Forwarding", "Broken" }, 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpPortState" }]
+   uint16 State;
+
+      [Deprecated { "CIM_EnabledLogicalElement.EnabledState" }, 
+       Description (
+          "The enabled/disabled status of the port. This property is "
+          "deprecated since the status of the port is available by "
+          "inheritance from EnabledLogicalElement."), 
+       ValueMap { "1", "2" }, 
+       Values { "Enabled", "Disabled" }, 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpPortEnable" }]
+   uint16 Enable;
+
+      [Description (
+          "The contribution of this port to the path cost of paths "
+          "towards the spanning tree root which include this port."), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpPortPathCost" }]
+   uint16 PathCost;
+
+      [Description (
+          "The bridge identifier of the root bridge for the segment to "
+          "which the port is attached, as transmitted by the "
+          "designated bridge for the segment."), 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dStpPortDesignatedRoot" }]
+   string DesignatedRoot;
+
+      [Description (
+          "The cost of the path to the root offered by the designated "
+          "bridge for the segment."), 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dStpPortDesignatedCost" }]
+   uint16 DesignatedCost;
+
+      [Description (
+          "The bridge identifier of the designated bridge for the "
+          "segment to which the port is attached."), 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dStpPortDesignatedBridge" }]
+   string DesignatedBridge;
+
+      [Description (
+          "The port identifier of the port on the designated bridge "
+          "serving the segment to which the port is attached."), 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dStpPortDesignatedPort" }]
+   uint16 DesignatedPort;
+};
+
+
+// ===================================================================
+// DynamicForwardingEntry
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "A DynamicForwardingEntry represents an entry in the forwarding "
+       "(filtering) database associated with the "
+       "TransparentBridgingService. The entry is Weak to the Service "
+       "as specified by TransparentBridgingDynamicForwarding.")]
+class CIM_DynamicForwardingEntry : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_System.CreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_System.Name" ), Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Propagated ( "CIM_Service.CreationClassName" ), 
+       Description (
+          "The scoping Service's CreationClassName."), 
+       MaxLen ( 256 )]
+   string ServiceCreationClassName;
+
+      [Key, Propagated ( "CIM_Service.Name" ), Description (
+          "The scoping Service's Name."), 
+       MaxLen ( 256 )]
+   string ServiceName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "Unicast MAC address for which the TransparentBridging "
+          "Service has forwarding and/or filtering information. Note "
+          "that the MAC address is formatted as twelve hexadecimal "
+          "digits (e.g., \"010203040506\"), with each pair "
+          "representing one of the six octets of the MAC address in "
+          "\"canonical\" bit order according to RFC 2469."), 
+       MaxLen ( 12 ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dTpFdbAddress" }]
+   string MACAddress;
+
+      [Description (
+          "The status of the entry."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Invalid", "Learned", "Self", "Mgmt" }, 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dTpFdbStatus" }]
+   uint16 DynamicStatus;
+};
+
+
+// ==================================================================
+// TransparentBridgingDynamicForwarding
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association links an instance of the Transparent "
+       "BridgingService to the entries of its forwarding database. The "
+       "forwarding database is weak to the Service.")]
+class CIM_TransparentBridgingDynamicForwarding : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The transparent bridging service.")]
+   CIM_TransparentBridgingService REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "Dynamic Forwarding Entry of forwarding database.")]
+   CIM_DynamicForwardingEntry REF Dependent;
+};
+
+
+// ==================================================================
+// SwitchPortDynamicForwarding
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association links a DynamicForwardingEntry and the "
+       "SwitchPort to which the entry applies.")]
+class CIM_SwitchPortDynamicForwarding : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The SwitchPort.")]
+   CIM_SwitchPort REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "DynamicForwardingEntry of the forwarding database.")]
+   CIM_DynamicForwardingEntry REF Dependent;
+};
+
+
+// ===================================================================
+// StaticForwardingEntry
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "A StaticForwardingEntry represents an entry in the static "
+       "(destination-address filtering) database associated with the "
+       "TransparentBridgingService. The entry is Weak to the Service "
+       "as specified by TransparentBridgingStatic Forwarding.")]
+class CIM_StaticForwardingEntry : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_System.CreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_System.Name" ), Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Propagated ( "CIM_Service.CreationClassName" ), 
+       Description (
+          "The scoping Service's CreationClassName."), 
+       MaxLen ( 256 )]
+   string ServiceCreationClassName;
+
+      [Key, Propagated ( "CIM_Service.Name" ), Description (
+          "The scoping Service's Name."), 
+       MaxLen ( 256 )]
+   string ServiceName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "Destination MAC address (unicast, multicast or broadcast) "
+          "to which the filtering information applies. Note that the "
+          "MAC address is formatted as twelve hexadecimal digits "
+          "(e.g., \"010203040506\"), with each pair representing one "
+          "of the six octets of the MAC address in \"canonical\" bit "
+          "order according to RFC 2469."), 
+       MaxLen ( 12 ), 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStaticAddress" }]
+   string MACAddress;
+
+      [Description (
+          "The status of the entry."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Invalid", "Permanent", "DeleteOnReset",
+          "DeleteOnTimeout" }, 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStaticStatus" }]
+   uint16 StaticStatus;
+
+      [Description (
+          "The ports to which frames with the destination MAC address "
+          "arriving on the port represented by the "
+          "SwitchPortStaticForwarding association are allowed to be "
+          "forwarded.")]
+   uint16 AllowedToGo[];
+};
+
+
+// ==================================================================
+// TransparentBridgingStaticForwarding
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association links an instance of the Transparent "
+       "BridgingService to the entries of its static "
+       "(destination-address filtering) database.")]
+class CIM_TransparentBridgingStaticForwarding : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The TransparentBridgingService.")]
+   CIM_TransparentBridgingService REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "StaticForwardingEntry of the forwarding database.")]
+   CIM_StaticForwardingEntry REF Dependent;
+};
+
+
+// ==================================================================
+// SwitchPortStaticForwarding
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association links a static database entry and the "
+       "SwitchPort to which the entry applies.")]
+class CIM_SwitchPortStaticForwarding : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The SwitchPort.")]
+   CIM_SwitchPort REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "StaticForwardingEntry of static database.")]
+   CIM_StaticForwardingEntry REF Dependent;
+};
+
+
+// ===================================================================
+// SourceRoutingService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "SourceRoutingService represents the capability of a switch to "
+       "participate in the source routing of frames received at its "
+       "ports. It is a system-level Service that provides and supports "
+       "local switching only. The SourceRouting Service is aggregated "
+       "into a higher level SwitchService through the "
+       "SwitchServiceSourceRouting association.")]
+class CIM_SourceRoutingService : CIM_ForwardingService {
+
+      [Description (
+          "Indicates whether the bridge operates using older 3 bit "
+          "length negotiation fields or the newer 6 bit length field "
+          "in its RIF."), 
+       ValueMap { "1", "2" }, 
+       Values { "Mode3", "Mode6" }, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrBridgeLfMode" }]
+   uint16 BridgeLfMode;
+};
+
+
+// ==================================================================
+// SwitchServiceSourceRouting
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "An association linking SwitchService to a component "
+       "SourceRoutingService. The cardinality of the "
+       "SourceRoutingService is 0..1 for a VLAN-unaware switch.")]
+class CIM_SwitchServiceSourceRouting : CIM_ServiceComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), 
+       Description (
+          "The parent SwitchService.")]
+   CIM_SwitchService REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The component SourceRoutingService.")]
+   CIM_SourceRoutingService REF PartComponent;
+};
+
+
+// ==================================================================
+// SwitchPortPair
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association represents information regarding port "
+       "pairings that is used by the SourceRoutingService of a switch.")]
+class CIM_SwitchPortPair : CIM_SAPSAPDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The lower numbered port.")]
+   CIM_SwitchPort REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The higher numbered port.")]
+   CIM_SwitchPort REF Dependent;
+
+      [Description (
+          "A bridge number that uniquely identifies the path provided "
+          "by this source routing bridge between the segments "
+          "connected to high and low ports. The purpose of bridge "
+          "number is to disambiguate between multiple paths connecting "
+          "the same two LANs."), 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dPortPairBridgeNum" }]
+   uint16 BridgeNum;
+
+      [Description (
+          "The state of the pairing. Writing 'invalid(3)' to this "
+          "property removes the association instance."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Enabled", "Disabled", "Invalid" }, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dPortPairBridgeState" }]
+   uint16 BridgeState;
+};
+
+
+// ===================================================================
+// SwitchPortSourceRouting
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "A switch capable of source routing maintains source-routing "
+       "specific information about each port. This association "
+       "represents that information.")]
+class CIM_SwitchPortSourceRouting : CIM_ServiceSAPDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The SwitchPort.")]
+   CIM_SwitchPort REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The SourceRoutingService.")]
+   CIM_SourceRoutingService REF Dependent;
+
+      [Description (
+          "The maximum number of routing descriptors allowed in an All "
+          "Paths or Spanning Tree Explorer frames."), 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortHopCount" }]
+   uint16 HopCount;
+
+      [Description (
+          "The segment number that uniquely identifies the segment to "
+          "which this port is connected. Current source routing "
+          "protocols limit this value to the range: 0 through 4095. "
+          "(The value 0 is used by some management applications for "
+          "special test cases.) A value of 65535 signifies that no "
+          "segment number is assigned to this port."), 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortLocalSegment" }]
+   uint16 LocalSegment;
+
+      [Description (
+          "A bridge number uniquely identifies a bridge when more than "
+          "one bridge is used to span the same two segments. Current "
+          "source routing protocols limit this value to the range: 0 "
+          "through 15. A value of 65535 signifies that no bridge "
+          "number is assigned to this bridge."), 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortBridgeNum" }]
+   uint16 BridgeNum;
+
+      [Description (
+          "The segment number that corresponds to the target segment "
+          "to which this port is considered connected. Current source "
+          "routing protocols limit this value to the range: 0 through "
+          "4095. (The value 0 is used by some management applications "
+          "for special test cases.) A value of 65535 signifies that no "
+          "target segment is assigned to this port."), 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortTargetSegment" }]
+   uint16 TargetSegment;
+
+      [Description (
+          "Determines how the port behaves when presented with a "
+          "Spanning Tree Explorer frame. The value 'disabled(2)' "
+          "indicates that the port will not accept or send Spanning "
+          "Tree Explorer packets; any STE packets received will be "
+          "silently discarded. The value 'forced(3)' indicates the "
+          "port will always accept and propagate Spanning Tree "
+          "Explorer frames. (This allows a manually configured "
+          "Spanning Tree for this class of packet to be configured.) "
+          "Note that unlike transparent bridging, it is not "
+          "catastrophic to the network if there are loops. The value "
+          "'auto-span(1)' can only be returned by a bridge that both "
+          "implements the Spanning Tree Protocol and has use of the "
+          "protocol enabled on this port. \n"
+          "\n"
+          "The behavior of the port for Spanning Tree Explorer frames "
+          "is determined by the value of the State property of the "
+          "SwitchPortSpanningTree association for the port. If the "
+          "port is in the 'forwarding' state, the frame will be "
+          "accepted or propagated. Otherwise, it will be silently "
+          "discarded."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Auto-Span", "Disabled", "Forced" }, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortSTESpanMod" }, 
+       ModelCorrespondence { "CIM_SwitchPortSpanningTree.State" }]
+   uint16 STESpanMode;
+};
+
+
+// ==================================================================
+// RelatedSpanningTree
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This association identifies the spanning tree in which a "
+       "forwarding database (TransparentBridgingService) is nested.")]
+class CIM_RelatedSpanningTree : CIM_ServiceServiceDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The TransparentBridgingService that supports a "
+          "SpanningTreeService.")]
+   CIM_TransparentBridgingService REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The SpanningTree in which a TransparentBridgingService is "
+          "nested.")]
+   CIM_SpanningTreeService REF Dependent;
+};
+
+
+// ===================================================================
+// TransparentBridgingStatistics
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Statistical information regarding the TransparentBridging "
+       "Service.")]
+class CIM_TransparentBridgingStatistics : CIM_ServiceStatisticalInformation {
+
+      [Description (
+          "The total number of Forwarding Database entries, which have "
+          "been or would have been learnt, but have been discarded due "
+          "to a lack of space to store them in the Forwarding "
+          "Database."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dTpLearnedEntryDiscards" }]
+   uint32 LearnedEntryDiscards;
+};
+
+
+// ===================================================================
+// SpanningTreeStatistics
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Statistical information regarding the SpanningTreeService.")]
+class CIM_SpanningTreeStatistics : CIM_ServiceStatisticalInformation {
+
+      [Description (
+          "The time since the last topology change was detected by the "
+          "switch."), 
+       Units ( "Hundredths of Seconds" ), 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dStpTimeSinceTopologyChange" }]
+   uint32 TimeSinceTopologyChange;
+
+      [Description (
+          "The total number of topology changes detected by the switch "
+          "since the counter was last reset or initialized."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dStpTopChanges" }]
+   uint32 TopChanges;
+};
+
+
+// ===================================================================
+// SwitchPortStatistics
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Statistical information regarding a generic SwitchPort, "
+       "independent of the specific kind of switching done on frames "
+       "arriving at the port.")]
+class CIM_SwitchPortStatistics : CIM_SAPStatisticalInformation {
+
+      [Description (
+          "The number of frames discarded by this port due to "
+          "excessive transit delay through the bridge."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dBasePortDelayExceededDiscards" }]
+   uint32 DelayExceededDiscards;
+
+      [Description (
+          "The number of frames discarded by this port due to an "
+          "excessive size."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dBasePortMtuExceededDiscards" }]
+   uint32 MtuExceededDiscards;
+};
+
+
+// ===================================================================
+// SwitchPortTransparentBridgingStatistics
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Statistical information regarding a SwitchPort, at which "
+       "transparent bridging is performed.")]
+class CIM_SwitchPortTransparentBridgingStatistics : CIM_SAPStatisticalInformation {
+
+      [Description (
+          "The number of frames that have been received by the port "
+          "from its segment. Note that a frame is only counted if and "
+          "only if it is for a protocol being processed by the local "
+          "bridging function, including bridge management frames."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dTpPortInFrames" }]
+   uint32 InFrames;
+
+      [Description (
+          "The number of frames that have been transmitted by the port "
+          "to its segment. Note that a frame is only counted if and "
+          "only if it is for a protocol being processed by the local "
+          "bridging function, including bridge management frames."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dTpPortOutFrames" }]
+   uint32 OutFrames;
+
+      [Description (
+          "Count of valid frames received which were discarded (i.e., "
+          "filtered) by the forwarding process."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|BRIDGE-MIB.dot1dTpPortInDiscards" }]
+   uint32 InDiscards;
+};
+
+
+// ===================================================================
+// SwitchPortSpanningTreeStatistics
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Statistical information regarding a SwitchPort participating "
+       "in the spanning tree.")]
+class CIM_SwitchPortSpanningTreeStatistics : CIM_SAPStatisticalInformation {
+
+      [Description (
+          "The number of times the port has transitioned from the "
+          "Learning state to the Forwarding state."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|BRIDGE-MIB.dot1dStpPortForwardTransitions" }]
+   uint32 ForwardTransitions;
+};
+
+
+// ===================================================================
+// SwitchPortSourceRoutingStatistics
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Statistical information regarding a SwitchPort supporting "
+       "source routing.")]
+class CIM_SwitchPortSourceRoutingStatistics : CIM_SAPStatisticalInformation {
+
+      [Description (
+          "The number of Specifically Routed frames, also referred to "
+          "as Source Routed Frames, that have been received from the "
+          "segment attached to the port."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortSpecInFrames" }]
+   uint32 SpecInFrames;
+
+      [Description (
+          "The number of Specifically Routed frames, also referred to "
+          "as Source Routed Frames, that the port has transmitted on "
+          "its segment."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortSpecOutFrames" }]
+   uint32 SpecOutFrames;
+
+      [Description (
+          "The number of All Paths Explorer frames, also referred to "
+          "as All Routes Explorer frames, that have been received by "
+          "the port from its segment."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortApeInFrames" }]
+   uint32 ApeInFrames;
+
+      [Description (
+          "The number of all Paths Explorer Frames, also referred to "
+          "as All Routes Explorer frames, that have been transmitted "
+          "by the port on its segment."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortApeOutFrames" }]
+   uint32 ApeOutFrames;
+
+      [Description (
+          "The number of spanning tree explorer frames that have been "
+          "received by the port from its segment."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortSteInFrames" }]
+   uint32 SteInFrames;
+
+      [Description (
+          "The number of spanning tree explorer frames that have been "
+          "transmitted by the port on its segment."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortSteOutFrames" }]
+   uint32 SteOutFrames;
+
+      [Description (
+          "The number of explorer frames that have been discarded by "
+          "the port because the routing descriptor field contained an "
+          "invalid adjacent segment value."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPort" 
+          "SegmentMismatchDiscards" }]
+   uint32 SegmentMismatchDiscards;
+
+      [Description (
+          "The number of frames that have been discarded by the port "
+          "because the routing descriptor field contained a duplicate "
+          "segment identifier."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPort" 
+          "DuplicateSegmentDiscards" }]
+   uint32 DuplicateSegmentDiscards;
+
+      [Description (
+          "The number of explorer frames that have been discarded by "
+          "the port because the Routing Information Field has exceeded "
+          "the maximum route descriptor length."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPort" 
+          "HopCountExceedsDiscards" }]
+   uint32 HopCountExceedsDiscards;
+
+      [Description (
+          "The number of duplicate LAN IDs or Tree errors. This helps "
+          "in detection of problems in networks containing older "
+          "Source Routing Bridges."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPort" 
+          "DupLanIdOrTreeErrors" }]
+   uint32 DupLanIdOrTreeErrors;
+
+      [Description (
+          "The number of ARE and STE frames that were discarded "
+          "because the last LAN ID in the routing information field "
+          "did not equal the LAN-in ID. This error can occur in "
+          "implementations which do only a LAN-in ID and Bridge Number "
+          "check instead of a LAN-in ID, Bridge Number, and LAN-out ID "
+          "check before they forward broadcast frames."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|SOURCE-ROUTING-MIB.dot1dSrPortLanIdMismatches" }]
+   uint32 LanIdMismatches;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

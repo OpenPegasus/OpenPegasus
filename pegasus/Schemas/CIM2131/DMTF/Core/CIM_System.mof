@@ -1,0 +1,83 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_System
+// ==================================================================
+   [UMLPackagePath ( "CIM::Core::CoreElements" ), Abstract,
+       Version ( "2.7.0" ), Description (
+       "CIM_System represents an entity made up of component parts "
+       "(defined by the SystemComponent relationship), that operates "
+       "as a 'functional whole'. Systems are top level objects in the "
+       "CIM hierarchy, requiring no scoping or weak relationships in "
+       "order to exist and have context. It should be reasonable to "
+       "uniquely name and manage a System at an enterprise level. For "
+       "example, a ComputerSystem is a kind of System that can be "
+       "uniquely named and independently managed in an enterprise. "
+       "However, this is not true for the power supply (or the power "
+       "supply sub-'system') within the computer. \n"
+       "\n"
+       "Although a System may be viewed as a Collection, this is not "
+       "the correct model. A Collection is simply a 'bag' that 'holds' "
+       "its members. A System is a higher level abstraction, built out "
+       "of its individual components. It is more than a sum of its "
+       "parts. Note that System is a subclass of EnabledLogicalElement "
+       "which allows the entire abstraction to be functionally "
+       "enabled/disabled - at a higher level than enabling/disabling "
+       "its component parts.")]
+class CIM_System : CIM_EnabledLogicalElement {
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "The inherited Name serves as key of a System instance in an "
+          "enterprise environment."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "The System object and its derivatives are Top Level Objects "
+          "of CIM. They provide the scope for numerous components. "
+          "Having unique System keys is required. A heuristic can be "
+          "defined in individual System subclasses to attempt to "
+          "always generate the same System Name Key. The NameFormat "
+          "property identifies how the System name was generated, "
+          "using the subclass' heuristic."), 
+       MaxLen ( 64 )]
+   string NameFormat;
+
+      [Write, Description (
+          "The name of the primary system owner. The system owner is "
+          "the primary user of the system."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|General Information|001.3" }]
+   string PrimaryOwnerName;
+
+      [Write, Description (
+          "A string that provides information on how the primary "
+          "system owner can be reached (e.g. phone number, email "
+          "address, ...)."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIF.DMTF|General Information|001.4" }]
+   string PrimaryOwnerContact;
+
+      [Write, Description (
+          "An array (bag) of strings that specify the administrator "
+          "-defined roles this System plays in the managed "
+          "environment. Examples might be 'Building 8 print server' or "
+          "'Boise user directories'. A single system may perform "
+          "multiple roles. \n"
+          "Note that instrumentation's view of a System's 'roles' is "
+          "defined by instantiating a specific subclass of System and/ "
+          "or by properties in a subclass. For example, a "
+          "ComputerSystem's purpose is defined using the Dedicated and "
+          "OtherDedicatedDescription properties.")]
+   string Roles[];
+};

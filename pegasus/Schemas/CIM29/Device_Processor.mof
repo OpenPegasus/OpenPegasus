@@ -1,0 +1,378 @@
+// ===================================================================
+// Title: Device_Processor
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_Processor.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines the
+//              objects to manage watch dog timers and processors.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.9 Final
+// CR1298 - Create new Processor Upgrade enum in DMTF|Processor group
+// 
+// Change Log for v2.8 Final
+// CR1152 - Add new transmeta processor
+// 
+// Change Log for v2.8 Preliminary
+// CR951 - Add Intel(R) Pentium(R) 4 M
+//         to Processor.Family
+// CR1095 - Correct processor.family
+// 
+// Change Log for v2.7 Final
+// CR928 - Correction of AMD processor values for values 182 & 183.
+//       - Add Socket 754 and Socket 940 to the values to Processor.
+//         UpgradeMethod.
+// CR995 - Update processor Family
+//         to include mainframes.
+// 
+// Change Log for v2.7
+// CR616 - Extend Processor.UpgradeMethod to include Socket 478
+// CR622 - Fix the DMI mapping string to include the attribute number
+//         Processor.Family, .UpgradeMethod, .MaxClockSpeed, &
+//            .CurrentClockSpeed
+// CR771 - Add the Composition qualifer to ComputerSystemProcessor
+// CR772 - Extend Processor.Family to include AMD AthlonXP(TM) and
+//         AMD AthlonMP(TM)
+// CR839 - Add Itanium 2 to Processor.Family
+// CR893 - Add Intel(R) Pentium(R) 4 processor with HT Technology
+//         to Processory.Family
+// CR897 - Deprecate the association, ComputerSystemProcessor
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// WatchDog
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "CIM_Watchdog is a timer implemented in system hardware. It "
+       "allows the hardware to monitor the state of the Operating "
+       "System, BIOS or a software component installed on the System. "
+       "If the monitored component fails to re-arm the timer before "
+       "its expiration, the hardware assumes that the System is in a "
+       "critical state, and could reset the ComputerSystem. This "
+       "feature can also be used as an application watchdog timer for "
+       "a mission-critical application. In this case, the application "
+       "would assume responsibility for re-arming the timer before "
+       "expiration.")]
+class CIM_Watchdog : CIM_LogicalDevice {
+
+      [Description (
+          "The entity that is currently being monitored by the "
+          "WatchDog. This property is used to identify the module that "
+          "is responsible for or whose information is used to re-arm "
+          "the watchdog at periodic intervals."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Operating System",
+          "Operating System Boot Process",
+          "Operating System Shutdown Process", "Firmware Boot Process",
+          "BIOS Boot Process", "Application", "Service Processor" }]
+   uint16 MonitoredEntity;
+
+      [Description (
+          "A string describing more textual information about the "
+          "monitored entity."), 
+       MaxLen ( 256 )]
+   string MonitoredEntityDescription;
+
+      [Description (
+          "The timeout interval used by the watchdog, in MicroSeconds."), 
+       Units ( "MicroSeconds" )]
+   uint32 TimeoutInterval;
+
+      [Description (
+          "Resolution of the timer. For example, if this value is 100, "
+          "then the timer can expire anytime between (TimeoutInterval- "
+          "100) microseconds or (TimeoutInterval+100) microseconds."), 
+       Units ( "MicroSeconds" )]
+   uint32 TimerResolution;
+
+      [Description (
+          "The time of the last timer expiry.")]
+   datetime TimeOfLastExpiration;
+
+      [Description (
+          "Monitored entity at the time of last timer expiry."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Operating System",
+          "Operating System Boot Process",
+          "Operating System Shutdown Process", "Firmware Boot Process",
+          "BIOS Boot Process", "Application", "Service Processor" }]
+   uint16 MonitoredEntityOnLastExpiration;
+
+      [Description (
+          "The action that should happen upon the expiry of the "
+          "watchdog."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "None - Status Only", "System Reset",
+          "System Power Off", "System Power Off, then On",
+          "Generate System NonMaskableInterrupt (NMI)",
+          "Generate System Management Interrupt (SMI)" }]
+   uint16 ActionOnExpiration;
+
+      [Description (
+          "A method to re-arm the timer. This method is only used if "
+          "the MonitoredEntity is \"Application\". It returns 0 if "
+          "successful, 1 if unsupported, and any other value if an "
+          "error occurred. In a subclass, the set of possible return "
+          "codes could be specified, using a ValueMap qualifier on the "
+          "method. The strings to which the ValueMap contents are "
+          "'translated' may also be specified in the subclass as a "
+          "Values array qualifier.")]
+   uint32 KeepAlive(); 
+};
+
+
+// ===================================================================
+// Processor
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Capabilities and management of the Processor LogicalDevice.")]
+class CIM_Processor : CIM_LogicalDevice {
+
+      [Description (
+          "A free form string describing the role of the Processor - "
+          "for example, \"Central Processor\" or \"Math Processor\".")]
+   string Role;
+
+      [Description (
+          "The Processor family type. For example, values include "
+          "\"Pentium(R) processor with MMX(TM) technology\" (14) and "
+          "\"68040\" (96)."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          // 11                
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          // 24                
+          "24", "25", "26", "27", "28", "29", "30", "31", "32", "33",
+          "34", "35", "36", "37", "38", "39", 
+          // 48                
+          "48", "49", "50", "51", "52", "53", "54", "55", 
+          // 64                
+          "64", "65", "66", "67", "68", "69", 
+          // 80                
+          "80", "81", "82", "83", "84", "85", "86", "87", "88", 
+          // 96                   
+          "96", "97", "98", "99", "100", "101", 
+          // 112                
+          "112", "120", "121", "122", "128", "130", "131", "132", 
+          // 144                   
+          "144", "145", "146", "147", "148", "149", "150", 
+          // 160                   
+          "160", "176", "177", "178", "179", "180", "181", "182",
+          "183", "184", "185", 
+          // 190                
+          "190", 
+          // 200                
+          "200", "201", "202", "203", "204", 
+          // 250                
+          "250", "251", "260", "261", "280", "281", 
+          // 300                
+          "300", "301", "302", "320", "350", "500" }, 
+       Values { "Other", "Unknown", "8086", "80286", "80386", "80486",
+          "8087", "80287", "80387", "80487", 
+          // 11                  
+          "Pentium(R) brand", "Pentium(R) Pro", "Pentium(R) II",
+          "Pentium(R) processor with MMX(TM) technology",
+          "Celeron(TM)", "Pentium(R) II Xeon(TM)", "Pentium(R) III",
+          "M1 Family", "M2 Family", 
+          // 24                 
+          "K5 Family", "K6 Family", "K6-2", "K6-3",
+          "AMD Athlon(TM) Processor Family",
+          "AMD(R) Duron(TM) Processor", "AMD29000 Family", 
+          // 31                 
+          "K6-2+", "Power PC Family", "Power PC 601", "Power PC 603",
+          "Power PC 603+", "Power PC 604", "Power PC 620",
+          "Power PC X704", "Power PC 750", 
+          // 48                  
+          "Alpha Family", "Alpha 21064", "Alpha 21066", "Alpha 21164",
+          "Alpha 21164PC", "Alpha 21164a", "Alpha 21264",
+          "Alpha 21364", 
+          // 64                  
+          "MIPS Family", "MIPS R4000", "MIPS R4200", "MIPS R4400",
+          "MIPS R4600", "MIPS R10000", 
+          // 80                  
+          "SPARC Family", "SuperSPARC","microSPARC II",
+          "microSPARC IIep", "UltraSPARC", "UltraSPARC II",
+          "UltraSPARC IIi", "UltraSPARC III", "UltraSPARC IIIi", 
+          // 96                  
+          "68040", "68xxx Family", "68000", "68010", "68020", "68030", 
+          // 112                  
+          "Hobbit Family", "Crusoe(TM) TM5000 Family",
+          "Crusoe(TM) TM3000 Family", "Efficeon(TM) TM8000 Family",
+          "Weitek", "Itanium(TM) Processor",
+          "AMD Athlon(TM) 64 Processor Family",
+          "AMD Opteron(TM) Processor Family", 
+          // 144                  
+          "PA-RISC Family", "PA-RISC 8500", "PA-RISC 8000",
+          "PA-RISC 7300LC", "PA-RISC 7200", "PA-RISC 7100LC",
+          "PA-RISC 7100", 
+          // 160                  
+          "V30 Family", "Pentium(R) III Xeon(TM)",
+          "Pentium(R) III Processor with Intel(R) SpeedStep(TM) " 
+          "Technology", "Pentium(R) 4", "Intel(R) Xeon(TM)", 
+          // 180                  
+          "AS400 Family", "Intel(R) Xeon(TM) processor MP",
+          "AMD Athlon(TM) XP Family", "AMD Athlon(TM) MP Family",
+          "Intel(R) Itanium(R) 2", "Intel(R) Pentium(R) M processor", 
+          // 190                  
+          "K7", 
+          // 200                  
+          "S/390 and zSeries Family", "ESA/390 G4", "ESA/390 G5",
+          "ESA/390 G6", "z/Architectur base", 
+          // 250                  
+          "i860", "i960", "SH-3", "SH-4", "ARM", "StrongARM", 
+          // 300                  
+          "6x86", "MediaGX", "MII", "WinChip", "DSP",
+       "Video Processor" }, 
+       MappingStrings { "MIF.DMTF|Processor|017.3" }, 
+       ModelCorrespondence { "CIM_Processor.OtherFamilyDescription" }]
+   uint16 Family;
+
+      [Description (
+          "A string describing the Processor Family type - used when "
+          "the Family property is set to 1 (\"Other\"). This string "
+          "should be set to NULL when the Family property is any value "
+          "other than 1."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_Processor.Family" }]
+   string OtherFamilyDescription;
+
+      [Description (
+          "CPU socket information including data on how this Processor "
+          "can be upgraded (if upgrades are supported). This property "
+          "is an integer enumeration."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18" }, 
+       Values { "Other", "Unknown", "Daughter Board", "ZIF Socket",
+          "Replacement/Piggy Back", "None", "LIF Socket", "Slot 1",
+          "Slot 2", "370 Pin Socket", "Slot A", "Slot M", "Socket 423",
+          "Socket A (Socket 462)", "Socket 478", "Socket 754",
+          "Socket 940", "Socket 939" }, 
+       MappingStrings { "MIF.DMTF|Processor|017.7" }]
+   uint16 UpgradeMethod;
+
+      [Description (
+          "The maximum speed (in MHz) of this Processor."), 
+       Units ( "MegaHertz" ), 
+       MappingStrings { "MIF.DMTF|Processor|017.5" }]
+   uint32 MaxClockSpeed;
+
+      [Description (
+          "The current speed (in MHz) of this Processor."), 
+       Units ( "MegaHertz" ), 
+       MappingStrings { "MIF.DMTF|Processor|017.6" }]
+   uint32 CurrentClockSpeed;
+
+      [Description (
+          "Processor data width in bits."), 
+       Units ( "Bits" )]
+   uint16 DataWidth;
+
+      [Description (
+          "Processor address width in bits."), 
+       Units ( "Bits" )]
+   uint16 AddressWidth;
+
+      [Description (
+          "Loading of this Processor, averaged over the last minute, "
+          "in Percent."), 
+       Units ( "Percent" ), Gauge, 
+       MappingStrings { "MIB.IETF|HOST-RESOURCES-MIB.hrProcessorLoad" }]
+   uint16 LoadPercentage;
+
+      [Description (
+          "Stepping is a free-form string indicating the revision "
+          "level of the Processor within the Processor.Family."), 
+       ModelCorrespondence { "CIM_Processor.Family" }]
+   string Stepping;
+
+      [Description (
+          "A globally unique identifier for the Processor. This "
+          "identifier may only be unique within a Processor Family.")]
+   string UniqueID;
+
+      [Description (
+          "The CPUStatus property indicates the current status of the "
+          "Processor. For example, it may be disabled by the user via "
+          "BIOS (value=2), or disabled due to a POST error (value= 3). "
+          "Information in this property can be obtained from SMBIOS, "
+          "the Type 4 structure, the Status attribute."), 
+       ValueMap { "0", "1", "2", "3", "4", "7" }, 
+       Values { "Unknown", "CPU Enabled",
+          "CPU Disabled by User via BIOS Setup",
+          "CPU Disabled By BIOS (POST Error)", "CPU Is Idle", "Other" }]
+   uint16 CPUStatus;
+};
+
+
+// ===================================================================
+// ComputerSystemProcessor
+// ===================================================================
+   [Association, Deprecated { "CIM_SystemDevice" }, Aggregation,
+    Composition, Version ( "2.7.0" ), Description (
+       "Association indicating the processor(s) of a UnitaryComputer "
+       "System. ComputerSystemProcessor is depreacted in lieu of its "
+       "superclass, SystemDevice, since it adds no detail and changes "
+       "none of the cardinalities in the superclass' definition.")]
+class CIM_ComputerSystemProcessor : CIM_SystemDevice {
+
+      [Deprecated { "CIM_SystemDevice.GroupComponent" }, Aggregate,
+       Override ( "GroupComponent" ), Description (
+          "The UnitaryComputerSystem.")]
+   CIM_UnitaryComputerSystem REF GroupComponent;
+
+      [Deprecated { "CIM_SystemDevice.PartComponent" },
+          Override ( "PartComponent" ), Description (
+          "The Processor which is part of the UnitaryComputerSystem.")]
+   CIM_Processor REF PartComponent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

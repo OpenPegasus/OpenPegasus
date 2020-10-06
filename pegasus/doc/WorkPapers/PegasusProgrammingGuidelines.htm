@@ -1,0 +1,308 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Pegasus Project Working Paper</title>
+</head>
+
+<body>
+
+<H1 align="center">Pegasus Project Working Paper</H1>
+
+<H1 align="center">Programming Guidelines For the Pegasus Project</H1>
+
+<b>AUTHORS:</b>&nbsp;M. Brasher, K. Schopmeyer
+<p><font size="1">Last Update <!--webbot bot="Timestamp"
+S-Type="EDITED" S-Format="%A, %B %d, %Y %I:%M %p" startspan -->Thursday, July 26, 2001 06:10 PM<!--webbot bot="Timestamp" i-CheckSum="6014" endspan -->
+</font></p>
+<p>Revision Status</p>
+<table border="1" width="80%">
+  <tr>
+    <td width="25%">Revision</td>
+    <td width="25%">Date</td>
+    <td width="25%">Author(s)</td>
+    <td width="25%">Reason</td>
+  </tr>
+  <tr>
+    <td width="25%">0.1</td>
+    <td width="25%">5 July 2001</td>
+    <td width="25%">M. brasher, K. Schopmeyer</td>
+    <td width="25%">first Draft</td>
+  </tr>
+  <tr>
+    <td width="25%">0.2</td>
+    <td width="25%">24 July 2001</td>
+    <td width="25%">M. Brasher, K. Schopmeyer</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="25%">0.3</td>
+    <td width="25%">26 July 2001</td>
+    <td width="25%">K. Schopmeyer</td>
+    <td width="25%">Add documentation on licensing.</td>
+  </tr>
+  <tr>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+    <td width="25%">&nbsp;</td>
+  </tr>
+</table>
+
+<h2>Introduction</h2>
+
+<p>This document defines the basic set of guides and rules for programmers
+contributing to the Pegasus Project</p>
+
+<p>NOTE: This is a draft copy for comment.</p>
+
+<p>RULES and GUIDELINES - A number of the guidelines below are absolute rules
+that we must follow in the Pegasus project.&nbsp; These are the things that will
+help insure portability and effective interoperability of the components.</p>
+
+<p>Other area are &quot;guidelines&quot; that we strongly suggest be followed
+so that 1) the code will be readable and usable, 2) we develop a single look to
+our source code, etc.&nbsp; In some cases, there may be reasons to bypass some
+of these guidelines but we strongly encourage everybody to follow them.&nbsp;
+In fact, if there is a real reason we will change to what the group wants and
+suggestions.</p>
+
+<h2>Coding Conventions</h2>
+<OL>
+<LI><b>Indenting Code</b> - Indent by increments of 4 characters (with tabsize of
+8).&nbsp; Use the TAB character.&nbsp; This is the accepted norm for open source
+  code.
+
+<LI><b>Naming Conventions</b> -&nbsp;&nbsp;&nbsp;<font face="Courier New"> ThisIsAClassName</font> - no underscores.
+  <font face="Courier New">
+thisIsAMethodName()</font> - no underscores.
+
+Files Names should take advantage of case and avoid underscores.
+    Files should have the same name as the class (and same case).
+<br>Prepend '_' to private members (including methods). 
+<LI><b>Code Line Length</b> - Lines should not span more than 80 columns.
+When methods span more than 80 columns, do this:
+<pre>
+    void MyClass::myMethod(
+&nbsp;&nbsp;&nbsp;             const char* someReallyLongName,
+&nbsp;&nbsp;&nbsp;             const char* someOtherReallyLongName);
+</pre>
+<LI> Use "char* x" rather than "char *x". Either is normally legal for the
+  majority of compilers.
+<LI><b>Use of <font face="Courier New">const</font></b>. Use <font face="Courier New"> const</font> whenever possible.
+Use <font face="Courier New"> const</font> methods whenever possible.
+<LI><b>Braces</b> -&nbsp; Put opening brace on a line by itself. Braces must be aligned with control keyword:
+<pre>
+	for(...)
+	{
+        ....
+	}
+</pre>
+    Not this:
+<pre>	for (...)
+	  {
+          ....
+	  }</pre>
+or this:<pre>	for (...){
+            ....
+       }</pre>
+<LI><b>Using Space</b> - No spaces after names.
+<br>Separate functions with blank lines.
+<pre>    class X
+    {
+    public:
+	    void f();
+	    void g();
+    };</pre>
+  <p>&nbsp;
+
+<LI>	Not "void f ()" but "void f()".
+
+<LI>Avoid this:<br>
+  <font face="Courier New">
+  callingMyFunction(blah,<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;blah2,<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; blah3);</font><br>
+    Do this:<br>
+  <font face="Courier New">callingMyFunction(<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; blah,<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; blah2,<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; blah3);</font>&gt;/pre&gt;<br>
+<LI>
+  <pre>Avoid this:
+
+	int        x;
+	float      y;
+</pre>
+<LI>Use 0 and not NULL.&nbsp;&nbsp;&nbsp;
+<li>Don't separate return type onto its own line:
+
+    Avoid this:
+   <pre>
+	int
+	f()
+	{
+        ....
+	}
+   </pre>
+
+<li><b>Comments</b> - Use /** */ rather than /// for DOC++.
+
+<li><b>Conditional Compilation </b>- Avoid use of conditional compilation for obscuring platrform
+    differences. Use (or put) routines in appropriate platform files
+    or in the System*.cpp files in Common.
+</ol>
+<h2>Testing</h2>
+
+<p>Effective testing is essential to allowing a group to work together in a
+common code environment. We have created a structure where unit and even system
+level tests can be created and committed to the source tree as part of all
+development.&nbsp; Each major directory section includes a tests subdirectory
+with individual directories for tests. Please create and commit tests as part of
+the normal environment wherever it is possible. All core code should include
+tests created in this manner as well</p>
+
+<p>If you change code to extend it or make corrections, please review the
+corresponding tests code to 1) add tests to cover the problem corrected 2)
+extend tests to cover the new code added.</p>
+
+<p>Be mindful that the tests must run on all supported platforms and
+    that a commit may break another platform.</p>
+
+<p>Tests must clean up the effect they have on the repository.</p>
+
+Changes must work on all platforms. Commits must not break any
+    platform.
+
+Always write a regression test for everything.
+<p>No files with warnings should be committed to CVS.
+
+Test big changes on at least Windows and Unix (or Linux)
+
+<h2>Committing Code to CVS</h2>
+
+<p>Don't commit anything that breaks the build (try a clean slate
+    checkout and build).&nbsp; Remember that if the build is broken for you, it
+is also broken for everybody that gets the new code.</p>
+
+<p>Always build and run all regression tests before committing.&nbsp;</p>
+
+<p>No binaries may be committed to repository.&nbsp;</p>
+
+<p> There are a few exceptions to this rule but binary files cause problems</p>
+
+<h2>Using Outside Code and Libraries</h2>
+
+<p>This is an open source project.&nbsp; All code that is contributed to this
+project must be open source and must be made available under the standard
+license used by the Pegasus project. Do not use any outside libraries that do
+not meet this criteria.&nbsp; Further, every reference to outside code make it
+more complex for others to build and work with the project and introduces
+potential portability problems.&nbsp; At the same time, there may be real
+reasons to use outside code and libraries at times. Thus, for example, the
+initial project used the ACE_wrappers libraries extensively but with the
+objective of eventually providing a replacement.&nbsp; That replacement has been
+produced, partly because ACE was not available on all of the platforms.</p>
+
+<p>All code submitted to the Pegasus core source libraries is to be made available
+under the standard license used by Pegasus.&nbsp; If any code is to be taken
+from other open source projects, we expect that the code recognize both the
+requirements of the Pegasus standard license and the other license (ex. if we
+were to share code with the Caldera OpenWBEM) project, we would have to show
+both their license and our licenses.</p>
+
+<p>All code input to the Pegasus project must include the license statement.</p>
+
+<p>If there is a case of code that we want to use on the Pegasus project but
+that is licensed outside of the above rules, it can be included only with the
+specific permission of the Pegasus project management.&nbsp; We will be very
+hesitant to do this since it could mean weakening the whole open source nature
+of the project and would greatly complicate our license arrangements.</p>
+
+<h2>Using Make</h2>
+
+<p>The Pegasus project has developed a consistent and portable make system that
+allows bot localized and global builds on a wide variety of systems from Windows
+to Unix to the tandem platforms today.&nbsp; This is based on 1) using the GNU
+Make tool as the core of the make system, 2) minimining the use of other tools.
+</p>
+
+<p>&lt;&lt;EXPLAIN THE MAKE SYSTEM OR REFERENCE DOC&gt;&gt;&gt;
+</p>
+
+<p>All code must be reachable (built) from master makefile. Otherwise it will not be reached when doing mass substitutions, testings of
+builds, and license changes.
+</p>
+
+<h2>DOCUMENTING
+</h2>
+
+<p>&lt;&lt;&lt;THIS SECTION NEED TO BE COMPLETED&gt;&gt;&gt;
+</p>
+
+<h2>Portability Issues</h2>
+
+<OL>
+<LI>In .h files the following identifiers must be surrounded by	the PEGASUS_STD() macro (which
+pretends std:: to the argument).<br>
+<br>
+<font face="Courier New">	    ostream<br>
+	    istream<br>
+	    cout<br>
+	    cerr<br>
+</font><br>
+	Do not use this macro in .cpp files. Instead put the following<br>
+	at the beginning of the file:<br>
+<br>
+	    PEGASUS_USING_STD;<br>
+<br>
+<LI>The following does not compile with some compilers.<br>
+<br>
+	    class X<br>
+	    {<br>
+	    public:<br>
+<br>
+		static const Uint32 COLOR = 225;<br>
+	    };<br>
+<br>
+	Use this instead:<br>
+<br>
+	    class X<br>
+	    {<br>
+	    public:<br>
+<br>
+		static const Uint32 COLOR;<br>
+	    };<br>
+<br>
+	And place this in the .cpp file:<br>
+<br>
+	    const Uint32 X::COLOR = 255;<br>
+<br>
+	Or use enumerated types:<br>
+<br>
+	    class X<br>
+	    {<br>
+	    public:<br>
+<br>
+		enum { COLOR = 225 };<br>
+	    };<br>
+</OL>
+
+<h2>The Source Tree Structure</h2>
+
+<p>We work from a single source tree in CVS.&nbsp; We have a fixed structure for
+this structure.</p>
+
+<p>&lt;&lt;&lt;THIS SECTION IS TBD&gt;&gt;&gt;</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>---END OF DOCUMENT--</p>
+
+</body>
+
+</html>

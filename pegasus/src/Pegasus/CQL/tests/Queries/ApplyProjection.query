@@ -1,0 +1,120 @@
+# Testcases for applyProjection (no embedded objects)
+
+#
+# Single property - error cases
+SELECT #'OK' FROM CQL_TestPropertyTypes
+SELECT ANonExistentProperty#'OK' FROM CQL_TestPropertyTypes
+SELECT CQL_TestPropertyTypes.ANonExistentProperty#'OK' FROM CQL_TestPropertyTypes
+SELECT ANonExistentProperty FROM CQL_TestPropertyTypes
+SELECT AnyProperty FROM CQL_ANonExistentClass
+#
+# Single property - property is from the base class
+SELECT InstanceID FROM CQL_TestPropertyTypes
+SELECT InstanceID FROM CQL_TestPropertyTypesMissing
+SELECT InstanceID FROM CQL_TestElement
+#
+# Single property - property is on one derived class
+SELECT PropertyString FROM CQL_TestElement
+#
+# Single property - instance is not related to FROM class
+SELECT PropertyString FROM CQL_ComputerSystem
+#
+# Single property list
+SELECT PropertyString FROM CQL_TestPropertyTypes
+SELECT PropertyStringUint FROM CQL_TestPropertyTypes
+SELECT PropertyStringSint FROM CQL_TestPropertyTypes
+SELECT PropertyStringReal FROM CQL_TestPropertyTypes
+SELECT PropertyStringArray[1] FROM CQL_TestPropertyTypes
+SELECT PropertyStringArray FROM CQL_TestPropertyTypes
+SELECT PropertyUint8 FROM CQL_TestPropertyTypes
+SELECT PropertyUint8Array[1] FROM CQL_TestPropertyTypes
+SELECT PropertyUint8Array FROM CQL_TestPropertyTypes
+SELECT PropertyUint16 FROM CQL_TestPropertyTypes
+SELECT PropertyUint16Array[1] FROM CQL_TestPropertyTypes
+SELECT PropertyUint16Array FROM CQL_TestPropertyTypes
+SELECT PropertyUint32 FROM CQL_TestPropertyTypes
+SELECT PropertyUint32Array[1] FROM CQL_TestPropertyTypes
+SELECT PropertyUint32Array FROM CQL_TestPropertyTypes
+SELECT PropertyUint64 FROM CQL_TestPropertyTypes
+SELECT PropertyUint64Array[1] FROM CQL_TestPropertyTypes
+SELECT PropertyUint64Array FROM CQL_TestPropertyTypes
+SELECT PropertySint8 FROM CQL_TestPropertyTypes
+SELECT PropertySint8Array[1] FROM CQL_TestPropertyTypes
+SELECT PropertySint8Array FROM CQL_TestPropertyTypes
+SELECT PropertySint16 FROM CQL_TestPropertyTypes
+SELECT PropertySint16Array[1] FROM CQL_TestPropertyTypes
+SELECT PropertySint16Array FROM CQL_TestPropertyTypes
+SELECT PropertySint32 FROM CQL_TestPropertyTypes
+SELECT PropertySint32Array[1] FROM CQL_TestPropertyTypes
+SELECT PropertySint32Array FROM CQL_TestPropertyTypes
+SELECT PropertyBoolean FROM CQL_TestPropertyTypes
+SELECT PropertyBooleanArray[1] FROM CQL_TestPropertyTypes
+SELECT PropertyBooleanArray FROM CQL_TestPropertyTypes
+SELECT PropertyDatetime FROM CQL_TestPropertyTypes
+SELECT PropertyDatetimeArray[1] FROM CQL_TestPropertyTypes
+SELECT PropertyDatetimeArray FROM CQL_TestPropertyTypes
+SELECT PropertyChar16 FROM CQL_TestPropertyTypes
+SELECT PropertyChar16Array[1] FROM CQL_TestPropertyTypes
+SELECT PropertyChar16Array FROM CQL_TestPropertyTypes
+SELECT PropertyValueMap FROM CQL_TestPropertyTypes
+#
+# Multiple property list
+SELECT PropertyStringArray, PropertyDatetime, PropertySint8, PropertyUint32, PropertyChar16Array FROM CQL_TestPropertyTypes
+#
+# Multiple property list, with errors
+SELECT PropertyStringArray, PropertyDatetime, PropertySint8, PropertyUint32, PropertyChar16Array[1] FROM CQL_TestPropertyTypes
+SELECT PropertyStringArray, PropertyDatetime, PropertyNonExistent, PropertyUint32, PropertyChar16Array FROM CQL_TestPropertyTypes
+SELECT PropertyStringArray, PropertyDatetime, PropertySint8, PropertyUint32, PropertyChar16Array FROM CIM_ANonExistentClass
+#
+# Multiple property - instance is subclass of FROM class
+SELECT PropertyStringArray, PropertyDatetime, PropertySint8, PropertyUint32, PropertyChar16Array FROM CQL_TestElement
+#
+# Multiple property - instance is not related to FROM class
+SELECT PropertyStringArray, PropertyDatetime, PropertySint8, PropertyUint32, PropertyChar16Array FROM CQL_ComputerSystem
+#
+# FROM class context tests
+SELECT CQL_TestPropertyTypes.PropertyBooleanArray FROM CQL_TestPropertyTypes
+SELECT Alias.PropertyBooleanArray FROM CQL_TestPropertyTypes ALIAS
+SELECT Alias.PropertyBooleanArray FROM CQL_TestPropertyTypes as ALIAS
+SELECT CQL_ANonExistentClass.PropertyBooleanArray FROM CQL_TestPropertyTypes
+SELECT CIM_OperatingSystem.PropertyBooleanArray FROM CQL_TestPropertyTypes
+SELECT CQL_TestPropertyTypes.PropertyBooleanArray FROM CQL_ANonExistentClass
+SELECT CQL_TestPropertyTypes.PropertyBooleanArray FROM CQL_OperatingSystem
+#
+# Wildcard tests - FROM class is a subclass CQL_TestElement
+SELECT * FROM CQL_TestPropertyTypes
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes
+SELECT Alias.* FROM CQL_TestPropertyTypes alias
+SELECT PropertyString, * FROM CQL_TestPropertyTypes
+#
+# Wildcard tests - FROM class is the base class
+SELECT * FROM CQL_TestElement
+SELECT CQL_TestElement.* FROM CQL_TestElement
+#
+# Wildcard tests - the instance will be missing a property
+SELECT * FROM CQL_TestPropertyTypesMissing
+SELECT InstanceID, * FROM CQL_TestPropertyTypesMissing
+#
+# Scoping tests - scoping class is superclass of FROM
+SELECT CQL_TestElement::InstanceID FROM CQL_TestPropertyTypes
+SELECT CQL_TestPropertyTypes.CQL_TestElement::InstanceID FROM CQL_TestPropertyTypes
+SELECT Alias.CQL_TestElement::InstanceID FROM CQL_TestPropertyTypes AS alias
+#
+# Scoping tests - scoping class is the same as the FROM
+SELECT CQL_TestPropertyTypes::PropertyString FROM CQL_TestPropertyTypes
+SELECT alias::PropertyString FROM CQL_TestPropertyTypes alias
+SELECT CQL_TestPropertyTypes.CQL_TestPropertyTypes::PropertyString FROM CQL_TestPropertyTypes
+SELECT CQL_TestPropertyTypes.ALIAS::PropertyString FROM CQL_TestPropertyTypes as alias
+SELECT Alias.CQL_TestPropertyTypes::PropertyString FROM CQL_TestPropertyTypes AS alias
+SELECT Alias.alias::PropertyString FROM CQL_TestPropertyTypes alias
+#
+# Scoping tests - scoping class is subclass of  FROM
+SELECT CQL_TestPropertyTypes::PropertyString FROM CQL_TestElement
+SELECT CQL_TestElement.CQL_TestPropertyTypes::PropertyString FROM CQL_TestElement
+SELECT Alias.CQL_TestPropertyTypes::PropertyString FROM CQL_TestElement AS alias
+
+# Combined scoping and wildcard tests - scoping class is subclass of FROM
+SELECT CQL_TestPropertyTypes::PropertyString, * FROM CQL_TestElement
+
+# Combined scoping and wildcard tests - scoping class is superclass of FROM
+SELECT CQL_TestElement::InstanceID, * FROM CQL_TestPropertyTypes

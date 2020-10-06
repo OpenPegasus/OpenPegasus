@@ -1,0 +1,933 @@
+// ===================================================================
+// Title: Application_DeploymentModel
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Application_DeploymentModel.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: These object classes define the DMTF Application Model
+//              and include classes to represent software features,
+//              and deployable/installable elements.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+//    06/07/99  Added FRUIncludesSoftwareFeature association (CR277b)
+//              Removed min(1) from SoftwareFeatureSoftwareElements
+//              (CR395)
+//              Added more processor types (CR318c)
+//              Added video processor to Arch Type (CR377)
+//              Added Sparc processor to Arch Type (CR297)
+//              Added additional OS type (CR363)
+//              Added VSE and TPF OS types (CR409)
+// 
+//    01/10/00  Add keys to refs of FRUIncludesSoftwareFeature (CR453)
+//              Add Itanium processor to Arch Type (CR449)
+// 
+//    01/17/00  Updated Mappingstrings qualifiers (CR431)
+// 
+//    03/07/00  Change Intel Processor types for legal reasons (CR438)
+// 
+//    06/08/00  Added SoftwareElementService/SAPImplementation
+//              associations (CR482a)
+// 
+//    11/29/00 - Version 2.5
+//             - CR533b Add Windows(R) Me to *.TargetOperatingSystem*
+//             - CR540c Add SoftwareFeatureComponent Association
+//             - CR542 Add "Not Applicable" to the
+//             *TargetOperatingSystem
+//                     property
+// 
+//    03/09/2002 CIM 2.6 Final release
+//             - CR658 Add Key Qualifier to association references
+//                      in Appl and SysDev MOFs. This changed
+//                      CIM_ProductSoftwareFeatures,
+//                      CIM_InstalledSoftwareElement,
+//                      CIM_InstalledProductImage
+//             - CR746 Add Version qualifier (Version 2.6.0) to
+//                     all classes and associations.
+//             - CR823 Cleanup all Descriptions and other textual issues
+//             - CR828 Fix inconsistencies between Device, Appl and
+//                     System Models wrt processor and OS type enums
+// 
+//    06/06/2002 CIM 2.7 Preliminary Release
+//             - CR 618 - Add Pentium 4 Processor
+//             - CR 686 - Add Xeon Processor
+//             - CR 770 - Add WinXP to OSTypes
+//             - CR 772 - Add new AMD Processor types
+//             - CR 839 - Add other Processor Types
+//             - Define Application MOF structure
+// 
+//    09/22/2002 CIM 2.7 Public Preliminary Release
+//            -  CR 876 - Rename the "Digital Unix" operating system
+//                        type to "Tru64 UNIX".
+//    03/17/2003 CIM 2.7 Public Final Release
+//            -  CR 935 - Add entries to targetOperatingSystem value
+//            map.
+//                        Added z/OS and changed VM/EAS to VM
+// 
+//    05/20/2003 CIM 2.8 Preliminary
+//            -  CR 1063 - Add Association SoftwareElementComponent
+//            -  CR  886 - Add ApplicationDirectory
+//    07/31/2003 CIM 2.8 Preliminary (post Company review)
+//            -  CR 1103 SoftwareFeatureSAPImplementaiton references
+//                       Service vs. SAP
+//    12/19/2003 CIM 2.8 Final
+//            -  CR 1178 - Change to the CIM_ApplicationSystem class
+//                         to add the application runtime subclass
+//                         back in.
+//            -  CR 1198 - Change  ApplicationSystemDirectory and
+//                         and SoftwareElementComponent to Final 2.8
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+   [Version ( "2.8.0" ), Description (
+       "The ApplicationSystem class represents an application or a "
+       "software system that supports a particular business function "
+       "and that can be managed as an independent unit. Such a system "
+       "can be decomposed into its functional components using the "
+       "CIM_SoftwareFeature class. The Features for a particular "
+       "application or software system are located using the "
+       "CIM_ApplicationSystemSoftwareFeature association. The features "
+       "are part of the deployment-oriented aspects of the application "
+       "system. \n"
+       "With regard to the application runtime aspects, the "
+       "ApplicationSystem class also represents the core class of the "
+       "Application Systems' sub-model which of the application "
+       "runtime model. Its role in the systems sub-model is a) the "
+       "root node of the containment hierarchy of the application "
+       "elements (at runtime) as services, components, sub-systems, "
+       "etc., b) the place for runtime overview information such as "
+       "response time or system status, c) runtime control of the "
+       "entire application (e.g., start/stop), and d) the main entry "
+       "point to the navigation through and drill-down into the "
+       "runtime model. \n"
+       "The lifetime of an instance of this class is not limited to "
+       "the application instance it represents. Even if the "
+       "application is not running, the ApplicationSystem object can "
+       "report properties that have values (e.g., the name of the "
+       "application or the current status). Note that it is also "
+       "possible to define the lifetime of the objects through the "
+       "lifetime of the application instances. \n"
+       "Through ApplicationSystemDependency, non-containment "
+       "relationships can be expressed.")]
+class CIM_ApplicationSystem : CIM_System {
+
+      [Description (
+          "Distribution describes how the application system is "
+          "distributed with respect to its underlying servers. In "
+          "general, the application system is distributed or local. "
+          "This property indicates whether the application system is "
+          "running on one or multiple servers. This can be determined "
+          "without having to query for associated servers represented "
+          "by ComputerSystems. Distributed systems also introduce a "
+          "virtual notion to themselves. Note that a distributed "
+          "application system is not tangible but virtual. Only its "
+          "contained local systems can be found as processes or "
+          "threads, and can therefore be regarded as tangible. The "
+          "distributed system remains a named, virtual entity, that "
+          "scopes strongly bound constituents and allows the "
+          "application to be managed in its entirety. \n"
+          "The property is needed to help root cause analysis and "
+          "operations, especially when these are automated, in order "
+          "to clearly know that more than one executed application - "
+          "most likely the local application systems - is affected by "
+          "the management task. This is particularly true if the "
+          "contained application systems provide uniform functionality "
+          "like webserver or application server farms. \n"
+          "To express constraints between distributed and local "
+          "system, this class must be derived and appropriate "
+          "associations must be defined. \n"
+          "This property should not be confused with the Roles[] "
+          "property defined in System. The latter is reserved for "
+          "administrator assigned roles."), 
+       ValueMap { "0", "1", "2", "3..32767", "32768..65535" }, 
+       Values { "Unknown", "Distributed", "Local", "DMTF Reserved",
+          "Vendor Specific" }]
+   uint16 Distribution;
+
+      [Description (
+          "StartApplication() starts an application system. The "
+          "ApplicationSystem object must have been created prior to "
+          "the invocation of this method. It is up to the "
+          "implementation of the method to define which of the "
+          "contained or dependent sub-elements are to be started and "
+          "in which order their startup may occur. \n"
+          "Since a system startup can extend over long periods of time "
+          "(several minutes is not unusual for complex distributed "
+          "applications), the method can be implemented synchronously "
+          "or asynchronously. In both cases EnabledState and "
+          "RequestedState reflect the current state of the application "
+          "and the desired state (Enabled) respectively. The exact "
+          "nature of the errors during the startup cannot be "
+          "determined in the asynchronous case. The method must return "
+          "one of the following values: \n"
+          "Unspecified Error: If no return code can be identified \n"
+          "Completed with No Error: successful invocation \n"
+          "Start Already in Progress: application still being started "
+          "\nFailed:Indicates errors upon execution."), 
+       ValueMap { "0", "1", "2", "3", "4..4096", "4097..32767",
+          "32768..65535" }, 
+       Values { "Unspecified Error", "Completed with No Error",
+          "Start Already in Progress", "Failed", "DMTF Reserved",
+          "Method Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_ApplicationSystem.EnabledState",
+          "CIM_ApplicationSystem.RequestedState" }]
+   uint16 StartApplication(); 
+
+      [Description (
+          "StopApplication() allows for stopping/shutting down an "
+          "application system. It is up to the implementation of the "
+          "method to define which of the contained or dependent "
+          "sub-elements are to be stopped and in which order their "
+          "stop has to occur. \n"
+          "Since a system shutdown can last considerable time (several "
+          "minutes is not necessarily unusual for complex distributed "
+          "applications), the method can be implemented synchronously "
+          "or asynchronously. In both cases EnabledState and "
+          "RequestedState reflect the current state of the application "
+          "and the desired state (Disabled) respectively. The exact "
+          "nature of the errors during the stop cannot be determined "
+          "in the asynchronous case. The method must return one of the "
+          "following: \n"
+          "Unspecified Error: If no return code can be identified \n"
+          "Completed with No Error: successful invocation \n"
+          "Stop Already in Process: application is shutting down \n"
+          "Failed: Indicates errors upon execution."), 
+       ValueMap { "0", "1", "2", "3", "4..4096", "4097..32767",
+          "32768..65535" }, 
+       Values { "Unspecified Error", "Completed with No Error",
+          "Stop Already in Process", "Failed", "DMTF Reserved",
+          "Method Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_ApplicationSystem.EnabledState",
+          "CIM_ApplicationSystem.RequestedState" }]
+   uint16 StopApplication(); 
+
+      [Override ( "EnabledState" ), Description (
+          "EnabledState is an integer enumeration that indicates the "
+          "enabled/disabled states of an element. It can also indicate "
+          "the transitions between these requested states. For "
+          "example, shutting down and starting are transient states "
+          "between enabled and disabled. \n"
+          "In contrast to the original version defined higher in the "
+          "inheritance hierarchy (EnabledLogicalElement), EnabledState "
+          "is simplified. It reflects the notion of an execution "
+          "status tailored to applications and represents a summary of "
+          "the original property. It allows simplified and efficient "
+          "determination of whether the application is started, "
+          "stopped or in transition between either of these states. "
+          "The property does not show any errors. Errors MUST be "
+          "described in MSE.OperationalStatus, and MAY also be "
+          "described in logs or other data sources. \n"
+          "The mapping to MSE.OperationalStatus is as follows: \n"
+          "ExecutionStatus <- MSE.OperationalStatus \n"
+          "Unknown <- Unknown, No Contact, Lost Communication, \n"
+          "Either of the values <- Other \n"
+          "Enabled (started) <- OK, Degraded, Stressed, Predictive "
+          "Failure, In Service, Dormant, Supporting Entity in Error, "
+          "Completed \n"
+          "Enabled or Disabled (Started or Stopped) <- Error, "
+          "Non-Recoverable Error \n"
+          "Starting <- Starting \n"
+          "Shutting Down (Stopping) <- Stopping \n"
+          "Disabled (Stopped) <- Stopped, Aborted. \n"
+          "The mapping to the original EnabledState property is as "
+          "follows: \n"
+          "Unknown <- Unknown, Not Applicable \n"
+          "Either of the values <-Other \n"
+          "Enabled <- Enabled, Enabled but Offline, In Test, Deferred, "
+          "Quiesce \n"
+          "Disabled <- Disabled \n"
+          "ShuttingDown <- ShuttingDown \n"
+          "Starting <- Starting."), 
+       ValueMap { "0", "2", "3", "4", "10", "11..32767",
+       "32768..65535" }, 
+       Values { "Unknown", "Enabled", "Disabled", "Shutting Down",
+          "Starting", "DMTF Reserved", "Vendor Reserved" }]
+   uint16 EnabledState = 0;
+
+      [Description (
+          "The point in time (date and time) when the application "
+          "system was last started. If the application system is in a "
+          "state other the state Enabled (i.e., started and running) "
+          "this value is not meaningful and the property value MUST be "
+          "set to all zeros. \n"
+          "StartupTime is preferably the point in time when the "
+          "application is available to the user. Instead, if the "
+          "provider and/or the instrumentation cannot determine the "
+          "point in time the application becomes available, the point "
+          "in time can be used at which the underlying operating "
+          "system reports successful launch of the application. If no "
+          "value can be provided the property value MUST be set to all "
+          "zeros.")]
+   datetime StartupTime;
+
+      [Description (
+          "ServingStatus is a summary of MSE.OperationalStatus. It "
+          "allows simplified and efficient determination of whether "
+          "the application is providing service or has stopped doing "
+          "so for various reasons like errors, shutdown, abort, etc. "
+          "Therefore, no transitional values are provided. The "
+          "property does not show any errors. Errors MUST be described "
+          "in MSE.OperationalStatus, and MAY also be described in logs "
+          "or other data sources. Therefore, ServingStatus is suited "
+          "to provide summary information for monitoring purposes and "
+          "service level management. \n"
+          "The mapping to MSE.OperationalStatus is as follows: \n"
+          "ServingStatus <- MSE.OperationalStatus \n"
+          "Unknown <- Unknown, No Contact, Lost Communication \n"
+          "Either of the values <- Other \n"
+          "Serving <- OK, Degraded, Stressed, Predictive Failure, "
+          "Completed \n"
+          "Not Serving <- Error, Non-Recoverable Error, Starting, "
+          "Stopping, Stopped, In Service, Aborted, Dormant, Supporting "
+          "Entity in Error."), 
+       ValueMap { "0", "1", "2", "5..4096", "4097..65535" }, 
+       Values { "Unknown", "Serving", "Not Serving", "DMTF Reserved",
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.OperationalStatus" }]
+   uint16 ServingStatus;
+
+      [Description (
+          "The point in time at which the ServingStatus property was "
+          "last updated."), 
+       ModelCorrespondence { "CIM_ApplicationSystem.ServingStatus" }]
+   datetime LastServingStatusUpdate;
+
+};
+
+
+
+// ==============================================================
+// ApplicationSystemDirectory
+// ==============================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_ApplicationSystemDirectory is an association used to "
+       "establish a relationship between an ApplicationSystem and the "
+       "Directories that it uses. This is used to identify the single "
+       "root installation directory for an ApplicationSystem, as well "
+       "as the logical purpose of other directories utilized by the "
+       "ApplicationSystem. Note: This class is intended to be a "
+       "subclass of CIM_Dependency but the current specification "
+       "prohibits the extension of parent keys in a subclass. This "
+       "will be revisited when the specification changes to make the "
+       "intended inheritance possible.")]
+class CIM_ApplicationSystemDirectory {
+
+      [Key, Description (
+          "A Directory which is used by the associated "
+          "ApplicationSystem.")]
+   CIM_Directory REF Antecedent;
+
+      [Key, Description (
+          "An ApplicationSystem which depends upon the associated "
+          "Directory.")]
+   CIM_ApplicationSystem REF Dependent;
+
+      [Key, Description (
+          "Name is a string representing a meaningful identifier for "
+          "referring to the associated Directory in the context of the "
+          "ApplicationSystem. As an example, this might be the name of "
+          "the environment variable used to hold the same directory "
+          "information."), 
+       MaxLen ( 1024 )]
+   string Name;
+
+      [Required, Description (
+          "ApplicationDirectoryUse is an enumerated array which "
+          "indicates the purpose(s) of the associated directory within "
+          "the context of the ApplicationSystem. A value of \"Root\" "
+          "indicates that the associated directory is the one and only "
+          "root directory for the ApplicationSystem. This would "
+          "typically be the directory path in which the application is "
+          "installed. For applications which are installed in multiple "
+          "directories, this would represent the directory from which "
+          "initial program and configuration files are loaded. A value "
+          "of \"Program\" indicates that the directory contains "
+          "supplemental program files used by the ApplicationSystem. A "
+          "value of \"Data\" indicates that the directory is used for "
+          "data storage. A value of \"Log\" indicates that the "
+          "directory is used to contain log files for the "
+          "ApplicationSystem. It is considered invalid for multiple "
+          "associations from the same ApplicationSystem to have a "
+          "value of \"Root\". The \"Unknown\" state is expected to be "
+          "short-lived and would typically be seen only in the "
+          "installation phase of an ApplicationSystem, if at all. A "
+          "value of \"Temp\" indicates that the associated directory "
+          "is used to contain temporary files created by the "
+          "ApplicationSystem. The \"Other\" state should only be used "
+          "in cases where none of the designated values are "
+          "appropriate. This is intended to enable use of the model "
+          "for unanticipated purposes and would usually signal a need "
+          "to extend this enumeration through the standards process."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Other", "Root", "Program", "Data", "Log",
+          "Temp" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_ApplicationSystemDirectory.OtherUseDescriptions" }]
+   uint16 ApplicationDirectoryUses[];
+
+      [Description (
+          "A string describing how the ApplicationSystem utilizes the "
+          "associated directory when the corresponding entry in "
+          "ApplicationDirectoryUses is set to 1, \"Other\". This "
+          "attribute is meaningless and should be null when the "
+          "corresponding entry in ApplicationDirectoryUses is set to "
+          "any value other than 1."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_ApplicationSystemDirectory.ApplicationDirectoryUses" }]
+   string OtherUseDescriptions[];
+};
+
+
+// ==================================================================
+// SoftwareElement
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "The CIM_SoftwareElement class is used to decompose a "
+       "CIM_SoftwareFeature object into a set of individually "
+       "manageable or deployable parts, for a particular platform. A "
+       "SoftwareElement's platform is uniquely identified by its "
+       "underlying hardware architecture and operating system (for "
+       "example Sun Solaris on Sun Sparc or Windows NT on Intel "
+       "platforms). As such, to understand the details of how the "
+       "functionality of a particular SoftwareFeature is provided on a "
+       "particular platform, the CIM_SoftwareElement objects "
+       "referenced by CIM_SoftwareFeatureSoftwareElements associations "
+       "are organized in disjoint sets based on the "
+       "TargetOperatingSystem property. A CIM_SoftwareElement object "
+       "captures the management details of a part or component in one "
+       "of four states characterized by the SoftwareElementState "
+       "property.")]
+class CIM_SoftwareElement : CIM_LogicalElement {
+
+      [Key, Override ( "Name" ), Description (
+          "The name used to identify this SoftwareElement."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Key, Description (
+          "Software Version should be in the form "
+          "<Major>.<Minor>.<Revision> or "
+          "<Major>.<Minor><letter><revision>."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|SubComponent Software |001.4" }]
+   string Version;
+
+      [Key, Description (
+          "The SoftwareElementState is defined in this model to "
+          "identify various states of a SoftwareElement's life cycle. "
+          "\n- A SoftwareElement in the deployable state describes the "
+          "details necessary to successfully distribute it and the "
+          "details (Checks and Actions) required to move it to the "
+          "installable state (i.e, the next state). \n"
+          "- A SoftwareElement in the installable state describes the "
+          "details necessary to successfully install it and the "
+          "details (Checks and Actions) required to create an element "
+          "in the executable state (i.e., the next state). \n"
+          "- A SoftwareElement in the executable state describes the "
+          "details necessary to successfully start it and the details "
+          "(Checks and Actions) required to move it to the running "
+          "state (i.e., the next state). \n"
+          "- A SoftwareElement in the running state describes the "
+          "details necessary to manage the started element."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Deployable", "Installable", "Executable", "Running" }]
+   uint16 SoftwareElementState;
+
+      [Key, Description (
+          "This is an identifier for the SoftwareElement and is "
+          "designed to be used in conjunction with other keys to "
+          "create a unique representation of the element."), 
+       MaxLen ( 256 )]
+   string SoftwareElementID;
+
+      [Key, Description (
+          "The TargetOperatingSystem property specifies the element's "
+          "operating system environment. The value of this property "
+          "does not ensure that it is binary executable. Two other "
+          "pieces of information are needed. First, the version of the "
+          "OS needs to be specified using the class, CIM_OSVersion "
+          "Check. The second piece of information is the architecture "
+          "that the OS runs on. This information is verified using "
+          "CIM_ArchitectureCheck. The combination of these constructs "
+          "clearly identifies the level of OS required for a "
+          "particular SoftwareElement."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+          "60", "61", "62", "63", "64", "65", "66", "67", "68" }, 
+       Values { "Unknown", "Other", "MACOS", "ATTUNIX", "DGUX",
+          "DECNT", "Tru64 UNIX", "OpenVMS", "HPUX", "AIX", 
+          //10 
+          "MVS", "OS400", "OS/2", "JavaVM", "MSDOS", "WIN3x", "WIN95",
+          "WIN98", "WINNT", "WINCE", 
+          //20 
+          "NCR3000", "NetWare", "OSF", "DC/OS", "Reliant UNIX",
+          "SCO UnixWare", "SCO OpenServer", "Sequent", "IRIX",
+          "Solaris", 
+          //30 
+          "SunOS", "U6000", "ASERIES", "TandemNSK", "TandemNT",
+          "BS2000", "LINUX", "Lynx", "XENIX", "VM", 
+          //40 
+          "Interactive UNIX", "BSDUNIX", "FreeBSD", "NetBSD",
+          "GNU Hurd", "OS9", "MACH Kernel", "Inferno", "QNX", "EPOC", 
+          //50 
+          "IxWorks", "VxWorks", "MiNT", "BeOS", "HP MPE", "NextStep",
+          "PalmPilot", "Rhapsody", "Windows 2000", "Dedicated", 
+          //60 
+          "OS/390", "VSE", "TPF","Windows (R) Me", "Caldera Open UNIX",
+          "OpenBSD", "Not Applicable", "Windows XP", "z/OS" }, 
+       MappingStrings { "MIF.DMTF|SubComponent Software|001.8" }, 
+       ModelCorrespondence { "CIM_OperatingSystem.OSType" }]
+   uint16 TargetOperatingSystem;
+
+      [Description (
+          "The OtherTargetOS property records the manufacturer and "
+          "operating system type for a SoftwareElement when the "
+          "TargetOperatingSystem property has a value of 1 "
+          "(\"Other\"). For all other values of TargetOperatingSystem, "
+          "the OtherTargetOS property is NULL."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_OperatingSystem.OtherTypeDescription" 
+          }]
+   string OtherTargetOS;
+
+      [Description (
+          "Manufacturer of this SoftwareElement."), 
+       MaxLen ( 256 ), 
+       MappingStrings { "MIF.DMTF|SubComponent Software|001.3" }]
+   string Manufacturer;
+
+      [Description (
+          "The internal identifier for this compilation of "
+          "SoftwareElement."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|Software Component Information|002.4" 
+          }]
+   string BuildNumber;
+
+      [Description (
+          "The assigned serial number of this SoftwareElement."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|ComponentID|001.4" }]
+   string SerialNumber;
+
+      [Description (
+          "The code set used by this SoftwareElement. It defines the "
+          "bit patterns that a system uses to identify characters. ISO "
+          "defines various code sets such as UTF-8 and ISO8859-1."), 
+       MaxLen ( 64 )]
+   string CodeSet;
+
+      [Description (
+          "The manufacturer's identifier for this SoftwareElement. "
+          "Often this will be a stock keeping unit (SKU) or a part "
+          "number."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|SubComponent Software|001.6" }]
+   string IdentificationCode;
+
+      [Description (
+          "The value of this property identifies the language edition "
+          "of this SoftwareElement. The language codes defined in ISO "
+          "639 should be used. Where the element represents a "
+          "multi-lingual or international version, the string "
+          "\"Multilingual\" should be used."), 
+       MaxLen ( 32 ), 
+       MappingStrings { "MIF.DMTF|SubComponent Software|001.7" }]
+   string LanguageEdition;
+};
+
+
+// ==================================================================
+// SoftwareFeature
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The CIM_SoftwareFeature class defines a particular function or "
+       "capability of a product or application system. This class "
+       "captures a level of granularity describing a unit of "
+       "installation, rather than the units that reflect how the "
+       "product is built or packaged. The latter detail is captured "
+       "using a CIM_SoftwareElement class. When a SoftwareFeature can "
+       "exist on multiple platforms or operating systems (for example, "
+       "a client component of a three tiered client/server application "
+       "that runs on Solaris, Windows NT, and Windows 95), the Feature "
+       "is a collection of all the SoftwareElements for these "
+       "different platforms. In this case, the users of the model must "
+       "be aware of this situation since typically they will be "
+       "interested in a sub-collection of the SoftwareElements "
+       "required for a particular platform. \n"
+       "SoftwareFeatures are always defined in the context of a "
+       "CIM_Product, using the CIM_ProductSoftwareFeature association. "
+       "Features are delivered through Products. Optionally, "
+       "SoftwareFeatures from one or more Products can be organized "
+       "into ApplicationSystems using the "
+       "CIM_ApplicationSystemSoftwareFeature association.")]
+class CIM_SoftwareFeature : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_Product.IdentifyingNumber" ), 
+       Description (
+          "The scoping Product's identification."), 
+       MaxLen ( 64 )]
+   string IdentifyingNumber;
+
+      [Key, Propagated ( "CIM_Product.Name" ), Description (
+          "The scoping Product's commonly used name."), 
+       MaxLen ( 256 )]
+   string ProductName;
+
+      [Key, Propagated ( "CIM_Product.Vendor" ), Description (
+          "The scoping Product's supplier."), 
+       MaxLen ( 256 )]
+   string Vendor;
+
+      [Key, Propagated ( "CIM_Product.Version" ), Description (
+          "The scoping Product's version."), 
+       MaxLen ( 64 )]
+   string Version;
+
+      [Key, Override ( "Name" ), Description (
+          "The Name property defines the unique label by which the "
+          "SoftwareFeature is identified. This label should be a "
+          "human-readable name that uniquely identifies the element in "
+          "the context of the element's namespace."), 
+       MaxLen ( 256 )]
+   string Name;
+};
+
+
+// ==================================================================
+// SoftwareFeatureSoftwareElements
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "SoftwareFeatureSoftwareElements identifies the Software "
+       "Elements that make up a particular SoftwareFeature.")]
+class CIM_SoftwareFeatureSoftwareElements : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The SoftwareFeature that groups the SoftwareElement.")]
+   CIM_SoftwareFeature REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The SoftwareElement that makes up the Feature.")]
+   CIM_SoftwareElement REF PartComponent;
+};
+
+
+// ==================================================================
+// SoftwareElementComponent
+// ==================================================================
+   [Association, Aggregation, Version ( "2.8.0" ), Description (
+       "SoftwareElements may have an arbitrarily complex hierarchy. "
+       "SoftwareElementComponent is used to construct that hierarchy. "
+       "It should not be used to represent dependency.")]
+class CIM_SoftwareElementComponent : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The parent element in the association.")]
+   CIM_SoftwareElement REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The child element in the association.")]
+   CIM_SoftwareElement REF PartComponent;
+};
+
+
+// ==================================================================
+// SoftwareFeatureComponent
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "The SoftwareFeatureComponent aggregation models a set of "
+       "subordinate or independent Software Features of a Product. "
+       "These are aggregated together to form a higher-level or large "
+       "grain Feature under the same Product.")]
+class CIM_SoftwareFeatureComponent : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The parent SoftwareFeature.")]
+   CIM_SoftwareFeature REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The component SoftwareFeature.")]
+   CIM_SoftwareFeature REF PartComponent;
+};
+
+
+// ==================================================================
+// ProductSoftwareFeatures
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "The ProductSoftwareFeatures association identifies the "
+       "SoftwareFeatures for a particular Product.")]
+class CIM_ProductSoftwareFeatures {
+
+      [Key, Aggregate, Min ( 1 ), Max ( 1 ), Description (
+          "The Product that scopes the SoftwareFeatures.")]
+   CIM_Product REF Product;
+
+      [Key, Weak, Description (
+          "The SoftwareFeature in a Product.")]
+   CIM_SoftwareFeature REF Component;
+};
+
+
+// ==================================================================
+// ApplicationSystemSoftwareFeature
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "The ApplicationSystemSoftwareFeature association identifies "
+       "the Features that make up a particular ApplicationSystem. The "
+       "SoftwareFeatures can be scoped by different Products.")]
+class CIM_ApplicationSystemSoftwareFeature : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The ApplicationSystem that aggregates the Features.")]
+   CIM_ApplicationSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The Features in an ApplicationSystem.")]
+   CIM_SoftwareFeature REF PartComponent;
+};
+
+
+// ==================================================================
+// SoftwareFeatureServiceImplementation
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "An association between a Service and how it is implemented in "
+       "software. The cardinality of this association is many-to "
+       "-many. A Service may be provided by more than one "
+       "SoftwareFeature. When multiple SoftwareFeatures are associated "
+       "with a single Service, it is assumed that these elements "
+       "operate in conjunction to provide the Service. Note that any "
+       "SoftwareFeature may provide more than one Service. \n"
+       "If different implementations of a Service exist, each of these "
+       "implementations would result in individual instantiations of "
+       "the Service object. These individual instantiations would then "
+       "have their own associations to the unique implementations.")]
+class CIM_SoftwareFeatureServiceImplementation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The SoftwareFeature implementing the Service.")]
+   CIM_SoftwareFeature REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Service being implemented.")]
+   CIM_Service REF Dependent;
+};
+
+
+// ==================================================================
+// SoftwareFeatureSAPImplementation
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "An association between a ServiceAccessPoint and how it is "
+       "implemented in software. The cardinality of this association "
+       "is many-to-many. A SAP may be provided by more than one "
+       "SoftwareFeature. When multiple SoftwareFeatures are associated "
+       "with a single SAP, it is assumed that these elements operate "
+       "in conjunction to provide the AccessPoint. Note that any "
+       "SoftwareFeature may provide more than one ServiceAccessPoint. "
+       "\nIf different implementations of a SAP exist, each of these "
+       "implementations would result in individual instantiations of "
+       "the ServiceAccessPoint object. These individual instantiations "
+       "would then have their own associations to the unique "
+       "implementations.")]
+class CIM_SoftwareFeatureSAPImplementation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The SoftwareFeature implementing the SAP.")]
+   CIM_SoftwareFeature REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The AccessPoint being implemented.")]
+   CIM_ServiceAccessPoint REF Dependent;
+};
+
+
+// ==================================================================
+// FRUIncludesSoftwareFeature
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "The FRUIncludesSoftwareFeature association identifies the "
+       "SoftwareFeature(s) packaged with a particular FRU. A common "
+       "usage is to determine whether the FRU is compatible with a "
+       "hardware/software platform. In order to determine this, the "
+       "following conditions need to be verified: \n"
+       "(1) Is the physical package of the FRU compatible with the "
+       "slots or equivalent packaging of the hardware? \n"
+       "(2) Are there any physical constraints (such as power "
+       "consumption) that prevent the FRU from being installed? \n"
+       "(3) Are the SoftwareFeatures packaged with the FRU compatiable "
+       "with the underlying operating system and other software "
+       "already installed/to be installed on the platform? \n"
+       "This latter question can be answered by first checking if an "
+       "instance of FRUIncludesSoftwareFeature exists. If it does, "
+       "then the compatibility of each SoftwareFeature can be "
+       "determined by evaluating the Check classes for the Software "
+       "Elements that are part of the Feature (found by traversing the "
+       "association, SoftwareFeatureSoftwareElements). For example, "
+       "there might be a SoftwareElementVersionCheck that declares "
+       "that a SoftwareElement (of the FRU's Software Feature) is not "
+       "compatible with current software.")]
+class CIM_FRUIncludesSoftwareFeature {
+
+      [Key, Aggregate, Max ( 1 ), Description (
+          "The field replaceable unit.")]
+   CIM_FRU REF FRU;
+
+      [Key, Description (
+          "The SoftwareFeature which is included in the FRU and whose "
+          "SoftwareElements should be evaluated.")]
+   CIM_SoftwareFeature REF Component;
+};
+
+
+// ==================================================================
+// SoftwareElementServiceImplementation
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "An association between a Service and how it is implemented by "
+       "one or more executable SoftwareElements. Note that this "
+       "association is restricted to 'executable' Elements. In earlier "
+       "phases of deployment, the SoftwareFeatureService "
+       "Implementation association is adequate and recommended. \n"
+       "The relationship between this association and Software "
+       "FeatureServiceImplementation is more fully described here. "
+       "SoftwareElementServiceImplementation allows the description of "
+       "greater granularity than SoftwareFeatureService "
+       "Implementation, when a SoftwareFeature is fully deployed and "
+       "results in several executable Elements. These Elements may "
+       "implement several different Services. \n"
+       "Since SoftwareFeatures decompose into SoftwareElements, it is "
+       "possible to describe how software implements a Service by "
+       "using either this association or the SoftwareFeature "
+       "ServiceImplementation relationship. One or the other should be "
+       "chosen. Both associations should not be used for a single "
+       "Service instance, since their information is redundant. \n"
+       "This relationship is especially important when the "
+       "SoftwareFeature and Product aspects are not described for a "
+       "SoftwareElement (ie, when the acquisition and deployment of "
+       "the software is not detailed). In this case, the Software "
+       "ElementServiceImplementation association is the only one "
+       "available to describe how a Service is implemented in "
+       "software. Since SoftwareFeatures are not instantiated, it is "
+       "not possible to use the SoftwareFeatureService Implementation "
+       "association. \n"
+       "The cardinality of this association is many-to-many. A Service "
+       "may be provided by more than one SoftwareElement. If this is "
+       "true, it is assumed that the SoftwareElements operate in "
+       "conjunction. And, any SoftwareElement may provide more than "
+       "one Service.")]
+class CIM_SoftwareElementServiceImplementation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The executable SoftwareElement implementing the Service.")]
+   CIM_SoftwareElement REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Service implemented by the SoftwareElement.")]
+   CIM_Service REF Dependent;
+};
+
+
+// ==================================================================
+// SoftwareElementSAPImplementation
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "An association between a ServiceAccessPoint and how it is "
+       "implemented by one or more executable SoftwareElements. Note "
+       "that this association is restricted to 'executable' Elements. "
+       "In earlier phases of deployment, the Software "
+       "FeatureSAPImplementation association is adequate and "
+       "recommended. \n"
+       "The relationship between this association and Software "
+       "FeatureSAPImplementation is more fully described here. "
+       "SoftwareElementSAPImplementation allows the description of "
+       "greater granularity than SoftwareFeatureSAPImplementation, "
+       "when a SoftwareFeature is fully deployed and results in "
+       "several executable Elements. These Elements may implement "
+       "several different ServiceAccessPoints. \n"
+       "Since SoftwareFeatures decompose into SoftwareElements, it is "
+       "possible to describe how software implements a SAP by using "
+       "either this association or the SoftwareFeatureSAP "
+       "Implementation relationship. One or the other should be "
+       "chosen. Both associations should not be used for a particular "
+       "AccessPoint, since their information is redundant. \n"
+       "This relationship is especially important when the "
+       "SoftwareFeature and Product aspects are not described for a "
+       "SoftwareElement (ie, when the acquisition and deployment of "
+       "the software is not detailed). In this case, the Software "
+       "ElementSAPImplementation association is the only one available "
+       "to describe how an AccessPoint is implemented in software. "
+       "Since SoftwareFeatures are not instantiated, it is not "
+       "possible to use the SoftwareFeatureSAP Implementation "
+       "association. \n"
+       "The cardinality of this association is many-to-many. A "
+       "ServiceAccessPoint may be provided by more than one Software "
+       "Element. (If this is true, it is assumed that the Software "
+       "Elements operate in conjunction.) And, any SoftwareElement may "
+       "provide more than one SAP.")]
+class CIM_SoftwareElementSAPImplementation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The executable SoftwareElement implementing the SAP.")]
+   CIM_SoftwareElement REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The ServiceAccessPoint implemented by the SoftwareElement.")]
+   CIM_ServiceAccessPoint REF Dependent;
+};
+
+
+// ==================================================================
+// end of file
+// ==================================================================

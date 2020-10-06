@@ -1,0 +1,1106 @@
+// ===================================================================
+// Title: CIM_Interop
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: CIM_Interop.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// 
+// 08 Sep 2004  - Version 2.8.2
+//       CR1438 - Remove counter qualifiers on date types
+// 
+// 20 Jan 2004  - Version 2.8 Final
+//       CR1244 - Misc errors in Interop Model
+//       CR1241 - Deprecate CommMechanismForAdapter
+//       CR1224 - Experimental to Final for Interop Model
+//       CR1216 - Fix ClassInfo in CIM_Namespace
+//       CR1215 - Deprecate ProtocolAdapter for ObjectManagerAdapter
+//       CR1164 - Clarify uniqueness of RegisteredName
+// 
+// 03 Aug 2003  - Version 2.8 Preliminary
+//       CR1143 - add missing support for CIM 2.8 in the Interop28.mof
+//       CR1128 - Introduce HostedDependency into the hierarchy.
+//       CR1070 - Bring forward experimental classes
+//       CR1000 - RegisteredProfile Model
+//       CR0955 - Change property names in ProviderCapabilities
+//       CR0923 - Add ID to Object Manager
+//       CR0909 - Add the definition of CIM_Error class (+ to compile
+//                without a key, Exception AND Indication qualifiers
+//                needed)
+// 
+// 17 Mar 2003 - Version 2.7 Final
+//       CR981 - Remove Experimental Qualifier
+//               Note: Leave Provider Registration classes Experimental
+//       CR957 - Add missing enumeration for ClassInfo
+//       CR956 - CIM_ObjectManagerCommunicationMechanism properties
+//       CR954 - Correct Model Correspondence
+//       CR953 - Add Write to SystemIdentification.IdentificationData
+//       CR926 - Add ObjectManagerCommunicationMechanism.Version
+//       CR890 - Correct the CommMechanismForAdapter association
+// ==================================================================
+
+#pragma Locale ("en_US")
+
+// ==================================================================
+// Compile prerequisite:  Core and Event MOFs
+// ==================================================================
+
+
+// ==================================================================
+// WBEMService
+// ==================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "An abstract class for WBEM services such as the ObjectManager "
+       "(CIM Server), Providers, protocol adapters, or other pluggable "
+       "components. A type of CIM_Service that provides associated "
+       "capabilities and details about the communication capabilities, "
+       "namespaces, etc. for a specific WBEMService.")]
+class CIM_WBEMService : CIM_Service {
+};
+
+
+// ==================================================================
+// ObjectManager
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A type of CIM_Service that defines the capabilities of the CIM "
+       "Server in which this ObjectManager class resides. Details "
+       "related to communicating with the ObjectManager, and the "
+       "Manager's basic capabilities, are stored in instances of the "
+       "associated CommunicationMechanism class available through the "
+       "CommMechanismForManager association. It is assumed that Basic "
+       "Read operations must be supported by all ObjectManager's in "
+       "order to retrieve any additional detail.")]
+class CIM_ObjectManager : CIM_WBEMService {
+
+      [Write, Description (
+          "The GatherStatisticalData property is used to control the "
+          "gathering of statistical data made accessible through the "
+          "CIM_CIMOMStatisticalData objects. If set to true, the data "
+          "is gathered and can be accessed. If false, the "
+          "CIM_CIMOMStatisticalData instance MAY exist but MUST show "
+          "zero values for the counter properties.")]
+   boolean GatherStatisticalData = true;
+
+      [Override ( "Name" ), Description (
+          "The Name property is used to uniquely identify a CIM "
+          "Server. The CIM Server MUST ensure that this value is "
+          "globally unique. In order to ensure uniqueness, this value "
+          "SHOULD be constructed in the following manner. <Vendor "
+          "ID>:<Unique ID> \n"
+          "<Vendor ID> MUST include a copyrighted, trademarked or "
+          "otherwise unique name that is owned by the business entity "
+          "or a registered ID that is assigned to the business entity "
+          "that is defining the Name. (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) The "
+          "purpose of <Vendor ID> is to ensure that <ID> is truly "
+          "unique across multiple vendor implementations. If such a "
+          "name is not used, the defining entity MUST assure that the "
+          "<ID> portion of the Instance ID is unique when compared "
+          "with other instance providers. For DMTF defined instances, "
+          "the <Vendor ID> is 'CIM'. \n"
+          "<Unique ID> MUST include a vendor specified unique "
+          "identifier. \n"
+          "Note: Name is semantically the same as InstanceID. In the "
+          "next major version of the CIM Schema, Name will be renamed "
+          "to InstanceID and become the only key of this class.")]
+   string Name;
+
+      [Override ( "ElementName" ), Description (
+          "The ElmentName property is used as a name of the CIM Server "
+          "for human interfaces. For example, \"ACME CIM Server\"). "
+          "This property is required to support the SLP discovery "
+          "mechanism. In the next major release this property MAY "
+          "include the required qualifier.")]
+   string ElementName;
+
+      [Override ( "Description" ), Description (
+          "The description property is used as a description of the "
+          "CIM Server for human interfaces. For example, \" ACME CIM "
+          "Server version 2.2\"). This property is required to support "
+          "the SLP discovery mechanism. In the next major release this "
+          "property MAY include the required qualifier.")]
+   string Description;
+};
+
+
+// ==================================================================
+// ObjectManagerCommunicationMechanism
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "The class, ObjectManagerCommunicationMechanism, describes "
+       "access to an ObjectManager. It describes a protocol and data "
+       "encoding that can be used for communication. When all "
+       "instances of this class are enumerated for an ObjectManager "
+       "(using the CommMechanismForManager association), all possible "
+       "protocol and encoding schemes will be known. Also, specific "
+       "capabilities (for example, basic read or query) that are "
+       "supported in the protocol/encoding are described - using the "
+       "ProfilesSupported property.")]
+class CIM_ObjectManagerCommunicationMechanism : CIM_ServiceAccessPoint {
+
+      [Required, Description (
+          "CommunicationMechanism describes an encoding and protocol "
+          "which can be used to communicate with the ObjectManager. At "
+          "this time, only one encoding and protocol are standardized "
+          "by the DMTF - \"CIM-XML\". If this is supported by an "
+          "ObjectManager, the specified string should be indicated. "
+          "Other 'standard' strings may be defined. In addition, a "
+          "vendor specific encoding/protocol string may be used."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "Other", "CIM-XML" }, 
+       ModelCorrespondence { "CIM_ObjectManagerCommunicationMechanism." 
+          "OtherCommunicationMechanismDescription" }]
+   uint16 CommunicationMechanism;
+
+      [Description (
+          "A free-form string providing a description of the supported "
+          "protocols when 1, \"Other\", is specified in the "
+          "CommunicationMechanism."), 
+       ModelCorrespondence { 
+          "CIM_ObjectManagerCommunicationMechanism.CommunicationMechanism" 
+          }]
+   string OtherCommunicationMechanismDescription;
+
+      [Required, Description (
+          "Enumerated array describing the types of operations "
+          "supported by the ObjectManager, using this "
+          "encoding/protocol. The enumeration is based on the "
+          "Functional Profiles defined for conformance in the DMTF "
+          "document, Specification for CIM Operations over HTTP."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Unknown", "Other", "Basic Read", "Basic Write",
+          "Schema Manipulation", "Instance Manipulation",
+          "Association Traversal", "Query Execution",
+          "Qualifier Declaration", "Indications" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ObjectManagerCommunicationMechanism." 
+          "FunctionalProfileDescriptions" }]
+   uint16 FunctionalProfilesSupported[];
+
+      [Description (
+          "Free-form strings providing descriptions of the supported "
+          "operations of the object manager. Entries in the array are "
+          "correlated with those in the ProfilesSupported array. An "
+          "entry in this Descriptions array MUST be provided when 1, "
+          "\"Other\", is specified in the FunctionalProfilesSupported "
+          "array."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ObjectManagerCommunicationMechanism." 
+          "FunctionalProfilesSupported" }]
+   string FunctionalProfileDescriptions[];
+
+      [Required, Description (
+          "Boolean indicating whether the ObjectManager supports "
+          "multiple operation requests (TRUE) or only simple requests "
+          "(FALSE).")]
+   boolean MultipleOperationsSupported;
+
+      [Required, Description (
+          "Enumerated array describing the types of authentication "
+          "supported by the ObjectManager, using the "
+          "encoding/protocol. specified in the property, "
+          "CommunicationMechanism. The defined values represent the "
+          "authentication defined in the DMTF document, Specification "
+          "for CIM Operations over HTTP."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "None", "Basic", "Digest" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ObjectManagerCommunicationMechanism." 
+          "AuthenticationMechanismDescriptions" }]
+   uint16 AuthenticationMechanismsSupported[];
+
+      [Description (
+          "Free-form strings providing descriptions of the supported "
+          "mechanisms. Entries in this array are correlated with those "
+          "in the AuthenticationMechanismsSupported array. An entry in "
+          "this Descriptions array MUST be provided when 1, \"Other\", "
+          "is specified in AuthenticationMechanismsSupported."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ObjectManagerCommunicationMechanism." 
+          "AuthenticationMechanismsSupported" }]
+   string AuthenticationMechanismDescriptions[];
+
+      [Required, Description (
+          "Provides the protocol version for this service access "
+          "point. Version information MUST be in the form of M.N, "
+          "where M is a numeric that describes the Major version and N "
+          "is a numeric that describes the minor version.")]
+   string Version;
+};
+
+
+// ==================================================================
+// CIMXMLCommunicationMechanism
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "This class specializes ObjectManagerCommunicationMechanism, "
+       "adding properties specific to the CIM-XML protocol (XML "
+       "encoding and CIM Operations).")]
+class CIM_CIMXMLCommunicationMechanism : CIM_ObjectManagerCommunicationMechanism {
+
+      [Required, Override ( "CommunicationMechanism" )]
+   uint16 CommunicationMechanism = 2;
+
+      [Required, Override ( "Version" ), Description (
+          "Enumeration describing the CIM-XML protocol version "
+          "supported by the ObjectManager."), 
+       ValueMap { "1.0", "1.1", "1.2" }]
+   string Version;
+
+      [Deprecated { "CIM_CIMXMLCommunicationMechanism.Version" },
+       Required, Description (
+          "Enumeration describing the CIM-XML protocol version "
+          "supported by the ObjectManager. It is deprecated in lieu of "
+          "a more general, inherited property (Version)."), 
+       ValueMap { "0", "1" }, 
+       Values { "Unknown", "1.0" }]
+   uint16 CIMXMLProtocolVersion;
+
+      [Required, Description (
+          "Describes whether the CIM Server is strictly validating "
+          "(validates the XML document against the DTD) or not "
+          "(loosely validating).")]
+   boolean CIMValidated;
+};
+
+
+// ==================================================================
+// CommMechanismForManager
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CommMechanismForManager is an association between an "
+       "ObjectManager and an ObjectManagerCommunicationMechanism "
+       "class. The latter describes a possible encoding/protocol/ set "
+       "of operations for accessing the referenced ObjectManager.")]
+class CIM_CommMechanismForManager : CIM_ServiceAccessBySAP {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The specific ObjectManager whose communication mechanism is "
+          "described.")]
+   CIM_ObjectManager REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The encoding/protocol/set of operations that may be used to "
+          "communicate with the referenced ObjectManager.")]
+   CIM_ObjectManagerCommunicationMechanism REF Dependent;
+};
+
+
+// ==================================================================
+// ProtocolAdapter
+// ==================================================================
+   [Deprecated { "CIM_ObjectManagerAdapter" }, Version ( "2.8.0" ), 
+    Description (
+       "CIM_ProtocolAdapter is deprecated in lieu of "
+       "CIM_ObjectManagerAdapter. Since the CIM_ProtocolAdapter class "
+       "does not have to support the protocols and can be any type of "
+       "adapter, it was decided to change the name to "
+       "ObjectManagerAdapter to better reflect the true meaning of the "
+       "class. A ProtocolAdapter is a Service of the CIM Object "
+       "Manager. It is responsible for accepting incoming requests on "
+       "a particular protocol, and translating and forwarding the "
+       "request to the CIM Object Manager. It is also responsible for "
+       "translating and sending the response from the CIM Object "
+       "Manager.")]
+class CIM_ProtocolAdapter : CIM_WBEMService {
+
+      [Deprecated { "CIM_ObjectManagerAdapter.Name" },
+          Override ( "Name" ), Description (
+          "A human-readable name that uniquely identifies the Protocol "
+          "Adapter within a system.")]
+   string Name;
+
+      [Deprecated { "CIM_ObjectManagerAdapter.Handle" }, Required, 
+       Description (
+          "An implementation specific string that identifies the "
+          "handle to the ProtocolAdapter.")]
+   string Handle;
+
+      [Deprecated { "CIM_ObjectManagerAdapter.AdapterType" }, Required, 
+       Description (
+          "ProtocolAdapterType enumerates the kind of Protocol "
+          "Adapter."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Other", "Client", "Provider" }, 
+       ModelCorrespondence { 
+          "CIM_ProtocolAdapter.OtherProtocolAdapterType" }]
+   uint16 ProtocolAdapterType;
+
+      [Deprecated { 
+          "CIM_ObjectManagerAdapter.OtherAdapterTypeDescription" }, 
+       Description (
+          "The type(s) of ProtocolAdapter when \"Other\" is included "
+          "in ProtocolAdapterType property."), 
+       ModelCorrespondence { "CIM_ProtocolAdapter.ProtocolAdapterType" 
+          }]
+   string OtherProtocolAdapterType;
+};
+
+// ==================================================================
+// ObjectManagerAdapter
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A ObjectManagerAdapter is a Service of the CIM Object Manager. "
+       "An adapter can be any service of the Object Manager that needs "
+       "to be managed (e.g. started, stopped, monitored, ...). There "
+       "MUST be an instance for each Adapter type.")]
+class CIM_ObjectManagerAdapter : CIM_WBEMService {
+
+      [Override ( "Name" ), Description (
+          "A human-readable name that uniquely identifies the "
+          "ObjectManager within a system.")]
+   string Name;
+
+      [Override ( "ElementName" ), Description (
+          "The ElmentName property is used as a name of the Object "
+          "Manager Adapter for human interfaces. For example, \"ACME "
+          "ObjectManager Adapter\".")]
+   string ElementName;
+
+      [Required, Description (
+          "An implementation specific string that identifies the "
+          "handle to the Object Manager Adapter.")]
+   string Handle;
+
+      [Required, Description (
+          "AdapterType enumerates the kind of Object Manager Adapter. "
+          "If 'Other' is specified, the OtherAdapterTypeDescription "
+          "property MUST be populated. \n"
+          "Other - If the adapter does not fit into one of the other "
+          "catagories in the list. If specified, the "
+          "OtherAdapterTypeDescription property MUST be populated. \n"
+          "Client - A client side adapter that responds to client "
+          "operation requests, such as CIM-XML or CIM-SOAP. \n"
+          "Provider - A provider adapter, such as DMI, SNMP, JSR48 or "
+          "CMPI. \n"
+          "Indication Handler - An Indication Handler is a service "
+          "that delivers indications to a subscriber. Examples of "
+          "possible Indication Handlers are CIM-XML, CIM-SOAP, SMPT "
+          "(e-mail) or any other delivery mechanism. \n"
+          "Repository - A repository is an adapter that can "
+          "store/retrieve persistent data, such as CIM Qualifier "
+          "Types, CIM Classes and CIM Instances. An Object Manager "
+          "could use multiple repositiories at one time, for example "
+          "one could be used for CIM Schema information only, while "
+          "another is used for instance information. Repositories MAY "
+          "be remote or local to the CIM Object Manager. Examples of "
+          "repository implementations could be databases, LDAP or "
+          "files."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Client", "Provider", "Indication Handler",
+          "Repository" }, 
+       ModelCorrespondence { 
+          "CIM_ObjectManagerAdapter.OtherAdapterTypeDescription" }]
+   uint16 AdapterType;
+
+      [Description (
+          "The type(s) of ObjectManagerAdapter when \"Other\" is "
+          "included in ObjectManagerAdapterType property."), 
+       ModelCorrespondence { "CIM_ObjectManagerAdapter.AdapterType" }]
+   string OtherAdapterTypeDescription;
+};
+
+// ==================================================================
+// CommMechanismForAdapter
+// ==================================================================
+   [Association,
+       Deprecated { "CIM_CommMechanismForObjectManagerAdapter" },
+    Version ( "2.8.0" ), Description (
+       "CommMechanismForAdapter is an association between an "
+       "ObjectManager's communication mechanism and a ProtocolAdapter "
+       "that supports that mechanism to translate requests and "
+       "responses for the Object Manager.")]
+class CIM_CommMechanismForAdapter : CIM_Dependency {
+
+      [Deprecated { "CIM_CommMechanismForObjectManagerAdapter." 
+          "Antecedent" }, Override ( "Antecedent" ), Description (
+          "The specific ProtocolAdapter whose communication mechanism "
+          "with the CIM Object Manager is described.")]
+   CIM_ProtocolAdapter REF Antecedent;
+
+      [Deprecated { "CIM_CommMechanismForObjectManagerAdapter." 
+          "Dependent" }, Override ( "Dependent" ), Min ( 1 ), 
+       Description (
+          "The encoding/protocol/set of operations that may be used to "
+          "communicate between the Object Manager and the referenced "
+          "ProtocolAdapter.")]
+   CIM_ObjectManagerCommunicationMechanism REF Dependent;
+};
+
+// ==================================================================
+// CommMechanismForObjectManagerAdapter
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CommMechanismForObjectManagerAdapter is an association between "
+       "an ObjectManager's communication mechanism and a "
+       "ObjectManagerAdapter that supports that mechanism to translate "
+       "requests and responses for the Object Manager.")]
+class CIM_CommMechanismForObjectManagerAdapter : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The specific ObjectManagerAdapter whose communication "
+          "mechanism with the CIM Object Manager is described.")]
+   CIM_ObjectManagerAdapter REF Antecedent;
+
+      [Override ( "Dependent" ), Min ( 1 ), Description (
+          "The encoding/protocol/set of operations that may be used to "
+          "communicate between the Object Manager and the referenced "
+          "ProtocolAdapter.")]
+   CIM_ObjectManagerCommunicationMechanism REF Dependent;
+};
+
+
+// ==================================================================
+// Namespace
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "Namespace provides a domain (in other words, a container), in "
+       "which the instances [of a class] are guaranteed to be unique "
+       "per the KEY qualifier definitions. It is named relative to the "
+       "CIM_ObjectManager implementation that provides such a domain.")]
+class CIM_Namespace : CIM_ManagedElement {
+
+      [Key, Propagated ( "CIM_ObjectManager.SystemCreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_ObjectManager.SystemName" ), 
+       Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Propagated ( "CIM_ObjectManager.CreationClassName" ), 
+       Description (
+          "The scoping ObjectManager's CreationClassName."), 
+       MaxLen ( 256 )]
+   string ObjectManagerCreationClassName;
+
+      [Key, Propagated ( "CIM_ObjectManager.Name" ), Description (
+          "The scoping ObjectManager's Name."), 
+       MaxLen ( 256 )]
+   string ObjectManagerName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "A string to uniquely identify the Namespace within the "
+          "ObjectManager."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Deprecated { "CIM_Namespace.ClassType" }, Required, Write, 
+       Description (
+          "Enumeration indicating the organization/schema of the "
+          "Namespace's objects. For example, they may be instances of "
+          "classes of a specific CIM version."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "200", "201", "202" }, 
+       Values { "Unknown", "Other", "CIM 1.0", "CIM 2.0", "CIM 2.1",
+          "CIM 2.2", "CIM 2.3", "CIM 2.4", "CIM 2.5", "CIM 2.6",
+          "CIM 2.7", "CIM 2.8", "DMI Recast", "SNMP Recast",
+          "CMIP Recast" }, 
+       ModelCorrespondence { "CIM_Namespace.DescriptionOfClassInfo" }]
+   uint16 ClassInfo;
+
+      [Deprecated { "CIM_Namespace.DescriptionOfClassType" }, Write, 
+       Description (
+          "A string providing more detail (beyond the general "
+          "classification in ClassInfo) for the object hierarchy of "
+          "the Namespace."), 
+       ModelCorrespondence { "CIM_Namespace.ClassInfo" }]
+   string DescriptionOfClassInfo;
+
+
+      [Write, Description (
+          "Enumeration indicating the schema of the Namespace's "
+          "objects. For example, they may be instances of classes of a "
+          "specific CIM version or a mapping from another standard, "
+          "such as SNMP. If 'Other' is selected, the "
+          "DescriptionOfClassType property MUST be populated."), 
+       ValueMap { "0", "1", "2", "200", "201", "202" }, 
+       Values { "Unknown", "Other", "CIM", "DMI Recast", "SNMP Recast",
+          "CMIP Recast" }, 
+       ModelCorrespondence { "CIM_Namespace.DescriptionOfClassType",
+          "CIM_Namespace.ClassTypeVersion" }]
+   uint16 ClassType;
+
+      [Write, Description (
+          "The version of the objects in this namespace. The string "
+          "representing the version MUST be in the form: \n"
+          "M + \".\" + N + \".\" + U \n"
+          "Where: \n"
+          "M - The major version (in numeric form) \n"
+          "N - The minor version (in numeric form) \n"
+          "U - The update (e.g. errata, patch, ..., in numeric form)"), 
+       ModelCorrespondence { "CIM_Namespace.DescriptionOfClassType",
+          "CIM_Namespace.ClassType" }]
+   string ClassTypeVersion;
+
+      [Write, Description (
+          "A string providing more detail (beyond the general "
+          "classification in ClassInfo) for the object hierarchy of "
+          "the Namespace."), 
+       ModelCorrespondence { "CIM_Namespace.ClassType",
+          "CIM_Namespace.ClassTypeVersion" }]
+   string DescriptionOfClassType;
+};
+
+
+// ==================================================================
+// SystemIdentification
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A Namespace may represent data for one or many systems, that "
+       "are local, remote (different than the system on which the "
+       "ObjectManager is running) or aggregated. The System "
+       "Identification class provides enough data to identify the "
+       "system(s) represented in the Namespace. It is weak to the "
+       "Namespace.")]
+class CIM_SystemIdentification : CIM_ManagedElement {
+
+      [Key, Propagated ( "CIM_Namespace.SystemCreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_Namespace.SystemName" ), Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key,
+       Propagated ( "CIM_Namespace.ObjectManagerCreationClassName" ), 
+       Description (
+          "The scoping ObjectManager's CreationClassName."), 
+       MaxLen ( 256 )]
+   string ObjectManagerCreationClassName;
+
+      [Key, Propagated ( "CIM_Namespace.ObjectManagerName" ), 
+       Description (
+          "The scoping ObjectManager's Name."), 
+       MaxLen ( 256 )]
+   string ObjectManagerName;
+
+      [Key, Propagated ( "CIM_Namespace.CreationClassName" ), 
+       Description (
+          "The scoping Namespace's CreationClassName."), 
+       MaxLen ( 256 )]
+   string NamespaceCreationClassName;
+
+      [Key, Propagated ( "CIM_Namespace.Name" ), Description (
+          "The scoping Namespace's Name."), 
+       MaxLen ( 256 )]
+   string NamespaceName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "A string uniquely identifying the name of the system "
+          "represented in the Namespace."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Required, Write, Description (
+          "Enumeration indicating the format of the system "
+          "identification and/or addressing information."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11" }, 
+       Values { "Unknown", "Other", "Short DNS Name",
+          "Fully qualified DNS Name", "Windows Domain Name",
+          "NetWare Server Name", "Unix Hostname",
+          "Globally Unique System Identifier", "IP Address",
+          "Modem Dialup String", "MAC Address", "IPMI Address" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SystemIdentification.IdentificationData",
+          "CIM_SystemIdentification.FormatDescriptions" }]
+   uint16 IdentificationFormats[];
+
+      [Write, Description (
+          "Strings further describing the format of the system "
+          "identification information."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SystemIdentification.IdentificationFormats",
+          "CIM_SystemIdentification.IdentificationData" }]
+   string FormatDescriptions[];
+
+      [Write, Description (
+          "Strings containing the system identification information. "
+          "The format is described by the corresponding array item in "
+          "IdentificationFormats."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SystemIdentification.IdentificationFormats",
+          "CIM_SystemIdentification.FormatDescriptions" }]
+   string IdentificationData[];
+};
+
+
+// ==================================================================
+// NamespaceInManager
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "NamespaceInManager is an association describing the Namespaces "
+       "hosted by a CIM ObjectManager.")]
+class CIM_NamespaceInManager : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The ObjectManager containing a Namespace.")]
+   CIM_ObjectManager REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The Namespace in an ObjectManager.")]
+   CIM_Namespace REF Dependent;
+};
+
+
+// ==================================================================
+// SystemInNamespace
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "SystemInNamespace is an association that allows enumeration of "
+       "the system(s) represented in a Namespace.")]
+class CIM_SystemInNamespace {
+
+      [Key, Min ( 1 ), Max ( 1 ), Description (
+          "The Namespace containing management objects from one or "
+          "more systems.")]
+   CIM_Namespace REF ManagedNamespace;
+
+      [Key, Weak, Description (
+          "Identification information for systems in the Namespace.")]
+   CIM_SystemIdentification REF Identification;
+
+      [Required, Write, Description (
+          "A list of enumerated values providing a high level "
+          "description of the data contained and allowed in the "
+          "Namespace. Additional clarification is provided in the "
+          "DescriptionOfContainedData array."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Local System Data",
+          "Data Aggregated from Multiple Systems", "Proxied Data" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SystemInNamespace.DescriptionOfContainedData" }]
+   uint16 ScopeOfContainedData[];
+
+      [Write, Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for the data/objects contained in the "
+          "Namespace, as described by the ContainedData array. Note, "
+          "each entry of this array is related to the entry in the "
+          "ContainedData array that is located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SystemInNamespace.ScopeOfContainedData" }]
+   string DescriptionOfContainedData[];
+};
+
+
+// ==================================================================
+// IdentificationOfManagedSystem
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "IdentificationOfManagedSystem is an association that links the "
+       "SystemIdentification object to the CIM_System(s) that are "
+       "being identified and represented in the Namespace.")]
+class CIM_IdentificationOfManagedSystem : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The System which is identified.")]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The SystemIdentification information.")]
+   CIM_SystemIdentification REF Dependent;
+};
+
+
+// ==================================================================
+// CIMOMStatisticalData
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "CIM_CIMOMStatisticalData provides statistical data about the "
+       "performance of the CIM Object Manager. Each object of this "
+       "class provides elapsed time and size data for a particular "
+       "type of CIM operation. All operations of that type, regardless "
+       "of the CIM operations protocol being used, are accumulated in "
+       "one object and covers the CIM operations issued by all clients "
+       "of the Object Manager scoping the instance. Batched CIM "
+       "operations are accumulated into a separate operation type for "
+       "\"Batched\". The counters in this class SHOULD be implemented "
+       "such that they always increment and naturally wrap around when "
+       "their numerical limit is exceeded. A client that calculates "
+       "the difference of two snapshots of a counter at the beginning "
+       "and end of a measurement interval should get the correct "
+       "result, even if there was a wrap-around in between obtaining "
+       "the two snapshots. (Two or more wrap arounds will result in "
+       "wrong data being calculated.) The gathering of the data can be "
+       "controlled through the property, "
+       "CIM_ObjectManager.GatherStatisticalData. The time interval to "
+       "which the statistical data applies, ends at the current time "
+       "and therefore includes the most current CIM operations. The "
+       "interval starts when the statistical data gathering was last "
+       "turned on for the Object Manager.")]
+class CIM_CIMOMStatisticalData : CIM_StatisticalData {
+
+      [Override ( "InstanceID" ), Description (
+          "The InstanceID property opaquely identifies a unique "
+          "instance of CIMOMStatisticalData and MUST be unique within "
+          "a namespace. In order to ensure uniqueness, the value of "
+          "InstanceID MUST be constructed in the following manner: \n"
+          "CIM<ID> \n"
+          "The <ID> MUST include a CIM Object Manager specified unique "
+          "identifier.")]
+   string InstanceID;
+
+      [Required, Description (
+          "The OperationType property identifies the type of CIM "
+          "operation for which data is reported in this instance. "
+          "Batched CIM operations (consisting of multiple simple CIM "
+          "operations) are reported against the \"Batched\" type only."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26" }, 
+       Values { "Unknown", "Other", "Batched", "GetClass",
+          "GetInstance", "DeleteClass", "DeleteInstance",
+          "CreateClass", "CreateInstance", "ModifyClass", 
+          // 10              
+          "ModifyInstance", "EnumerateClasses", "EnumerateClassNames",
+          "EnumerateInstances", "EnumerateInstanceNames", "ExecQuery",
+          "Associators", "AssociatorNames", "References",
+          "ReferenceNames", 
+          // 20              
+          "GetProperty", "SetProperty", "GetQualifier", "SetQualifier",
+          "DeleteQualifier", "EnumerateQualifiers",
+          "IndicationDelivery" }, 
+       ModelCorrespondence { 
+          "CIM_CIMOMStatisticalData.OtherOperationType" }]
+   uint16 OperationType;
+
+      [Description (
+          "The OtherOperationType property identifies the operation if "
+          "the OperationType property has a value of 1 (\"Other\"). "
+          "For all other values of OperationType, the property is "
+          "NULL."), 
+       MaxLen ( 64 ), 
+       ModelCorrespondence { "CIM_CIMOMStatisticalData.OperationType" }]
+   string OtherOperationType;
+
+      [Required, Description (
+          "The NumberOfOperations property contains the number of CIM "
+          "operations of the specified type. This property can be used "
+          "to calculate average values per CIM operation."), 
+       Counter]
+   uint64 NumberOfOperations;
+
+      [Required, Description (
+          "The CimomElapsedTime property contains the elapsed time "
+          "spent in the CIM Object Manager for this operation type, "
+          "not counting the elapsed time spent in providers and the "
+          "underlying instrumentation. The measurement points for this "
+          "property SHOULD be at the transport layer interface on the "
+          "network side, and at the provider interface on the "
+          "instrumentation side of the CIM Object Manager.")]
+   datetime CimomElapsedTime;
+
+      [Required, Description (
+          "The ProviderElapsedTime property contains the elapsed time "
+          "spent in all providers involved with this operation type, "
+          "including the underlying instrumentation. The measurement "
+          "point for this property SHOULD be from the provider "
+          "interface of the CIM Object Manager.")]
+   datetime ProviderElapsedTime;
+
+      [Description (
+          "The RequestSize property contains the size of the operation "
+          "requests sent to the CIM Object Manager. Any overhead of "
+          "protocols above the transport protocol SHOULD be included "
+          "in the count. For example, for the HTTP protocol, the size "
+          "would include the size of the HTTP payload and the size of "
+          "the HTTP headers."), 
+       Units ( "Bytes" ), Counter]
+   uint64 RequestSize;
+
+      [Description (
+          "The ResponseSize property contains the size of the "
+          "operation responses sent back from the CIM Object Manager. "
+          "Any overhead of protocols above the transport protocol "
+          "SHOULD be included in the count. For example, for the HTTP "
+          "protocol, the size would include the size of the HTTP "
+          "payload and the size of the HTTP headers."), 
+       Units ( "Bytes" ), Counter]
+   uint64 ResponseSize;
+};
+
+// ==================================================================
+// RegisteredProfile
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A RegisteredProfile describes a set of CIM Schema classes with "
+       "required properties and/or methods, necessary to manage a "
+       "real-world entity or to support a usage scenario, in an "
+       "interoperable fashion. RegisteredProfiles can be defined by "
+       "the DMTF or other standards organizations. Note that this "
+       "class should not be confused with CIM_Profile, which collects "
+       "SettingData instances, to be applied as a 'configuration "
+       "profile' for an element. \n"
+       "A RegisteredProfile is a named 'standard' for CIM-based "
+       "management of a particular System, subsystem, Service or other "
+       "entity, for a specified set of uses. It is a complete, "
+       "standalone definition, as opposed to the subclass "
+       "RegisteredSubProfile, which requires a scoping profile for "
+       "context. \n"
+       "The uses for a RegisteredProfile or SubProfile MUST be "
+       "specified in the document that defines the profile. Examples "
+       "of Profiles are to manage various aspects of an Operating "
+       "System, Storage Array, or Database. The name of the profile is "
+       "defined and scoped by its authoring organization.")]
+class CIM_RegisteredProfile : CIM_ManagedElement {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority. (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness, <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the organizational entity and SHOULD "
+          "not be re-used to identify different underlying "
+          "(real-world) elements. If the above 'preferred' algorithm "
+          "is not used, the defining entity MUST assure that the "
+          "resultant InstanceID is not re-used across any InstanceIDs "
+          "produced by this or other providers for this instance's "
+          "NameSpace. \n"
+          "For DMTF defined instances, the 'preferred' algorithm MUST "
+          "be used with the <OrgID> set to 'CIM'.")]
+   string InstanceID;
+
+      [Required, Description (
+          "The organization that defines this profile."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19" }, 
+       Values { "Other", "DMTF", "CompTIA",
+          "Consortium for Service Innovation", "FAST", "GGF", "INTAP",
+          "itSMF", "NAC", 
+          //10 
+          "Northwest Energy Efficiency Alliance", "SNIA", "TM Forum",
+          "The Open Group", "ANSI", "IEEE", "IETF", "INCITS", "ISO",
+          "W3C" }, 
+       ModelCorrespondence { 
+          "CIM_RegisteredProfile.OtherRegisteredOrganization" }]
+   uint16 RegisteredOrganization;
+
+      [Description (
+          "A free-form string providing a description of the "
+          "organization when 1, \"Other\", is specified for the "
+          "RegisteredOrganization."), 
+       MaxLen ( 256 ), 
+       ModelCorrespondence { 
+          "CIM_RegisteredProfile.RegisteredOrganization" }]
+   string OtherRegisteredOrganization;
+
+      [Required, Description (
+          "The name of this registered profile. Since multiple "
+          "versions can exist for the same RegisteredName, the "
+          "combination of RegisteredName, RegisteredOrganization, and "
+          "RegisteredVersion MUST uniquely identify the registered "
+          "profile within the scope of the organization."), 
+       MaxLen ( 256 )]
+   string RegisteredName;
+
+      [Required, Description (
+          "The version of this profile. The string representing the "
+          "version MUST be in the form: \n"
+          "M + \".\" + N + \".\" + U \n"
+          "Where: \n"
+          "M - The major version (in numeric form) describing the "
+          "profile's creation or last modification. \n"
+          "N - The minor version (in numeric form) describing the "
+          "profile's creation or last modification. \n"
+          "U - The update (e.g. errata, patch, ..., in numeric form) "
+          "describing the profile's creation or last modification.")]
+   string RegisteredVersion;
+
+      [Required, Description (
+          "This property signifies the advertisement for the profile "
+          "information. It is used by the advertising services of the "
+          "WBEM infrastructure to determine what should be advertised, "
+          "via what mechanisms. The property is an array so that the "
+          "profile MAY be advertised using several mechanisms. Note: "
+          "If this property is null/uninitialized, this is equivalent "
+          "to specifying the value 2, \"Not Advertised\"."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Other", "Not Advertised", "SLP" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_RegisteredProfile.AdvertiseTypeDescriptions" }]
+   uint16 AdvertiseTypes[];
+
+      [Description (
+          "A free-form string providing additional information related "
+          "to the AdvertiseType. A description MUST be provided when "
+          "the AdvertiseType is 1, \"Other\". An entry in this array "
+          "corresponds to the entry in the AdvertiseTypes array at the "
+          "same index. It is not expected that additional descriptions "
+          "are needed if the Type is set to \"Not Advertised\" or "
+          "\"SLP\". However, as the SLP template expands, or as other "
+          "advertisement mechanisms are defined, support for "
+          "additional descriptions may be needed. This array is "
+          "defined to support this."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_RegisteredProfile.AdvertiseTypes" }]
+   string AdvertiseTypeDescriptions[];
+};
+
+
+// ==================================================================
+// RegisteredSubProfile
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A RegisteredSubProfile subclasses RegisteredProfile to "
+       "indicate that a scoping profile is required to provide "
+       "context. The latter is specified by the mandatory association, "
+       "SubProfileRequiresProfile.")]
+class CIM_RegisteredSubProfile : CIM_RegisteredProfile {
+};
+
+
+// ==================================================================
+// ReferencedProfile
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "A profile that is referenced by another RegisteredProfile.")]
+class CIM_ReferencedProfile : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The RegisteredProfile that is referenced by the Dependent "
+          "Profile.")]
+   CIM_RegisteredProfile REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "A RegisteredProfile that references other profiles.")]
+   CIM_RegisteredProfile REF Dependent;
+};
+
+
+// ==================================================================
+// SubProfileRequiresProfile
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "A subprofile requires another RegisteredProfile for context. "
+       "This association mandates the scoping relationship between a "
+       "subprofile and its scoping profile.")]
+class CIM_SubProfileRequiresProfile : CIM_ReferencedProfile {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The RegisteredProfile that is referenced/required by the "
+          "subprofile.")]
+   CIM_RegisteredProfile REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "A RegisteredSubProfile that requires a scoping profile, for "
+          "context.")]
+   CIM_RegisteredSubProfile REF Dependent;
+};
+
+
+// ==================================================================
+// ElementConformsToProfile
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "The CIM_ElementConformsToProfile association defines the "
+       "RegisteredProfiles to which the referenced ManagedElement is "
+       "conformant. Note: This association may apply to any Managed "
+       "Element. Typical usage will apply it to a higher level "
+       "instance, such as a System, NameSpace, or Service. When "
+       "applied to a higher level instance, all constituent parts MUST "
+       "behave appropriately in support of the ManagedElement's "
+       "conformance to the named RegisteredProfile.")]
+class CIM_ElementConformsToProfile {
+
+      [Key, Description (
+          "The RegisteredProfile to which the ManagedElement conforms.")]
+   CIM_RegisteredProfile REF ConformantStandard;
+
+      [Key, Description (
+          "The ManagedElement that conforms to the RegisteredProfile.")]
+   CIM_ManagedElement REF ManagedElement;
+};
+
+// ==================================================================
+// end of file
+// ==================================================================

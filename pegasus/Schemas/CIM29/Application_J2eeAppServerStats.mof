@@ -1,0 +1,999 @@
+// ===================================================================
+// Title: Application_J2eeAppServerStats
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Application_J2eeAppServerStats.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: These classes represent the characterization of the
+//      management of a Java application server as defined in JSR 77
+//      Version 1.0. They are maintained as a separate MOF file in the
+//      Application Model.
+// 
+//      The object classes below are listed in an order that
+//      avoids forward references. Required objects, defined
+//      by other working groups, are omitted.
+// ==================================================================
+// Change Log
+// v 2.8.2 (4 October 2004)
+//         - CR 1508 Remove erroneous use of counter qualifier
+// v 2.8 Final (14 January 2004)
+//         - CR 1240 13 January 2004 - Change file names and
+//                    description
+//         - CR 1199 6 January 2004 - Move complete model from
+//                    preliminary to final status.
+// v 2.8 Preliminary (Company Review)
+//      31 July 2003
+//         - CR 1111 - Remove subclasses of ElementStatisticalData
+//           connecting ManagedElements to their Statistics.
+//         - CR 1114 - Clean up Stats classes and use CIM datetime
+//           type in the Application Server model
+// 
+// Change Log for v2.8 Preliminary
+//      15 May 2003
+//         - CR 1008 - Original Application Server Model
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// CIM_J2eeStatistic - JSR77.6.3
+// ==================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The J2eeStatistic class is a base class that defines the "
+       "properties that are common to all J2EE statistics. The JSR77 "
+       "specification defines a set of statistical types, then it "
+       "defines each J2EE statistic in terms of these types. Since CIM "
+       "does not support multiple inheritance or embedded objects, the "
+       "count, time, range, bounded range, and boundary statistics "
+       "defined have been broken out into individual properties for "
+       "each statistic that is defined in the JSR77 specification. \n"
+       "Many of the properties defined for J2EE statistics are "
+       "inherited from the CIM_StatisticalData class. Some of the "
+       "inherited properties are CIM dates, which are not consistent "
+       "with the definitions in the JSR77 specification. In order to "
+       "minimize implementation differences, methods are defined to "
+       "provide the dates as specified. Some of the subclasses of "
+       "CIM_J2EEStatistic do not add any new properties. However, "
+       "these subclasses were chosen over adding a type property to "
+       "the superclass because the vendor extensions were likely to "
+       "result in classes with characteristics distinct enough to "
+       "warrant the existence of subclasses.")]
+class CIM_J2eeStatistic : CIM_StatisticalData {
+
+      [Description (
+          "The time the first measurement was taken represented as a "
+          "long, whose value is the number of milliseconds since "
+          "January 1, 1970,00:00:00. This method converts the "
+          "StartStatisticTime property to the format defined in the "
+          "JSR77 specification. The related property "
+          "CIM_StatisticalData.StartStatisticTime represents the same "
+          "information as a CIMDatetime entity."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.4.1.4 getStartTime|V1.0" }, 
+       ModelCorrespondence { "CIM_StatisticalData.StartStatisticTime" }]
+   uint64 GetStartTime(); 
+
+      [Description (
+          "The time the most recent measurement was taken represented "
+          "as a long, whose value is the number of milliseconds since "
+          "January 1, 1970,00:00:00. This method converts the "
+          "StatisticTime property to the format defined in the JSR77 "
+          "specification. The related property "
+          "CIM_StatisticalData.StatisticTime represents the same "
+          "information as a CIMDatatime entity."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.4.1.5 " 
+          "getLastSampleTime|V1.0" }, 
+       ModelCorrespondence { "CIM_StatisticalData.StatisticTime" }]
+   uint64 GetLastSampleTime(); 
+};
+
+
+// ====================================================================
+// CIM_J2eeEJBStats
+// ====================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The J2eeEJBStats class defines the performance statistics that "
+       "are available for all EJB component types.")]
+class CIM_J2eeEJBStats : CIM_J2eeStatistic {
+
+      [Description (
+          "A count of the number of times that the beans create method "
+          "was called."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.11.1.1 getCreateCount|V1.0" 
+          }]
+   uint64 CreateCount;
+
+      [Description (
+          "A count of the number of times that the beans remove method "
+          "was called."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.11.1.2 getRemoveCount|V1.0" 
+          }]
+   uint64 RemoveCount;
+};
+
+
+// ====================================================================
+// CIM_J2eeEntityBeanStats - JSR77.6.12
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The J2eeEntityBeanStats class defines the performance "
+       "statistics that are provided by entity beans.")]
+class CIM_J2eeEntityBeanStats : CIM_J2eeEJBStats {
+
+      [Description (
+          "The number of bean instances in the ready state."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.12.1.1 getReadyCount|V1.0" }]
+   uint64 ReadyCount;
+
+      [Description (
+          "The lowest number of bean instances in the ready state "
+          "since the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.2 getLowWaterMark|V1.0" 
+          }]
+   uint64 ReadyLowWaterMark;
+
+      [Description (
+          "The highest number of bean instances in the ready state "
+          "since the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.1 getHighWaterMark|V1.0" 
+          }]
+   uint64 ReadyHighWaterMark;
+
+      [Description (
+          "The number of bean instances in the pooled state."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.12.1.2 getPooledCount|V1.0" 
+          }]
+   uint64 PooledCount;
+
+      [Description (
+          "The lowest number of bean instances in the pooled state "
+          "since the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.2 getLowWaterMark|V1.0" 
+          }]
+   uint64 PooledLowWaterMark;
+
+      [Description (
+          "The highest number of bean instances in the pooled state "
+          "since the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.1 getHighWaterMark|V1.0" 
+          }]
+   uint64 PooledHighWaterMark;
+};
+
+
+// ====================================================================
+// CIM_J2eeMessageDrivenBeanStats - JSR77.6.13
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The J2eeMessageDrivenBeanStats class defines the performance "
+       "statistics that are provided by message driven beans.")]
+class CIM_J2eeMessageDrivenBeanStats : CIM_J2eeEJBStats {
+
+      [Description (
+          "The number of messages received."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.13.1.1 getMessageCount|V1.0" 
+          }]
+   uint64 MessageCount;
+};
+
+
+// ====================================================================
+// CIM_J2eeSessionBeanStats - JSR77.6.14
+// ====================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The J2eeSessionBeanStats class is a base class that defines "
+       "the performance statistics that are provided by both stateful "
+       "and stateless session beans.")]
+class CIM_J2eeSessionBeanStats : CIM_J2eeEJBStats {
+
+      [Description (
+          "The number of bean instances in the method-ready state."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.14.1.1 " 
+          "getMethodReadyCount|V1.0" }]
+   uint64 MethodReadyCount;
+
+      [Description (
+          "The lowest number of bean instances in the method-ready "
+          "state since the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.2 getLowWaterMark|V1.0" 
+          }]
+   uint64 MethodReadyLowWaterMark;
+
+      [Description (
+          "The highest number of bean instances in the method-ready "
+          "state since the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.1 getHighWaterMark|V1.0" 
+          }]
+   uint64 MethodReadyHighWaterMark;
+};
+
+
+// ====================================================================
+// CIM_J2eeStatefulSessionBeanStats - JSR77.6.15
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The J2eeStatefulSessionBeanStats class defines the performance "
+       "statistics that are provided by a stateful session bean.")]
+class CIM_J2eeStatefulSessionBeanStats : CIM_J2eeSessionBeanStats {
+
+      [Description (
+          "The number of bean instances in a passive state."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.15.1.1 getPassiveCount|V1.0" 
+          }]
+   uint64 PassiveCount;
+
+      [Description (
+          "The lowest number of bean instances in the passive state "
+          "since the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.2 getLowWaterMark|V1.0" 
+          }]
+   uint64 PassiveLowWaterMark;
+
+      [Description (
+          "The highest number of bean instances in the passive state "
+          "since the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.1 getHighWaterMark|V1.0" 
+          }]
+   uint64 PassiveHighWaterMark;
+};
+
+
+// ====================================================================
+// CIM_J2eeStatelessSessionBeanStats - JSR77.6.16
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The J2eeStatelessSessionBeanStats class defines the "
+       "performance statistics that are provided by a stateless "
+       "session bean.")]
+class CIM_J2eeStatelessSessionBeanStats : CIM_J2eeSessionBeanStats {
+};
+
+
+// ====================================================================
+// CIM_J2eeJavaMailStats - JSR77.6.17
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The J2eeJavaMailStats class defines the performance statistics "
+       "that are provided by Java mail resources.")]
+class CIM_J2eeJavaMailStats : CIM_J2eeStatistic {
+
+      [Description (
+          "The number of mail messages received."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.13.1.1 " 
+          "getSentMailCount|V1.0" }]
+   uint64 SentMailCount;
+};
+
+
+// ====================================================================
+// CIM_J2eeJCAStats - JSR77.6.18
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The J2eeJCAStats class defines the performance statistics that "
+       "are provided by a JCA resource.")]
+class CIM_J2eeJCAStats : CIM_J2eeStatistic {
+};
+
+// ====================================================================
+// CIM_J2eeConnectionStats - JSR77.6.18
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The J2eeConnectionStats class defines the performance "
+       "statistics that are provided by a connection. JCA and JDBC "
+       "connection statistics are represented by this class. The "
+       "semantics are determined by the class to which the "
+       "ConnectionStats instance is associated via the "
+       "CIM_ElementStatisticalData association.")]
+class CIM_J2eeConnectionStats : CIM_J2eeStatistic {
+
+      [Description (
+          "The time spent waiting for a connection to be available. "
+          "The time is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.19.1.3 getWaitTime|V1.0" }]
+   datetime WaitTime;
+
+      [Description (
+          "The maximum amount of time spent waiting for a connection "
+          "to be available since the beginning of this measurement. "
+          "The time is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.2 getMaxTime|V1.0" }]
+   datetime WaitTimeMaxTime;
+
+      [Description (
+          "The minimum amount of time spent waiting for a connection "
+          "to be available since the beginning of this measurement. "
+          "The time is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.3 getMinTime|V1.0" }]
+   datetime WaitTimeMinTime;
+
+      [Description (
+          "The total amount of time spent waiting for a connection to "
+          "be available since the beginning of this measurement. "
+          "Dividing WaitTimeTotalTime by WaitTime will provide the "
+          "average time spent waiting for a connection. The time is "
+          "represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.4 getTotalTime|V1.0" }]
+   datetime WaitTimeTotalTime;
+
+      [Description (
+          "The time spent using a connection. The time is represented "
+          "as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.19.1.3 getUseTime|V1.0" }]
+   datetime UseTime;
+
+      [Description (
+          "The maximum amount of time spent using a connection since "
+          "the beginning of this measurement. The time is represented "
+          "as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.2 getMaxTime|V1.0" }]
+   datetime UseTimeMaxTime;
+
+      [Description (
+          "The minimum amount of time spent using a connection since "
+          "the beginning of this measurement. The time is represented "
+          "as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.3 getMinTime|V1.0" }]
+   datetime UseTimeMinTime;
+
+      [Description (
+          "The total amount of time spent using a connection since the "
+          "beginning of this measurement. Dividing UseTimeTotalTime by "
+          "UseTime will provide the average time spent using a "
+          "connection. The time is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.4 getTotalTime|V1.0" }]
+   datetime UseTimeTotalTime;
+};
+
+// ====================================================================
+// CIM_J2eeConnectionPoolStats - JSR77.6.20
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The J2eeConnectionPoolStats class defines the performance "
+       "statistics that are provided by a connection pool. JCA and "
+       "JDBC connection pool statistics are represented by this class. "
+       "The semantics are determined by the class to which the "
+       "ConnectionStats instance is associated via the "
+       "CIM_ElementStatisticalData association.")]
+class CIM_J2eeConnectionPoolStats : CIM_J2eeConnectionStats {
+
+      [Description (
+          "The number of connections closed."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.20.1.1 getCloseCount|V1.0" }]
+   uint64 CloseCount;
+
+      [Description (
+          "The number of connections created."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.20.1.2 getCreateCount|V1.0" 
+          }]
+   uint64 CreateCount;
+
+      [Description (
+          "The number of free connections in the pool."), 
+       Gauge, 
+       MappingStrings { "JSR77.JCP|JSR77.6.20.1.3 getFreePoolSize|V1.0" 
+          }]
+   uint64 FreePoolSize;
+
+      [Description (
+          "The upper limit for the number of free connections in the "
+          "pool."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.8.1.1 getUpperBound|V1.0" }]
+   uint64 FreePoolSizeUpperBound;
+
+      [Description (
+          "The lower limit for the number of free connections in the "
+          "pool."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.8.1.2 getLowerBound|V1.0" }]
+   uint64 FreePoolSizeLowerBound;
+
+      [Description (
+          "The lowest number of free connections in the pool since the "
+          "beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.2 getLowWaterMark|V1.0" 
+          }]
+   uint64 FreePoolSizeLowWaterMark;
+
+      [Description (
+          "The highest number of free connections in the pool since "
+          "the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.1 getHighWaterMark|V1.0" 
+          }]
+   uint64 FreePoolSizeHighWaterMark;
+
+      [Description (
+          "The size of the connection pool."), 
+       Gauge, 
+       MappingStrings { "JSR77.JCP|JSR77.6.20.1.4 getPoolSize|V1.0" }]
+   uint64 PoolSize;
+
+      [Description (
+          "The upper limit for the size of the connection pool."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.8.1.1 getUpperBound|V1.0" }]
+   uint64 PoolSizeUpperBound;
+
+      [Description (
+          "The lower limit for the size of the connection pool."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.8.1.2 getLowerBound|V1.0" }]
+   uint64 PoolSizeLowerBound;
+
+      [Description (
+          "The lowest size of the connection pool since the beginning "
+          "of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.2 getLowWaterMark|V1.0" 
+          }]
+   uint64 PoolSizeLowWaterMark;
+
+      [Description (
+          "The largest size of the connection pool since the beginning "
+          "of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.1 getHighWaterMark|V1.0" 
+          }]
+   uint64 PoolSizeHighWaterMark;
+
+      [Description (
+          "The number of threads waiting for a connection."), 
+       Gauge, 
+       MappingStrings { "JSR77.JCP|JSR77.6.20.1.5 " 
+          "getWaitingThreadCount|V1.0" }]
+   uint64 WaitingThreadCount;
+
+      [Description (
+          "The upper limit for the number of threads waiting for a "
+          "connection."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.8.1.1 getUpperBound|V1.0" }]
+   uint64 WaitingThreadCountUpperBound;
+
+      [Description (
+          "The lower limit for the number of threads waiting for a "
+          "connection."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.8.1.2 getLowerBound|V1.0" }]
+   uint64 WaitingThreadCountLowerBound;
+
+      [Description (
+          "The lowest number of threads waiting for a connection since "
+          "the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.2 getLowWaterMark|V1.0" 
+          }]
+   uint64 WaitingThreadCountLowWaterMark;
+
+      [Description (
+          "The highest number of threads waiting for a connection "
+          "since the beginning of the measurement."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.1 getHighWaterMark|V1.0" 
+          }]
+   uint64 WaitingThreadCountHighWaterMark;
+};
+
+// ==================================================================
+// CIM_J2eeJCANonpooledConnections (Association) - JSR77.6.18.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJCANonpooledConnections provides the list of "
+       "statistics for the non-connections pools that are associated "
+       "with the referencing JCA resource statistics.")]
+class CIM_J2eeJCANonpooledConnections : CIM_RelatedStatisticalData {
+
+      [Override ( "Stats" ), Description (
+          "The JCA resource statistic.")]
+   CIM_J2eeJCAStats REF Stats;
+
+      [Override ( "RelatedStats" ), Description (
+          "The related JCA connection statistics.")]
+   CIM_J2eeConnectionStats REF RelatedStats;
+};
+
+// ==================================================================
+// CIM_J2eeJCAConnectionPools (Association) - JSR77.6.18.1.2
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJCAConnectionPools provides the list of statistics "
+       "about the connections pools that are associated with the "
+       "referencing JCA resource statistics.")]
+class CIM_J2eeJCAConnectionPools : CIM_RelatedStatisticalData {
+
+      [Override ( "Stats" ), Description (
+          "The JCA resource statistic.")]
+   CIM_J2eeJCAStats REF Stats;
+
+      [Override ( "RelatedStats" ), Description (
+          "The related JCA connection pool statistics.")]
+   CIM_J2eeConnectionPoolStats REF RelatedStats;
+};
+
+// ====================================================================
+// CIM_J2eeJDBCStats - JSR77.6.21
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The J2eeJDBCStats class defines the performance statistics "
+       "that are provided by a JDBC resource.")]
+class CIM_J2eeJDBCStats : CIM_J2eeStatistic {
+};
+
+
+// ==================================================================
+// CIM_J2eeJDBCNonpooledConnections (Association) - JSR77.6.21.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJDBCNonpooledConnections provides the list of "
+       "statistics for the non-connections pools that are associated "
+       "with the referencing JDBC resource statistics.")]
+class CIM_J2eeJDBCNonpooledConnections : CIM_RelatedStatisticalData {
+
+      [Override ( "Stats" ), Description (
+          "The JDBC resource statistic.")]
+   CIM_J2eeJDBCStats REF Stats;
+
+      [Override ( "RelatedStats" ), Description (
+          "The related JDBC connection statistics.")]
+   CIM_J2eeConnectionStats REF RelatedStats;
+};
+
+// ==================================================================
+// CIM_J2eeJDBCConnectionPools (Association) - JSR77.6.21.1.2
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJDBCConnectionPools provides the list of statistics "
+       "about the connections pools that are associated with the "
+       "referencing JDBC resource statistics.")]
+class CIM_J2eeJDBCConnectionPools : CIM_RelatedStatisticalData {
+
+      [Override ( "Stats" ), Description (
+          "The JDBC resource statistic.")]
+   CIM_J2eeJDBCStats REF Stats;
+
+      [Override ( "RelatedStats" ), Description (
+          "The related JDBC connection pool statistics.")]
+   CIM_J2eeConnectionPoolStats REF RelatedStats;
+};
+
+// ====================================================================
+// CIM_J2eeJMSStats - JSR77.6.24
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJMSStats class defines the performance statistics "
+       "that are provided by a JMS resource.")]
+class CIM_J2eeJMSStats : CIM_J2eeStatistic {
+};
+
+
+// ====================================================================
+// CIM_J2eeJMSConnectionStats - JSR77.6.25
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJMSConnectionStats class defines the performance "
+       "statistics that are provided by a JMS connection.")]
+class CIM_J2eeJMSConnectionStats : CIM_J2eeStatistic {
+
+      [Description (
+          "The transactional state of the JMS connection. A value of "
+          "true indicates that the JMS connection is transactional."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.25.1.2 isTransactional|V1.0" 
+          }]
+   boolean IsTransactional;
+};
+
+
+// ==================================================================
+// CIM_J2eeJMSStatConnections (Association) - JSR77.6.24.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJMSStatConnections provides the list of JMS connection "
+       "statistics that are associated with the referencing JMS "
+       "resource statistics.")]
+class CIM_J2eeJMSStatConnections : CIM_RelatedStatisticalData {
+
+      [Override ( "Stats" ), Min ( 1 ), Description (
+          "The JMS resource statistic.")]
+   CIM_J2eeJMSStats REF Stats;
+
+      [Override ( "RelatedStats" ), Description (
+          "The related JMS connection statistics.")]
+   CIM_J2eeJMSConnectionStats REF RelatedStats;
+};
+
+// ====================================================================
+// CIM_J2eeJMSSessionStats - JSR77.6.26
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJMSSessionStats class defines the performance "
+       "statistics that are provided by a JMS session.")]
+class CIM_J2eeJMSSessionStats : CIM_J2eeStatistic {
+
+      [Description (
+          "The number of durable subscriptions."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.26.1.3 " 
+          "getDurableSubscriptionCount|V1.0" }]
+   uint64 DurableSubscriptionCount;
+
+      [Description (
+          "The number of expired messages."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.26.1.4 " 
+          "getExpiredMessageCount|V1.0" }]
+   uint64 ExpiredMessageCount;
+
+      [Description (
+          "The number of messages exchanged."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.26.1.5 getMessageCount|V1.0" 
+          }]
+   uint64 MessageCount;
+
+      [Description (
+          "The time spent by a message before being delivered. The "
+          "time is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.26.1.6 " 
+          "getMessageWaitTime|V1.0" }]
+   datetime MessageWaitTime;
+
+      [Description (
+          "The maximum amount of time spent by a message before being "
+          "delivered since the beginning of this measurement. The time "
+          "is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.2 getMaxTime|V1.0" }]
+   datetime MessageWaitTimeMaxTime;
+
+      [Description (
+          "The minimum amount of time spent by a message before being "
+          "delivered since the beginning of this measurement. The time "
+          "is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.3 getMinTime|V1.0" }]
+   datetime MessageWaitTimeMinTime;
+
+      [Description (
+          "The total amount of time spent by a message before being "
+          "delivered since the beginning of this measurement. Dividing "
+          "MessageWaitTimeTotalTime by MessageWaitTime will provide "
+          "the average time spent using a connection. The time is "
+          "represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.4 getTotalTime|V1.0" }]
+   datetime MessageWaitTimeTotalTime;
+
+      [Description (
+          "The number of pending messages."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.26.1.7 " 
+          "getPendingMessageCount|V1.0" }]
+   uint64 PendingMessageCount;
+};
+
+
+// ====================================================================
+// CIM_J2eeJMSEndpointStats - JSR77.6.27
+// ====================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJMSEndpointStats class is a base class that "
+       "defines the performance statistics that are provided by a JMS "
+       "message producer or JMS message consumer.")]
+class CIM_J2eeJMSEndpointStats : CIM_J2eeStatistic {
+
+      [Description (
+          "The number of messages that expired before delivery."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.27.1.1 " 
+          "getExpiredMessageCount|V1.0" }]
+   uint64 ExpiredMessageCount;
+
+      [Description (
+          "The number of messages sent or received."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.27.1.2 getMessageCount|V1.0" 
+          }]
+   uint64 MessageCount;
+
+      [Description (
+          "The time spent by a message before being delivered. The "
+          "time is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.27.1.3 " 
+          "getMessageWaitTime|V1.0" }]
+   datetime MessageWaitTime;
+
+      [Description (
+          "The maximum amount of time spent by a message before being "
+          "delivered since the beginning of this measurement. The time "
+          "is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.2 getMaxTime|V1.0" }]
+   datetime MessageWaitTimeMaxTime;
+
+      [Description (
+          "The minimum amount of time spent by a message before being "
+          "delivered since the beginning of this measurement. The time "
+          "is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.3 getMinTime|V1.0" }]
+   datetime MessageWaitTimeMinTime;
+
+      [Description (
+          "The total amount of time spent by a message before being "
+          "delivered since the beginning of this measurement. Dividing "
+          "MessageWaitTimeTotalTime by MessageWaitTime will provide "
+          "the average time spent using a connection. The time is "
+          "represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.4 getTotalTime|V1.0" }]
+   datetime MessageWaitTimeTotalTime;
+
+      [Description (
+          "The number of pending messages."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.27.1.4 " 
+          "getPendingMessageCount|V1.0" }]
+   uint64 PendingMessageCount;
+};
+
+
+// ====================================================================
+// CIM_J2eeJMSProducerStats - JSR77.6.28
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJMSProducerStats class defines the performance "
+       "statistics that are provided by a JMS message producer.")]
+class CIM_J2eeJMSProducerStats : CIM_J2eeJMSEndpointStats {
+
+      [Description (
+          "A string that encapsulates the identity of the message "
+          "destination."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.28.1.1 getDestination|V1.0" 
+          }]
+   string Destination;
+};
+
+
+// ====================================================================
+// CIM_J2eeJMSConsumerStats - JSR77.6.29
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJMSConsumerStats class defines the performance "
+       "statistics that are provided by a JMS message consumer.")]
+class CIM_J2eeJMSConsumerStats : CIM_J2eeJMSEndpointStats {
+
+      [Description (
+          "A string that encapsulates the identity of the message "
+          "origin."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.29.1.1 getOrigin|V1.0" }]
+   string Origin;
+};
+
+
+// ==================================================================
+// CIM_J2eeJMSConnectionSessions (Association) - JSR77.6.25.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJMSConnectionSessions identifies the JMS session "
+       "statistics that are associated with the referencing JMS "
+       "connection statistics.")]
+class CIM_J2eeJMSConnectionSessions : CIM_RelatedStatisticalData {
+
+      [Override ( "Stats" ), Min ( 1 ), Description (
+          "The JMS connection statistic.")]
+   CIM_J2eeJMSConnectionStats REF Stats;
+
+      [Override ( "RelatedStats" ), Description (
+          "The related JMS session statistics.")]
+   CIM_J2eeJMSSessionStats REF RelatedStats;
+};
+
+
+// ==================================================================
+// CIM_J2eeJMSSessionProducers (Association) - JSR77.6.26.1.1
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJMSSessionProducers identifies the JMS producer "
+       "statistics that are associated with the referencing JMS "
+       "session statistics.")]
+class CIM_J2eeJMSSessionProducers : CIM_RelatedStatisticalData {
+
+      [Override ( "Stats" ), Min ( 1 ), Description (
+          "The JMS session statistic.")]
+   CIM_J2eeJMSSessionStats REF Stats;
+
+      [Override ( "RelatedStats" ), Description (
+          "The related JMS producer statistics.")]
+   CIM_J2eeJMSProducerStats REF RelatedStats;
+};
+
+
+// ==================================================================
+// CIM_J2eeJMSSessionConsumers (Association) - JSR77.6.26.1.2
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "CIM_J2eeJMSSessionConsumers identifies the JMS consumer "
+       "statistics that are associated with the referencing JMS "
+       "session statistics.")]
+class CIM_J2eeJMSSessionConsumers : CIM_RelatedStatisticalData {
+
+      [Override ( "Stats" ), Min ( 1 ), Description (
+          "The JMS session statistic.")]
+   CIM_J2eeJMSSessionStats REF Stats;
+
+      [Override ( "RelatedStats" ), Description (
+          "The related JMS consumer statistics.")]
+   CIM_J2eeJMSConsumerStats REF RelatedStats;
+};
+
+
+// ====================================================================
+// CIM_J2eeJTAStats - JSR77.6.30
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeJTAStats class defines the performance statistics "
+       "that are provided by a JTA resource.")]
+class CIM_J2eeJTAStats : CIM_J2eeStatistic {
+
+      [Description (
+          "The number of active transactions."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.30.1.1 getActiveCount|V1.0" 
+          }]
+   uint64 ActiveCount;
+
+      [Description (
+          "The number of committed transactions."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.30.1.2 " 
+          "getCommittedCount|V1.0" }]
+   uint64 CommittedCount;
+
+      [Description (
+          "The number of rolled-back transactions."), 
+       Counter, 
+       MappingStrings { "JSR77.JCP|JSR77.6.30.1.3 " 
+          "getRolledbackCount|V1.0" }]
+   uint64 RolledbackCount;
+};
+
+
+// ====================================================================
+// CIM_J2eeJVMStats - JSR77.6.31
+// ====================================================================
+   [Version ( "2.8.2" ), Description (
+       "The CIM_J2eeJVMStats class defines the performance statistics "
+       "that are provided by a Java VM.")]
+class CIM_J2eeJVMStats : CIM_J2eeStatistic {
+
+      [Description (
+          "The heap size of the JVM."), 
+       Units ( "Bytes" ), Gauge, 
+       MappingStrings { "JSR77.JCP|JSR77.6.31.1.1 getHeapSize|V1.0" }]
+   uint64 HeapSize;
+
+      [Description (
+          "The upper limit for the heap size of the JVM."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "JSR77.JCP|JSR77.6.8.1.1 getUpperBound|V1.0" }]
+   uint64 HeapSizeUpperBound;
+
+      [Description (
+          "The lower limit for the heap size of the JVM."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "JSR77.JCP|JSR77.6.8.1.2 getLowerBound|V1.0" }]
+   uint64 HeapSizeLowerBound;
+
+      [Description (
+          "The smallest size of the JVM heap since the beginning of "
+          "the measurement."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.2 getLowWaterMark|V1.0" 
+          }]
+   uint64 HeapSizeLowWaterMark;
+
+      [Description (
+          "The largest size of the JVM heap since the beginning of the "
+          "measurement."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "JSR77.JCP|JSR77.6.7.1.1 getHighWaterMark|V1.0" 
+          }]
+   uint64 HeapSizeHighWaterMark;
+
+      [Description (
+          "The amount of time the JVM has been running. The time is "
+          "represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.31.1.2 getUpTime|V1.0" }]
+   datetime UpTime;
+};
+
+
+// ====================================================================
+// CIM_J2eeServletStats - JSR77.6.32
+// ====================================================================
+   [Version ( "2.8.0" ), Description (
+       "The CIM_J2eeServletStats class defines the performance "
+       "statistics that are provided by a Servlet component.")]
+class CIM_J2eeServletStats : CIM_J2eeStatistic {
+
+      [Description (
+          "The execution time of the servlet's service method. The "
+          "time is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.32.1.1 getServiceTime|V1.0" 
+          }]
+   datetime ServiceTime;
+
+      [Description (
+          "The maximum execution time of the servlet's service method "
+          "since the beginning of this measurement. The time is "
+          "represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.2 getMaxTime|V1.0" }]
+   datetime ServletTimeMaxTime;
+
+      [Description (
+          "The minimum execution time of the servlet's service method "
+          "since the beginning of this measurement. The time is "
+          "represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.3 getMinTime|V1.0" }]
+   datetime ServiceTimeMinTime;
+
+      [Description (
+          "The total execution time of the servlet's service method "
+          "since the beginning of this measurement. Dividing "
+          "ServletTimeTotalTime by ServletTime will provide the "
+          "average time spent executing the servlet's service method. "
+          "The time is represented as a datetime interval."), 
+       MappingStrings { "JSR77.JCP|JSR77.6.6.1.4 getTotalTime|V1.0" }]
+   datetime ServletTimeTotalTime;
+};
+
+
+// ====================================================================
+// CIM_J2eeURLStats - JSR77.6.33
+// ====================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "The CIM_J2eeURLStats class defines the performance statistics "
+       "that are provided by a URL resource. There are no standard "
+       "required URL statistics defined by the JSR77 specification. "
+       "This class may be extended to provide vendor specific URL "
+       "performance statistics.")]
+class CIM_J2eeURLStats : CIM_J2eeStatistic {
+};
+
+
+// ==================================================================
+// end of file
+// ==================================================================

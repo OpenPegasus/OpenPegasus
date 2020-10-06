@@ -1,0 +1,339 @@
+#!/bin/bash
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+################################################################################
+##
+## Watch the cimserver and any cimprovagt agent process while the
+## cimserver is running. This script runs a ps command at regular
+## intervals as long as the server continues running to capture
+## key runtime information on memory, threads, etc.
+##
+################################################################################
+
+##TODO:
+##   Improve data in the display
+
+##   List of proc names for various valgrind tools is incomplete. Today it only
+##   includes the names for amd based 64 bit servers. valgrind apparently has a
+##   wide set of process names.  If you find others, please add then to the list at
+##   PROCNAMEARRAY
+
+
+usage()
+{
+cat << EOF
+Usage: $(basename $0) - Watch the cimserver and display statistics on a regular
+       timed basis while it is running. Puts the statistics to the
+       console and also to a file defined by -f option.
+       This script will try to detect a cimserver running under either
+       the cimserver process name or at least some of the names
+       used by the valgrind tool. See the variable PROCNAMEARRAY for
+       list of process names it currently knows. Please add new ones to the
+       script and check in the results
+    
+    watchcimserver [OPTIONS]
+
+    OPTIONS
+    -v         Verbose display. Displays options and more
+               run information. Primarily script diagnostic (default false)
+    -s         If server not running, start it (default false)
+    -f NAME    Output to file  with name (default watchcimserver.txt)
+    -i sec     Interval in seconds between each ps cmd (default 30 sec)
+    -p         Show info on the cimprovagt processes also. NOTE:
+               There may be many of them so makes big display
+    -t min(m,h,d) Terminate scripts min minutes after starting the watch
+               (default 0 which runs one ps cmd and quits)
+               If the last character is h or d, this represents
+	           hours or days. (i.e 3d will run the test for 3 days).
+	           m is same as pure numeric.  This is accumulative so that
+	               -t 1d -t30m would end in 1 day + 30 minutes.
+    -d         Additional details into a detail file. ex. pmap output
+EOF
+}
+
+##############################################################
+##   Define configuration and run variables
+##
+STARTSERVER=0           # boolean controls server start in script
+VERBOSE=0               # boolean to display verbose info
+OUTPUTFILENAME=watchcimserver.txt
+INTERVAL=30             # display interval in sec
+declare -i STOPTIME_MIN
+STOPTIME_MIN=0          # time in min when script will stop
+STOPTIME_SEC=0          # absolute time in sec when script stops
+WATCHPROVAGT=p          # default p, watch only this process
+DETAILS=0
+
+## define the ps command output data set
+PSOUTFMT="-o pid,rss,vsz,pmem,pcpu,nlwp,cputime,stime,etime,sz,comm"
+
+## Define variables to capture the min and max for RSS
+MAX_RSS=0
+MIN_RSS=0
+CUR_RSS=0
+
+## get starttime in seconds
+STARTTIME=$(date +%s)
+
+RUNMINUTES=0                       ## accumulated runtime in minutes
+
+DATEFMT="+%m/%d/%y%n%H:%M:%S"
+
+## possible names for the cimserver process including names when
+## it run under valgrind. These are tested one by one to find a
+## running process. Script fails if:
+##   either the server is not started by this script or one of the
+##   process names in this list is not found.
+PROCNAMEARRAY=(cimserver memcheck-amd64- massif-amd64-li helgrind-amd64-)
+
+###############################################################
+##  Capture if user ctrl-cs out of program and report current status
+##
+EXIT_PGM=0
+control_c()
+# run if user hits control-c
+{
+  echo -en "\n*** will end  at end of this loop ***\n"
+  EXIT_PGM=1
+}
+ 
+# trap keyboard interrupt (control-c)
+trap control_c SIGINT
+
+################################################################
+##  Scan input options
+##
+while getopts "hvw:sf:i:t:pVd" OPTION
+do 
+     case $OPTION in 
+     h)  usage 
+         exit 1 
+         ;;
+ 
+     v)  VERBOSE=1
+         ;;
+
+	 s)  STARTSERVER=1
+	     ;;
+
+	 d)  DETAILS=1
+	     ;;
+
+     f)  OUTPUTFILENAME=$OPTARG
+         ;;
+
+     i)  INTERVAL=$OPTARG
+         ;;
+
+	 p)  WATCHPROVAGT=s      ## set to watch subprocesses
+	     ;;
+
+     t)  timeInput=$OPTARG
+         case "$timeInput" in
+             *m ) addTime=${timeInput%%"m"}
+               STOPTIME_MIN+=$((addTime))
+               STOPTIME_MIN=${STOPTIME_MIN#0}
+               ;;
+             *h ) addTime=${timeInput%%"h"}
+               STOPTIME_MIN=$(( STOPTIME_MIN+addTime*60 ))
+               ## previous inserting leading 0 which defines var as octal
+               STOPTIME_MIN=${STOPTIME_MIN#0}
+               ;;
+             *d ) addTime=${timeInput%%"d"}
+               MinPerDay=$((60*24))
+               STOPTIME_MIN+=$((addTime*MinPerDay))
+               STOPTIME_MIN=${STOPTIME_MIN#0}
+               ;;
+
+            *[0-9] ) addTime=$timeInput
+               STOPTIME_MIN+=$((addTime))
+               STOPTIME_MIN=${STOPTIME_MIN#0}
+               ;;
+
+            * ) echo ERROR: Option -t $STOPTIME_MIN incorrect
+                exit 1
+               ;;
+	     esac
+
+	     ## set the time for the watchcimserver to stop in sec
+         STOPTIME_SEC=$(date +%s --date="now + $STOPTIME_MIN min")
+         ;;
+
+         ?) usage 
+             exit 
+             ;;
+         *) usage 
+             exit 1
+             ;;  
+     esac 
+done
+
+###############################################################
+# Conditional display of input options
+#
+if [[ $VERBOSE -eq 1 ]]; then
+   echo Summary of Options:
+   echo VERBOSE=false
+   echo watchcimserver stoptime=$STOPTIME_MIN minutes at \
+        $(date $DATEFMT -d @$STOPTIME_SEC)
+   echo Snapshot interval=$INTERVAL seconds
+   if [[ $STARTSERVER == 0 ]]; then
+      echo serverStart=false
+   else
+      echo serverStart=true
+   fi
+   echo Outputfile=$OUTPUTFILENAME
+fi
+
+############################################################
+##   Start server if requested or test if already running
+##
+if [[ $STARTSERVER -eq 1 ]]; then
+   echo start server
+   cimserver
+fi
+
+############################################################
+## determine that cimserver or controlling process is running and find its pid
+## Will find any process names in PROCNAMEARRAY above
+
+PROCESS_NAME=
+
+for Name in ${PROCNAMEARRAY[@]}
+do
+    echo testing for process name $Name
+    CIMSERVER_PID=$(ps -C $Name --no-headers -o pid | head -1)
+    ## remove possible 2 blanks at front of PID (3 and 4 char pids)
+    CIMSERVER_PID="${CIMSERVER_PID## }"
+    CIMSERVER_PID="${CIMSERVER_PID## }"
+    echo Process=$Name PID=$CIMSERVER_PID
+
+    if [[ -n "$CIMSERVER_PID" ]];then
+        echo Watch cimserver pid=$CIMSERVER_PID each $INTERVAL sec. \
+            start $(date $DATEFMT),
+        echo "    " duration $STOPTIME_MIN minutes, end at \
+            $(date $DATEFMT -d @$STOPTIME_SEC)
+        PROCESS_NAME=$Name
+        break
+    fi
+done
+if [[ -z "$CIMSERVER_PID" ]];then
+    echo CIMServer proc $CIMSERVER_PROCNAME not found, exiting.
+    exit 1
+fi
+
+PROCFILE=/proc/$CIMSERVER_PID
+
+if [[ $VERBOSE -ne 0 ]]; then
+    echo PROCFILE=\"$PROCFILE\"
+fi
+
+#######################################################################
+##  Loop to capture and display information at regular interval
+##
+
+FIRSTPASS=1
+
+## ps command to get the current RSS variable
+CUR_RSS=0$(ps --no-headers -o rss -p $CIMSERVER_PID )
+
+## While proc file exists, loop and report ps every INTERVAL seconds
+while true
+do
+    ## die if process no longer running
+    if [[ ! -e $PROCFILE ]]; then
+        echo cimserver $PROCFILE not running. Terminate watchcimserver
+        echo cimserver not running. Terminating script.
+        echo watchcimserver stopped early at $(date -d @$CURTIME)
+        echo Started at $(date $DATEFMT -d @$STARTTIME). total runtime $RUNMINUTES min
+        echo RSS Summary max=$MAX_RSS min=$MIN_RSS last=$CUR_RSS
+	    exit 1
+    fi
+
+    ## Display definition in PSOUTFMT String
+    ## -F displays UID PID  PPID  C    SZ   RSS PSR STIME TTY      TIME CMD
+    if [[ $FIRSTPASS -eq 1 ]]; then
+        echo
+        ps $PSOUTFMT -$WATCHPROVAGT $CIMSERVER_PID  | tee $OUTPUTFILENAME
+	    FIRSTPASS=0
+        if [[ $DETAILS -eq 1 ]]; then
+            ps $PSOUTFMT -$WATCHPROVAGT $CIMSERVER_PID >$OUTPUTFILENAME
+            pmap $CIMSERVER_PID >>$OUTPUTFILENAME.DETAILS.TXT
+            echo ====================== >>$OUTPUTFILENAME.DETAILS.TXT
+        fi
+    else
+        ## after first pass, discard header line.
+        ps --no-headers $PSOUTFMT -$WATCHPROVAGT  $CIMSERVER_PID | tee -a $OUTPUTFILENAME
+        if [[ $DETAILS -eq 1 ]]; then
+            ps --no-headers $PSOUTFMT -$WATCHPROVAGT $CIMSERVER_PID >>$OUTPUTFILENAME
+            pmap $CIMSERVER_PID >>$OUTPUTFILENAME.DETAILS.TXT
+            echo ====================== >>$OUTPUTFILENAME.DETAILS.TXT
+        fi
+    fi
+
+    ## compute the highwater and lowwater marks for RSS
+    CUR_RSS=$(ps --no-headers -p $CIMSERVER_PID -o rss)
+    if [[ $CUR_RSS -ge $MAX_RSS ]]; then
+        MAX_RSS=$CUR_RSS
+    fi
+
+    if [[ $MIN_RSS -ne 0 ]]; then
+       if [[ $MIN_RSS -gt $CUR_RSS ]]; then
+           MIN_RSS=$CUR_RSS
+       fi
+    else
+	   MIN_RSS=$CUR_RSS
+    fi
+
+    ## sleep until next display interval
+    sleep $INTERVAL
+
+    ## recompute time in minutes since started
+    CURTIME=$(date +%s)
+    RUNTIME=$(($CURTIME-$STARTTIME))
+    RUNMINUTES=$(($RUNTIME/60))
+
+    ## exit if flag set by ctrl-c
+    if [[ $EXIT_PGM -eq 1 ]]; then
+	    echo watchcimserver stopped early at $(date -d @$CURTIME)
+	    echo Started at $(date $DATEFMT -d @$STARTTIME). Total runtime $RUNMINUTES min
+        echo RSS Summary max=$MAX_RSS min=$MIN_RSS last=$CUR_RSS
+	    exit 1
+    fi
+
+    ## if the -t was set test to see if we want to shut down script
+    if [[ $STOPTIME_SEC -ne 0 ]]; then
+        if [[ $STOPTIME_SEC < $(date +%s) ]]; then
+           echo watchcimserver stopped at defined end time after running $RUNMINUTES minutes
+           echo RSS Summary max=$MAX_RSS min=$MIN_RSS last=$CUR_RSS
+           exit 0
+        fi
+    fi
+    ###echo watchcimserver running $RUNMINUTES minutes
+done

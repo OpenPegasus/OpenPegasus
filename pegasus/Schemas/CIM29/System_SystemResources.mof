@@ -1,0 +1,527 @@
+// ===================================================================
+// Title: System_SystemResources
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: System_SystemResources.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The System Model defines system related management
+//              concepts. This file defines the specific concepts for
+//              identifying and managing system hardware and
+//              software resources.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7 Final
+// CR969 - Remove the experimental qualifier
+// 
+// Change Log for v2.7
+// CR757 - Change the subclassing of SystemResource from LogicalElement
+//         to EnabledLogicalElement
+// CR769 - Update the Decription of SystemResource
+//       - Add property SystemResource.ImplementationInfo
+//       - Add ResourceOfSystem
+//       - Change subclassing of ComputerSystemResource to Resource
+//         OfSystem
+// CR771 - Add the Composition qualifer to ComputerSystemResource,
+//         CIM_ComputerSystemIRQ, CIM_ComputerSystemMappedIO,
+//         and CIM_ComputerSystemDMA
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// SystemResource
+// ===================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "An entity managed by BIOS, an OperatingSystem or other "
+       "software, which is available for use by application software "
+       "and/or LogicalDevices. Resources are individually identified "
+       "and allocated entities, that are assignable, reservable, "
+       "counted/ tracked, releasable, reset-able, etc. Examples of "
+       "software Resources are message queues, shared memory segments "
+       "(identified by a key value), and named pipes, while examples "
+       "of hardware Resources (in an x86 environment) are IRQs, DMA "
+       "channels and memory mapped I/O.")]
+class CIM_SystemResource : CIM_EnabledLogicalElement {
+
+      [Description (
+          "Boolean indicating whether the Resource can be shared.")]
+   boolean Shareable;
+
+      [Description (
+          "Indicates whether the Resource is implemented in hardware, "
+          "software or both."), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Hardware Only", "Software Only",
+          "Hardware and Software" }]
+   uint16 ImplementationInfo;
+};
+
+
+// ===================================================================
+// IRQ
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Personal computer architecture IRQ.")]
+class CIM_IRQ : CIM_SystemResource {
+
+      [Key, Propagated ( "CIM_ComputerSystem.CreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string CSCreationClassName;
+
+      [Key, Propagated ( "CIM_ComputerSystem.Name" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string CSName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "A part of the object's key value, IRQ Number."), 
+       MappingStrings { "MIF.DMTF|IRQ|002.1" }]
+   uint32 IRQNumber;
+
+      [Description (
+          "Availability of the IRQ."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Available",
+          "In Use/Not Available", "In Use and Available/Shareable" }, 
+       MappingStrings { "MIF.DMTF|IRQ|002.2" }]
+   uint16 Availability;
+
+      [Description (
+          "IRQ trigger type indicating whether edge (value=4) or level "
+          "triggered (value=3) interrupts occur. Also, \"Other\" (1) "
+          "and \"Unknown\" (2) may be defined."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Unknown", "Level", "Edge" }, 
+       MappingStrings { "MIF.DMTF|IRQ|002.3",
+          "MIF.DMTF|System Resource IRQ Info|001.2" }]
+   uint16 TriggerType;
+
+      [Description (
+          "IRQ trigger level indicating whether the interrupt is "
+          "triggered by the hardware signal going high (value=4) or "
+          "low (value=3). Also, \"Other\" (1) and \"Unknown\" (2) may "
+          "be defined."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Unknown", "Active Low", "Active High" }, 
+       MappingStrings { "MIF.DMTF|System Resource IRQ Info|001.3" }]
+   uint16 TriggerLevel;
+
+      [Override ( "Shareable" ), Description (
+          "Boolean indicating whether the IRQ can be shared."), 
+       MappingStrings { "MIF.DMTF|IRQ|002.4" }]
+   boolean Shareable;
+
+      [Description (
+          "The Hardware property indicates whether the interrupt is "
+          "hardware or software based. (If TRUE, the interrupt is "
+          "hardware based.) On a personal computer, a hardware IRQ is "
+          "a physical wire to a programmable interrupt controller "
+          "(PIC) chip, through which the CPU can be notified of time "
+          "critical events. Some IRQ lines are reserved for standard "
+          "Devices such as the keyboard, floppy disk drives, and the "
+          "system clock. A software interrupt is a programmatic "
+          "mechanism to allow an application to get the attention of "
+          "the Processor.")]
+   boolean Hardware;
+};
+
+// ===================================================================
+// MemoryMappedIO
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Personal Computer architecture Memory Mapped I/O. This class "
+       "addresses both memory and port I/O resources. The property, "
+       "MappedResource, defines whether memory or I/O is mapped (and "
+       "for I/O whether the mapping is to a memory or a port space).")]
+class CIM_MemoryMappedIO : CIM_SystemResource {
+
+      [Key, Propagated ( "CIM_ComputerSystem.CreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string CSCreationClassName;
+
+      [Key, Propagated ( "CIM_ComputerSystem.Name" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string CSName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "A part of the object's key value, the starting address of "
+          "memory mapped I/O."), 
+       MappingStrings { "MIF.DMTF|Memory Mapped I/O|001.1" }]
+   uint64 StartingAddress;
+
+      [Description (
+          "Ending address of memory mapped I/O."), 
+       MappingStrings { "MIF.DMTF|Memory Mapped I/O|001.2" }]
+   uint64 EndingAddress;
+
+      [Description (
+          "Type of memory mapped I/O. MappedResource defines whether "
+          "memory or I/O is mapped, and for I/O, whether the mapping "
+          "is to a memory or a port space."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Other", "Mapped Memory", "I/O Mapped to Memory Space",
+          "I/O Mapped to Port Space" }]
+   uint16 MappedResource;
+};
+
+
+// ===================================================================
+// MemoryResource
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Since the MemoryMappedIO class applies to memory AND port "
+       "resources, there is the potential for key conflict. For "
+       "example, both a memory resource and a port resource may be "
+       "located at address 0. Since StartingAddress is the "
+       "distinguishing key of MemoryMappedIO, two instances would be "
+       "created with the same key. This is prevented by defining "
+       "memory and port resource subclasses of MemoryMappedIO, and "
+       "allowing the CreationClassName key property to distinguish "
+       "between them and force uniqueness in their keys.")]
+class CIM_MemoryResource : CIM_MemoryMappedIO {
+};
+
+
+// ===================================================================
+// PortResource
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Since the MemoryMappedIO class applies to memory AND port "
+       "resources, there is the potential for key conflict. For "
+       "example, both a memory resource and a port resource may be "
+       "located at address 0. Since StartingAddress is the "
+       "distinguishing key of MemoryMappedIO, two instances would be "
+       "created with the same key. This is prevented by defining "
+       "memory and port resource subclasses of MemoryMappedIO, and "
+       "allowing the CreationClassName key property to distinguish "
+       "between them and force uniqueness in their keys.")]
+class CIM_PortResource : CIM_MemoryMappedIO {
+};
+
+
+// ===================================================================
+// DMA
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Personal computer architecture DMA.")]
+class CIM_DMA : CIM_SystemResource {
+
+      [Key, Propagated ( "CIM_ComputerSystem.CreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string CSCreationClassName;
+
+      [Key, Propagated ( "CIM_ComputerSystem.Name" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string CSName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Description (
+          "A part of the object's key value, the DMA Channel number."), 
+       MappingStrings { "MIF.DMTF|DMA|001.1" }]
+   uint32 DMAChannel;
+
+      [Description (
+          "Availability of the DMA."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Available",
+          "In Use/Not Available", "In Use and Available/Shareable" }, 
+       MappingStrings { "MIF.DMTF|DMA|001.2" }]
+   uint16 Availability;
+
+      [Description (
+          "Indication that the DMA Channel supports burst mode."), 
+       MappingStrings { "MIF.DMTF|DMA|001.3" }]
+   boolean BurstMode;
+
+      [Description (
+          "An array indicating all the transfer widths (in bits) "
+          "supported by this DMA Channel. Permissible values are 8, "
+          "16, 32, 64 or 128 bits. If unknown, enter 0."), 
+       Units ( "Bits" ), 
+       ValueMap { "0", "8", "16", "32", "64", "128" }, 
+       MappingStrings { "MIF.DMTF|System Resource DMA Info|001.2" }]
+   uint16 TransferWidths[];
+
+      [Description (
+          "An integer indicating the DMA Channel address size in bits. "
+          "Permissible values are 8, 16, 32 or 64 bits. If unknown, "
+          "enter 0."), 
+       Units ( "Bits" ), 
+       ValueMap { "0", "8", "16", "32", "64" }, 
+       MappingStrings { "MIF.DMTF|System Resource DMA Info|001.3" }]
+   uint16 AddressSize;
+
+      [Description (
+          "The maximum number of bytes that can be transferred by this "
+          "DMA Channel. If unknown, enter 0."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|System Resource DMA Info|001.4" }]
+   uint32 MaxTransferSize;
+
+      [Description (
+          "Indicates whether DMA may execute in 'count by byte' mode "
+          "(value=4) or not (value=3). Also, \"Other\" (1) and "
+          "\"Unknown\" (2) may be defined."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Unknown",
+          "Not execute in 'count by byte' mode",
+          "Execute in 'count by byte' mode" }, 
+       MappingStrings { "MIF.DMTF|System Resource DMA Info|001.7" }]
+   uint16 ByteMode;
+
+      [Description (
+          "Indicates whether DMA may execute in 'count by word' mode "
+          "(value=4) or not (value=3). Also, \"Other\" (1) and "
+          "\"Unknown\" (2) may be defined."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Unknown",
+          "Not execute in 'count by word' mode",
+          "Execute in 'count by word' mode" }, 
+       MappingStrings { "MIF.DMTF|System Resource DMA Info|001.8" }]
+   uint16 WordMode;
+
+      [Description (
+          "DMA channel timing. For example, \"Type A\" (value =4) or "
+          "\"Type F\" (6) could be specified."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "ISA Compatible", "Type A",
+          "Type B", "Type F" }, 
+       MappingStrings { "MIF.DMTF|System Resource DMA Info|001.9" }]
+   uint16 ChannelTiming;
+
+      [Description (
+          "Indicates whether C type (burst) timing is supported "
+          "(value=5) or not (value=4). Also, \"Other\" (1), "
+          "\"Unknown\" (2) and \"ISA Compatible\" (3) are defined."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "ISA Compatible", "Not Supported",
+          "Supported" }, 
+       MappingStrings { "MIF.DMTF|System Resource DMA Info|001.10" }]
+   uint16 TypeCTiming;
+};
+
+
+// ===================================================================
+// ResourceOfSystem
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.2" ), 
+    Description (
+       "An association between a System and a SystemResource that "
+       "exists and is allocated in the context of the System.")]
+class CIM_ResourceOfSystem : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The System in whose context the Resource exists and is "
+          "allocated.")]
+   CIM_System REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "A Resource of the System.")]
+   CIM_SystemResource REF PartComponent;
+};
+
+
+// ===================================================================
+// ComputerSystemResource
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "An association between a ComputerSystem and the System "
+       "Resources available on it.")]
+class CIM_ComputerSystemResource : CIM_ResourceOfSystem {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The ComputerSystem.")]
+   CIM_ComputerSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "A SystemResource of the ComputerSystem.")]
+   CIM_SystemResource REF PartComponent;
+};
+
+
+// ===================================================================
+// ComputerSystemIRQ
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "An association between a ComputerSystem and the IRQs available "
+       "on it.")]
+class CIM_ComputerSystemIRQ : CIM_ComputerSystemResource {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The ComputerSystem.")]
+   CIM_ComputerSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Weak, Description (
+          "An IRQ of the ComputerSystem.")]
+   CIM_IRQ REF PartComponent;
+};
+
+
+// ===================================================================
+// ComputerSystemMappedIO
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "An association between a ComputerSystem and the Memory Mapped "
+       "I/O ports available on it.")]
+class CIM_ComputerSystemMappedIO : CIM_ComputerSystemResource {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The ComputerSystem.")]
+   CIM_ComputerSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Weak, Description (
+          "A memory mapped I/O port of the ComputerSystem.")]
+   CIM_MemoryMappedIO REF PartComponent;
+};
+
+
+// ===================================================================
+// ComputerSystemDMA
+// ===================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "An association between a ComputerSystem and the DMA channels "
+       "available on it.")]
+class CIM_ComputerSystemDMA : CIM_ComputerSystemResource {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The ComputerSystem.")]
+   CIM_ComputerSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Weak, Description (
+          "A DMA channel of the ComputerSystem.")]
+   CIM_DMA REF PartComponent;
+};
+
+
+// ===================================================================
+// AllocatedResource
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "An association between LogicalDevices and SystemResources, "
+       "indicating that the Resource is assigned to the Device.")]
+class CIM_AllocatedResource : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Resource.")]
+   CIM_SystemResource REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDevice to which the Resource is assigned.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+
+// ===================================================================
+// AllocatedDMA
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "An association between a LogicalDevice and a DMA System "
+       "Resource indicating that the DMA Channel is assigned to the "
+       "Device.")]
+class CIM_AllocatedDMA : CIM_AllocatedResource {
+
+      [Override ( "Antecedent" ), Description (
+          "The DMA Channel.")]
+   CIM_DMA REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDevice to which the Resource is assigned.")]
+   CIM_LogicalDevice REF Dependent;
+
+      [Description (
+          "Boolean indicating whether the LogicalDevice can act as a "
+          "bus master on the DMA Channel."), 
+       MappingStrings { "MIF.DMTF|System Resource DMA Info|001.6" }]
+   boolean BusMaster;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

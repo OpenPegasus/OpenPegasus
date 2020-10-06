@@ -1,0 +1,302 @@
+// ===================================================================
+// Title: Core_StorageExtent
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Core_StorageExtent.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Core Model defines basic management concepts.
+//              This file defines the concepts and classes to model
+//              a type of LogicalDevice, StorageExtents.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1210 - Removal of experimental Qualifiers for core.
+// 
+// Change Log for v2.8 Preliminary
+// CR978  - Promote NoSinglePointOfFailure, DataRedundancy, and
+//          SpindleRedundancy from StorageVolue to StorageExtent.
+// CR1019 - CIM Versioning for 2.8 Preliminary
+// CR1044 - Add StorageExtent.Primordial
+// 
+// Change Log for v2.7 Final
+// CR967 - Add values "DMTF reserved" and "Vendor reserved" to
+//         StorageExtent.ExtentStatus.
+// CR968 - Remove the Experimental qualifier
+// 
+// Change Log for v2.7
+// CR722 - Add StorageExtent.ExtentStatus
+// CR775 - StorageExtent.NoSinglePointOfFailure, StorageExtent.
+//         DataRedundancy, StorageExtent.SpindleRedundancy
+// CR777 - Add StorageExtent.DeltaReservation
+// CR862 - Define StorageExtent.ExtentStatus as an array
+// CR884 - Move RAID centric properties from StorageExtent to
+//         StorageVolume
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// StorageExtent
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "StorageExtent describes the capabilities and management of the "
+       "various media that exist to store data and allow data "
+       "retrieval. This superclass could be used to represent the "
+       "various components of RAID (Hardware or Software) or as a raw "
+       "logical extent on top of physical media.")]
+class CIM_StorageExtent : CIM_LogicalDevice {
+
+      [Description (
+          "Type of data organization used."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Other", "Unknown", "Fixed Block", "Variable Block",
+          "Count Key Data" }]
+   uint16 DataOrganization;
+
+      [Description (
+          "A free form string describing the media and/or its use."), 
+       MappingStrings { "MIB.IETF|HOST-RESOURCES-MIB.hrStorageDescr" }]
+   string Purpose;
+
+      [Description (
+          "Access describes whether the media is readable (value=1), "
+          "writeable (value=2), or both (value=3). \"Unknown\" (0) and "
+          "\"Write Once\" (4) can also be defined."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Readable", "Writeable",
+          "Read/Write Supported", "Write Once" }]
+   uint16 Access;
+
+      [Description (
+          "ErrorMethodology is a free-form string describing the type "
+          "of error detection and correction supported by this "
+          "StorageExtent.")]
+   string ErrorMethodology;
+
+      [Description (
+          "Size in bytes of the blocks which form this StorageExtent. "
+          "If variable block size, then the maximum block size in "
+          "bytes should be specified. If the block size is unknown or "
+          "if a block concept is not valid (for example, for "
+          "AggregateExtents, Memory or LogicalDisks), enter a 1."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Host Storage|001.4",
+          "MIB.IETF|HOST-RESOURCES-MIB.hrStorageAllocationUnits",
+          "MIF.DMTF|Storage Devices|001.5" }]
+   uint64 BlockSize;
+
+      [Description (
+          "Total number of logically contiguous blocks, of size Block "
+          "Size, which form this Extent. The total size of the Extent "
+          "can be calculated by multiplying BlockSize by "
+          "NumberOfBlocks. If the BlockSize is 1, this property is the "
+          "total size of the Extent."), 
+       MappingStrings { "MIF.DMTF|Host Storage|001.5",
+          "MIB.IETF|HOST-RESOURCES-MIB.hrStorageSize" }]
+   uint64 NumberOfBlocks;
+
+      [Description (
+          "The maximum number of blocks, of size BlockSize, which are "
+          "available for consumption when layering StorageExtents "
+          "using the BasedOn association. This property only has "
+          "meaning when this StorageExtent is an Antecedent reference "
+          "in a BasedOn relationship. For example, a StorageExtent "
+          "could be composed of 120 blocks. However, the Extent itself "
+          "may use 20 blocks for redundancy data. If another "
+          "StorageExtent is BasedOn this Extent, only 100 blocks would "
+          "be available to it. This information ('100 blocks is "
+          "available for consumption') is indicated in the "
+          "ConsumableBlocks property.")]
+   uint64 ConsumableBlocks;
+
+      [Description (
+          "True indicates that the underlying StorageExtent(s) "
+          "participate in a StorageRedundancyGroup.")]
+   boolean IsBasedOnUnderlyingRedundancy;
+
+      [Description (
+          "Boolean set to TRUE if the Storage is sequentially accessed "
+          "by a MediaAccessDevice. A TapePartition is an example of a "
+          "sequentially accessed StorageExtent. StorageVolumes, Disk "
+          "Partitions and LogicalDisks represent randomly accessed "
+          "Extents.")]
+   boolean SequentialAccess;
+
+      [Description (
+          "StorageExtents have additional status information beyond "
+          "that captured in the OperationalStatus and other "
+          "properties, inherited from ManagedSystemElement. This "
+          "additional information (for example, \"Protection "
+          "Disabled\", value=9) is captured in the VolumeStatus "
+          "property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15..32767", "32768..65535" }, 
+       Values { "Other", "Unknown", "None/Not Applicable", "Broken",
+          "Data Lost", "Dynamic Reconfig", "Exposed",
+          "Fractionally Exposed", "Partially Exposed",
+          "Protection Disabled", "Readying", "Rebuild", "Recalculate",
+          "Spare in Use", "Verify In Progress", "DMTF Reserved",
+          "Vendor Reserved" }]
+   uint16 ExtentStatus[];
+
+      [Description (
+          "Indicates whether or not there exists no single point of "
+          "failure."), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.NoSinglePointOfFailure" }]
+   boolean NoSinglePointOfFailure;
+
+      [Description (
+          "Number of complete copies of data currently maintained."), 
+       ModelCorrespondence { "CIM_StorageSetting.DataRedundancyGoal",
+          "CIM_StorageSetting.DataRedundancyMax",
+          "CIM_StorageSetting.DataRedundancyMin" }]
+   uint16 DataRedundancy;
+
+      [Description (
+          "How many physical packages can currently fail without data "
+          "loss. For example, in the storage domain, this might be "
+          "disk spindles."), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.PackageRedundancyGoal",
+          "CIM_StorageSetting.PackageRedundancyMax",
+          "CIM_StorageSetting.PackageRedundancyMin" }]
+   uint16 PackageRedundancy;
+
+      [Description (
+          "Current value for Delta reservation. This is a percentage "
+          "that specifies the amount of space that should be reserved "
+          "in a replica for caching changes."), 
+       Units ( "Percentage" ), MinValue ( 1 ), MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DeltaReservationGoal",
+          "CIM_StorageSetting.DeltaReservationMax",
+          "CIM_StorageSetting.DeltaReservationMin" }]
+   uint8 DeltaReservation;
+
+      [Description (
+          "If true, \"Primordial\" indicates that the containing "
+          "System does not have the ability to create or delete this "
+          "operational element. This is important because "
+          "StorageExtents are assembled into higher-level abstractions "
+          "using the BasedOn association. Although the higher-level "
+          "abstractions can be created and deleted, the most basic, "
+          "(i.e. primordial), hardware-based storage entities cannot. "
+          "They are physically realized as part of the System, or are "
+          "actually managed by some other System and imported as if "
+          "they were physically realized. In other words, a Primordial "
+          "StorageExtent exists in, but is not created by its System "
+          "and conversely a non-Primordial StorageExtent is created in "
+          "the context of its System. For StorageVolumes, this "
+          "property will generally be false. One use of this property "
+          "is to enable algorithms that aggregate "
+          "StorageExtent.ConsumableSpace across all, StorageExtents "
+          "but that also want to distinquish the space that underlies "
+          "Primordial StoragePools. Since implementations are not "
+          "required to surface all Component StorageExtents of a "
+          "StoragePool, this information is not accessible in any "
+          "other way.")]
+   boolean Primordial=false;
+};
+
+
+// ===================================================================
+// BasedOn
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "BasedOn is an association describing how StorageExtents can be "
+       "assembled from lower level Extents. For example, "
+       "ProtectedSpaceExtents are parts of PhysicalExtents, while "
+       "VolumeSets are assembled from one or more Physical or "
+       "ProtectedSpaceExtents. As another example, CacheMemory can be "
+       "defined independently and realized in a PhysicalElement or can "
+       "be 'based on' Volatile or NonVolatileStorageExtents.")]
+class CIM_BasedOn : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The lower level StorageExtent.")]
+   CIM_StorageExtent REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The higher level StorageExtent.")]
+   CIM_StorageExtent REF Dependent;
+
+      [Description (
+          "StartingAddress indicates where in lower level storage, the "
+          "higher level Extent begins.")]
+   uint64 StartingAddress;
+
+      [Description (
+          "EndingAddress indicates where in lower level storage, the "
+          "higher level Extent ends. This property is useful when "
+          "mapping non-contiguous Extents into a higher level "
+          "grouping.")]
+   uint64 EndingAddress;
+
+      [Description (
+          "If there is an order to the BasedOn associations that "
+          "describe how a higher level StorageExtent is assembled, the "
+          "OrderIndex property indicates this. When an order exists, "
+          "the instances of BasedOn with the same Dependent value "
+          "(i.e., the same higher level Extent) should place unique "
+          "values in the OrderIndex property. The lowest value implies "
+          "the first member of the collection of lower level Extents, "
+          "and increasing values imply successive members of the "
+          "collection. If there is no ordered relationship, a value of "
+          "zero should be specified. An example of the use of this "
+          "property is to define a RAID-0 striped array of 3 disks. "
+          "The resultant RAID array is a StorageExtent that is "
+          "dependent on (BasedOn) the StorageExtents that describe "
+          "each of the 3 disks. The OrderIndex of each BasedOn "
+          "association from the disk Extents to the RAID array could "
+          "be specified as 1, 2 and 3 to indicate the order in which "
+          "the disk Extents are used to access the RAID data.")]
+   uint16 OrderIndex;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

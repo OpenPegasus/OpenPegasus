@@ -1,0 +1,353 @@
+// ===================================================================
+// Title: Application_BIOS
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Application_BIOS.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: These classes represent BIOS and device driver-related
+//      objects inherited from SoftwareElements and SoftwareFeatures.
+//      They are maintained as a separate MOF file in the
+//      Application Model.
+// 
+//      The object classes below are listed in an order that
+//      avoids forward references. Required objects, defined
+//      by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+//      06/06/2002 CIM 2.7 Preliminary
+//         - These BIOS classes are grouped with the Application Model
+//               since they inherit from SoftwareElement/Feature
+//         - CR718 - Promote SystemBIOS.GroupComponent from
+//              System to ComputerSystem
+//      -3/17/2003 CIM 2.7 Final
+//         - No Changes
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+
+// ===================================================================
+// BIOSFeature
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "BIOSFeature represents the capabilities of the low-level "
+       "software that is used to bring up and configure a Computer "
+       "System.")]
+class CIM_BIOSFeature : CIM_SoftwareFeature {
+
+      [Description (
+          "An array of integers that specify the features supported by "
+          "the BIOS. For example, one can specify that PnP "
+          "capabilities are provided (value=9) or that infrared "
+          "devices are supported (21). Values specified in the "
+          "enumeration are taken from both DMI and SMBIOS (the Type 0 "
+          "structure, the BIOS Characteristics and BIOS "
+          "Characteristics Extension Bytes attributes."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+          "31", "160" }, 
+       Values { "Other", "Unknown", "Undefined", "ISA Support",
+          "MCA Support", "EISA Support", "PCI Support",
+          "PCMCIA Support", "PnP Support", "APM Support",
+          "Upgradeable BIOS", "BIOS Shadowing Allowed",
+          "VL VESA Support", "ESCD Support", "LS-120 Boot Support",
+          "ACPI Support", "I2O Boot Support", "USB Legacy Support",
+          "AGP Support", "PC Card", "IR", "1394", "I2C",
+          "Smart Battery", "ATAPI ZIP Drive Boot Support",
+          "1394 Boot Support", "Boot from CD", "Selectable Boot",
+          "BIOS ROM is Socketed", "Boot from PCMCIA",
+          "EDD Specification Support", "PC-98" }, 
+       MappingStrings { "MIF.DMTF|BIOS Characteristic|004.3" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_BIOSFeature.CharacteristicDescriptions" }]
+   uint16 Characteristics[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the BIOS features indicated in the "
+          "Characteristics array. Note, each entry of this array is "
+          "related to the entry in the Characteristics array that is "
+          "located at the same index."), 
+       MappingStrings { "MIF.DMTF|BIOS Characteristic|004.4" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_BIOSFeature.Characteristics" }]
+   string CharacteristicDescriptions[];
+};
+
+
+// ===================================================================
+// BIOSElement
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "BIOSElement represents the low-level software that is loaded "
+       "into non-volatile storage and used to bring up and configure a "
+       "ComputerSystem.")]
+class CIM_BIOSElement : CIM_SoftwareElement {
+
+      [Override ( "Version" ), 
+       MappingStrings { "MIF.DMTF|System BIOS|001.3" }]
+   string Version;
+
+      [Override ( "Manufacturer" ), 
+       MappingStrings { "MIF.DMTF|System BIOS|001.2" }]
+   string Manufacturer;
+
+      [Description (
+          "If true, this is the primary BIOS of the ComputerSystem."), 
+       MappingStrings { "MIF.DMTF|System BIOS|001.9" }]
+   boolean PrimaryBIOS;
+
+      [Description (
+          "A list of installable languages for the BIOS. This "
+          "information can be obtained from SMBIOS, from the string "
+          "list that follows the Type 13 structure. An ISO 639 "
+          "Language Name should be used to specify the BIOS' "
+          "installable languages. The ISO 3166 Territory Name and the "
+          "encoding method may also be specified, following the "
+          "Language Name.")]
+   string ListOfLanguages[];
+
+      [Description (
+          "The currently selected language for the BIOS. This "
+          "information can be obtained from SMBIOS, using the Current "
+          "Language attribute of the Type 13 structure, to index into "
+          "the string list following the structure. The property is "
+          "formatted using the ISO 639 Language Name, and may be "
+          "followed by the ISO 3166 Territory Name and the encoding "
+          "method."), 
+       ModelCorrespondence { "CIM_BIOSElement.ListOfLanguages" }]
+   string CurrentLanguage;
+
+      [Description (
+          "The starting address of the memory which this BIOS "
+          "occupies."), 
+       MappingStrings { "MIF.DMTF|System BIOS|001.5" }]
+   uint64 LoadedStartingAddress;
+
+      [Description (
+          "The ending address of the memory which this BIOS occupies."), 
+       MappingStrings { "MIF.DMTF|System BIOS|001.6" }]
+   uint64 LoadedEndingAddress;
+
+      [Description (
+          "A free form string describing the BIOS flash/load utility "
+          "that is required to update the BIOSElement. Version and "
+          "other information may be indicated in this property."), 
+       MaxLen ( 64 ), 
+       MappingStrings { "MIF.DMTF|System BIOS|001.7" }]
+   string LoadUtilityInformation;
+
+      [Description (
+          "Date that this BIOS was released."), 
+       MappingStrings { "MIF.DMTF|System BIOS|001.8" }]
+   datetime ReleaseDate;
+};
+
+
+// ===================================================================
+// BIOSFeatureBIOSElements
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "A link between BIOSFeature and its aggregated BIOSElements.")]
+class CIM_BIOSFeatureBIOSElements : CIM_SoftwareFeatureSoftwareElements {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The BIOSFeature.")]
+   CIM_BIOSFeature REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The BIOSElement that implements the capabilities described "
+          "by BIOSFeature.")]
+   CIM_BIOSElement REF PartComponent;
+};
+
+
+// ===================================================================
+// SystemBIOS
+// ===================================================================
+   [Association, Aggregation, Version ( "2.7.0" ), Description (
+       "SystemBIOS associates a UnitaryComputerSystem's BIOS with the "
+       "System itself.")]
+class CIM_SystemBIOS : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The ComputerSystem that boots from the BIOS.")]
+   CIM_ComputerSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The System's BIOS.")]
+   CIM_BIOSElement REF PartComponent;
+};
+
+
+// ===================================================================
+// VideoBIOSFeature
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "VideoBIOSFeature represents the capabilities of the low-level "
+       "software that is used to bring up, configure and use a "
+       "ComputerSystem's VideoController and Display.")]
+class CIM_VideoBIOSFeature : CIM_SoftwareFeature {
+
+      [Description (
+          "An array of integers that specify the features supported by "
+          "the VideoBIOS. For example, one could indicate support for "
+          "VESA power management (value=6) or video BIOS shadowing "
+          "(8). The value, 3, is not valid in the CIM Schema since in "
+          "DMI it represents that no BIOS Features are supported. In "
+          "this case, the object should not be instantiated."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Other", "Unknown", "Undefined", "Standard Video BIOS",
+          "VESA BIOS Extensions Supported",
+          "VESA Power Management Supported",
+          "VESA Display Data Channel Supported",
+          "Video BIOS Shadowing Allowed", "Video BIOS Upgradeable" }, 
+       MappingStrings { "MIF.DMTF|Video BIOS Characteristic|001.3" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_VideoBIOSFeature.CharacteristicDescriptions" }]
+   uint16 Characteristics[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the VideoBIOS features indicated in "
+          "the Characteristics array. Note, each entry of this array "
+          "is related to the entry in the Characteristics array that "
+          "is located at the same index."), 
+       MappingStrings { "MIF.DMTF|Video BIOS Characteristic|001.4" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_VideoBIOSFeature.Characteristics" }]
+   string CharacteristicDescriptions[];
+};
+
+
+// ===================================================================
+// VideoBIOSElement
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "VideoBIOSElement represents the low-level software that is "
+       "loaded into non-volatile storage and used to bring up, "
+       "configure and access a ComputerSystem's VideoController and "
+       "Display.")]
+class CIM_VideoBIOSElement : CIM_SoftwareElement {
+
+      [Override ( "Version" ), 
+       MappingStrings { "MIF.DMTF|Video BIOS|001.3" }]
+   string Version;
+
+      [Override ( "Manufacturer" ), 
+       MappingStrings { "MIF.DMTF|Video BIOS|001.2" }]
+   string Manufacturer;
+
+      [Description (
+          "If true, indicates that the Video BIOS is shadowed."), 
+       MappingStrings { "MIF.DMTF|Video BIOS|001.5" }]
+   boolean IsShadowed;
+
+      [Description (
+          "Date that this BIOS was released."), 
+       MappingStrings { "MIF.DMTF|Video BIOS|001.4" }]
+   datetime ReleaseDate;
+};
+
+
+// ===================================================================
+// VideoBIOSFeatureVideoBIOSElements
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "A link between VideoBIOSFeature and its aggregated "
+       "VideoBIOSElements.")]
+class CIM_VideoBIOSFeatureVideoBIOSElements : CIM_SoftwareFeatureSoftwareElements {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The VideoBIOSFeature.")]
+   CIM_VideoBIOSFeature REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The VideoBIOSElement that implements the capabilities "
+          "described by VideoBIOSFeature.")]
+   CIM_VideoBIOSElement REF PartComponent;
+};
+
+
+// ===================================================================
+// AGPSoftwareFeature
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "AGPSoftwareFeature adds two attributes to SoftwareFeature to "
+       "represent the capabilities of an AGP device driver. An "
+       "instance of this class would be associated with the Driver's "
+       "SoftwareElement using the SoftwareFeatureSoftware Elements "
+       "relationship. The driver's SoftwareElement is associated with "
+       "the AGPVideoController via the Device Software relationship.")]
+class CIM_AGPSoftwareFeature : CIM_SoftwareFeature {
+
+      [Description (
+          "An array of integers indicating various capabilities and "
+          "characteristics of the AGPVideoController."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Other", "OS support",
+          "Hardware Acceleration", "Hardware Blit", "OpenGL Support",
+          "Cache Coherency" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_AGPSoftwareFeature.CharacteristicDescriptions" }]
+   uint16 Characteristics[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the features indicated in the "
+          "Characteristics array. Each entry in this array is related "
+          "to the Characteristics array entry located at the same "
+          "index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_AGPSoftwareFeature.Characteristics" }]
+   string CharacteristicDescriptions[];
+};
+
+
+// ==================================================================
+// end of file
+// ==================================================================

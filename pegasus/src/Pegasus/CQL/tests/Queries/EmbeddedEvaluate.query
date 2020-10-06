@@ -1,0 +1,49 @@
+#==============================================================
+# Testcases for Evaluate with embedded objects.
+#
+# NOTE: ONLY use this file for evaluate testcases.
+#==============================================================
+
+
+#==============================================================
+# Testing resolve on embedded objects
+#==============================================================
+	
+#Testing to see if we can retrieve a property of type Uint16 from an embedded object.
+# Evaluates to true
+SELECT * FROM CQL_EmbeddedSubClass WHERE CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState = 2
+
+# This test compares two embedded objects of type CIMInstance.
+# evaluates to true
+SELECT * FROM CQL_EmbeddedSubClass WHERE CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::TE = CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::TE
+
+# This test compares two embedded object properties
+# evaluates to true
+SELECT * FROM CQL_EmbeddedSubClass WHERE CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState = CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState
+
+# This test compares two embedded objects of type CIMClass.
+# evaluates to true
+SELECT * FROM CQL_EmbeddedSubClass WHERE CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::someClass = CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::someClass
+
+# This test compares two embedded objects of type CIMClass and CIMInstance
+# evaluates to false
+SELECT * FROM CQL_EmbeddedSubClass WHERE CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::someClass = CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::CS
+
+# This test compares two embedded properties
+# evaluates to true
+SELECT * FROM CQL_EmbeddedSubClass WHERE CQL_EmbeddedSubClass.EmbObjBase = CQL_EmbeddedSubClass.EmbObjBase
+
+# This test compares two embedded class properties.
+# evaluates to true
+SELECT * FROM CQL_EmbeddedSubClass WHERE CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::someClass.CIM_Process::Caption = CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::someClass.CIM_Process::Caption
+
+# This test compares two embedded class properties.
+# evaluates to true
+SELECT * FROM CQL_EmbeddedSubClass WHERE CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::someClass.CIM_Process::TimeOfLastStateChange = CQL_EmbeddedSubClass.EmbObjBase.CQL_EmbeddedTestElement::someClass.CIM_Process::TimeOfLastStateChange
+
+
+
+
+
+
+

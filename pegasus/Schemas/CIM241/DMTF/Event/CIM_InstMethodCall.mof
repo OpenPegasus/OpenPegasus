@@ -1,0 +1,57 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Indication, Version ( "2.38.0" ), 
+    UMLPackagePath ( "CIM::Event" ), 
+    Description ( 
+       "CIM_InstMethodCall notifies when an instance\'s method is invoked."
+        )]
+class CIM_InstMethodCall : CIM_InstIndication {
+
+      [Required, Description ( "The name of the method invoked." )]
+   string MethodName;
+
+      [Description ( 
+          "The input and output parameters of the method (depending "
+          "on the PreCall property), represented as an embedded "
+          "instance with a class name of \"__MethodParameters\".\n"
+          "That embedded instance contains properties representing "
+          "the parameters of the method invocation. Each parameter "
+          "is mapped to a corresponding property of the same name "
+          "and type. REF-typed parameters are represented as "
+          "Reference-qualified properties of type string whose "
+          "value is the instance path in WBEM URI format.\n"
+          "If PreCall is TRUE, the embedded instance contains only "
+          "properties corresponding to the input parameters of the "
+          "method, and their values are the parameter values before "
+          "the method call.\n"
+          "If PreCall is FALSE, the embedded instance contains only "
+          "properties corresponding to the output parameters of the "
+          "method, and their values are the parameter values after "
+          "the method call." ), 
+       EmbeddedObject]
+   string MethodParameters;
+
+      [Description ( 
+          "The return value of the method (depending on the PreCall "
+          "property). If PreCall is True, this property is NULL "
+          "describing that there is no method return value (since "
+          "the method has not yet executed).\n"
+          "If PreCall is False, ReturnValue contains a string "
+          "representation of the method\'s return value. REF-typed "
+          "method return values shall be represented as an instance "
+          "path in WBEM URI format" ), 
+       ModelCorrespondence { "CIM_InstMethodCall.PreCall" }]
+   string ReturnValue;
+
+      [Required, Description ( 
+          "Boolean indicating whether the Indication is sent before "
+          "the method begins executing (TRUE) or when the method "
+          "completes (FALSE). When TRUE, the inherited property "
+          "SourceInstance contains the value of the instance (the "
+          "properties defined by the Filter\'s Query clause), "
+          "before execution of the method. When PreCall is FALSE, "
+          "SourceInstance embeds the instance as it appears after "
+          "the completion of the method." )]
+   boolean PreCall;
+
+
+};

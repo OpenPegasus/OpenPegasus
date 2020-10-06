@@ -1,0 +1,274 @@
+Using root/SampleProvider as default namespace.
+=========Normalize Results==============
+======================================0
+-----Statement before normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE NOT CQL_TestPropertyTypes.PropertyString = 'a'
+-----Statement after normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE NOT CQL_TestPropertyTypes.PropertyString = 'a'
+-----Traversing the predicates
+-----Top predicate is simple: NOT CQL_TestPropertyTypes.PropertyString = 'a'
+======================================1
+-----Statement before normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Statement after normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Traversing the predicates
+-----Top predicate is not simple: CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyString = 'a'
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint8 = 3
+======================================2
+-----Statement before normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE CQL_TestPropertyTypes.PropertyString = 'a' AND NOT CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Statement after normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE CQL_TestPropertyTypes.PropertyString = 'a' AND NOT CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Traversing the predicates
+-----Top predicate is not simple: CQL_TestPropertyTypes.PropertyString = 'a' AND NOT CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyString = 'a'
+-----2nd level predicate is simple: NOT CQL_TestPropertyTypes.PropertyUint8 = 3
+======================================3
+-----Statement before normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE NOT CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyString = 'b'
+-----Statement after normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE NOT CQL_TestPropertyTypes.PropertyString = 'a' OR NOT CQL_TestPropertyTypes.PropertyString = 'b'
+-----Traversing the predicates
+-----Top predicate is not simple: NOT CQL_TestPropertyTypes.PropertyString = 'a' OR NOT CQL_TestPropertyTypes.PropertyString = 'b'
+-----2nd level predicate is simple: NOT CQL_TestPropertyTypes.PropertyString = 'a'
+-----2nd level predicate is simple: NOT CQL_TestPropertyTypes.PropertyString = 'b'
+======================================4
+-----Statement before normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE CQL_TestPropertyTypes.PropertyString = 'a' OR CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Statement after normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyUint8 = 3 OR CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Traversing the predicates
+-----Top predicate is not simple: CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyUint8 = 3 OR CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyString = 'a'
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertySint8 = -1
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint8 = 3
+======================================5
+-----Statement before normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE NOT CQL_TestPropertyTypes.PropertyString = 'a' OR CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Statement after normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE NOT CQL_TestPropertyTypes.PropertyString = 'a' AND NOT CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Traversing the predicates
+-----Top predicate is not simple: NOT CQL_TestPropertyTypes.PropertyString = 'a' AND NOT CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: NOT CQL_TestPropertyTypes.PropertyString = 'a'
+-----2nd level predicate is simple: NOT CQL_TestPropertyTypes.PropertySint8 = -1
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint8 = 3
+======================================6
+-----Statement before normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE NOT CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Statement after normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE NOT CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyUint8 = 3 OR NOT CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Traversing the predicates
+-----Top predicate is not simple: NOT CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyUint8 = 3 OR NOT CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: NOT CQL_TestPropertyTypes.PropertyString = 'a'
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: NOT CQL_TestPropertyTypes.PropertySint8 = -1
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint8 = 3
+======================================7
+-----Statement before normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE CQL_TestPropertyTypes.PropertyUint64 = 5 OR NOT CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Statement after normalize
+SELECT CQL_TestPropertyTypes.* FROM CQL_TestPropertyTypes  WHERE CQL_TestPropertyTypes.PropertyUint64 = 5 AND CQL_TestPropertyTypes.PropertyUint8 = 3 OR NOT CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyUint8 = 3 OR NOT CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----Traversing the predicates
+-----Top predicate is not simple: CQL_TestPropertyTypes.PropertyUint64 = 5 AND CQL_TestPropertyTypes.PropertyUint8 = 3 OR NOT CQL_TestPropertyTypes.PropertyString = 'a' AND CQL_TestPropertyTypes.PropertyUint8 = 3 OR NOT CQL_TestPropertyTypes.PropertySint8 = -1 AND CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint64 = 5
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: NOT CQL_TestPropertyTypes.PropertyString = 'a'
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint8 = 3
+-----2nd level predicate is simple: NOT CQL_TestPropertyTypes.PropertySint8 = -1
+-----2nd level predicate is simple: CQL_TestPropertyTypes.PropertyUint8 = 3
+======================================8
+-----Statement before normalize
+SELECT class.* FROM class  WHERE class.propA = 'normalize' OR class.propB = 'this' AND class.propC = 'you'
+-----Statement after normalize
+SELECT class.* FROM class  WHERE class.propA = 'normalize' AND class.propC = 'you' OR class.propB = 'this' AND class.propC = 'you'
+-----Traversing the predicates
+-----Top predicate is not simple: class.propA = 'normalize' AND class.propC = 'you' OR class.propB = 'this' AND class.propC = 'you'
+-----2nd level predicate is simple: class.propA = 'normalize'
+-----2nd level predicate is simple: class.propC = 'you'
+-----2nd level predicate is simple: class.propB = 'this'
+-----2nd level predicate is simple: class.propC = 'you'
+======================================9
+-----Statement before normalize
+SELECT class.* FROM class  WHERE class.propA = 'normalize' AND class.propB = 'this' OR class.propC = 'you'
+-----Statement after normalize
+SELECT class.* FROM class  WHERE class.propB = 'this' AND class.propA = 'normalize' OR class.propC = 'you' AND class.propA = 'normalize'
+-----Traversing the predicates
+-----Top predicate is not simple: class.propB = 'this' AND class.propA = 'normalize' OR class.propC = 'you' AND class.propA = 'normalize'
+-----2nd level predicate is simple: class.propB = 'this'
+-----2nd level predicate is simple: class.propA = 'normalize'
+-----2nd level predicate is simple: class.propC = 'you'
+-----2nd level predicate is simple: class.propA = 'normalize'
+======================================10
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT class.propA = 'normalize' OR class.propB = 'this'
+-----Statement after normalize
+SELECT class.* FROM class  WHERE NOT class.propA = 'normalize' AND NOT class.propB = 'this'
+-----Traversing the predicates
+-----Top predicate is not simple: NOT class.propA = 'normalize' AND NOT class.propB = 'this'
+-----2nd level predicate is simple: NOT class.propA = 'normalize'
+-----2nd level predicate is simple: NOT class.propB = 'this'
+======================================11
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT class.propA = 'normalize' AND class.propB = 'this'
+-----Statement after normalize
+SELECT class.* FROM class  WHERE NOT class.propA = 'normalize' OR NOT class.propB = 'this'
+-----Traversing the predicates
+-----Top predicate is not simple: NOT class.propA = 'normalize' OR NOT class.propB = 'this'
+-----2nd level predicate is simple: NOT class.propA = 'normalize'
+-----2nd level predicate is simple: NOT class.propB = 'this'
+======================================12
+-----Statement before normalize
+SELECT x.* FROM x  WHERE x.A = '1' OR x.B = '2' AND x.D = '3' OR x.E = '4' AND x.C = '5'
+-----Statement after normalize
+SELECT x.* FROM x  WHERE x.A = '1' AND x.C = '5' OR x.D = '3' AND x.B = '2' AND x.C = '5' OR x.E = '4' AND x.B = '2' AND x.C = '5'
+-----Traversing the predicates
+-----Top predicate is not simple: x.A = '1' AND x.C = '5' OR x.D = '3' AND x.B = '2' AND x.C = '5' OR x.E = '4' AND x.B = '2' AND x.C = '5'
+-----2nd level predicate is simple: x.A = '1'
+-----2nd level predicate is simple: x.C = '5'
+-----2nd level predicate is simple: x.D = '3'
+-----2nd level predicate is simple: x.B = '2'
+-----2nd level predicate is simple: x.C = '5'
+-----2nd level predicate is simple: x.E = '4'
+-----2nd level predicate is simple: x.B = '2'
+-----2nd level predicate is simple: x.C = '5'
+======================================13
+-----Statement before normalize
+SELECT x.* FROM x  WHERE x.A = '1' OR x.B = '2' AND NOT x.D = '3' OR x.E = '4' AND x.C = '5'
+-----Statement after normalize
+SELECT x.* FROM x  WHERE x.A = '1' AND x.C = '5' OR NOT x.D = '3' AND NOT x.E = '4' AND x.B = '2' AND x.C = '5'
+-----Traversing the predicates
+-----Top predicate is not simple: x.A = '1' AND x.C = '5' OR NOT x.D = '3' AND NOT x.E = '4' AND x.B = '2' AND x.C = '5'
+-----2nd level predicate is simple: x.A = '1'
+-----2nd level predicate is simple: x.C = '5'
+-----2nd level predicate is simple: NOT x.D = '3'
+-----2nd level predicate is simple: NOT x.E = '4'
+-----2nd level predicate is simple: x.B = '2'
+-----2nd level predicate is simple: x.C = '5'
+======================================14
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT class.propA IS NULL  AND class.propB = 'this'
+-----Statement after normalize
+SELECT class.* FROM class  WHERE NOT class.propA IS NULL  OR NOT class.propB = 'this'
+-----Traversing the predicates
+-----Top predicate is not simple: NOT class.propA IS NULL  OR NOT class.propB = 'this'
+-----2nd level predicate is simple: NOT class.propA IS NULL 
+-----2nd level predicate is simple: NOT class.propB = 'this'
+======================================15
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT class.propA ISA class AND class.propB LIKE 'this'
+-----Statement after normalize
+SELECT class.* FROM class  WHERE NOT class.propA ISA class OR NOT class.propB LIKE 'this'
+-----Traversing the predicates
+-----Top predicate is not simple: NOT class.propA ISA class OR NOT class.propB LIKE 'this'
+-----2nd level predicate is simple: NOT class.propA ISA class
+-----2nd level predicate is simple: NOT class.propB LIKE 'this'
+======================================16
+-----Statement before normalize
+SELECT x.* FROM x  WHERE x.A IS NOT NULL 
+-----Statement after normalize
+SELECT x.* FROM x  WHERE x.A IS NOT NULL 
+-----Traversing the predicates
+-----Top predicate is simple: x.A IS NOT NULL 
+======================================17
+-----Statement before normalize
+SELECT x.* FROM x  WHERE x.A IS NULL  AND x.B IS NULL  AND NOT x.C IS NULL 
+-----Statement after normalize
+SELECT x.* FROM x  WHERE x.A IS NULL  AND x.B IS NULL  AND NOT x.C IS NULL 
+-----Traversing the predicates
+-----Top predicate is not simple: x.A IS NULL  AND x.B IS NULL  AND NOT x.C IS NULL 
+-----2nd level predicate is simple: x.A IS NULL 
+-----2nd level predicate is simple: x.B IS NULL 
+-----2nd level predicate is simple: NOT x.C IS NULL 
+======================================18
+-----Statement before normalize
+SELECT x.* FROM x  WHERE x.A LIKE 'this' AND x.B LIKE 'that'
+-----Statement after normalize
+SELECT x.* FROM x  WHERE x.A LIKE 'this' AND x.B LIKE 'that'
+-----Traversing the predicates
+-----Top predicate is not simple: x.A LIKE 'this' AND x.B LIKE 'that'
+-----2nd level predicate is simple: x.A LIKE 'this'
+-----2nd level predicate is simple: x.B LIKE 'that'
+======================================19
+-----Statement before normalize
+SELECT x.* FROM x  WHERE x.A LIKE '1' OR x.B = '2' AND x.D = '3' OR x.E IS NOT NULL  AND x.C LIKE '5'
+-----Statement after normalize
+SELECT x.* FROM x  WHERE x.A LIKE '1' AND x.C LIKE '5' OR x.D = '3' AND x.B = '2' AND x.C LIKE '5' OR x.E IS NOT NULL  AND x.B = '2' AND x.C LIKE '5'
+-----Traversing the predicates
+-----Top predicate is not simple: x.A LIKE '1' AND x.C LIKE '5' OR x.D = '3' AND x.B = '2' AND x.C LIKE '5' OR x.E IS NOT NULL  AND x.B = '2' AND x.C LIKE '5'
+-----2nd level predicate is simple: x.A LIKE '1'
+-----2nd level predicate is simple: x.C LIKE '5'
+-----2nd level predicate is simple: x.D = '3'
+-----2nd level predicate is simple: x.B = '2'
+-----2nd level predicate is simple: x.C LIKE '5'
+-----2nd level predicate is simple: x.E IS NOT NULL 
+-----2nd level predicate is simple: x.B = '2'
+-----2nd level predicate is simple: x.C LIKE '5'
+======================================20
+-----Statement before normalize
+SELECT x.* FROM x  WHERE x.A <> '1' OR x.B ISA Xclass AND x.D = '3' OR x.E = '4' AND x.C IS NULL 
+-----Statement after normalize
+SELECT x.* FROM x  WHERE x.A <> '1' AND x.C IS NULL  OR x.D = '3' AND x.B ISA Xclass AND x.C IS NULL  OR x.E = '4' AND x.B ISA Xclass AND x.C IS NULL 
+-----Traversing the predicates
+-----Top predicate is not simple: x.A <> '1' AND x.C IS NULL  OR x.D = '3' AND x.B ISA Xclass AND x.C IS NULL  OR x.E = '4' AND x.B ISA Xclass AND x.C IS NULL 
+-----2nd level predicate is simple: x.A <> '1'
+-----2nd level predicate is simple: x.C IS NULL 
+-----2nd level predicate is simple: x.D = '3'
+-----2nd level predicate is simple: x.B ISA Xclass
+-----2nd level predicate is simple: x.C IS NULL 
+-----2nd level predicate is simple: x.E = '4'
+-----2nd level predicate is simple: x.B ISA Xclass
+-----2nd level predicate is simple: x.C IS NULL 
+======================================21
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT NOT class.x LIKE 'this' OR class.x LIKE 'that'
+-----Statement after normalize
+SELECT class.* FROM class  WHERE class.x LIKE 'this' AND NOT class.x LIKE 'that'
+-----Traversing the predicates
+-----Top predicate is not simple: class.x LIKE 'this' AND NOT class.x LIKE 'that'
+-----2nd level predicate is simple: class.x LIKE 'this'
+-----2nd level predicate is simple: NOT class.x LIKE 'that'
+======================================22
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT 'aa' LIKE 'bb'
+-----Statement after normalize
+SELECT class.* FROM class  WHERE NOT 'aa' LIKE 'bb'
+-----Traversing the predicates
+-----Top predicate is simple: NOT 'aa' LIKE 'bb'
+======================================23
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT class ISA Aclass
+-----Statement after normalize
+SELECT class.* FROM class  WHERE NOT class ISA Aclass
+-----Traversing the predicates
+-----Top predicate is simple: NOT class ISA Aclass
+======================================24
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT class.prop IS NULL 
+-----Statement after normalize
+SELECT class.* FROM class  WHERE NOT class.prop IS NULL 
+-----Traversing the predicates
+-----Top predicate is simple: NOT class.prop IS NULL 
+======================================25
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT class.prop IS NULL 
+-----Statement after normalize
+SELECT class.* FROM class  WHERE NOT class.prop IS NULL 
+-----Traversing the predicates
+-----Top predicate is simple: NOT class.prop IS NULL 
+======================================26
+-----Statement before normalize
+SELECT class.* FROM class  WHERE class.prop LIKE 'this'
+-----Statement after normalize
+SELECT class.* FROM class  WHERE class.prop LIKE 'this'
+-----Traversing the predicates
+-----Top predicate is simple: class.prop LIKE 'this'
+======================================27
+-----Statement before normalize
+SELECT class.* FROM class  WHERE NOT class.prop IS NULL 
+-----Statement after normalize
+SELECT class.* FROM class  WHERE NOT class.prop IS NULL 
+-----Traversing the predicates
+-----Top predicate is simple: NOT class.prop IS NULL 

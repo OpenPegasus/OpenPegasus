@@ -1,0 +1,207 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+
+# This Makefile is used to perform CVS operations such as committing changes.
+# It is intended to improve predictability by allowing an operation to be
+# previewed using the -n option before actually being invoked.
+
+# NOTE:  The definitions contained in this file are intended for Unix type
+# platforms and may not operate successfully on other platforms.
+
+# NOTE:  The PEGASUS_BUILD_BRANCH environment variable must be set to the
+# name of the branch to which changes are to be committed.
+
+# SUGGESTED USAGE:
+#
+# 1.  Fill in the data fields below up to the '#' line.
+# 2.  Ensure the PEGASUS_BUILD_BRANCH environment variable is defined.
+# 3.  Run "make -f CommitMakefile chksrc" to check for formatting errors in
+#     the files to be committed.
+# 4.  Run "make -f CommitMakefile diff | more" to inspect and verify the
+#     changes to be committed.
+# 5.  Run "make -f CommitMakefile displayMessage" to preview the CVS commit
+#     message
+# 6.  Run "make -f CommitMakefile login" to log into CVS with a write account.
+# 7.  Run "make -f CommitMakefile add" to add new directories and files to the
+#     local CVS source tree.  (It may be necessary to copy this CommitMakefile
+#     into the pegasus directory and remove the "pegasus/" prefix from the
+#     directory paths) for this operation to complete successfully.)
+# 8.  Run "make -f CommitMakefile remove" to remove files from the local CVS
+#     source tree.
+# 9.  Run "make -f CommitMakefile -n commit" to preview and verify the CVS
+#     commit command.
+# 10. Run "make -f CommitMakefile commit" to commit the added, removed, and
+#     updated files to the CVS repository.
+# 11. Run "make -f CommitMakefile logout" to log out of CVS from the write
+#     account.
+
+# Fill in the correct username here.
+CVSUSER = -d:pserver:username@cvs.opengroup.org:/cvs/MSB
+
+#
+# Specify the files to be added, removed, and updated with full pegasus
+# directory paths.
+#
+
+ADDEDDIRS = \
+
+ADDEDFILES = \
+
+ADDEDBINARYFILES = \
+
+REMOVEDFILES = \
+
+UPDATEDFILES = \
+
+#
+# Describe the change being made, including the bug (or PEP) number, title,
+# and description.  This data will be used to format a commit message.
+#
+
+APPROVAL = BUG\#: <Fill in Bug number.  Specify PEP at left if appropriate.>
+
+TITLE = TITLE: <Fill in Bug or PEP title>
+DESCRIPTION = DESCRIPTION: <Fill in a description of the change to be used in the commit message.>
+
+
+###############################################################################
+#
+# No per-operation changes are required for the remaining definitions below.
+#
+
+ifndef PEGASUS_BUILD_BRANCH
+    $(error PEGASUS_BUILD_BRANCH environment variable is undefined.)
+endif
+
+ifeq ($(PEGASUS_BUILD_BRANCH), HEAD)
+    PEGASUS_CVS_REVISION_OPTION=
+else
+    ifeq ($(PEGASUS_BUILD_BRANCH), MAIN)
+        PEGASUS_CVS_REVISION_OPTION=
+    else
+        PEGASUS_CVS_REVISION_OPTION = -r $(PEGASUS_BUILD_BRANCH)
+    endif
+endif
+
+MESSAGEQUOTE = "
+CR = \n
+
+MESSAGE = $(MESSAGEQUOTE)$(APPROVAL)$(CR)$(TITLE)$(CR)$(DESCRIPTION)$(CR)$(MESSAGEQUOTE)
+
+TODAY = $(shell date +"%m%d%y")
+
+ifeq ($(findstring LINUX_, $(PEGASUS_PLATFORM)), LINUX_)
+    ECHO-E = echo -e
+else
+    ECHO-E = echo
+endif
+
+error:
+	@$(ECHO-E) "Please specify a target (e.g., diff, add, remove, or commit)"
+
+FORCE:
+
+# Log in to CVS using the specified user account.
+login:
+	cvs $(CVSUSER) login
+
+# Log out of CVS from the specified user account.
+logout:
+	cvs $(CVSUSER) logout
+
+# Preview the commit message.
+displayMessage:
+	@$(ECHO-E) $(MESSAGE) > tempCommitMessage
+	@cat tempCommitMessage
+	@rm -f tempCommitMessage
+
+# List the added, removed, and updated files to confirm the specified files
+# actually exist.
+list:
+	@ls $(UPDATEDFILES) $(ADDEDFILES) $(ADDEDDIRS) $(REMOVEDFILES)
+
+# Show the differences between the updated files and the versions that were
+# checked out from the CVS repository.
+diff:
+	@cvs diff -u $(UPDATEDFILES); cd .;
+
+# Run chksrc against the added and updated files.
+chksrc:
+ifeq ($(ADDEDFILES), )
+    ifeq ($(UPDATEDFILES), )
+        NO_CHKSRC=1
+    endif
+endif
+ifndef NO_CHKSRC
+	@$(ECHO-E) "Running chksrc to detect source code formatting errors."
+	@$(ECHO-E) "Include NO_CHKSRC=1 on the command line to bypass this check."
+	chksrc $(ADDEDFILES) $(UPDATEDFILES)
+endif
+
+# Add the specified directories and files to the local CVS source tree.
+# It may be necessary to copy this CommitMakefile into the pegasus directory
+# (and remove the "pegasus/" prefix from the directory paths) for this
+# operation to complete successfully.
+add:
+ifneq ($(ADDEDDIRS), )
+	cvs $(CVSUSER) add -m $(MESSAGE) $(ADDEDDIRS) >> commitout
+endif
+ifneq ($(ADDEDFILES), )
+	cvs $(CVSUSER) add -m $(MESSAGE) $(ADDEDFILES) >> commitout
+endif
+ifneq ($(ADDEDBINARYFILES), )
+	cvs $(CVSUSER) add -kb -m $(MESSAGE) $(ADDEDBINARYFILES) >> commitout
+endif
+
+# Remove the specified files from the local CVS source tree.
+remove:
+	cvs $(CVSUSER) remove -f $(REMOVEDFILES) >> commitout
+
+# Commit changes to the CVS repository, including added, removed, and updated
+# files.
+commit: chksrc
+	rm -f tempCommitMessage
+	$(ECHO-E) $(MESSAGE) > tempCommitMessage
+	cvs $(CVSUSER) commit $(PEGASUS_CVS_REVISION_OPTION) -F tempCommitMessage $(ADDEDFILES) $(UPDATEDFILES) $(REMOVEDFILES) >> commitout
+	rm -f tempCommitMessage
+
+printdiff: FORCE
+	@rm -rf printdifftmp
+	@mkdir printdifftmp
+	tar -cf printdifftmp/Update.tar $(UPDATEDFILES)
+	$(MAKE) --directory=printdifftmp -f ../CommitMakefile printdiff_internal
+
+printdiff_internal:
+	$(foreach i, $(UPDATEDFILES), cvs export -rHEAD  $(i); mv $(i) $(i)-cvs; cd .;)
+	tar -xf Update.tar
+	$(foreach i, $(UPDATEDFILES), printdiff $(i) $(i)-cvs; cd .;)
+
+# Create a tar file containing the added and updated files.
+archive:
+	tar -cvf Changes$(TODAY).tar $(ADDEDFILES) $(UPDATEDFILES)

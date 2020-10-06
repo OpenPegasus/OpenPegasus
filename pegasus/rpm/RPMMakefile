@@ -1,0 +1,314 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+###############################################################################
+##
+## RPM Makefile for building tog-pegasus rpms
+##
+## see the usage rule for documentation of rules etc.
+##
+##
+###############################################################################
+
+
+include pegasus/env_var_Linux.status
+
+RELEASE:=$(shell lsb_release -r -s)
+IDISTRO:=$(shell lsb_release -i -s)
+PLATFORM:=$(shell /bin/rpm --eval %_target_cpu)
+BRANCH:=$(PEGASUS_BUILD_BRANCH)
+RPM:=rpm
+ifndef PEGASUS_RPM_BUILD_DEBUG
+    RPMBUILD:=rpmbuild
+else
+    RPMBUILD:=rpmbuild -vv
+endif
+RM:=rm
+MV:=mv
+CP:=cp
+GREP:=grep
+ECHO:=echo
+ECHO-E:=echo -e
+TOG_INSTALLED_RPMS:=$(shell $(RPM) -qa|grep $(PEGASUS_FLAVOR)-pegasus)
+
+ifdef PEGASUS_BUILD_BRANCH
+    ifeq ($(PEGASUS_BUILD_BRANCH),MAIN)
+        PEGASUS_RPM_CVS_TAG:=HEAD
+    else
+        PEGASUS_RPM_CVS_TAG:=$(PEGASUS_BUILD_BRANCH)
+    endif
+else
+        PEGASUS_RPM_CVS_TAG:=HEAD
+endif
+###############################################################################
+##
+## 32 bit RedHat yield x.x like 5.5 for lsb_release -r -s whereas
+## 32 bit SUSE yield x like 11 
+## so, need to used findstring for comparing
+##
+##
+###############################################################################
+ifeq ($(IDISTRO),RedHatEnterpriseServer)
+  DISTRO:=REDHAT
+  export PEGASUS_DISTRO_SUFFIX:= \
+    $(if $(filter $(RELEASE),4.92 4.93 5 5.1 5.2 5.3),el5, \
+    $(if $(filter $(RELEASE),6 6.0),el6, \
+    $(if $(filter $(RELEASE),7 7.0),el7,xxx)))
+else
+  ifeq ($(findstring RedHat,$(IDISTRO)),RedHat)
+    DISTRO:=REDHAT
+    ifeq ($(findstring 7, $(RELEASE)),7)
+      export PEGASUS_DISTRO_SUFFIX=rhel7
+    else
+      ifeq ($(findstring 6, $(RELEASE)),6)
+        export PEGASUS_DISTRO_SUFFIX=rhel6
+      else
+        ifeq ($(findstring 5, $(RELEASE)),5)
+          export PEGASUS_DISTRO_SUFFIX=rhel5
+        else
+          ifeq ($(findstring 4, $(RELEASE)),4)
+            export PEGASUS_DISTRO_SUFFIX=rhel4
+          else
+            ifeq ($(findstring 3, $(RELEASE)),3)
+              export PEGASUS_DISTRO_SUFFIX=rhel3
+            else
+              export PEGASUS_DISTRO_SUFFIX=xxx
+            endif
+          endif
+        endif
+      endif
+    endif
+  else
+   ifeq ($(findstring SUSE,$(IDISTRO)),SUSE)
+     DISTRO:=SUSE
+     ifeq ($(RELEASE),9)
+       export PEGASUS_DISTRO_SUFFIX=sles9
+     else
+       ifeq ($(RELEASE),10)
+         export PEGASUS_DISTRO_SUFFIX=sles10
+       else
+         ifeq ($(RELEASE),11)
+           export PEGASUS_DISTRO_SUFFIX=sles11
+         else
+           export PEGASUS_DISTRO_SUFFIX=xxx
+         endif
+       endif
+     endif
+   endif
+  endif
+endif
+
+###############################################################################
+#
+# The user may set PEGASUS_RPM_DIRECTORY to the path of their rpm build target.
+# The source tar file will then be in
+# PEGASUS_RPM_DIRECTORY/SOURCES/tog-pegasus.
+# If PEGASUS_RPM_DIRECTORY is not defined the rpm build target path will be
+# defaulted to the well-known locations on redhat and suse systems.
+#
+###############################################################################
+ifndef PEGASUS_RPM_DIRECTORY
+  ifeq ($(DISTRO),REDHAT)
+    PEGASUS_RPM_DIRECTORY:=/usr/src/redhat
+  else
+    ifeq ($(DISTRO),SUSE)
+      PEGASUS_RPM_DIRECTORY:=/usr/src/packages
+    endif
+  endif
+  TOG_PEGASUS_DIR:=""
+else
+  TOG_PEGASUS_DIR:=$(PEGASUS_FLAVOR)-pegasus
+endif
+
+VERSION:=$(PEGASUS_PRODUCT_VERSION)-$(PEGASUS_PACKAGE_VERSION)
+CORE_RPM:=$(PEGASUS_FLAVOR)-pegasus-$(VERSION).$(PEGASUS_DISTRO_SUFFIX).$(PLATFORM).rpm
+SDK_RPM:=$(PEGASUS_FLAVOR)-pegasus-devel-$(VERSION).$(PEGASUS_DISTRO_SUFFIX).$(PLATFORM).rpm
+TEST_RPM:=$(PEGASUS_FLAVOR)-pegasus-test-$(VERSION).$(PEGASUS_DISTRO_SUFFIX).$(PLATFORM).rpm
+SRC_RPM:=$(PEGASUS_FLAVOR)-pegasus-$(VERSION).src.rpm
+RPM_SRC_DIR:=$(shell echo $(PEGASUS_FLAVOR)-pegasus-$(PEGASUS_PRODUCT_VERSION))
+
+USAGE = @$(ECHO) $(1)
+
+usage:
+	$(USAGE)
+	$(USAGE)"RPMMakefile targets:"
+	$(USAGE)""
+	$(USAGE)"exportSRC            - cvs export of pegasus"
+	$(USAGE)"createSRCRPM         - creates source rpm"
+	$(USAGE)"createBINRPM         - creates binary rpms including the test"
+	$(USAGE)"                       rpm from the source rpm"
+	$(USAGE)"buildRPM             - createSRCRPM createBINRPM"
+	$(USAGE)"buildall             - exportSRC buildRPM"
+	$(USAGE)"list                 - list installed tog-pegasus rpms"
+	$(USAGE)"tests                - runs sample tests and test rpm tests"
+	$(USAGE)"install              - installs tog-pegasus core and devel rpms"
+	$(USAGE)"world                - cleanRPM buildall install tests"
+	$(USAGE)"cleanRPM             - uninstalls tog-pegasus rpms"
+	$(USAGE)""
+	$(USAGE)"Input variables:"
+	$(USAGE)"PEGASUS_BUILD_BRANCH - pegasus branch to build"
+	$(USAGE)"                       HEAD is used if MAIN is specified"
+
+CORE_PATTERN = \"core*\"
+define checkForCores
+	@if [ "`find $1 $2  -name $(CORE_PATTERN)`" != "" ]; \
+             then echo "*** One or more core files found:" \
+                "`find $1 $2 -name $(CORE_PATTERN)`"; \
+                exit 1; fi;
+	@if [ "$(PEGASUS_CORE_DIR)" != "" ] && \
+             [ "`find $(PEGASUS_CORE_DIR) -maxdepth 1 -name $(CORE_PATTERN)`" \
+                != "" ]; then echo "*** One or more core files found:" \
+                "`find $(PEGASUS_CORE_DIR) -maxdepth 1 -name $(CORE_PATTERN)`";\
+                exit 1; fi
+endef
+
+define removeRPM
+	@if [ -n "`rpm -qa | grep $1-[0-9]`" ]; then \
+           rpm -e `rpm -qa | grep $1-[0-9]`; \
+        fi
+endef
+
+define startCIMServer
+	@/etc/init.d/$(PEGASUS_FLAVOR)-pegasus status > /dev/null 2>&1; \
+        if [ $$? != 0 ]; then \
+            /etc/init.d/$(PEGASUS_FLAVOR)-pegasus start; \
+        fi
+endef
+
+define stopCIMServer
+	@/etc/init.d/$(PEGASUS_FLAVOR)-pegasus status > /dev/null 2>&1; \
+        if [ $$? == 0 ]; then \
+            /etc/init.d/$(PEGASUS_FLAVOR)-pegasus stop; \
+        fi
+endef
+
+
+exportSRC:
+	@cvs -d:pserver:anon@cvs.opengroup.org:/cvs/MSB export -r $(PEGASUS_RPM_CVS_TAG) pegasus
+
+enableSQLiteRepository:
+	$(ECHO-E) "" \
+            >> pegasus/env_var_Linux.status
+	$(ECHO-E) "PEGASUS_USE_SQLITE_REPOSITORY = true" \
+            >> pegasus/env_var_Linux.status
+ifdef SQLITE_HOME
+	$(ECHO-E) "SQLITE_HOME = $(SQLITE_HOME)" \
+            >> pegasus/env_var_Linux.status
+endif
+
+createSRCRPM:
+
+ifndef PEGASUS_PRODUCT_VERSION
+	@$(ECHO) "PEGASUS_PRODUCT_VERSION is not defined"
+	@exit 2
+endif
+	@$(MV) pegasus $(RPM_SRC_DIR)
+	@$(CP) $(RPM_SRC_DIR)/rpm/tog-pegasus.spec \
+            $(PEGASUS_RPM_DIRECTORY)/SPECS
+	@tar czf $(PEGASUS_FLAVOR)-pegasus-$(VERSION).tar.gz $(RPM_SRC_DIR)
+	@$(CP) $(PEGASUS_FLAVOR)-pegasus-$(VERSION).tar.gz $(PEGASUS_RPM_DIRECTORY)/SOURCES/$(TOG_PEGASUS_DIR)
+	@$(RPMBUILD) -bs $(PEGASUS_RPM_DIRECTORY)/SPECS/tog-pegasus.spec
+
+createBINRPM:
+	@$(RPM) -i $(PEGASUS_RPM_DIRECTORY)/SRPMS/$(SRC_RPM)
+	@$(RPMBUILD) -bb --define 'LINUX_VERSION $(PEGASUS_DISTRO_SUFFIX)' --define 'PEGASUS_BUILD_TEST_RPM 1' $(PEGASUS_RPM_DIRECTORY)/SPECS/tog-pegasus.spec
+
+list:
+	@$(RPM) -qa|$(GREP) $(PEGASUS_FLAVOR)-pegasus
+
+tests:
+	# Start cimserver
+	-$(call stopCIMServer)
+	$(call startCIMServer)
+	$(call checkForCores,./,-maxdepth 1)
+
+	# Run some sanity tests
+	# osinfo, cimserver -v, cimprovider -l -s, cimconfig -l -c etc
+	@$(ECHO) "+++++ Running sanity checks +++++"
+	@$(ECHO) "+++++ Running osinfo +++++"
+	$(PEGASUS_BIN_DIR)/osinfo
+	$(call checkForCores,./,-maxdepth 1)
+
+	@$(ECHO) "+++++ Running cimserver -v +++++"
+	$(PEGASUS_SBIN_DIR)/cimserver -v
+	$(call checkForCores,./,-maxdepth 1)
+
+	@$(ECHO) "+++++ Running cimconfig +++++"
+	$(PEGASUS_SBIN_DIR)/cimconfig -l -c
+	$(call checkForCores,./,-maxdepth 1)
+
+	@$(ECHO) "+++++ Running cimprovider +++++"
+	$(PEGASUS_BIN_DIR)/cimprovider -l -s
+	$(call checkForCores,./,-maxdepth 1)
+
+	@$(ECHO) "+++++ Stopping cimserver +++++"
+	@$(call stopCIMServer)
+	$(call checkForCores,./,-maxdepth 1)
+
+	@$(ECHO) "+++++ Starting cimserver +++++"
+	$(call startCIMServer)
+	$(call checkForCores,./,-maxdepth 1)
+
+	# Run samples
+	@$(ECHO) "+++++ Running samples +++++"
+	$(MAKE) --directory=$(PEGASUS_SAMPLES_DIR) -f Makefile
+	$(MAKE) --directory=$(PEGASUS_SAMPLES_DIR) -f Makefile setupSDK
+	$(MAKE) --directory=$(PEGASUS_SAMPLES_DIR) -f Makefile testSDK
+	$(MAKE) --directory=$(PEGASUS_SAMPLES_DIR) -f Makefile unsetupSDK
+	$(call checkForCores,$(PEGASUS_SAMPLES_DIR),)
+
+	# Install the test RPM after running SDK tests. This is because
+	# the test RPM over-writes the repository.
+	@$(ECHO) "+++++ Installing Test RPM +++++"
+	$(RPM) -ih $(PEGASUS_RPM_DIRECTORY)/RPMS/$(PLATFORM)/$(TEST_RPM)
+	$(MAKE) --directory=$(PEGASUS_TEST_DIR) -f Makefile setupTEST
+	$(MAKE) --directory=$(PEGASUS_TEST_DIR) -f Makefile tests
+	$(call checkForCores,$(PEGASUS_TEST_DIR),)
+
+# Install rpms
+install:
+	@$(ECHO) "+++++ Installing RPMs +++++"
+	$(RPM) -ih $(PEGASUS_RPM_DIRECTORY)/RPMS/$(PLATFORM)/$(CORE_RPM)
+	$(RPM) -ih $(PEGASUS_RPM_DIRECTORY)/RPMS/$(PLATFORM)/$(SDK_RPM)
+	$(PEGASUS_SCRIPT_DIR)/genOpenPegasusSSLCerts
+
+cleanRPM:
+	$(call removeRPM,$(PEGASUS_FLAVOR)-pegasus-test);
+	-$(call startCIMServer)
+	$(call removeRPM,$(PEGASUS_FLAVOR)-pegasus-devel);
+	$(call removeRPM,$(PEGASUS_FLAVOR)-pegasus);
+	-$(RM) -Rf $(RPM_SRC_DIR).old
+ifneq ($(wildcard $(RPM_SRC_DIR)), )
+	$(MV) $(RPM_SRC_DIR) $(RPM_SRC_DIR).old
+endif
+
+buildRPM: cleanRPM createSRCRPM createBINRPM
+
+buildall: exportSRC buildRPM
+
+world: buildall install tests

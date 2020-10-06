@@ -1,0 +1,94 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+#pragma locale("en_US")
+
+class PG_EmbeddedClass
+{
+   [Key, Description("Key 1")]
+   String key1;
+
+   [Key, Description("Key 2")]
+   String key2;
+
+   [Description("Prop 1")]
+   uint8 prop01;
+
+   [Description("Prop 2")]
+   uint16 prop02;
+
+   [Description("Prop 3")]
+   uint32 prop03;
+
+   [Description("Prop 4")]
+   uint64 prop04;
+
+   [Description("Prop 5")]
+   sint8 prop05;
+
+   [Description("Prop 6")]
+   sint16 prop06;
+
+   [Description("Prop 7")]
+   sint32 prop07;
+
+   [Description("Prop 8")]
+   sint64 prop08;
+
+   [Description("Prop 9")]
+   real32 prop09;
+
+   [Description("Prop 10")]
+   real64 prop10;
+
+   [Description("Prop 11")]
+   datetime prop11;
+};
+
+class PG_EmbeddedError : CIM_Error
+{
+   [Key]
+   String errorKey;
+
+   [EmbeddedInstance("PG_EmbeddedClass")]
+   String EmbeddedInst;
+
+   uint32 PropagateError(
+      [IN, EmbeddedInstance("CIM_Error")]
+      String error,
+
+      [OUT, EmbeddedInstance("CIM_Error")]
+      String sameError);
+};
+
+class PG_InstMethodIndication : CIM_InstMethodCall
+{
+  [EmbeddedInstance("CIM_Error")]
+  string Error[];
+};

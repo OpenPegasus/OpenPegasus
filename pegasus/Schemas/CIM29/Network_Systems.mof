@@ -1,0 +1,249 @@
+// ===================================================================
+// Title: Network_Systems
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_Systems.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines network "systems" such
+//              as ITU's M.3100 Network and autonomous systems.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR696 - Add M.3100 concepts of Network and Pipe
+// CR792 - Add the Composition qualifer to RoutersInAS
+// CR982 - Removal of Experimental for preliminary to final
+// Change Log for v2.8
+// CR1231 - Update references
+//          Property CIM_RoutersInAS.Role
+//          (CIM_BGPService.OtherRoleDescription)
+//          Property CIM_RoutersInAS.OtherRoleDescription
+//          (CIM_BGPService.Role)
+// Change Log for V2.9
+// CR1465 - Removed extra space
+//          Values { "Unknown", "None", "Aggregate Only ",
+//          "Aggregate And All Specific Routes",
+//          "Aggregate Based on Subset of Specific Routes" }]
+//          uint16 AggregationType;
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// Network
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "Network is a subclass of AdminDomain that groups "
+       "interconnected networking and computing objects capable of "
+       "exchanging information. Instances of CIM_Network can represent "
+       "an enterprise's global network or specific connectivity "
+       "domains within the global network. These concepts are similar "
+       "to those defined for the Network object in ITU's M.3100 "
+       "specification."), 
+    MappingStrings { "Recommendation.ITU|M3100.Network" }]
+class CIM_Network : CIM_AdminDomain {
+};
+
+
+// ==================================================================
+// AutonomousSystem
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "An Autonomous System (AS) is a fundamental concept in "
+       "networking. An AS provides a structured view of routing by "
+       "segregating the system that is using routing (e.g., the "
+       "Internet, or an extranet) into a set of separately "
+       "administered domains that each have their own independent "
+       "routing policies. These domains are called autonomous systems. "
+       "\n\n"
+       "The classic definition of an AS, from RFC1771, is '...a set of "
+       "routers under a single technical administration, using an "
+       "interior gateway protocol and common metrics to route packets "
+       "within the AS, and using an exterior gateway protocol to route "
+       "packets to other ASs'. The RFC continues: 'Since this classic "
+       "definition was developed, it has become common for a single AS "
+       "to use several interior gateway protocols and sometimes "
+       "several sets of metrics within an AS. The use of the term "
+       "Autonomous System here stresses the fact that, even when "
+       "multiple IGPs and metrics are used, the administration of an "
+       "AS appears to other ASs to have a single coherent interior "
+       "routing plan and presents a consistent picture of what "
+       "destinations are reachable through it.'")]
+class CIM_AutonomousSystem : CIM_AdminDomain {
+
+      [Description (
+          "An ASNumber is an integer between 1 and 65535, with the "
+          "range 64512 through 65535 reserved for private use. Every "
+          "AS has a unique AS number, which is assigned to it by an "
+          "Internet Registry or a provider. IANA assigns and "
+          "administers AS numbers.")]
+   uint16 ASNumber;
+
+      [Description (
+          "IsSingleHomed is a boolean that, when its value is TRUE, "
+          "indicates that this AS reaches networks outside of its "
+          "domain through a single exit point.")]
+   boolean IsSingleHomed;
+
+      [Description (
+          "IsTransit is a boolean that, when its value is TRUE, "
+          "indicates that this AS will advertise routes that it learns "
+          "from other ASs. A non-transit AS will only advertise its "
+          "own routes.")]
+   boolean IsTransit;
+
+      [Description (
+          "RequireIGPSync is a boolean that, when its value is TRUE, "
+          "indicates that this AS must obey the following rule: a "
+          "router should not advertise destinations learned from "
+          "internal neighbors to external destinations unless those "
+          "destinations are also known via some internal gateway "
+          "protocol. Otherwise, a router may receive traffic that "
+          "cannot yet be routed. However, since this is a costly "
+          "choice, it is common practice to allow this rule to be "
+          "broken under certain carefully controlled circumstances.")]
+   boolean RequireIGPSync;
+
+      [Description (
+          "RoutingUpdateSource defines how routing information is to "
+          "be injected. Statically injected routes are maintained by "
+          "the routing table and are independent of the status of the "
+          "networks to which they refer. This is done simply by "
+          "defining static routes in the routing table. Dynamically "
+          "injected routes are of two types. Dynamic routes refer to "
+          "distributing all of the IGP routes. Semi-dynamic routes "
+          "define a set of specific IGP routes that will be injected."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Static", "Dynamic", "Semi-Dynamic" }]
+   uint16 RoutingUpdateSource;
+
+      [Description (
+          "Route aggregation refers to summarizing ranges of routes "
+          "into one or more aggregate routes. This is done to minimize "
+          "the number of routes in the global routing table. A "
+          "potential drawback is that specific path information (e.g., "
+          "the Path attribute value) is lost, which may lead to "
+          "potential routing loops. There are a variety of ways to "
+          "ensure that this does not happen. Note that BGP4 is "
+          "required to do this. \n"
+          "\n"
+          "There are many ways to form aggregate routes. The following "
+          "are the most popular: 'Aggregate only', where only the "
+          "aggregate is advertised, and all of its more specific "
+          "routes are suppressed; 'Aggregate Plus Specific Routes', "
+          "where both the aggregate as well as its more specific "
+          "routes are advertised (e.g., send the aggregate to the NAP, "
+          "but send the more specific routes to providers); 'Aggregate "
+          "Based on a Subset of Specific Routes', where the aggregate "
+          "route is formed by looking at certain more specific routes "
+          "and forming an aggregate on them, suppressing all others."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "None", "Aggregate Only ",
+          "Aggregate And All Specific Routes",
+          "Aggregate Based on Subset of Specific Routes" }]
+   uint16 AggregationType;
+};
+
+// ==================================================================
+// RoutersInAS
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "This aggregation establishes 'whole-part' relationships "
+       "between an AutonomousSystem and the routers that it contains. "
+       "In addition, the routers in the AS share common configuration "
+       "information, and are commonly administered.")]
+class CIM_RoutersInAS : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The AutonomousSystem that aggregates the routers belonging "
+          "to it and administers them.")]
+   CIM_AutonomousSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The Routers that are contained in the AS.")]
+   CIM_ComputerSystem REF PartComponent;
+
+      [Description (
+          "This is an array of strings that contain the BGP attributes "
+          "supported by this router.")]
+   string BGPSupportedAttributes[];
+
+      [Description (
+          "TRUE means that the community value of this router is added "
+          "to the existing community value, and FALSE means that the "
+          "community value of this router replaces the existing "
+          "community value.")]
+   boolean AddCommunityValue;
+
+      [Description (
+          "This is an enumeration that defines the function, from the "
+          "point of view of BGP, of this router."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "Conventional BGP Speaker",
+          "Route Reflector", "Router Reflector Client",
+          "Route Reflector Non-Client", "Peer Group Member",
+          "Confederation Member" }]
+   uint16 Role;
+
+      [Description (
+          "A string describing the type of function that this router "
+          "has in its AS when the value of the Role property of this "
+          "class is set to 1 (i.e., \"Other\"). The format of the "
+          "string inserted in this property should be similar in "
+          "format to the values defined for the Role property. This "
+          "property should be set to NULL when the Role property is "
+          "any value other than 1."), 
+       MaxLen ( 64 )]
+   string OtherRoleDescription;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

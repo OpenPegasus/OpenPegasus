@@ -1,0 +1,23 @@
+OpenPegasus implements RTLD_GLOBAL when loading providers.
+
+The significance of this is that the provider writer has to be aware off the following:
+
+ - C++ providers sharing a shared library, such as a third party resource library,
+   is  accessible amongst the C++ providers that use it (and have been compiled to use the
+   shared library). Exceptions from such third-party libraries can be recognized in those
+   providers. Previously in Pegasus 2.4 the exceptions were only recognized in the first
+   provider loaded while in the other providers they would not.
+
+   Problem: Possible collision of symbolic names of third party libraries. For example, if
+   the providers were using multiple third-party libraries with the same symbolic names in
+   the same namespace, then only the symbolic name solved would be called.
+   Solution:
+    1). Use different namespaces.
+    2). Use symbol hidding for different versions
+        (http://www.gnu.org/software/binutils/manual/ld-2.9.1/html_node/ld_25.html)
+
+   More information is located at http://gcc.gnu.org/faq.html#dso
+
+ - C providers are not affected. Third party libraries linked to the provider libraries
+   behave unchanged - they are shared amongst providers.
+

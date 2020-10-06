@@ -1,0 +1,1129 @@
+// ===================================================================
+// Title: Device_Printing
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_Printing.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines
+//              the concepts to manage printers and the printing
+//              process (queues, jobs, etc.)
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for 2.8
+// CR1048 - Add JobQueue and QueueStatistics to the System Model,
+//          Modify the PrintQueue class in the Device Model accordingly
+// 
+// Change Log for v2.7.1
+//       - Fix Value/ValueMap mismatches related to the various
+//         language properties in Printer, PrintJob and PrintService
+// 
+// Change Log for v2.7 Final
+// CR990 - Cleanup of PrintQueue
+// 
+// Change Log for v2.7
+// CR617 - Remove ArrayType qualifier from PrintJob.Language property
+// CR675 - Extend Printer.LanguagesSupport, Printer.CurrentLanguages,
+//         Printer.DefaultLanguage, PrintSerivce.LanguagesSupported,
+//         and PrintJob.Language to include "TIPSI", "Prescribe",
+//         "LinePrinter", "IDP", "XJCL", "PDF", "RPDL", "IntermecIPL",
+//         "UBIFingerprint", "UBIDirectProtocol", "Fujitsu", and
+//         "PCLXL"
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// Printer
+// ===================================================================
+   [Version ( "2.7.1" ), Description (
+       "Capabilities and management of the Printer LogicalDevice.")]
+class CIM_Printer : CIM_LogicalDevice {
+
+      [Description (
+          "Status information for a Printer, beyond that specified in "
+          "the LogicalDevice Availability property. Values include "
+          "\"Idle\" (3) and an indication that the Device is currently "
+          "printing (4)."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Other", "Unknown", "Idle", "Printing", "Warmup",
+          "Stopped Printing", "Offline" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.hrPrinterStatus" }]
+   uint16 PrinterStatus;
+
+      [Description (
+          "Printer error information."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11" }, 
+       Values { "Unknown", "Other", "No Error", "Low Paper",
+          "No Paper", "Low Toner", "No Toner", "Door Open", "Jammed",
+          "Offline", "Service Requested", "Output Bin Full" }, 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.hrPrinterDetectedErrorState" }, 
+       ModelCorrespondence { "CIM_Printer.ErrorInformation" }]
+   uint16 DetectedErrorState;
+
+      [Description (
+          "An array providing supplemental information for the current "
+          "error state, indicated in DetectedErrorState."), 
+       ModelCorrespondence { "CIM_Printer.DetectedErrorState" }]
+   string ErrorInformation[];
+
+      [Description (
+          "An integer array indicating the types of paper supported."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+          "60", "61", "62", "63", "64", "65", "66", "67", "68", "69",
+          "70", "71", "72", "73", "74", "75" }, 
+       Values { "Unknown", "Other", "A", "B", "C", "D", "E", "Letter",
+          "Legal", "NA-10x13-Envelope", 
+          // 10               
+          "NA-9x12-Envelope", "NA-Number-10-Envelope",
+          "NA-7x9-Envelope", "NA-9x11-Envelope", "NA-10x14-Envelope",
+          "NA-Number-9-Envelope", "NA-6x9-Envelope",
+          "NA-10x15-Envelope", "A0", "A1", 
+          // 20               
+          "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "B0", 
+          // 30               
+          "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", 
+          // 40               
+          "C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8",
+          "ISO-Designated", 
+          // 50               
+          "JIS B0", "JIS B1", "JIS B2", "JIS B3", "JIS B4", "JIS B5",
+          "JIS B6", "JIS B7", "JIS B8", "JIS B9", 
+          // 60               
+          "JIS B10", "NA-Letter", "NA-Legal", "B4-Envelope",
+          "B5-Envelope", "C3-Envelope", "C4-Envelope", "C5-Envelope",
+          "C6-Envelope", "Designated-Long-Envelope", 
+          // 70               
+          "Monarch-Envelope", "Executive", "Folio", "Invoice",
+          "Ledger", "Quarto" }]
+   uint16 PaperSizesSupported[];
+
+      [Description (
+          "An array of free-form strings specifying the types of paper "
+          "that are currently available on the Printer. Each string "
+          "should be expressed in the form specified by ISO/IEC 10175 "
+          "Document Printing Application (DPA) which is also "
+          "summarized in Appendix C of RFC 1759 (Printer MIB). "
+          "Examples of valid strings are \"iso-a4-colored\" and "
+          "\"na-10x14-envelope\". By definition a paper size that is "
+          "available and listed in PaperTypesAvailable should also "
+          "appear in the PaperSizesSupported property."), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtInputMediaName" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PrintJob.RequiredPaperType",
+          "CIM_PrintService.PaperTypesAvailable" }]
+   string PaperTypesAvailable[];
+
+      [Description (
+          "Specifies the paper type that the Printer will use if a "
+          "PrintJob does not specify a particular type. The string "
+          "should be expressed in the form specified by ISO/IEC 10175 "
+          "Document Printing Application (DPA) which is also "
+          "summarized in Appendix C of RFC 1759 (Printer MIB)."), 
+       ModelCorrespondence { "CIM_Printer.PaperTypesAvailable" }]
+   string DefaultPaperType;
+
+      [Description (
+          "Specifies the paper type that the Printer is currently "
+          "using. The string should be expressed in the form specified "
+          "by ISO/IEC 10175 Document Printing Application (DPA) which "
+          "is also summarized in Appendix C of RFC 1759 (Printer MIB)."), 
+       ModelCorrespondence { "CIM_Printer.PaperTypesAvailable" }]
+   string CurrentPaperType;
+
+      [Description (
+          "An array indicating the print languages natively supported."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+          "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+          "41", "42", "43", "44", "45", "46", "47", "48", "50", "51",
+          "52", "53", "54", "55", "56", "57", "58", "59", "60" }, 
+       Values { "Other", "Unknown", "PCL", "HPGL", "PJL", "PS",
+          "PSPrinter", "IPDS", "PPDS", 
+          // 10               
+          "EscapeP", "Epson", "DDIF", "Interpress", "ISO6429",
+          "Line Data", "MODCA", "REGIS", "SCS", "SPDL", 
+          // 20               
+          "TEK4014", "PDS", "IGP", "CodeV", "DSCDSE", "WPS", "LN03",
+          "CCITT", "QUIC", "CPAP", 
+          // 30               
+          "DecPPL", "Simple Text", "NPAP", "DOC", "imPress",
+          "Pinwriter", "NPDL", "NEC201PL", "Automatic", "Pages", 
+          // 40               
+          "LIPS", "TIFF", "Diagnostic", "CaPSL", "EXCL", "LCDS", "XES",
+          "MIME", "TIPSI", 
+          // 50               
+          "Prescribe", "LinePrinter", "IDP", "XJCL", "PDF", "RPDL",
+          "IntermecIPL", "UBIFingerprint", "UBIDirectProtocol",
+          "Fujitsu", 
+          // 60               
+          "PCLXL" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtInterpreterLangFamily" 
+          }, 
+       ModelCorrespondence { "CIM_Printer.MimeTypesSupported",
+          "CIM_PrintJob.Language",
+          "CIM_PrintService.LanguagesSupported" }]
+   uint16 LanguagesSupported[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations of any mime types that are supported by the "
+          "Printer. If data is provided for this property, then the "
+          "value 47, \"Mime\", should be included in the Languages "
+          "Supported property."), 
+       ModelCorrespondence { "CIM_Printer.LanguagesSupported",
+          "CIM_PrintJob.MimeTypes",
+          "CIM_PrintService.MimeTypesSupported" }]
+   string MimeTypesSupported[];
+
+      [Description (
+          "Indicates the current printer language being used. A "
+          "language that is being used by the Printer should also be "
+          "listed in LanguagesSupported."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+          "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+          "41", "42", "43", "44", "45", "46", "47", "48", "50", "51",
+          "52", "53", "54", "55", "56", "57", "58", "59", "60" }, 
+       Values { "Other", "Unknown", "PCL", "HPGL", "PJL", "PS",
+          "PSPrinter", "IPDS", "PPDS", 
+          // 10               
+          "EscapeP", "Epson", "DDIF", "Interpress", "ISO6429",
+          "Line Data", "MODCA", "REGIS", "SCS", "SPDL", 
+          // 20               
+          "TEK4014", "PDS", "IGP", "CodeV", "DSCDSE", "WPS", "LN03",
+          "CCITT", "QUIC", "CPAP", 
+          // 30               
+          "DecPPL", "Simple Text", "NPAP", "DOC", "imPress",
+          "Pinwriter", "NPDL", "NEC201PL", "Automatic", "Pages", 
+          // 40               
+          "LIPS", "TIFF", "Diagnostic", "CaPSL", "EXCL", "LCDS", "XES",
+          "MIME", "TIPSI", 
+          // 50               
+          "Prescribe", "LinePrinter", "IDP", "XJCL", "PDF", "RPDL",
+          "IntermecIPL", "UBIFingerprint", "UBIDirectProtocol",
+          "Fujitsu", 
+          // 60               
+          "PCLXL" }, 
+       ModelCorrespondence { "CIM_Printer.LanguagesSupported",
+          "CIM_Printer.CurrentMimeType" }]
+   uint16 CurrentLanguage;
+
+      [Description (
+          "Specifies the mime type currently being used by the Printer "
+          "if the CurrentLanguage is set to indicate a mime type is in "
+          "use (value = 47)."), 
+       ModelCorrespondence { "CIM_Printer.CurrentLanguage" }]
+   string CurrentMimeType;
+
+      [Description (
+          "Indicates the default printer language. A language that is "
+          "used as a default by the Printer should also be listed in "
+          "LanguagesSupported."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+          "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+          "41", "42", "43", "44", "45", "46", "47", "48", "50", "51",
+          "52", "53", "54", "55", "56", "57", "58", "59", "60" }, 
+       Values { "Other", "Unknown", "PCL", "HPGL", "PJL", "PS",
+          "PSPrinter", "IPDS", "PPDS", 
+          // 10               
+          "EscapeP", "Epson", "DDIF", "Interpress", "ISO6429",
+          "Line Data", "MODCA", "REGIS", "SCS", "SPDL", 
+          // 20               
+          "TEK4014", "PDS", "IGP", "CodeV", "DSCDSE", "WPS", "LN03",
+          "CCITT", "QUIC", "CPAP", 
+          // 30               
+          "DecPPL", "Simple Text", "NPAP", "DOC", "imPress",
+          "Pinwriter", "NPDL", "NEC201PL", "Automatic", "Pages", 
+          // 40               
+          "LIPS", "TIFF", "Diagnostic", "CaPSL", "EXCL", "LCDS", "XES",
+          "MIME", "TIPSI", 
+          // 50               
+          "Prescribe", "LinePrinter", "IDP", "XJCL", "PDF", "RPDL",
+          "IntermecIPL", "UBIFingerprint", "UBIDirectProtocol",
+          "Fujitsu", 
+          // 60               
+          "PCLXL" }, 
+       ModelCorrespondence { "CIM_Printer.LanguagesSupported",
+          "CIM_Printer.DefaultMimeType" }]
+   uint16 DefaultLanguage;
+
+      [Description (
+          "Specifies the default mime type used by the Printer if the "
+          "DefaultLanguage is set to indicate a mime type is in use "
+          "(value=47)."), 
+       ModelCorrespondence { "CIM_Printer.DefaultLanguage" }]
+   string DefaultMimeType;
+
+      [Description (
+          "Printer jobs processed since last reset. These jobs may be "
+          "processed from one or more PrintQueues."), 
+       Counter]
+   uint32 JobCountSinceLastReset;
+
+      [Description (
+          "Time of last reset of the Printer Device.")]
+   datetime TimeOfLastReset;
+
+      [Description (
+          "An array of integers indicating Printer capabilities. "
+          "Information such as \"Duplex Printing\" (value=3) or "
+          "\"Transparency Printing\" (7) is specified in this "
+          "property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21" }, 
+       Values { "Unknown", "Other", "Color Printing",
+          "Duplex Printing", "Copies", "Collation", "Stapling",
+          "Transparency Printing", "Punch", "Cover", "Bind",
+          "Black and White Printing", "One Sided",
+          "Two Sided Long Edge", "Two Sided Short Edge", "Portrait",
+          "Landscape", "Reverse Portrait", "Reverse Landscape",
+          "Quality High", "Quality Normal", "Quality Low" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Printer.CapabilityDescriptions",
+          "CIM_PrintJob.Finishing", "CIM_PrintService.Capabilities" }]
+   uint16 Capabilities[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the Printer features indicated in "
+          "the Capabilities array. Note, each entry of this array is "
+          "related to the entry in the Capabilities array that is "
+          "located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Printer.Capabilities" }]
+   string CapabilityDescriptions[];
+
+      [Description (
+          "Specifies which finishings and other capabilities of the "
+          "Printer will be used by default. An entry in Default "
+          "Capabilities should also be listed in the Capabilities "
+          "array."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21" }, 
+       Values { "Unknown", "Other", "Color Printing",
+          "Duplex Printing", "Copies", "Collation", "Stapling",
+          "Transparency Printing", "Punch", "Cover", "Bind",
+          "Black and White Printing", "One Sided",
+          "Two Sided Long Edge", "Two Sided Short Edge", "Portrait",
+          "Landscape", "Reverse Portrait", "Reverse Landscape",
+          "Quality High", "Quality Normal", "Quality Low" }, 
+       ModelCorrespondence { "CIM_Printer.Capabilities" }]
+   uint16 DefaultCapabilities[];
+
+      [Description (
+          "Specifies which finishings and other capabilities of the "
+          "Printer are currently being used. An entry in this property "
+          "should also be listed in the Capabilities array."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21" }, 
+       Values { "Unknown", "Other", "Color Printing",
+          "Duplex Printing", "Copies", "Collation", "Stapling",
+          "Transparency Printing", "Punch", "Cover", "Bind",
+          "Black and White Printing", "One Sided",
+          "Two Sided Long Edge", "Two Sided Short Edge", "Portrait",
+          "Landscape", "Reverse Portrait", "Reverse Landscape",
+          "Quality High", "Quality Normal", "Quality Low" }, 
+       ModelCorrespondence { "CIM_Printer.Capabilities" }]
+   uint16 CurrentCapabilities[];
+
+      [Description (
+          "The maximum number of copies that can be produced by the "
+          "Printer from a single Job."), 
+       ModelCorrespondence { "CIM_PrintJob.Copies" }]
+   uint32 MaxCopies;
+
+      [Description (
+          "The number of copies that will be produced for a single Job "
+          "unless otherwise specified.")]
+   uint32 DefaultCopies;
+
+      [Description (
+          "The maximum number of print-stream pages that the Printer "
+          "can render onto a single media sheet."), 
+       ModelCorrespondence { "CIM_PrintJob.NumberUp" }]
+   uint32 MaxNumberUp;
+
+      [Description (
+          "The number of print-stream pages that the Printer will "
+          "render onto a single media sheet unless a Job specifies "
+          "otherwise.")]
+   uint32 DefaultNumberUp;
+
+      [Description (
+          "Printer's horizontal resolution in Pixels per Inch."), 
+       Units ( "Pixels per Inch" ), 
+       ModelCorrespondence { "CIM_PrintJob.HorizontalResolution" }]
+   uint32 HorizontalResolution;
+
+      [Description (
+          "Printer's vertical resolution in Pixels per Inch."), 
+       Units ( "Pixels per Inch" ), 
+       ModelCorrespondence { "CIM_PrintJob.HorizontalResolution" }]
+   uint32 VerticalResolution;
+
+      [Description (
+          "Identifies the available character sets for the output of "
+          "text related to managing the Printer. Strings provided in "
+          "this property should conform to the semantics and syntax "
+          "specified by section 4.1.2 (\"Charset parameter\") in RFC "
+          "2046 (MIME Part 2) and contained in the IANA character-set "
+          "registry. Examples include \"utf-8\", \"us-ascii\" and "
+          "\"iso-8859-1\"."), 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtLocalizationCharacterSet" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PrintJob.CharSet" }]
+   string CharSetsSupported[];
+
+      [Description (
+          "Specifies the current character set being used for the "
+          "output of text relating to management of the Printer. The "
+          "character set described by this property should also be "
+          "listed in CharsetsSupported. The string specified by this "
+          "property should conform to the semantics and syntax "
+          "specified by section 4.1.2 (\"Charset parameter\") in RFC "
+          "2046 (MIME Part 2) and contained in the IANA character-set "
+          "registry. Examples include \"utf-8\", \"us-ascii\" and "
+          "\"iso-8859-1\"."), 
+       ModelCorrespondence { "CIM_Printer.CharSetsSupported" }]
+   string CurrentCharSet;
+
+      [Description (
+          "Identifies the available languages for strings used by the "
+          "Printer for the output of management information. The "
+          "strings should conform to RFC 1766, for example \"en\" is "
+          "used for English."), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtLocalizationLanguage" 
+          }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PrintJob.NaturalLanguage" }]
+   string NaturalLanguagesSupported[];
+
+      [Description (
+          "Identifies the current language being used by the Printer "
+          "for management. The language listed in the "
+          "CurrentNaturalLanguage property should also be listed in "
+          "NaturalLanguagesSupported."), 
+       ModelCorrespondence { "CIM_Printer.NaturalLanguagesSupported" }]
+   string CurrentNaturalLanguage;
+
+      [Description (
+          "Specifies the largest Job (as a byte stream) that the "
+          "Printer will accept in units of Kbytes. A value of zero "
+          "indicates that no limit has been set."), 
+       Units ( "KiloBytes" ), 
+       ModelCorrespondence { "CIM_PrintJob.JobSize" }]
+   uint32 MaxSizeSupported;
+
+      [Description (
+          "Describes all of the job sheets that are available on the "
+          "Printer. This can also be used to describe the banner that "
+          "a Printer might provide at the beginning of each Job, or "
+          "can describe other user specified options."), 
+       ModelCorrespondence { "CIM_PrintJob.RequiredJobSheets" }]
+   string AvailableJobSheets[];
+
+      [Description (
+          "Specifies the marking technology used by the Printer."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25", "26", "27" }, 
+       Values { "Other", "Unknown", "Electrophotographic LED",
+          "Electrophotographic Laser", "Electrophotographic Other",
+          "Impact Moving Head Dot Matrix 9pin",
+          "Impact Moving Head Dot Matrix 24pin",
+          "Impact Moving Head Dot Matrix Other",
+          "Impact Moving Head Fully Formed", "Impact Band",
+          "Impact Other", "Inkjet Aqueous", "Inkjet Solid",
+          "Inkjet Other", "Pen", "Thermal Transfer",
+          "Thermal Sensitive", "Thermal Diffusion", "Thermal Other",
+          "Electroerosion", "Electrostatic", "Photographic Microfiche",
+          "Photographic Imagesetter", "Photographic Other",
+          "Ion Deposition", "eBeam", "Typesetter" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtMarkerMarkTech" }]
+   uint16 MarkingTechnology;
+};
+
+
+// ===================================================================
+// PrintQueue
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Capabilities and management of a Printer Queue. A PrintQueue "
+       "holds PrintJobs - which are placed on the Queue by a Print "
+       "Service. Jobs can move from Queue to Queue.")]
+class CIM_PrintQueue : CIM_JobDestination {
+
+      [Deprecated { "CIM_EnabledLogicalElement.EnabledState" }, 
+       Description (
+          "Indicates that Jobs on the Queue will be passed to a "
+          "Printer. When FALSE, a Job will remain on the Queue and "
+          "will not be passed to a Printer for output. This property, "
+          "coupled with the information in QueueAccepting, aligns with "
+          "various values of the inherited EnabledState property: \n"
+          "- When both QueueEnabled and QueueAccepting are TRUE, then "
+          "EnabledState is set to 2 (\"Enabled\") \n"
+          "- When both QueueEnabled and QueueAccepting are FALSE, then "
+          "EnabledState is set to 3 (\"Disabled\") \n"
+          "- When QueueEnabled is TRUE and QueueAccepting is FALSE "
+          "(i.e., when the Queue is outputting jobs to the printer, "
+          "but not accepting new jobs), then EnabledState is set to 6 "
+          "(\"Enabled but Offline\") \n"
+          "- When QueueEnabled is FALSE and QueueAccepting is TRUE "
+          "(i.e., when the Queue is accepting print jobs but not "
+          "sending them to a printer), then EnabledState is set to 8 "
+          "(\"Deferred\") \n"
+          "Both this property and QueueAccepting are deprecated in "
+          "lieu of EnabledState.")]
+   boolean QueueEnabled;
+
+      [Deprecated { "CIM_EnabledLogicalElement.EnabledState" }, 
+       Description (
+          "When FALSE, no PrintService can place PrintJobs on the "
+          "PrintQueue. The ability of an individual PrintService to "
+          "place a Job on the Queue can be specified using the "
+          "QueueAcceptingFromService property in the QueueForPrint "
+          "Service association. This property, coupled with the "
+          "information in QueueEnabled, aligns with various values of "
+          "the inherited EnabledState property: \n"
+          "- When both QueueEnabled and QueueAccepting are TRUE, then "
+          "EnabledState is set to 2 (\"Enabled\") \n"
+          "- When both QueueEnabled and QueueAccepting are FALSE, then "
+          "EnabledState is set to 3 (\"Disabled\") \n"
+          "- When QueueEnabled is TRUE and QueueAccepting is FALSE "
+          "(i.e., when the Queue is outputting jobs to the printer, "
+          "but not accepting new jobs), then EnabledState is set to 6 "
+          "(\"Enabled but Offline\") \n"
+          "- When QueueEnabled is FALSE and QueueAccepting is TRUE "
+          "(i.e., when the Queue is accepting print jobs but not "
+          "sending them to a printer), then EnabledState is set to 8 "
+          "(\"Deferred\") \n"
+          "Both this property and QueueEnabled are deprecated in lieu "
+          "of EnabledState.")]
+   boolean QueueAccepting;
+
+      [Description (
+          "The current number of Jobs on the Queue."), 
+       Gauge]
+   uint32 NumberOnQueue;
+
+      [Description (
+          "Gives Queue-specific status information, beyond the "
+          "ManagedSystemElement.Status property. This may be used to "
+          "provide further qualification as to the status of the Queue "
+          "or to indicate a secondary condition (e.g. spool area is "
+          "full)."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Other", "Unknown", "No Additional Status",
+          "QueueSpoolAreaFull" }]
+   uint16 QueueStatus;
+
+      [Description (
+          "Provides a textual explanation for the status of the Queue. "
+          "The settings of both QueueStatus and the Status property "
+          "inherited from ManagedSystemElement may be described by "
+          "QueueStatusInfo. For example, if \"Stopping\" is the value "
+          "assigned to Status, then this property may contain an "
+          "explanation as to why the Queue is being stopped.")]
+   string QueueStatusInfo;
+
+      [Description (
+          "Specifies the largest possible Job (in terms of a single "
+          "byte stream) that may be submitted to this Queue. A value "
+          "of zero indicates that no limit has been set. Units are "
+          "Kbytes."), 
+       Units ( "KiloBytes" ), 
+       ModelCorrespondence { "CIM_PrintJob.JobSize" }]
+   uint32 MaxJobSize;
+
+      [Description (
+          "Specifies the priority that will be assigned to a new Job "
+          "being submitted to this Queue, if the Job does not "
+          "explicitly specify a priority. The range of valid "
+          "priorities and the interpretation of priorities may be "
+          "determined from the JobPriorityHigh and JobPriorityLow "
+          "properties."), 
+       ModelCorrespondence { "CIM_PrintQueue.JobPriorityHigh",
+          "CIM_PrintQueue.JobPriorityLow" }]
+   uint32 DefaultJobPriority;
+
+      [Description (
+          "Specifies the numeric value that is used to represent the "
+          "highest priority Jobs that are submitted to this Queue. The "
+          "range of numeric values for priority may be inversed, e.g. "
+          "a high priority job is represented by a low integer value. "
+          "This is indicated by JobPriorityLow being greater than "
+          "JobPriorityHigh. If both values (PriorityLow and Priority "
+          "High) are assigned to zero, then the Queue does not support "
+          "Job priorities."), 
+       ModelCorrespondence { "CIM_PrintQueue.JobPriorityLow",
+          "CIM_Job.Priority" }]
+   uint32 JobPriorityHigh;
+
+      [Description (
+          "Specifies the numeric value that is used to represent the "
+          "lowest priority Jobs that are submitted to this Queue. The "
+          "range of numeric values for priority may be inversed, e.g. "
+          "a low priority job is represented by a high integer value. "
+          "This is indicated by JobPriorityLow being greater than "
+          "JobPriorityHigh. If both values (PriorityLow and "
+          "PriorityHigh) are assigned to zero, then the Queue does not "
+          "support Job priorities."), 
+       ModelCorrespondence { "CIM_PrintQueue.JobPriorityHigh",
+          "CIM_Job.Priority" }]
+   uint32 JobPriorityLow;
+
+      [Description (
+          "Specifies the job sheets that are supported by this Queue. "
+          "Typically the job sheets provided by a Queue will be the "
+          "union or aggregation of those provided by all the Printers "
+          "that it supports. However, a system administrator may "
+          "choose to restrict access to some job sheets on a "
+          "particular Queue. A Queue might also support additional job "
+          "sheets through the use of a filter that adds a banner or "
+          "some other page when a Job is taken from the Queue."), 
+       ModelCorrespondence { "CIM_PrintJob.RequiredJobSheets" }]
+   string AvailableJobSheets[];
+};
+
+
+// ===================================================================
+// PrintJob
+// ===================================================================
+   [Version ( "2.7.1" ), Description (
+       "Description of a print request that is either waiting on a "
+       "Queue for a Printer to become available, in the process of "
+       "being output on a Printer, or that has previously been printed "
+       "on a Printer. PrintJobs are weak to their current Queue, or to "
+       "the last Queue that held them.")]
+class CIM_PrintJob : CIM_Job {
+
+      [Key, Propagated ( "CIM_PrintQueue.SystemCreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_PrintQueue.SystemName" ), Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Propagated ( "CIM_PrintQueue.CreationClassName" ), 
+       Description (
+          "The scoping Queue's CreationClassName."), 
+       MaxLen ( 256 )]
+   string QueueCreationClassName;
+
+      [Key, Propagated ( "CIM_PrintQueue.Name" ), Description (
+          "The scoping Queue's Name."), 
+       MaxLen ( 256 )]
+   string QueueName;
+
+      [Override ( "JobStatus" ), Description (
+          "The inherited JobStatus is used to provide additional "
+          "information about the status of a PrintJob beyond that "
+          "enumerated by PrintJobStatus."), 
+       ModelCorrespondence { "CIM_PrintJob.PrintJobStatus" }]
+   string JobStatus;
+
+      [Key, Description (
+          "Uniquely identifies this Job within its scoping Queue.")]
+   string JobID;
+
+      [Description (
+          "Provides additional textual descriptions of how this Job "
+          "should be scheduled. This free-form string property is "
+          "deprecated in lieu of the more semantically rich "
+          "SettingData class, JobScheduleSettingData.")]
+   string SchedulingInformation;
+
+      [Description (
+          "Specifies the size of the PrintJob (as a byte stream) in "
+          "units of Kbytes."), 
+       Units ( "KiloBytes" ), 
+       ModelCorrespondence { "CIM_Printer.MaxSizeSupported",
+          "CIM_PrintQueue.MaxJobSize" }]
+   uint32 JobSize;
+
+      [Description (
+          "Specifies the print language used by this Job."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+          "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+          "41", "42", "43", "44", "45", "46", "47", "48", "50", "51",
+          "52", "53", "54", "55", "56", "57", "58", "59", "60" }, 
+       Values { "Other", "Unknown", "PCL", "HPGL", "PJL", "PS",
+          "PSPrinter", "IPDS", "PPDS", 
+          // 10               
+          "EscapeP", "Epson", "DDIF", "Interpress", "ISO6429",
+          "Line Data", "MODCA", "REGIS", "SCS", "SPDL", 
+          // 20               
+          "TEK4014", "PDS", "IGP", "CodeV", "DSCDSE", "WPS", "LN03",
+          "CCITT", "QUIC", "CPAP", 
+          // 30               
+          "DecPPL", "Simple Text", "NPAP", "DOC", "imPress",
+          "Pinwriter", "NPDL", "NEC201PL", "Automatic", "Pages", 
+          // 40               
+          "LIPS", "TIFF", "Diagnostic", "CaPSL", "EXCL", "LCDS", "XES",
+          "MIME", "TIPSI", 
+          // 50               
+          "Prescribe", "LinePrinter", "IDP", "XJCL", "PDF", "RPDL",
+          "IntermecIPL", "UBIFingerprint", "UBIDirectProtocol",
+          "Fujitsu", 
+          // 60               
+          "PCLXL" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtInterpreterLangFamily" 
+          }, 
+       ModelCorrespondence { "CIM_Printer.LanguagesSupported",
+          "CIM_PrintService.LanguagesSupported",
+          "CIM_PrintJob.MimeTypes" }]
+   uint16 Language;
+
+      [Description (
+          "Specifies the mime types used by the PrintJob if Language "
+          "is set to indicate a mime type is in use (value=47)."), 
+       ModelCorrespondence { "CIM_PrintJob.Language",
+          "CIM_Printer.MimeTypesSupported",
+          "CIM_PrintService.MimeTypesSupported" }]
+   string MimeTypes[];
+
+      [Description (
+          "A string specifying the type of paper that is required by "
+          "this PrintJob. Each string should be expressed in the form "
+          "specified by ISO/IEC 10175 Document Printing Application "
+          "(DPA) which is also summarized in Appendix C of RFC 1759 "
+          "(Printer MIB). Examples of valid strings are "
+          "\"iso-a4-colored\" and \"na-10x14-envelope\"."), 
+       ModelCorrespondence { "CIM_Printer.PaperTypesAvailable",
+          "CIM_PrintService.PaperTypesAvailable" }]
+   string RequiredPaperType;
+
+      [Description (
+          "An array of integers indicating the type of finishing "
+          "required by this Job. It is equivalent to the Capabilities "
+          "property provided by the Printer."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21" }, 
+       Values { "Unknown", "Other", "Color Printing",
+          "Duplex Printing", "Copies", "Collation", "Stapling",
+          "Transparency Printing", "Punch", "Cover", "Bind",
+          "Black and White Printing", "One Sided",
+          "Two Sided Long Edge", "Two Sided Short Edge", "Portrait",
+          "Landscape", "Reverse Portrait", "Reverse Landscape",
+          "Quality High", "Quality Normal", "Quality Low" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Printer.Capabilities",
+          "CIM_PrintService.Capabilities" }]
+   uint16 Finishing[];
+
+      [Description (
+          "The number of physical copies of the output that will be "
+          "produced from this Job."), 
+       ModelCorrespondence { "CIM_Printer.MaxCopies" }]
+   uint32 Copies;
+
+      [Description (
+          "The horizontal resolution in Pixels per Inch for the Job."), 
+       Units ( "Pixels per Inch" ), 
+       ModelCorrespondence { "CIM_Printer.HorizontalResolution" }]
+   uint32 HorizontalResolution;
+
+      [Description (
+          "The vertical resolution in Pixels per Inch for the Job."), 
+       Units ( "Pixels per Inch" ), 
+       ModelCorrespondence { "CIM_Printer.VerticalResolution" }]
+   uint32 VerticalResolution;
+
+      [Description (
+          "Specifies the character set and encoding method that should "
+          "be used by the Printer for the management of this Job. The "
+          "strings should conform to the semantics and syntax "
+          "specified by section 4.1.2 (\"Charset parameter\") in RFC "
+          "2046 (MIME Part 2) and contained in the IANA character-set "
+          "registry. Examples include \"utf-8\", \"us-ascii\" and "
+          "\"iso-8859-1\"."), 
+       ModelCorrespondence { "CIM_Printer.CharSetsSupported" }]
+   string CharSet;
+
+      [Description (
+          "Identifies the language that should be used by the Printer "
+          "for the management of this Job. The specified value should "
+          "conform to RFC 1766. For example, \"en\" is used for "
+          "English."), 
+       ModelCorrespondence { "CIM_Printer.NaturalLanguagesSupported" }]
+   string NaturalLanguage;
+
+      [Description (
+          "The number of print-stream pages that should be rendered "
+          "onto a single media sheet when the Printer outputs this "
+          "PrintJob."), 
+       ModelCorrespondence { "CIM_Printer.MaxNumberUp" }]
+   uint32 NumberUp;
+
+      [Description (
+          "Describes the current state of this Job with respect to the "
+          "PrintQueue and the Printer. Additional information may be "
+          "specified in JobStatus."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Other", "Unknown", "Pending", "Blocked", "Complete",
+          "Completed With Error", "Printing" }, 
+       ModelCorrespondence { "CIM_PrintJob.TimeCompleted",
+          "CIM_PrintJob.JobStatus" }]
+   uint16 PrintJobStatus;
+
+      [Description (
+          "Time when this Job was completed. This value is only valid "
+          "if the PrintJobStatus has been assigned to \"Complete\" "
+          "(value=5) or \"Completed With Error\" (value=6)."), 
+       ModelCorrespondence { "CIM_PrintJob.PrintJobStatus" }]
+   datetime TimeCompleted;
+
+      [Description (
+          "Describes the job sheets that should be used when this Job "
+          "is output on the Printer."), 
+       ModelCorrespondence { "CIM_Printer.AvailableJobSheets" }]
+   string RequiredJobSheets[];
+
+      [Description (
+          "Provides additional information, beyond Job Owner inherited "
+          "from CIM_Job, to identify the origins of the PrintJob. This "
+          "property could include information such as the System, "
+          "application or Process that created the Job.")]
+   string JobOrigination;
+};
+
+
+// ===================================================================
+// PrintSAP
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The ServiceAccessPoint for a printing Service.")]
+class CIM_PrintSAP : CIM_ServiceAccessPoint {
+
+      [Description (
+          "Specifies the print procotols that this AccessPoint uses. "
+          "Note that each entry of this array is related to the entry "
+          "in the PrintProtocolInfo array that is located at the same "
+          "index."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "SMB", "BSD", "SYSV", "HPNP",
+          "IPP", "Local" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PrintSAP.PrintProtocolInfo" }]
+   uint16 PrintProtocol[];
+
+      [Description (
+          "Provides clarifying or additional information about the "
+          "protocols supported by this AccessPoint. Note, each entry "
+          "of this array is related to the entry in the PrintProtocol "
+          "array that is located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PrintSAP.PrintProtocol" }]
+   string PrintProtocolInfo[];
+};
+
+
+// ===================================================================
+// PrintService
+// ===================================================================
+   [Version ( "2.7.1" ), Description (
+       "The Service that provides support for printing. The basic "
+       "assumption of the Printing Model is that a PrintService "
+       "accepts a PrintJob for processing, via its PrintSAP. The Job "
+       "is then placed on a PrintQueue (indicated by the "
+       "QueueForPrintService association). Printers take Jobs from "
+       "Queues (indicated by the PrinterServicingQueue association).")]
+class CIM_PrintService : CIM_Service {
+
+      [Description (
+          "An array of free-form strings specifying the types of paper "
+          "that may be used by Jobs that are submitted to this "
+          "PrintService. This may be different than the paper types "
+          "that are installed on the Printer, because the PrintService "
+          "may include support for manually making other types "
+          "available or only a subset of paper types may be exported "
+          "via this Service. Each string should be expressed in the "
+          "form specified by ISO/IEC 10175 Document Printing "
+          "Application (DPA) which is also summarized in Appendix C of "
+          "RFC 1759 (Printer MIB). Examples of valid strings are "
+          "\"iso-a4-colored\" and \"na-10x14-envelope\"."), 
+       ModelCorrespondence { "CIM_Printer.PaperTypesAvailable",
+          "CIM_PrintJob.RequiredPaperType" }]
+   string PaperTypesAvailable[];
+
+      [Description (
+          "An array indicating the print languages supported by the "
+          "PrintService. A PrintService may support more languages "
+          "than those available on the underlying Printer through the "
+          "use of filters. An administrator may also choose to prevent "
+          "some languages from being exported by the PrintService."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+          "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+          "41", "42", "43", "44", "45", "46", "47", "48", "50", "51",
+          "52", "53", "54", "55", "56", "57", "58", "59", "60" }, 
+       Values { "Other", "Unknown", "PCL", "HPGL", "PJL", "PS",
+          "PSPrinter", "IPDS", "PPDS", 
+          // 10               
+          "EscapeP", "Epson", "DDIF", "Interpress", "ISO6429",
+          "Line Data", "MODCA", "REGIS", "SCS", "SPDL", 
+          // 20               
+          "TEK4014", "PDS", "IGP", "CodeV", "DSCDSE", "WPS", "LN03",
+          "CCITT", "QUIC", "CPAP", 
+          // 30               
+          "DecPPL", "Simple Text", "NPAP", "DOC", "imPress",
+          "Pinwriter", "NPDL", "NEC201PL", "Automatic", "Pages", 
+          // 40               
+          "LIPS", "TIFF", "Diagnostic", "CaPSL", "EXCL", "LCDS", "XES",
+          "MIME", "TIPSI", 
+          // 50               
+          "Prescribe", "LinePrinter", "IDP", "XJCL", "PDF", "RPDL",
+          "IntermecIPL", "UBIFingerprint", "UBIDirectProtocol",
+          "Fujitsu", 
+          // 60               
+          "PCLXL" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtInterpreterLangFamily" 
+          }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Printer.LanguagesSupported",
+          "CIM_PrintJob.Language",
+          "CIM_PrintService.MimeTypesSupported" }]
+   uint16 LanguagesSupported[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any mime types that are supported by the "
+          "PrintService. Support for mime types is indicated by "
+          "specifying a value of 47 in the LanguagesSupported array."), 
+       ModelCorrespondence { "CIM_Printer.MimeTypesSupported",
+          "CIM_PrintJob.MimeTypes",
+          "CIM_PrintService.LanguagesSupported" }]
+   string MimeTypesSupported[];
+
+      [Description (
+          "An array of integers indicating the capabilities supported "
+          "by this service. Information such as \"Duplex Printing\" "
+          "(value=3) or \"Transparency Printing\" (7) is specified in "
+          "this property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21" }, 
+       Values { "Unknown", "Other", "Color Printing",
+          "Duplex Printing", "Copies", "Collation", "Stapling",
+          "Transparency Printing", "Punch", "Cover", "Bind",
+          "Black and White Printing", "One Sided",
+          "Two Sided Long Edge", "Two Sided Short Edge", "Portrait",
+          "Landscape", "Reverse Portrait", "Reverse Landscape",
+          "Quality High", "Quality Normal", "Quality Low" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Printer.Capabilities",
+          "CIM_PrintJob.Finishing",
+          "CIM_PrintService.CapabilityDescriptions" }]
+   uint16 Capabilities[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the Printer features indicated in "
+          "the Capabilities array. Note, each entry of this array is "
+          "related to the entry in the Capabilities array that is "
+          "located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PrintService.Capabilities" }]
+   string CapabilityDescriptions[];
+
+      [Description (
+          "Describes the filters that are available within this Print "
+          "Service. For example, a PrintService may be able to convert "
+          "a Job submitted in one page description language to "
+          "another, so that it can be passed to an available Printer.")]
+   string AvailableFilters[];
+};
+
+
+// ===================================================================
+// PrinterServicingQueue
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association indicates that a Printer can be passed "
+       "PrintJobs from a particular Queue.")]
+class CIM_PrinterServicingQueue : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "A destination Printer for Jobs enqueued on the Dependent "
+          "Queue.")]
+   CIM_Printer REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "A Queue that is providing Jobs to the Printer.")]
+   CIM_PrintQueue REF Dependent;
+};
+
+
+// ===================================================================
+// PrinterServicingJob
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association indicates that a Printer is currently "
+       "servicing a particular PrintJob.")]
+class CIM_PrinterServicingJob : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The destination Printer for a PrintJob.")]
+   CIM_Printer REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PrintJob.")]
+   CIM_PrintJob REF Dependent;
+};
+
+
+// ===================================================================
+// PrintJobFile
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "This association indicates which files are associated with a "
+       "PrintJob.")]
+class CIM_PrintJobFile : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The PrintJob that is based on one or more Files.")]
+   CIM_PrintJob REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The File(s) that make up a PrintJob.")]
+   CIM_DataFile REF PartComponent;
+};
+
+
+// ===================================================================
+// QueueForPrintService
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association indicates that a PrintService utilizes a "
+       "particular PrintQueue.")]
+class CIM_QueueForPrintService : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PrintQueue that the Service utilizes.")]
+   CIM_PrintQueue REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PrintService that puts Jobs on the Queue.")]
+   CIM_PrintService REF Dependent;
+
+      [Description (
+          "Indicates that the PrintService can accept Jobs and place "
+          "them on the Queue.")]
+   boolean QueueAcceptingFromService;
+};
+
+
+// ===================================================================
+// QueueForwardsToPrintSAP
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association indicates that the Jobs from a PrintQueue can "
+       "be sent to the referenced PrintSAP, to be handled by the SAP's "
+       "backing PrintService.")]
+class CIM_QueueForwardsToPrintSAP : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PrintSAP for the PrintService.")]
+   CIM_PrintSAP REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PrintQueue that forwards Jobs to the SAP.")]
+   CIM_PrintQueue REF Dependent;
+};
+
+
+// ===================================================================
+// OwningPrintQueue
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association indicates which Queue holds a PrintJob and "
+       "where the Job is located within that Queue. A Job may remain "
+       "on its final Queue once it has been printed with a "
+       "PrintJobStatus of \"Complete\" or \"Completed With Error\".")]
+class CIM_OwningPrintQueue : CIM_JobDestinationJobs {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The PrintQueue on which the Job is held.")]
+   CIM_PrintQueue REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The PrintJob.")]
+   CIM_PrintJob REF Dependent;
+
+      [Description (
+          "The position of the PrintJob on the Queue. The top of the "
+          "Queue is indicated by a value of 1 with higher values being "
+          "used to represent Jobs that are further away from the top "
+          "of the Queue. A QueuePosition of zero indicate that the Job "
+          "has completed (either with or without error).")]
+   uint32 QueuePosition;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

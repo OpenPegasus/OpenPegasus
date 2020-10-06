@@ -1,0 +1,105 @@
+<!--Soap Envelope is needed to declare namespaces-->
+
+<SOAP-ENV:Envelope
+  xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope"
+  xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:wsmb="http://schemas.dmtf.org/wbem/wsman/1/cimbinding.xsd"
+  xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd"
+  xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"
+  xmlns:wxf="http://schemas.xmlsoap.org/ws/2004/09/transfer"
+  xmlns:wsen="http://schemas.xmlsoap.org/ws/2004/09/enumeration"
+  xmlns:tns="http://schemas.microsoft.com/wmx/2005/06"
+  xmlns:wse="http://schemas.xmlsoap.org/ws/2004/08/eventing"
+  xmlns:wsmid="http://schemas.dmtf.org/wbem/wsman/identity/1/wsmanidentity.xsd">
+
+<!--Test simple selector and empty selector-->
+<wsman:Selector Name="first">John</wsman:Selector>
+<wsman:Selector Name="last"/>
+
+<!--Test EPR selector selector-->
+<wsman:Selector Name="CityOfBirth">
+  <wsa:EndpointReference>
+    <wsa:Address>http://www.acme.com:5988/wsman</wsa:Address>
+    <wsa:ReferenceParameters>
+      <wsman:ResourceURI>City</wsman:ResourceURI>
+      <wsman:SelectorSet>
+        <wsman:Selector Name="Name">San Jose</wsman:Selector>
+        <wsman:Selector Name="State">CA</wsman:Selector>
+      </wsman:SelectorSet>
+    </wsa:ReferenceParameters>
+  </wsa:EndpointReference>
+</wsman:Selector>
+
+<!--Test recursive EPR selector selector-->
+<wsman:Selector Name="Recursive_0">
+  <wsa:EndpointReference>
+    <wsa:Address>http://www.acme_0.com:5988/wsman</wsa:Address>
+    <wsa:ReferenceParameters>
+      <wsman:ResourceURI>ResourceURI_0</wsman:ResourceURI>
+      <wsman:SelectorSet>
+
+        <wsman:Selector Name="Recursive_1">
+           <wsa:EndpointReference>
+             <wsa:Address>http://www.acme_1.com:5988/wsman</wsa:Address>
+             <wsa:ReferenceParameters>
+               <wsman:ResourceURI>ResourceURI_1</wsman:ResourceURI>
+               <wsman:SelectorSet>
+
+                 <wsman:Selector Name="Recursive_2">
+                   <wsa:EndpointReference>
+                     <wsa:Address>http://www.acme_2.com:5988/wsman</wsa:Address>
+                     <wsa:ReferenceParameters>
+                       <wsman:ResourceURI>ResourceURI_2</wsman:ResourceURI>
+                       <wsman:SelectorSet>
+                         <wsman:Selector Name="Name">San Jose</wsman:Selector>
+                         <wsman:Selector Name="State">CA</wsman:Selector>
+                       </wsman:SelectorSet>
+                     </wsa:ReferenceParameters>
+                   </wsa:EndpointReference>
+                 </wsman:Selector>
+
+               </wsman:SelectorSet>
+             </wsa:ReferenceParameters>
+           </wsa:EndpointReference>
+        </wsman:Selector>
+
+      </wsman:SelectorSet>
+    </wsa:ReferenceParameters>
+  </wsa:EndpointReference>
+</wsman:Selector>
+
+<!--Error: selector has no name-->
+<wsman:Selector>John</wsman:Selector>
+<!--Error: selector has garbage for its value-->
+<wsman:Selector Name="First"><blah/></wsman:Selector>
+
+<!--Error: empty selector set-->
+<wsman:SelectorSet></wsman:SelectorSet>
+
+<!--Error: garbage in selector set-->
+<wsman:SelectorSet>Garbage</wsman:SelectorSet>
+<wsman:SelectorSet><wsa:ReferenceParameters/></wsman:SelectorSet>
+
+<!--Error: wsa:Address1 element is incorrect-->
+<wsa:EndpointReference>
+  <wsa:Address1>http://www.acme.com:5988/wsman</wsa:Address1>
+  <wsa:ReferenceParameters>
+    <wsman:ResourceURI>City</wsman:ResourceURI>
+    <wsman:SelectorSet>
+      <wsman:Selector Name="Name">San Jose</wsman:Selector>
+    </wsman:SelectorSet>
+  </wsa:ReferenceParameters>
+</wsa:EndpointReference>
+
+<!--Error: missing wsa:ReferenceParameters element-->
+<wsa:EndpointReference>
+    <wsman:ResourceURI>City</wsman:ResourceURI>
+    <wsman:SelectorSet>
+      <wsman:Selector Name="Name">San Jose</wsman:Selector>
+    </wsman:SelectorSet>
+</wsa:EndpointReference>
+
+
+</SOAP-ENV:Envelope>

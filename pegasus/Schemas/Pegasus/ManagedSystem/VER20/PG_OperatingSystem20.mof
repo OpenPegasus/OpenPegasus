@@ -1,0 +1,375 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+// =============================================================================
+// Title:              PG_OperatingSystem MOF
+// Filename:           PG_OperatingSystem20.mof
+// Description:        This MOF file defines the PG_OperatingSystem class.
+//                     It is a subclass of CIM_OperatingSystem class which 
+//                     adds information not contained in the superclass.
+// =============================================================================
+
+// Make sure MOF includes all necessary CIM superclasses 
+
+// =============================================================================
+// Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// =============================================================================
+
+// ==================================================================
+// ManagedElement
+// ================================================================== 
+   [Abstract, Description (
+     "ManagedElement is an abstract class that provides a common "  
+     "superclass (or top of the inheritance tree) for the "
+     "non-association classes in the CIM Schema.")]
+class CIM_ManagedElement {  
+      [MaxLen (64), Description (  
+        "The Caption property is a short textual description (one-"    
+        "line string) of the object.") ]   
+   string Caption;  
+      [Description (  
+        "The Description property provides a textual description of "
+        "the object.") ]   
+   string Description;    
+};
+     
+
+// ================================================================== 
+//    ManagedSystemElement
+// ==================================================================
+   [Abstract, Description (
+     "CIM_ManagedSystemElement is the base class for the System "
+     "Element hierarchy. Membership Criteria: Any distinguishable "
+     "component of a System is a candidate for inclusion in this "
+     "class. Examples: software components, such as files; and "
+     "devices, such as disk drives and controllers, and physical "
+     "components such as chips and cards.") ] 
+class CIM_ManagedSystemElement : CIM_ManagedElement {
+      [Description (
+        "A datetime value indicating when the object was installed. "
+        "A lack of a value does not indicate that the object is not "
+        "installed."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.5"} ] 
+   datetime InstallDate;
+      [MaxLen (256), Description (
+        "The Name property defines the label by which the object is "
+        "known. When subclassed, the Name property can be overridden "
+        "to be a Key property.") ] 
+   string Name;
+      [MaxLen (10), Description ( 
+        "  A string indicating the current status of the object. " 
+        "Various operational and non-operational statuses are " 
+        "defined. Operational statuses are \"OK\", \"Degraded\", " 
+        "\"Stressed\" and \"Pred Fail\". \"Stressed\" indicates that " 
+        "the Element is functioning, but needs attention. Examples " 
+        "of \"Stressed\" states are overload, overheated, etc. The " 
+        "condition \"Pred Fail\" (failure predicted) indicates that " 
+        "an Element is functioning properly but predicting a failure " 
+        "in the near future. An example is a SMART-enabled hard " 
+        "drive. \n" 
+        "  Non-operational statuses can also be specified. These " 
+        "are \"Error\", \"NonRecover\", \"Starting\", \"Stopping\", " 
+        " \"Stopped\", " 
+        "\"Service\", \"No Contact\" and \"Lost Comm\". \"NonRecover\" " 
+        "indicates that a non-recoverable error has occurred. " 
+        "\"Service\" describes an Element being configured, maintained, " 
+        "cleaned, or otherwise administered. This status could apply " 
+        "during mirror-resilvering of a disk, reload of a user " 
+        "permissions list, or other administrative task. Not all such " 
+        "work is on-line, yet the Element is neither \"OK\" nor in " 
+        "one of the other states. \"No Contact\" indicates that the " 
+        "current instance of the monitoring system has knowledge of " 
+        "this Element but has never been able to establish " 
+        "communications with it. \"Lost Comm\" indicates that " 
+        "the ManagedSystemElement is known to exist and has been " 
+        "contacted successfully in the past, but is currently unreachable." 
+        "\"Stopped\" indicates that the ManagedSystemElement is known " 
+        "to exist, it is not operational (i.e. it is unable to " 
+        "provide service to users), but it has not failed. It has purposely " 
+        "been made non-operational. The Element " 
+        "may have never been \"OK\", the Element may have initiated its " 
+        "own stop, or a management system may have initiated the stop."), 
+       ValueMap {"OK", "Error", "Degraded", "Unknown", "Pred Fail", 
+                 "Starting", "Stopping", "Service", "Stressed", 
+                 "NonRecover", "No Contact", "Lost Comm", "Stopped"} ] 
+   string Status; 
+};
+   
+// ==================================================================
+//    LogicalElement
+// ==================================================================
+   [Abstract, Description (
+     "CIM_LogicalElement is a base class for all the components of "
+     "a System that represent abstract system components, such "
+     "as Files, Processes, or system capabilities in the form "
+     "of Logical Devices.") ] 
+class CIM_LogicalElement : CIM_ManagedSystemElement {
+};
+
+// ===================================================================
+// OperatingSystem
+// ===================================================================
+   [Description (
+     "An OperatingSystem is software/firmware that makes a "
+     "ComputerSystem's hardware usable, and implements and/or "
+     "manages the resources, file systems, processes, user "
+     "interfaces, services, ... available on the ComputerSystem.") ] 
+class CIM_OperatingSystem : CIM_LogicalElement {
+      [Propagated ("CIM_ComputerSystem.CreationClassName"),
+       Key, MaxLen (256),
+       Description ("The scoping ComputerSystem's CreationClassName.") ]
+   string CSCreationClassName;
+      [Propagated ("CIM_ComputerSystem.Name"), 
+       Key, MaxLen (256),
+       Description ("The scoping ComputerSystem's Name.") ]
+   string CSName;
+      [Key, MaxLen (256),
+       Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Override ("Name"),
+       Key, MaxLen (256),
+       Description (
+        "The inherited Name serves as key of an OperatingSystem "
+        "instance within a ComputerSystem."),
+       MappingStrings {"MIF.DMTF|Operating System|001.2"}]
+   string Name;
+      [Description (
+        "A integer indicating the type of OperatingSystem."),
+       Values {"Unknown", "Other", "MACOS", "ATTUNIX", "DGUX",
+               "DECNT", "Digital Unix", "OpenVMS", "HPUX", "AIX",
+               "MVS", "OS400", "OS/2", "JavaVM", "MSDOS", "WIN3x",
+               "WIN95", "WIN98", "WINNT", "WINCE", "NCR3000",
+               "NetWare", "OSF", "DC/OS", "Reliant UNIX",
+               "SCO UnixWare", "SCO OpenServer", "Sequent",
+               "IRIX", "Solaris", "SunOS", "U6000", "ASERIES",
+               "TandemNSK", "TandemNT", "BS2000", "LINUX",
+               "Lynx", "XENIX", "VM/ESA", "Interactive UNIX",
+               "BSDUNIX", "FreeBSD", "NetBSD", "GNU Hurd", "OS9",
+               "MACH Kernel", "Inferno", "QNX", "EPOC", "IxWorks",
+               "VxWorks", "MiNT", "BeOS", "HP MPE", "NextStep",
+               "PalmPilot", "Rhapsody", "Windows 2000", "Dedicated",
+               "OS/390", "VSE", "TPF","Windows (R) Me", 
+               "Caldera Open UNIX", "OpenBSD"},
+       ModelCorrespondence {
+        "CIM_OperatingSystem.OtherTypeDescription"}]
+   uint16 OSType;
+      [Description (
+        "A string describing the manufacturer and OperatingSystem "
+        "type - used when the OperatingSystem property, OSType, is "
+        "set to 1 or 59 (\"Other\" or \"Dedicated\"). The format of "
+        "the string inserted in OtherTypeDescription should be "
+        "similar in format to the Values strings defined for OSType. "
+        "OtherTypeDescription should be set to NULL when OSType is "
+        "any value other than 1 or 59."),
+       MaxLen (64),
+       ModelCorrespondence {"CIM_OperatingSystem.OSType"}]
+   string OtherTypeDescription;
+      [Description(
+        "A string describing the Operating System's version "
+        "number. The format of the version information is as follows: "
+        "<Major Number>.<Minor Number>.<Revision> or "
+        "<Major Number>.<Minor Number>.<Revision Letter>."),
+       MappingStrings {"MIF.DMTF|Operating System|001.3"}]
+   string Version;
+      [Description ("Time when the OperatingSystem was last booted."),
+       MappingStrings {"MIF.DMTF|General Information|001.5"}]
+   datetime LastBootUpTime; 
+      [Description (
+        "OperatingSystem's notion of the local date and time of day."),
+       MappingStrings {"MIB.IETF|HOST-RESOURCES-MIB.hrSystemDate",
+        "MIF.DMTF|General Information|001.6"}]
+   datetime LocalDateTime;
+      [Description (
+        "CurrentTimeZone indicates the number of minutes the "
+        "OperatingSystem is offset from Greenwich Mean Time. "
+        "Either the number is positive, negative or zero."),
+       Units("Minutes") ]
+   sint16 CurrentTimeZone;
+      [Description (
+       "Number of user licenses for the OperatingSystem. "
+       "If unlimited, enter 0.") ]
+   uint32 NumberOfLicensedUsers;
+      [Description (
+        "Number of user sessions for which the OperatingSystem is "
+        "currently storing state information."), Gauge,
+       MappingStrings {"MIF.DMTF|Host System|001.4",
+        "MIB.IETF|HOST-RESOURCES-MIB.hrSystemNumUsers"} ]
+   uint32  NumberOfUsers;
+      [Description (
+        "Number of process contexts currently loaded or running on "
+        "the OperatingSystem."), Gauge, 
+       MappingStrings {"MIF.DMTF|Host System|001.5",
+        "MIB.IETF|HOST-RESOURCES-MIB.hrSystemProcesses"} ]
+   uint32 NumberOfProcesses;
+      [Description (
+        "Maximum number of process contexts the OperatingSystem can "
+        "support. If there is no fixed maximum, the value should be 0."
+        "On systems that have a fixed maximum, this object can help "
+        "diagnose failures that occur when the maximum is reached."), 
+       MappingStrings {"MIF.DMTF|Host System|001.6",
+        "MIB.IETF|HOST-RESOURCES-MIB.hrSystemMaxProcesses"} ]
+   uint32 MaxNumberOfProcesses;
+      [Description (
+        "Total swap space in Kbytes. This value may be "
+        "NULL (unspecified) if swap space is not distinguished from "
+        "page files.  However, some Operating Systems distinguish "
+        "these concepts.  For example, in UNIX, whole processes can "
+        "be 'swapped out' when the free page list falls and remains "
+        "below a specified amount."),
+       Units("KiloBytes") ]
+   uint64 TotalSwapSpaceSize;
+      [Description (
+        "Number of Kbytes of virtual memory. For example, "
+        "this may be calculated by adding the amount of total RAM to "
+        "the amount of paging space (ie, adding the amount of "
+        "memory in/aggregated by the ComputerSystem to the property, "
+        "SizeStoredInPagingFiles."),
+       Units("KiloBytes"),
+       MappingStrings {"MIF.DMTF|System Memory Settings|001.5"}]
+   uint64 TotalVirtualMemorySize;
+      [Gauge, Description (
+        "Number of Kbytes of virtual memory currently unused and "
+        "available. For example, this may be calculated by adding "
+        "the amount of free RAM to the amount of free paging space "
+        "(ie, adding the properties, FreePhysicalMemory and FreeSpace"
+        "InPagingFiles)."),
+       Units("KiloBytes"), 
+       MappingStrings {"MIF.DMTF|System Memory Settings|001.6"}]
+   uint64 FreeVirtualMemory;
+      [Gauge, Description (
+        "Number of Kbytes of physical memory currently unused and "
+        "available."),
+       Units("KiloBytes"),
+       MappingStrings{"MIF.DMTF|System Memory Settings|001.2", 
+        "MIF.UNIX|Host Physical Memory|6.1"} ] 
+   uint64 FreePhysicalMemory;
+      [Description (
+        "The total amount of physical memory (in Kbytes) available "
+        "to the OperatingSystem. This value does not necessarily "
+        "indicate the true amount of physical memory, but what is "
+        "reported to the OperatingSystem as available to it."),
+       Units("KiloBytes") ]
+   uint64 TotalVisibleMemorySize;
+      [Description (
+        "The total number of KBytes that can be stored in the "
+        "OperatingSystem's paging files. 0 indicates that there "
+        "are no paging files."),
+       Units("KiloBytes"),
+       MappingStrings {"MIF.DMTF|System Memory Settings|001.3"}]
+   uint64 SizeStoredInPagingFiles;
+      [Gauge, Description (
+        "The total number of KBytes that can be mapped into the "
+        "OperatingSystem's paging files without causing any other "
+        "pages to be swapped out. 0 indicates that there are no "
+        "paging files."),
+       Units("KiloBytes"),
+       MappingStrings {"MIF.DMTF|System Memory Settings|001.4"}]
+   uint64 FreeSpaceInPagingFiles;
+      [Description (
+        "Maximum number of Kbytes of memory that can be allocated "
+        "to a Process. For Operating Systems with no virtual memory, "
+        "this value is typically equal to the total amount of "
+        "physical Memory minus memory used by the BIOS and OS. For "
+        "some Operating Systems, this value may be infinity - in "
+        "which case, 0 should be entered. In other cases, this value "
+        "could be a constant - for example, 2G or 4G."),
+       Units("KiloBytes") ]
+   uint64 MaxProcessMemorySize;
+      [Description (
+        "Boolean indicating whether the OperatingSystem is "
+        "distributed across several ComputerSystem nodes. If so, "
+        "these nodes should be grouped as a Cluster.") ]
+   boolean Distributed;
+      [Description (
+        "A value that indicates the maximum processes that a user "
+        "can have associate with it.") ]
+   uint32  MaxProcessesPerUser;
+      [Description (
+        "Requests a reboot of the OperatingSystem. The return value "
+        "should be 0 if the request was successfully executed, "
+        "1 if the request is not supported and some other value "
+        "if an error occurred. In a subclass, the set of possible "
+        "return codes could be specified, using a ValueMap qualifier "
+        "on the method. The strings to which the ValueMap contents "
+        "are 'translated' may also be specified in the subclass as "
+        "a Values array qualifier.") ]
+   uint32 Reboot();
+      [Description (
+        "Requests a shutdown of the OperatingSystem. The return "
+        "value should be 0 if the request was successfully executed, "
+        "1 if the request is not supported and some other value if "
+        "an error occurred. It is up to the implementation or subclass "
+        "of OperatingSystem to establish dependencies between "
+        "the Shutdown and Reboot methods, and for example, to provide "
+        "more sophisticated capabilities such as scheduled shutdown/"
+        "reboot, etc. In a subclass, the set of possible return "
+        "codes could be specified, using a ValueMap qualifier on "
+        "the method. The strings to which the ValueMap contents are "
+        "'translated' may also be specified in the subclass as a "
+        "Values array qualifier.") ]
+   uint32 Shutdown();
+};
+
+// ==========================================================================
+// End of Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// ==========================================================================
+
+
+// ===================================================================
+// PG_OperatingSystem
+// ===================================================================
+   [Version ("2.2.0"), Description (
+     "An extension of CIM_OperatingSystem which adds information "
+     "not contained in the superclass.")] 
+class PG_OperatingSystem	: CIM_OperatingSystem
+{
+    [Description (
+         "The capability of this operating system. "
+         "One capability is '32 bit' or '64 bit'. ")
+    ]
+    string OperatingSystemCapability;
+    [Description (
+         "The elapsed time, in seconds, since the OS was booted."
+         "A convenience property, versus having to calculate"
+         "the time delta from LastBootUpTime to LocalDateTime.")
+    ]
+    uint64 SystemUpTime ;
+};

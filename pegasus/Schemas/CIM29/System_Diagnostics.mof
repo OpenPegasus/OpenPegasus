@@ -1,0 +1,1989 @@
+// ===================================================================
+// Title: System_Diagnostics
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: System_Diagnostics.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The System Model defines system related management
+//              concepts. This file defines the specific concepts for
+//              Diagnostics.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for V2.9 Final
+// CR1443 - Fixes for V2.9 Diags Preliminary
+// CR1542 - Fix error in application of CR00572
+// CR1543 - Make OtherCharacteristicDescription an array
+// CR1549 - Finalize Diagnostics Model in 2.9
+// CR1551 - Remove "Unknown/Default"s and "None"s from various enums.
+// CR1556 - Delete SupportedVerbosityLevels
+// CR1579 - Correct some descriptions
+// CR1591 - Add a timestamp to DiagnosticRecord
+// 
+// Change Log for v2.9 Preliminary Company Review
+// CR1443 - Add ModelCorrespondance DiagnosticSetting.LoopControl,
+//          remove initialization of DiagnosticSetting.VerbosityLevel,
+//          and deprecate
+//          DiagnosticServiceCapabilities.SupportedTestWarnings
+// CR1453 - Corrections to DiagnosticServiceCapabilities
+// CR1454 - Various Corrections to the Diagnostic SubModel
+// CR1455 - Corrections to DiagnosticRecord and DiagnosticSetting
+//          corresponding to DiagnosticServiceCapabilities
+// CR1465 - Corrected compile errors and warnings.
+// 
+// Change Log for 2.9 Preliminary
+// CR 1190 - Rewrite LogOptions and deprecate TestWarningLevel
+// CR 1287 - Remove DiagnosticRecord.ExecutionID, override the
+//  description for RecordID, and add a new required property:
+//  ManagedElementName
+// CR 1320 - Make DiagnosticSetting.OtherLoopControlDescriptions an
+//  array and some other fixes.
+// CR 1322 - Add "Device Errors" to LogOptions and RecordType
+// CR 1281 - Deprecate CIM_DiagnosticTest.ClearResults
+// CR 1323 - Add DiagnosticRecordLog to SupportedLogStorage and cleanup
+// CR 1292 - Add "Media Required" to CIM_DiagnosticTest.Characteristics
+// CR 1369 - Add "Additional Hardware Required" to
+//  CIM_DiagnosticTest.Characteristics
+// The decision was made to leave all diagnostics Experimental classes
+// and properties as Experimental in V2.9. V2.9 Preliminary was created
+// by applying all V2.8 CRs to the V2.8 Final mof. Following is a list
+// of these CRs (described in earlier change logs):
+// CR1072
+// CR1073
+// CR1074
+// CR1075
+// CR1076
+// CR1077
+// CR1078
+// CR1079
+// CR1080
+// CR936 - Add an expiration date to DiagnosticServiceRecord.
+// CR937 - Localization *** needs to be applied to CORE
+// CR938 - Redefine DataFormat and add a data property to LogRecord.
+//         *** This needs to be applied to System28_Logs.mof
+// CR939
+// CR944
+// CR945
+// CR946
+// CR947
+// CR1020
+// CR1041 - Add Help service. *** This is IN 2.8 final
+// CR1181
+// CR1091 - Cleanup of RunDiagnostic methods
+// CR1125 - Rename Verbosity to TestResultLevel since it is a
+//          corollary of TestWarningLevel.  Clean up descriptions
+//          in LogOptions.
+// CR1126 - DiagnosticServiceRecord vs. DiagnosticSettingRecord
+// CR1130 - DiagnosticsServiceCapabilities model correspondance
+//          corrections
+// 
+// Change Log for 2.8 Final
+// CR1204 - Removal of Experimental for Preliminary to Final
+//        - all diagnostics kept as experimental for 2.9 prelim
+// CR1184 - Change the "Boolean" declaration to "boolean" for
+//          DiagnosticTest.DiscontinueTest(TestingStopped)
+// CR1223 - SysDev Omnibus MOF corrections.
+// 
+// Change Log for 2.8 Preliminary
+// CR947 - Add new record types
+// CR945 - Change description of ResultPersistence to apply to LogRecord
+// CR944 - IsSynchronous DiagnosticTest Characteristic and Miscellaneous
+//          cleanup related to PercentOfTestCoverage and IsPackage
+// CR937  - Localization
+// CR946 - Deprecate DiagnosticResult and add needed
+//        properties to DiagnosticServiceRecord
+// CR939 - Add verbosity setting for result messages
+// CR1020 - Promote "Test" associations to "Service"
+// CR1041 - Add Help service
+// CR1091 - Cleanup of RunDiagnostic methods
+// CR1092  - Move HelpService to new Core28_Help from
+//           System28_Diagnostics
+// CR1125 - Rename Verbosity to TestResultLevel since it is a
+//          corollary of TestWarningLevel.  Clean up descriptions
+//          in LogOptions.
+// CR1126 - DiagnosticServiceRecord vs. DiagnosticSettingRecord
+// CR1130 - DiagnosticsServiceCapabilities model correspondance
+//          corrections
+// 
+// Changes to bring forward from final
+// CR726/CR1072 - Add LogOptions, OtherLogOptionDescriptions to
+//         DiagnosticSetting and DiagnosticResult
+//         Deprecate ReportSoftErrors and ReportStatusMessages from
+//         DiagnosticSetting and DiagnosticResult
+// CR764/CR1076 - Add DiagnosticService
+//       - Change subclassing of DiagnosticTest from Service to
+//         DiagnosticService
+//       - Deprecation DiagnosticTest.ResourcesUsed and DiagnosticTest.
+//         IsInUse
+//       - Fix the Class Name in the ModelCorrespondence string for
+//         DiagnosticTest.OtherCharacteristicDescription
+// CR765/CR1077 - Update the the DiagnoticTest and DiagnosticResult
+//         LogOptions property
+//       - Modify the description of DiagnosticResult.TestResults
+// CR779/CR1073 - Add DiagnosticService.RunDiagnostic()
+//       - Deprecate DiagnosticTest.RunTest()
+//       - Deprecate DiagnosticTest.DiscontinueTest()
+//       - Update class description for DiagnosticTest
+// CR780/CR1074 - Add DiagnosticServiceCapabilities
+// CR781/CR1075 - Add DiagnosticServiceRecord
+// CR887/CR1078 - Fix the DiagnosticService.RunDiagnostic return range
+// for
+//         Method Reserved.
+// CR888/CR1079 - Correct DateTime format in the description of
+//         DiagnosticResult.TestResults
+// CR889/CR1080 - For consistency change the deprecation statement in
+//         RunTest to reference the class where the RunDiagnostic
+//         is defined (DiagnosticService).
+// 
+// Change Log for v2.7 Final
+// CR1010 - Update DiagnosticResult.TestResults Description
+//          related to datetime
+// CR965 - Update description for DiagnosticTestForMSE
+// CR973 - Remove Experimental from
+//         DiagnosticSetting.LoopControlParameter
+//         DiagnosticSetting.LoopControl
+//         DiagnosticSetting.OtherLoopControlDescription
+//         DiagnosticSetting.ResultPersistence
+//         DiagnosticResult.ErrorCode
+//         DiagnosticResult.ErrorCount
+//         DiagnosticResult.LoopsFailed
+//         DiagnosticResult.LoopsPassed
+//         DiagnosticResult.LoopControlParameter
+//         DiagnosticResult.LoopControl
+//         DiagnosticResult.OtherLoopControlDescription
+//         DiagnosticResult.ResultPersistence
+//       - Move forward with the deprecations
+//         DiagnosticResult.IsPackage
+//         DiagnosticTest.IsinUse
+//         DiagnosticTest.ResourcesUsed
+//         DiagnosticResultInPackage
+//         DiagnosticTestInPackage
+//         DiagnosticTest.RunTest
+//         DiagnosticSetting. and DiagnosticResult.ReportSoftErrors
+//         DiagnosticSetting. and DiagnosticResult.ReportStatusMessages
+//       - Hold off the rest of the Diagnostic deprecations and
+//         experimental classes and properties until 2.8 (this
+//         includes DiagnosticService, DiagnosticServiceRecord and
+//         DiagnosticServiceCapabilities)
+// 
+// Change Log for v2.7
+// CR725 - Add the following 3 properties LoopControlParameter,
+//         LoopControl, and OtherLoopControlDescription to
+//         DiagnosticSetting and DiagnosticResult
+// CR749 - Deprecate DiagnosticTestInPackage, DiagnosticResultInPackage,
+//         and DiagnosticResult.IsPackage
+// CR766 - Add the following properties to DiagnosticResult:
+//         ErrorCode, ErrorCount, LoopsFailed, LoopsPassed
+// CR778 - Add property ResultPersistence to DiagnosticSetting and
+//         DiagnosticResult
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// DiagnosticSetting
+// ==================================================================
+   [Version ( "2.9.0" ), Description (
+       "Specific diagnostic test parameters and execution instructions "
+       "are defined by this class. To provide more detailed Settings "
+       "for a type of test (i.e., additional properties), subclassing "
+       "is appropriate.")]
+
+class CIM_DiagnosticSetting : CIM_Setting {
+
+      [Key, Override ( "SettingID" ), Description (
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of SettingID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the SettingID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority. (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in SettingID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "SettingID is not re-used across any SettingIDs produced by "
+          "this or other providers for this instance's NameSpace. \n"
+          "A preferred value for <LocalID> is a timestamp (CIM "
+          "DateTime). For example, ACME:19980525133015.0000000-300"), 
+       MaxLen ( 256 )]
+   string SettingID;
+
+      [Deprecated { "CIM_DiagnosticSetting.LogOptions",
+          "CIM_DiagnosticSetting.VerbosityLevel" }, Write, 
+       Description (
+          "This property is being deprecated because the "
+          "TestWarningLevel and LogOptions properties serve the same "
+          "purpose. It is deprecated in lieu of using the LogOptions "
+          "('Warnings') property in conjunction with VerbosityLevel to "
+          "specify this information. The 'Missing Resources' and "
+          "'Testing Impacts' values are not included directly in "
+          "LogOptions, but they are expected to be recorded in the "
+          "resulting DiagnosticServiceRecord object. \n"
+          "\n"
+          "Sets the level of warning messages to be logged. \n"
+          "If for example no warning information is required, the "
+          "level would be set to \"No Warnings\" (value=0). Using "
+          "\"Missing Resources\" (value=1) will cause warnings to be "
+          "generated when required resources or hardware are not "
+          "found. Setting the value to 2, \"Testing Impacts\", results "
+          "in both missing resources and 'test impact' warnings (for "
+          "example, multiple retries required) to be reported."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "No Warnings", "Missing Resources", "Testing Impacts",
+          "All Warnings" }]
+   uint16 TestWarningLevel;
+
+      [Deprecated { "CIM_DiagnosticSetting.LogOptions" }, Write, 
+       Description (
+          "When this flag is true, the diagnostic test will report "
+          "'soft errors'. In this context, a soft error is a message "
+          "from the diagnostic reporting a known defect in the "
+          "hardware or driver configuration, or execution environment. "
+          "Examples are: 'Not enough memory', 'Driver IOCTL not "
+          "implemented', 'Video RAM compare failed during polygon fill "
+          "test (A known defect in the video chipset)', etc.")]
+   boolean ReportSoftErrors;
+
+
+      [Deprecated { "CIM_DiagnosticSetting.LogOptions" }, Write, 
+       Description (
+          "When this flag is true, the diagnostic test will report "
+          "'status messages'. In this context, a status message "
+          "indicates that the diagnostic code is at a checkpoint. "
+          "Examples are: \"Completion of phase 1\", \"Complex "
+          "pattern\", etc.")]
+   boolean ReportStatusMessages;
+
+      [Write, Description (
+          "When this flag is true, the test will halt after finding "
+          "the first error.")]
+   boolean HaltOnError;
+
+      [Write, Description (
+          "When this flag is true, the test software should attempt to "
+          "run in an accelerated fashion either by reducing the "
+          "coverage or number of tests performed.")]
+   boolean QuickMode;
+
+      [Write, Description (
+          "Requests the diagnostic software to reduce test coverage to "
+          "the specified percentage. For example, a hard drive scan "
+          "test could be asked to run at 50%. The most effective way "
+          "to accomplish this is for the test software to scan every "
+          "other track, as opposed to only scanning the first half of "
+          "a drive. It is assumed that the effectiveness of the test "
+          "is impacted proportional to the percentage of testing "
+          "requested. Permissible values for this property range from "
+          "0 to 100."), 
+       Units ( "Percent" ), MinValue ( 0 ), MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceCapabilities.SupportedServiceModes" }]
+   uint8 PercentOfTestCoverage;
+
+      [Write, Description (
+          "Array entries contain parameters corresponding to entries "
+          "in the LoopControl array, limiting the number of times a "
+          "test should be repeated with a single invocation of a test "
+          "method by a CIM client."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticSetting.LoopControl" }]
+   string LoopControlParameter[];
+
+      [Write, Description (
+          "LoopControl, used in conjunction with LoopControlParameter, "
+          "sets one or more loop control mechanisms that limits the "
+          "number of times a test should be repeated with a single "
+          "invocation of a test method by a CIM client. There is an "
+          "array-positional correspondence between LoopControl entries "
+          "& LoopControlParameter entries. The entries in these "
+          "coupled arrays of loop controls can be used in a logical OR "
+          "fashion to achieve the desired loop control. For example, "
+          "if a client wants to loop a test 1000 times, but quit if a "
+          "timer runs out, it could set both controls into the "
+          "LoopControl array as two separate entries in each array. "
+          "The looping test will terminate when the first of the two "
+          "ORed conditions are met. \n"
+          "The descriptions for each loop control are given below: \n"
+          "Unknown (= 0) \n"
+          "Other (= 1) : Additional detail may be found in "
+          "OtherLoopControlDescriptions. \n"
+          "Continuous (= 2) : The corresponding LoopControl Parameter "
+          "is ignored and the test will execute continuously. Tests "
+          "that use this control should also support DiscontinueTest. "
+          "\nCount(=3) : The corresponding LoopControlParameter is "
+          "interpreted as a loop count (uint32), indicating the number "
+          "of times the test should be repeated with a single "
+          "invocation of a test method by a CIM client. \n"
+          "Timer (= 4) : The corresponding LoopControlParameter is "
+          "interpreted as an initial value (uint32) for a test loop "
+          "timer, given in seconds. The looping is terminated when "
+          "this timer has lapsed. \n"
+          "ErrorCount (= 5) : The corresponding LoopControl Parameter "
+          "is interpreted as an error count (uint32). The loop will "
+          "continue until the number of errors that have occurred "
+          "exceeds the ErrorCount. Note: the ErrorCount only refers to "
+          "hard test errors; it does not include soft errors or "
+          "warnings."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Continuous", "Count", "Timer",
+          "ErrorCount" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSetting.LoopControlParameter",
+          "CIM_DiagnosticSetting.OtherLoopControlDescriptions",
+          "CIM_DiagnosticServiceCapabilities.SupportedLoopControl" }]
+   uint16 LoopControl[];
+
+      [Deprecated { 
+          "CIM_DiagnosticSetting.OtherLoopControlDescriptions" }, Write, 
+       Description (
+          "This property is deprecated and replaced with an array. \n"
+          "It provides additional information for LoopControl when its "
+          "value is set to 1 ('Other')."), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSetting.LoopControlParameter" }]
+   string OtherLoopControlDescription;
+
+      [Write, Description (
+          "This property provides additional information for "
+          "LoopControl when the corresponding value is set to 1 "
+          "('Other')."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSetting.LoopControlParameter",
+          "CIM_DiagnosticSetting.LoopControl" }]
+   string OtherLoopControlDescriptions[];
+
+      [Write, Description (
+          "The ResultPersistence property is a directive from a "
+          "diagnostic client to a diagnostic provider. It allows the "
+          "client to specify to the diagnostic service provider how "
+          "long to persist the messages that result from execution of "
+          "a diagnostic service. This applies to instances of "
+          "DiagnosticResult as well as the preferred use of "
+          "DiagnosticServiceRecord. The timeout period starts upon "
+          "completion of the diagnostic action described by the "
+          "DiagnosticService. \n"
+          "\n"
+          "Here is a summary of the choices and behaviors for "
+          "different ResultPersistence values: \n"
+          "0 = \"No Persistence\": \n"
+          "Setting the timer to zero tells the provider not to persist "
+          "the diagnostic result. The diagnostic information is only "
+          "available while the diagnostic is executing or at its "
+          "conclusion. \n"
+          "Value > 0 and < 0xFFFFFFFF = \"Persist With TimeOut\": \n"
+          "Setting the ResultPersistenceOption to a integer will cause "
+          "the DiagnosticResult to be persisted for that number of "
+          "seconds. At the end of that time, the DiagnosticResult may "
+          "be deleted by the diagnostic service provider. \n"
+          "0xFFFFFFFF = \"Persist Forever\": \n"
+          "By setting the timeout value to the very large value, "
+          "0xFFFFFFFF, the provider shall persist results forever. In "
+          "this case, the client MUST bear the responsibility for "
+          "deleting them."), 
+       Units ( "Seconds" )]
+   uint32 ResultPersistence;
+
+      [Write, Description (
+          "The LogOptions property is used to specify the types of "
+          "data that SHOULD be logged by the diagnostic service. Any "
+          "number of values may be specified in the array. Note that "
+          "the default behavior is for nothing to be logged. \n"
+          "The AMOUNT of data to be logged can be controlled for each "
+          "value selected by specifying a VerbosityLevel value. "
+          "Verbosity may not apply to all LogOptions values, in which "
+          "case the default VerbosityLevel of \"Standard\" SHOULD be "
+          "used. \n"
+          "The RecordForLog produced by running a service MUST be "
+          "tagged with a RecordType that corresponds to one of these "
+          "log option values. \n"
+          "Following is a brief description of the available log "
+          "options: \n"
+          "* \"Other\" (value = 1): Details are given in the "
+          "corresponding OtherLogOptionsDescriptions entry. \n"
+          "* \"Results\" (value = 2): Log the results obtained by "
+          "running the service. This is the most common value for "
+          "reporting the service results. \n"
+          "* \"Subtests\" (value = 3): Log a test summary report upon "
+          "completion of each subtest and each loop iteration. The "
+          "summary reports SHOULD state whether the individual subtest "
+          "or iteration passed or failed and list relevant error codes "
+          "and respective error counts. \n"
+          "* \"Actions\" (value = 4): Log corrective action and "
+          "instructional messages to guide service personnel; for "
+          "example, a prioritized list of actions to perform in order "
+          "to isolate a failure or correct a problem. When ordering "
+          "steps or prioritizing actions, a number should proceed the "
+          "text; for example, 1) Do this first, 2) Do this next, etc. "
+          "\n* \"Warnings\" (value = 5): Log warning messages; for "
+          "example, 'device will be taken off line', 'test is "
+          "long-running' or 'available memory is low'. The "
+          "VerbosityLevel value specified for the Warnings option is "
+          "related to the severity of the warnings logged; for "
+          "instance, one would specify a high level of verbosity to "
+          "get all warnings logged, regardless of severity, and a low "
+          "level of verbosity to have only the most severe warnings "
+          "logged. \n"
+          "* \"Status\" (value = 6): Log status messages; for example, "
+          "state information for the driver, device, or system. \n"
+          "* \"Device Errors\" (value = 7): Log errors related to the "
+          "managed element being serviced. \n"
+          "* \"Service Errors\" (value = 8): Log errors related to the "
+          "service itself rather than the element being serviced, such "
+          "as 'Resource Allocaton Failure'. \n"
+          "* \"Setting Data\" (value=9): Log the property values of "
+          "the DiagnosticSetting object used to configure the service. "
+          "\n* \"Statistics\" (value = 10): Log statistical messages; "
+          "for example, packets sent per second. \n"
+          "* \"Hardware Configuration\" (value = 11): Log messages "
+          "that contain information about the hardware configuration "
+          "as viewed by the service; for example, vendor, version, FRU "
+          "identification, and location information. The format and "
+          "contents of this property is element dependent. Examples "
+          "are: SCSI ID, LPTx, PCI Slot Number, and Dimm#. \n"
+          "* \"Software Configuration\" (value = 12): Log messages "
+          "that contain information about the software environment as "
+          "viewed by the service; for example, the name and version of "
+          "all the critical software elements controlling the device "
+          "under test. Each configuration message SHOULD have the "
+          "following common format: Element name; element type; "
+          "manufacturer name; version; for example, 'Miniport driver; "
+          "SCSI; Intel; Version 1.2'. \n"
+          "* \"Reference\" (value = 13): Log the keys of an CIM object "
+          "of of interest; for example, the element under test, or a "
+          "data file. \n"
+          "* \"Debug\" (value = 14): Log debug messages. These "
+          "messages are vendor specific."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15" }, 
+       Values { "Unknown", "Other", "Results", "Subtests", "Actions",
+          "Warnings", "Status", "Device Errors", "Service Errors",
+          "Setting Data", "Statistics", "Hardware Configuration",
+          "Software Configuration", "References", "Debug",
+          "No Log Options" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSetting.OtherLogOptionsDescriptions",
+          "CIM_DiagnosticServiceCapabilities.SupportedLogOptions",
+          "CIM_DiagnosticServiceRecord.RecordType",
+          "CIM_DiagnosticSetting.VerbosityLevel" }]
+   uint16 LogOptions[];
+
+      [Write, Description (
+          "Provides additional information regarding the types of test "
+          "messages that are logged when the property LogOptions "
+          "includes the value 1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_DiagnosticSetting.LogOptions" }]
+   string OtherLogOptionsDescriptions[];
+
+      [Write, Description (
+          "The LogStorage setting property indicates which types of "
+          "supported storage should be used by the Diagnostic Service "
+          "for logging of the data specified in LogOptions. \n"
+          "The values are: \n"
+          "\"DiagnosticRecordLog\" (Value = 2): Use the "
+          "DiagnosticRecordLog and DiagnosticRecord classes. \n"
+          "\"MessageLog\" (Value = 4): Use the MessageLog class and "
+          "its methods. \n"
+          "\"File\" (Value = 5): Write data to a file."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "DiagnosticRecordLog",
+          "MessageLog", "File" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSetting.OtherLogStorageDescriptions",
+          "CIM_DiagnosticServiceCapabilities.SupportedLogStorage" }]
+   uint16 LogStorage[];
+
+      [Write, Description (
+          "This property provides additional information for "
+          "LogStorage when the corresponding value is set to 1 "
+          "(\"Other\")."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticSetting.LogStorage" }]
+   string OtherLogStorageDescriptions[];
+
+      [Write, Description (
+          "A client may want to specify the desired volume or detail "
+          "logged by a diagnostic service. This property is applied to "
+          "a corresponding logging option, acting as a qualifier on "
+          "its description. Three levels of verbosity are defined as "
+          "follows: \n"
+          "* \"Minimum\" (value=2): Specified if the least amount of "
+          "information is desired; for example, Pass or Fail. \n"
+          "* \"Standard\" (value=3): This is the standard level of "
+          "messaging provided by the service. It is the form most "
+          "likely to be used if no verbosity value is specified "
+          "(default). \n"
+          "* \"Full\" (value=4): Specified when all information, "
+          "regardless of size, is desired. \n"
+          "Note that VerbosityLevel is a subjective property and "
+          "relates to the degree of detail, not an absolute metric. A "
+          "client simply specifies its desired level of detail and the "
+          "provider publishes its data in accordance with this desired "
+          "level of detail. \n"
+          "Verbosity may not apply to all LogOptions values, in which "
+          "case the default VerbosityLevel of \"Standard\" SHOULD be "
+          "used."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Minimum", "Standard", "Full" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticSetting.LogOptions" }]
+   uint16 VerbosityLevel[];
+
+      [Write, Description (
+          "This property, along with the locale information in "
+          "LocalizationCapabilities and DiagnosticServiceRecord, meets "
+          "the requirement to specify locale for results produced by a "
+          "diagnostic service. A locale indicates a particular "
+          "geographical, political, or cultural region. The Locales "
+          "property of the DiagnosticSetting class is an array of "
+          "strings whose entries specify a language to be used in the "
+          "formulation of information requested by or delivered to a "
+          "client as a result of running a diagnostic service. It is "
+          "specified by the client as an input parameter to the "
+          "RunDiagnostic method, by virtue of its inclusion in this "
+          "Setting class which is a parameter of the method. A single "
+          "Setting object may specify more than one Locale. In this "
+          "case, information MUST be returned in each language "
+          "specified. \n"
+          "\n"
+          "Each array entry consists of three sub-strings, separated "
+          "by underscores: \n"
+          "- The first sub-string is the language code, as specified "
+          "in ISO639. \n"
+          "- The second sub-string is the country code, as specified "
+          "in ISO3166. \n"
+          "- The third sub-string is a variant, which is vendor "
+          "specific. \n"
+          "For example, US English appears as: \"en_US_WIN\", where "
+          "the \"WIN\" variant would specify a Windows "
+          "browser-specific collation (if one exists). Since the "
+          "variant is not standardized, it is not commonly used and "
+          "generally is limited to easily recognizable values "
+          "(\"WIN\", \"UNIX\", \"EURO\", etc.) used in standard "
+          "environments. The language and country codes are required; "
+          "the variant may be empty."), 
+       ModelCorrespondence { 
+          "CIM_LocalizationCapabilities.SupportedOutputLocales" }]
+   string Locales[];
+
+
+};
+
+
+// ==================================================================
+// DiagnosticResult
+// ==================================================================
+   [Deprecated { "CIM_DiagnosticServiceRecord" }, Version ( "2.7.0" ), 
+    Description (
+       "When a DiagnosticTest Service is running, test results are "
+       "reported using a DiagnosticResult object, or one of its "
+       "subclasses. A DiagnosticTest may be running because its "
+       "Service is Started or due to an invocation of the RunTest "
+       "method. Diagnostic Results are related to their Test via an "
+       "instance of the DiagnosticResultsForMSE association. \n"
+       "For every running of DiagnosticTest, a new instance of "
+       "DiagnosticResult, or one of it's subclasses should be created.")]
+class CIM_DiagnosticResult {
+
+      [Deprecated { "No Value" }, Key,
+          Propagated ( "CIM_DiagnosticTest.CreationClassName" ), 
+       Description (
+          "The scoping Test's CreationClassName."), 
+       MaxLen ( 256 )]
+   string DiagnosticCreationClassName;
+
+      [Deprecated { "No Value" }, Key,
+          Propagated ( "CIM_DiagnosticTest.Name" ), Description (
+          "The scoping Test's Name."), 
+       MaxLen ( 256 )]
+   string DiagnosticName;
+
+      [Deprecated { "No Value" }, Key,
+          Propagated ( "CIM_DiagnosticTest.SystemCreationClassName" ), 
+       Description (
+          "The scoping Test's SystemCreationClassName."), 
+       MaxLen ( 256 )]
+   string DiagSystemCreationClassName;
+
+      [Deprecated { "No Value" }, Key,
+          Propagated ( "CIM_DiagnosticTest.SystemName" ), Description (
+          "The scoping Test's SystemName."), 
+       MaxLen ( 256 )]
+   string DiagSystemName;
+
+      [Deprecated { "CIM_DiagnosticRecord.InstanceID" }, Key, 
+       Description (
+          "The Unique identifier for an instance of Diagnostic "
+          "Results."), 
+       MaxLen ( 1024 )]
+   string ExecutionID ;
+
+      [Deprecated { "CIM_LogRecord.MessageTimestamp" }, Description (
+          "The date and time the result was last updated.")]
+   datetime TimeStamp;
+
+      [Deprecated { "No Value" }, Description (
+          "This property is being deprecated. Tests should be grouped "
+          "at the test level, not by the model. /n If this property is "
+          "TRUE, then this DiagnosticResult summarizes the results "
+          "from the execution of a packaged set of DiagnosticTests. "
+          "The Tests in the package can be identified by following the "
+          "DiagnosticResultForTest association to the test and then "
+          "using the DiagnosticTest InPackage aggregation. The "
+          "individual Results can be broken out by instantiating "
+          "DiagnosticResults for the individual lower level tests and "
+          "aggregating into the 'summary' Result using the "
+          "DiagnosticResultInPackage association.")]
+   boolean IsPackage;
+
+      [Deprecated { "CIM_Job.StartTime" }, Description (
+          "The date and time when this test started.")]
+   datetime TestStartTime;
+
+      [Deprecated { "No Value" }, Description (
+          "The date and time when this test completed.")]
+   datetime TestCompletionTime;
+
+      [Deprecated { "No Value" }, Description (
+          "Describes how the test is progressing. For example, if the "
+          "test was discontinued, the TestState will be \"Stopped\" "
+          "(value=5), or if testing is currently executing, TestState "
+          "will be \"In Progress\" (4)."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Passed", "Failed", "In Progress",
+          "Stopped" }, 
+       ModelCorrespondence { 
+          "CIM_DiagnosticResult.OtherStateDescription" }]
+   uint16 TestState;
+
+      [Deprecated { "No Value" }, Description (
+          "When \"Other\" (value=1) is entered in the TestState "
+          "property, OtherStateDescription can be used to describe the "
+          "test's state."), 
+       ModelCorrespondence { "CIM_DiagnosticResult.TestState" }]
+   string OtherStateDescription;
+
+      [Deprecated { "No Value" }, Description (
+          "Estimated number of seconds to perform the Diagnostic Test "
+          "indicated by the DiagnosticCreationClassName and "
+          "DiagnosticName properties. After the test has completed, "
+          "the actual elapsed time can be determined by subtracting "
+          "the TestStartTime from the TestCompletionTime. A similar "
+          "property is defined in the association, DiagnosticTest "
+          "ForMSE. The difference between the two properties is that "
+          "the value stored in the association is a generic test "
+          "execution time for the Element and the Test. But, the value "
+          "here (in DiagnosticResult) is the estimated time that this "
+          "instance with the given settings would take to run the "
+          "test. A CIM Consumer can compare this value with the value "
+          "in the association DiagnosticTestForMSE to get an idea what "
+          "impact their settings have on test execution."), 
+       Units ( "Seconds" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticTestForMSE.EstimatedTimeOfPerforming" }]
+   uint32 EstimatedTimeOfPerforming;
+
+      [Deprecated { "CIM_LogRecord.RecordData" }, Description (
+          "TestResults stores one or more textual results from the "
+          "execution of the DiagnosticTest(s) referenced by the "
+          "DiagnosticCreationClassName and DiagnosticName properties. "
+          "One entry is considered a cell location in the array. Each "
+          "entry is time stamped and contains the following "
+          "information, in the following format: \n"
+          "LogOption|yyymmddhhttssoutc|TestName|message_text \n"
+          "Where: \n"
+          "LogOption = string identical to the LogOption value in "
+          "DiagnosticSetting that was used to enable logging this "
+          "message. \n"
+          "yyyy = year, e.g. 2000 \n"
+          "mm = month (01 - 12) \n"
+          "dd = day (01 - 31) \n"
+          "hh = hour (00 - 24) \n"
+          "tt = minute (00-59) \n"
+          "ss = second (00-59) \n"
+          "o = \"+\" or \"-\" indicating the sign of the UTC "
+          "correction field \n"
+          "utc = offset from UTC (Universal Coordinated Time) in "
+          "minutes \n"
+          "TestName = Internal test name or current internal subtest "
+          "name that sent the message. \n"
+          "Textual message = free form string that is the 'test "
+          "result'."), 
+       ArrayType ( "Ordered" )]
+   string TestResults[];
+
+      [Deprecated { "CIM_Job.PercentComplete" }, Description (
+          "The percentage of the test that has executed thus far, if "
+          "the TestState property is set to \"In Progress\" or the "
+          "percentage of the complete test that was executed if the "
+          "TestState property is set to any of the completed states "
+          "(\"Passed\", \"Failed\" or \"Stopped\"). Final results may "
+          "be based on less than 100% coverage due to the parameters "
+          "defined in DiagnosticSetting (such as QuickMode, "
+          "PercentOfTestCoverage or HaltOnError)."), 
+       Units ( "Percent" ), MinValue ( 0 ), MaxValue ( 100 )]
+   uint8 PercentComplete;
+
+      [Deprecated { "CIM_DiagnosticServiceRecord.ErrorCode" }, 
+       Description (
+          "If applicable, this string should contain one or more "
+          "vendor specific error codes that the diagnostic service "
+          "detected. These error codes may be used by the vendor for "
+          "variety of purposes such as: fault data base indexing, "
+          "field service trouble ticketing, product quality tracking, "
+          "part failure history, etc. Since these codes are for vendor "
+          "purposes they may assume any form. Details on suggested use "
+          "cases will be left to white papers. The array of error "
+          "codes has model correspondence with an ErrorCount array so "
+          "the number of errors reported can be analyzed by individual "
+          "error code."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticResult.ErrorCount" }]
+   string ErrorCode[];
+
+      [Deprecated { "CIM_DiagnosticServiceRecord.ErrorCount" }, 
+       Description (
+          "Since some tests may detect transient and correctable "
+          "errors such as a network diagnostic or memory test, an "
+          "error count is useful to indicate the severity of the "
+          "failure. This field contains an integer value of the number "
+          "of errors detected by the test. The ErrorCount is an array "
+          "with model correspondence to ErrorCode so that the test can "
+          "report an ErrorCount on each type of error encountered. It "
+          "is recommended that hard errors and correctable or "
+          "recoverable errors be given different codes so that clients "
+          "with knowledge of the error codes can evaluate correctable, "
+          "recoverable, and hard errors independently."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticResult.ErrorCode" }]
+   uint32 ErrorCount[];
+
+      [Deprecated { "CIM_DiagnosticServiceRecord.LoopsFailed" }, 
+       Description (
+          "Since some tests may be looped, it is useful to report how "
+          "many iterations passed and failed. This is relevant in "
+          "analyzing transitory failures. For example, if all the "
+          "errors occurred in just one of 100 iterations, the device "
+          "may be viewed as OK or marginal, to be monitored further "
+          "rather then failed. Note: LoopsPassed & LoopsFailed should "
+          "add up to the loops completed.")]
+   uint32 LoopsFailed;
+
+      [Deprecated { "CIM_DiagnosticServiceRecord.LoopsPassed" }, 
+       Description (
+          "Since some tests may be looped, it is useful to report how "
+          "many iterations passed and failed. This is relevant in "
+          "analyzing transitory failures. For example if all the "
+          "errors occurred in just one of 100 iterations, the device "
+          "may be viewed as OK or marginal, to be monitored further "
+          "rather then failed. Note: LoopsPassed & LoopsFailed should "
+          "add up to the loops completed.")]
+   uint32 LoopsPassed;
+
+
+// ---------  Properties below here are copied from  ------------------
+// ---------  DiagnosticSetting                      ------------------
+// Note that the DiagnosticSetting object can be modified at any time,
+// and the current test settings can be lost. When RunTest starts
+// execution the settings, which are time sensitive, should be evaluated
+// and captured.
+
+      [Deprecated { "CIM_DiagnosticSetting.LogOptions" }, Write, 
+       Description (
+          "Sets the level of warning messages to be logged. If for "
+          "example no warning information is required, the level would "
+          "be set to \"No Warnings\" (value=0). Using \"Missing "
+          "Resources\" (value=1) will cause warnings to be generated "
+          "when required resources or hardware are not found. Setting "
+          "the value to 2, \"Testing Impacts\", results in both "
+          "missing resources and 'test impact' warnings (for example, "
+          "multiple retries required) to be reported."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "No Warnings", "Missing Resources", "Testing Impacts",
+          "All Warnings" }]
+   uint16 TestWarningLevel;
+
+      [Deprecated { "CIM_DiagnosticSetting.LogOptions" }, Write, 
+       Description (
+          "When this flag is true, the diagnostic test will report "
+          "'soft errors'. In this context, a soft error is a message "
+          "from the diagnostic reporting a known defect in the "
+          "hardware or driver configuration, or execution environment. "
+          "Examples are: 'Not enough memory', 'Driver IOCTL not "
+          "implemented', 'Video RAM compare failed during polygon fill "
+          "test (A known defect in the video chipset)', etc.")]
+   boolean ReportSoftErrors;
+
+      [Deprecated { "CIM_DiagnosticSetting.LogOptions" }, Write, 
+       Description (
+          "When this flag is true, the diagnostic test will report "
+          "'status messages'. In this context, a status message "
+          "indicates that the diagnostic code is at a checkpoint. "
+          "Examples are: \"Completion of phase 1\", \"Complex "
+          "pattern\", etc.")]
+   boolean ReportStatusMessages;
+
+      [Deprecated { "CIM_DiagnosticSettingRecord.HaltOnError" }, Write, 
+       Description (
+          "When this flag is true, the test will halt after finding "
+          "the first error.")]
+   boolean HaltOnError;
+
+      [Deprecated { "CIM_DiagnosticSettingRecord.QuickMode" }, Write, 
+       Description (
+          "When this flag is true, the test software should attempt to "
+          "run in an accelerated fashion either by reducing the "
+          "coverage or number of tests performed.")]
+   boolean QuickMode;
+
+      [Deprecated { "CIM_DiagnosticSettingRecord.PercentOfTestCoverage" 
+          }, Write, Description (
+          "Requests the diagnostic software to reduce test coverage to "
+          "the specified percentage. For example, a hard drive scan "
+          "test could be asked to run at 50%. The most effective way "
+          "to accomplish this is for the test software to scan every "
+          "other track, as opposed to only scanning the first half of "
+          "a drive. It is assumed that the effectiveness of the test "
+          "is impacted proportional to the percentage of testing "
+          "requested. Permissible values for this property range from "
+          "0 to 100. \n"
+          "This property may not be applicable to all tests. If it can "
+          "be set for a test, the value 7 (\"Supports PercentOf "
+          "TestCoverage\") should be entered into the DiagnosticTest's "
+          "Characteristics array."), 
+       Units ( "Percent" ), MinValue ( 0 ), MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_DiagnosticTest.Characteristics" }]
+   uint8 PercentOfTestCoverage;
+
+};
+
+
+// ==================================================================
+// DiagnosticService
+// ==================================================================
+   [Abstract, Version ( "2.9.0" ), Description (
+       "The CIM_DiagnosticService class provides the ability to start "
+       "a service that functions to participate in a problem "
+       "determination process. Specific diagnostic services SHOULD be "
+       "defined by subclassing this class. Examples of a diagnostic "
+       "service are tests, information retrievers, exercisers, and "
+       "ports to external executives.")]
+class CIM_DiagnosticService : CIM_Service {
+
+      [Description (
+          "The RunDiagnostic method executes this test for the "
+          "specified ManagedSystemElement (defined using the "
+          "SystemElement input parameter). The capabilities for the "
+          "diagnostic service indicate where the results from the test "
+          "job are stored. How the test should execute, i.e. its "
+          "settings, is defined in a DiagnosticSetting object (or by a "
+          "subclass of DiagnosticSetting). A reference to a Setting "
+          "object is specified using the Setting input parameter. If a "
+          "reference is not passed into the method, then a default "
+          "DiagnosticSetting SHALL be used. \n"
+          "When RunDiagnostic starts execution, the settings, which "
+          "are time sensitive, SHOULD be evaluated and captured. This "
+          "is suggested since the DiagnosticSetting object MAY be "
+          "modified at any time, and therefore the current test "
+          "settings could be lost. \n"
+          "If 0 is returned, the function completed successfully and "
+          "no ConcreteJob instance is created. If 0x1000 a ConcreteJob "
+          "will be started."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x1000", "..",
+          "0x8000.." }, 
+       Values { "Job completed with no error", "Not Supported",
+          "Unknown", "Timeout", "Failed", "Invalid Parameter",
+          "DMTF Reserved", "Method parameters checked - job started",
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RunDiagnostic( 
+         [IN, Description (
+             "Specifies the element upon which the DiagnosticService "
+             "SHOULD be run.")]
+      CIM_ManagedElement REF ManagedElement, 
+         [IN, Description (
+             "Specifies the desired settings that SHOULD be applied to "
+             "the Diagnostic. If null, then the Diagnostic's defaults "
+             "MAY be used.")]
+      CIM_DiagnosticSetting REF DiagSetting, 
+         [IN, Description (
+             "Specifies the desired settings that SHOULD be applied to "
+             "the resulting Job. If null and a resulting Job is "
+             "required (i.e., the Diagnostic is long running), then "
+             "the test's defaults MAY be used.")]
+      CIM_JobSettingData REF JobSetting, 
+         [IN ( FALSE ), OUT, Description (
+             "Returns a handle to the resulting Job.")]
+      CIM_ConcreteJob REF Job); 
+};
+
+
+
+// ==================================================================
+// DiagnosticTest
+// ==================================================================
+   [Version ( "2.9.0" ), Description (
+       "The CIM_DiagnosticTest class represents the framework for "
+       "running diagnostic tests. Specific diagnostic tests may be "
+       "defined by subclassing and/or instantiating this object. To "
+       "provide more detail for a type of test(s) (i.e, additional "
+       "properties and methods), subclassing is appropriate. \n"
+       "When a DiagnosticTest can be simultaneously executed against "
+       "several elements, then DiagnosticTest may launch a ConcreteJob "
+       "to represent each execution.")]
+class CIM_DiagnosticTest : CIM_DiagnosticService {
+
+      [Description (
+          "The descriptions for each Characteristic are below: \n"
+          "\n"
+          "* \"Is Exclusive\" (value=2) is specified for the test "
+          "module only if the diagnostic cannot run more than one test "
+          "at a time, regardless of how many SystemElements are "
+          "supported. Typically, this occurs when hardware or software "
+          "constraints prevent the test from running as multiple, "
+          "concurrent instances. If the diagnostic can be run against "
+          "multiple SystemElements, but only once per Element, then "
+          "set the IsExclusiveForMSE boolean property on the "
+          "appropriate instances of DiagnosticTestForMSE. \n"
+          "\n"
+          "* If \"Is Interactive\" (value=3) is set, then the "
+          "diagnostic displays a message either before, during or "
+          "after testing. \n"
+          "\n"
+          "* Set \"Is Destructive\" (value=4) if the diagnostic will "
+          "destroy data, or reconfigure the Element that is being "
+          "tested. \n"
+          "\n"
+          "* \"Is Risky\" (value=5) indicates that data loss may occur "
+          "if the test is interrupted. Some tests make copies of data, "
+          "perform the test, and restore the data returning the tested "
+          "entity to its previous configuration. If the test is "
+          "interrupted, then loss of data or reconfiguration of the "
+          "tested ManagedSystemElement may occur. \n"
+          "\n"
+          "* If \"Is Package\" (value=6) is set, this test is actually "
+          "a set of lower level diagnostics, that are packaged "
+          "together by the test. This packaging is implemented by the "
+          "diagnostic test, not aggregated by CIM. Information and "
+          "results associated with the individual tests in the package "
+          "may be requested by using the \"Subtests\" value in the "
+          "DiagnosticSetting.LogOptions array. \n"
+          "\n"
+          "(value=7) was \"Supports PercentOfTestCoverage\" in Version "
+          "2.6. Value = 7 is being deprecated. Instead, it should be "
+          "described in DiagnosticServiceCapabilities. \n"
+          "\n"
+          "\"Is Synchronous\" (value=8) indicates that this diagnostic "
+          "service will complete before the RunDiagnostic method "
+          "returns to the caller. A Job is still created that can be "
+          "accessed by the client for accounting purposes, but the "
+          "ability to track progress and status of the Job are lost. "
+          "Additionally, in certain environments, the client may be "
+          "\"blocked\" from further action until the service "
+          "completes. \n"
+          "\"Media Required\" (value=9) indicates that this diagnostic "
+          "service requires that media be inserted into the device in "
+          "order to perform the service. \"Additional Hardware "
+          "Required\" (value=10) indicates that this diagnostic "
+          "service requires that some additional hardware is installed "
+          "(e.g., wrap plug) in order to perform the service."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10" }, 
+       Values { "Unknown", "Other", "Is Exclusive", "Is Interactive",
+          "Is Destructive", "Is Risky", "Is Package", "Reserved",
+          "Is Synchronous", "Media Required",
+          "Additional Hardware Required" }, 
+       ModelCorrespondence { 
+          "CIM_DiagnosticTest.OtherCharacteristicsDescriptions" }]
+   uint16 Characteristics[];
+
+      [Deprecated { "CIM_DiagnosticTest.OtherCharacteristicsDescriptions" }, 
+       Description (
+          "Provides additional information for the Characteristic when "
+          "its value is set to 1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_DiagnosticTest.Characteristics" }]
+   string OtherCharacteristicDescription;
+
+      [Description (
+          "OtherCharacteristicsDescriptions is a Bag array that "
+          "contains an element with additional information for each "
+          "Characteristics element with a value of 1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_DiagnosticTest.Characteristics" }]
+   string OtherCharacteristicsDescriptions[];
+
+
+      [Deprecated { "CIM_Service.Started" }, Description (
+          "This property is being deprecated. The boolean Started "
+          "property inherited from CIM_Service should be used instead. "
+          "\nIf this test is currently being performed, the InUse "
+          "property is set to TRUE. To determine which ManagedSystem "
+          "Element is being tested, query the DiagnosticResult objects "
+          "associated with this test (query DiagnosticResultForTest), "
+          "and for which the TestState equals 4 (\"In Progress\"). The "
+          "DiagnosticResult object is associated with the System "
+          "Element under test, using DiagnosticResultForMSE.")]
+   boolean IsInUse;
+
+      [Deprecated { "CIM_ServiceAffectsElement" }, Description (
+          "This property is being deprecated and replaced with a more "
+          "general method for indicating Managed Elements that are "
+          "affected by this Test. The DiagnosticService parent has a "
+          "ServiceAffectsElement association to a Managed Element for "
+          "this purpose. \n"
+          "The \"Expensive\" qualifier can be applied to this class "
+          "and its RunTest method. If so, the ResourcesUsed property "
+          "describes the resources that are capitalized, based on a "
+          "default setup for the test. Multiple resources can be "
+          "specified since the property is an array."), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
+          "12", "13", "14", "15", "16", "17", "18", "19", "20", "21",
+          "22", "23", "24", "25", "26", "27", "28" }, 
+       Values { "CPU", "Memory", "Hard Disk", "CDROM", "Floppy",
+          "PCI Bus", "USB Bus", "1394 Bus", "SCSI Bus", "IDE Bus",
+          "Network", "ISA Bus", "EISA Bus", "VESA Bus", "PCMCIA Bus",
+          "CardBus", "Access.bus", "NuBus", "AGP", "VME Bus",
+          "Sbus IEEE 1396-1993", "MCA Bus", "GIO Bus", "XIO Bus",
+          "HIO Bus", "PMC Bus", "SIO Bus" }]
+   uint16 ResourcesUsed[];
+
+
+      [Deprecated { "CIM_DiagnosticService.RunDiagnostic" }, 
+       Description (
+          "This method is being deprecated and replaced by the "
+          "RunDiagnostic method in the DiagnosticService class. \n"
+          "The RunTest method executes this test for the specified "
+          "ManagedSystemElement. The use of this method has been "
+          "deprecated. Instead, the RunDiagnostic method (inherited "
+          "from DiagnosticService) should be used. \n"
+          "The RunTest method executes this test for the specified "
+          "ManagedSystemElement (defined using the SystemElement input "
+          "parameter). Results of the test are stored in a Diagnostic "
+          "Result object, a reference to which is returned as the "
+          "Result output parameter. How the test should execute, i.e. "
+          "its settings, is defined in a DiagnosticSetting object (or "
+          "by a subclass of DiagnosticSetting). A reference to a "
+          "Setting object is specified using the Setting input "
+          "parameter. If a reference is not passed into the method, "
+          "then a default DiagnosticSetting may be used. This default "
+          "Setting is associated with the DiagnoticTest using the "
+          "DefaultSetting relationship of the Core Model. \n"
+          "When RunTest starts execution, the settings, which are time "
+          "sensitive, should be evaluated and captured. This is "
+          "suggested since the DiagnosticSetting object can be "
+          "modified at any time, and therefore the current test "
+          "settings could be lost. \n"
+          "The method's return codes are expected to adhere to the XML "
+          "return codes as they are introduced. Currently, the "
+          "standard return values are: \n"
+          "0 = OK (function succeeded, but the test itself may have "
+          "failed \n"
+          "1 = Unspecified Error (function failed for unspecified "
+          "reasons) \n"
+          "2 = Not Implemented (function is not implemented for this "
+          "instance) \n"
+          "3 = Out Of Resources (component could not allocate required "
+          "resources, e.g. memory, disk space, etc.) \n"
+          "In a subclass, the set of possible return codes could be "
+          "specified, using a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' may "
+          "also be specified in the subclass as a Values array "
+          "qualifier.")]
+   uint32 RunTest( 
+         [IN, Description (
+             "The ManagedSystemElement on which the test will run.")]
+      CIM_ManagedSystemElement REF SystemElement, 
+         [IN, Description (
+             "How the test should execute, i.e. its settings, is "
+             "defined in a DiagnosticSetting object (or by a subclass "
+             "of DiagnosticSetting). A reference to a Setting object "
+             "is specified using the Setting input parameter. If a "
+             "reference is not passed into the method, then a default "
+             "DiagnosticSetting may be used. This default Setting is "
+             "associated with the DiagnoticTest using the "
+             "DefaultSetting relationship of the Core Model.")]
+      CIM_DiagnosticSetting REF Setting, 
+         [IN ( false ), OUT, Description (
+             "Results of the test are stored in a DiagnosticResult "
+             "object, a reference to which is returned as the Result "
+             "output parameter.")]
+      CIM_DiagnosticResult REF Result); 
+
+
+      [Deprecated { "CIM_Log.ClearLog" }, Description (
+          "This method is deprecated in favor of using the "
+          "corresponding functionality contained in the MessageLog "
+          "class, this is consistant with the deprecation of the "
+          "Result class in favor of MessageLog. \n"
+          "Execution of this method will delete all instances of the "
+          "DiagnosticResultForMSE object, for this DiagnosticTest and "
+          "the specified ManagedSystemElement (defined using the "
+          "SystemElement input parameter). The DiagnosticResults "
+          "referenced in the DiagnosticResultForMSE instances will be "
+          "deleted. Also the association DiagnosticResultForTest that "
+          "refers to the DiagnosticResult object, and this test will "
+          "be deleted. \n"
+          "One output parameter is defined - ResultsNotCleared - which "
+          "is a string array that lists the keys of the "
+          "DiagnosticResults which could not be deleted. This "
+          "information enables those Results to be revisited and "
+          "either manually removed, or other corrective action taken. "
+          "\nThe method's return codes are expected to adhere to the "
+          "XML return codes as they are introduced. Currently, the "
+          "standard return values are: \n"
+          "0 = OK (function succeeded, but the test itself may have "
+          "failed) \n"
+          "1 = Unspecified Error (function failed for unspecified "
+          "reasons) \n"
+          "2 = Not Implemented (function is not implemented for this "
+          "instance) \n"
+          "3 = Out Of Resources (component could not allocate required "
+          "resources, e.g. memory, disk space, etc.) \n"
+          "In a subclass, the set of possible return codes could be "
+          "specified, using a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' may "
+          "also be specified in the subclass as a Values array "
+          "qualifier.")]
+   uint32 ClearResults( 
+         [IN, Description (
+             "The Managed System Element for which results will be "
+             "cleared.")]
+      CIM_ManagedSystemElement REF SystemElement, 
+         [IN ( false ), OUT, Description (
+             "A string array that lists the keys of the "
+             "DiagnosticResults which could not be deleted.")]
+      string ResultsNotCleared[]); 
+
+
+      [Deprecated { "CIM_ConcreteJob.RequestStateChange" }, 
+       Description (
+          "After invocation of this method and its completion, the "
+          "specified test(s) will be discontinued for the indicated "
+          "ManagedSystemElement (defined by the SystemElement input "
+          "parameter). The test to discontinue is specified using the "
+          "Result input parameter. If all instances of this test "
+          "should be stopped for the SystemElement, then the Result "
+          "reference should be NULL. Upon completion of the method, "
+          "test status and other information (such as PercentComplete) "
+          "will be stored in the DiagnosticResult instance defined by "
+          "the Result input parameter. The output parameter, "
+          "TestingStopped, is used as follows: \n"
+          "Set to TRUE if testing was successfully stopped. \n"
+          "Set to FALSE if the current test(s) can not be stopped. \n"
+          "If set to FALSE, testing will stop when the diagnostic is "
+          "able to do so safely. To determine if/when the testing is "
+          "stopped, check the TestState property in the "
+          "DiagnosticResult instance defined by the Result parameter. "
+          "TestState will change from \"In Progress\" to \"Stopped\" "
+          "(from 4 to 5). \n"
+          "The method's return codes are expected to adhere to the XML "
+          "return codes as they are introduced. Currently, the "
+          "standard return values are: \n"
+          "0 = OK (function succeeded, but the test itself may have "
+          "failed \n"
+          "1 = Unspecified Error (function failed for unspecified "
+          "reasons) \n"
+          "2 = Not Implemented (function is not implemented for this "
+          "instance) \n"
+          "3 = Out Of Resources (component could not allocate required "
+          "resources, e.g. memory, disk space, etc.) \n"
+          "In a subclass, the set of possible return codes could be "
+          "specified, using a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' may "
+          "also be specified in the subclass as a Values array "
+          "qualifier.")]
+   uint32 DiscontinueTest( 
+         [IN, Description (
+             "Testing will be discontinued for the indicated "
+             "ManagedSystemElement defined by the SystemElement input "
+             "parameter.")]
+      CIM_ManagedSystemElement REF SystemElement, 
+         [IN, Description (
+             "The test to discontinue is specified using the Result "
+             "input parameter.")]
+      CIM_DiagnosticResult REF Result, 
+         [IN ( false ), OUT, Description (
+             "TestingStopped, is set to TRUE if testing was "
+             "successfully stopped. It is set to FALSE if the current "
+             "test(s) can not be stopped. If set to FALSE, testing "
+             "will stop when the diagnostic is able to do so safely. "
+             "To determine if/when the testing is stopped, check the "
+             "TestState property in the DiagnosticResult instance "
+             "defined by the Result parameter. TestState will change "
+             "from \"In Progress\" to \"Stopped\" (from 4 to 5).")]
+      boolean TestingStopped); 
+
+
+};
+
+// ==================================================================
+// DiagnosticServiceCapabilities
+// ==================================================================
+   [Version ( "2.9.0" ), Description (
+       "DiagnosticServiceCapabilities is a class that describes the "
+       "capabilities of the diagnostic service. This provides the "
+       "means for the diagnostic service to describe its abilities, "
+       "limitations, and/or potential for use of various diagnostic "
+       "service parameters. For example, what types of settings the "
+       "diagnostic service supports.")]
+class CIM_DiagnosticServiceCapabilities : CIM_Capabilities {
+
+      [Description (
+          "The SupportedServiceModes property lists the operational "
+          "modes that are supported by the Diagnostic Service. These "
+          "modes may correspond to, but are not limited to, settings "
+          "that may be applied to a Diagnostic Service."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "0x8000" }, 
+       Values { "Unknown", "Other", "PercentOfTestCoverage",
+          "QuickMode", "HaltOnError", "ResultPersistence",
+          "No Service Modes" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticServiceCapabilities." 
+          "OtherSupportedServiceModesDescriptions" }]
+   uint16 SupportedServiceModes[];
+
+      [Description (
+          "Provides additional information for SupportedServiceModes "
+          "when the corresponding value is set to 1 (\"Other\")."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticServiceCapabilities." 
+          "SupportedServiceModes" }]
+   string OtherSupportedServiceModesDescriptions[];
+
+      [Description (
+          "The SupportedLoopControl property lists the loop controls "
+          "that are supported by the Diagnostic Service."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "0x8000" }, 
+       Values { "Unknown", "Other", "Continuous", "Count", "Timer",
+          "ErrorCount", "No Loop Control" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticSetting.LoopControl",
+          "CIM_DiagnosticServiceCapabilities." 
+          "OtherSupportedLoopControlDescriptions" }]
+   uint16 SupportedLoopControl[];
+
+      [Description (
+          "Provides additional information for SupportedLoopControl "
+          "when the corresponding value is set to 1 (\"Other\")."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceCapabilities.SupportedLoopControl" }]
+   string OtherSupportedLoopControlDescriptions[];
+
+      [Description (
+          "The SupportedLogOptions property lists the log options that "
+          "are supported by the Diagnostic Service."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "0x8000" }, 
+       Values { "Unknown", "Other", "Results", "Subtests", "Actions",
+          "Warnings", "Status", "Device Errors", "Service Errors",
+          "Setting Data", "Statistics", "Hardware Configuration",
+          "Software Configuration", "References", "Debug",
+          "No Log Options" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticSetting.LogOptions",
+          "CIM_DiagnosticServiceCapabilities.OtherSupportedLogOptionsDescriptions" 
+          }]
+   uint16 SupportedLogOptions[];
+
+      [Description (
+          "Provides additional information for SupportedLogOptions "
+          "when the corresponding value is set to 1 (\"Other\")."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceCapabilities.SupportedLogOptions" }]
+   string OtherSupportedLogOptionsDescriptions[];
+
+      [Description (
+          "The SupportedLogStorage property lists the storage options "
+          "for logging that are supported by the Diagnostic Service. \n"
+          "The values are: \n"
+          "\"DiagnosticRecordLog\" (Value = 2): Supports use of the "
+          "DiagnosticRecordLog class for aggregating "
+          "DiagnosticRecords. \n"
+          "\"MessageLog\" (Value = 3): Supports writing log "
+          "information using the methods in the MessageLog class. \n"
+          "\"File\" (Value = 4): Supports writing log information to a "
+          "file."), 
+       ValueMap { "0", "1", "2", "3", "4", "0x8000" }, 
+       Values { "Unknown", "Other", "DiagnosticRecordLog",
+          "MessageLog", "File", "No Log Storage" }, 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceCapabilities.OtherSupportedLogStorageDescriptions",
+          "CIM_DiagnosticSetting.LogStorage" }]
+   uint16 SupportedLogStorage[];
+
+      [Description (
+          "Provides additional information for SupportedLogStorage "
+          "when the corresponding value is set to 1 (\"Other\")."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceCapabilities.SupportedLogStorage" }]
+   string OtherSupportedLogStorageDescriptions[];
+
+      [Description (
+          "The SupportedExecutionControls property lists the job "
+          "controls that are supported by the Diagnostic Service. The "
+          "values are: \n"
+          "\"Job Creation\" (Value = 2): publishes that a ConcreteJob "
+          "instance will be created to control the diagnostic job "
+          "launched by the diagnostic service. \n"
+          "\"Kill Job\" (Value = 3): publishes that the diagnostic "
+          "service implements the ConcreteJob.RequestStateChange(Kill) "
+          "method. \n"
+          "\"Suspend Job\" (Value = 4): publishes that the diagnostic "
+          "service implements the "
+          "ConcreteJob.RequestStateChange(Suspend) method. \n"
+          "\"Terminate Job\" (Value = 5): publishes that the "
+          "diagnostic service implements the "
+          "ConcreteJob.RequestStateChange(Terminate) method."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "0x8000" }, 
+       Values { "Unknown", "Other", "Job Creation", "Kill Job",
+          "Suspend Job", "Terminate Job", "No Execution Controls" }, 
+       ModelCorrespondence { "CIM_DiagnosticServiceCapabilities." 
+          "OtherSupportedExecutionControlsDescriptions" }]
+   uint16 SupportedExecutionControls[];
+
+      [Description (
+          "Provides additional information for "
+          "SupportedExecutionControls when the corresponding value is "
+          "set (\"Other\")."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceCapabilities.SupportedExecutionControls" 
+          }]
+   string OtherSupportedExecutionControlsDescriptions[];
+
+      [Deprecated { 
+          "CIM_DiagnosticServiceCapabilities.SupportedLogOptions" }, 
+       Description (
+          "This property is being deprecated because the "
+          "TestWarningLevel and LogOptions properties serve the same "
+          "purpose. \n"
+          "Lists the level of warning messages that MAY be logged. If "
+          "for example no warning information is required, the level "
+          "would be set to \"No Warnings\" (value=0). Using \"Missing "
+          "Resources\" (value=1) will cause warnings to be generated "
+          "when required resources or hardware are not found. Setting "
+          "the value to 2, \"Testing Impacts\", results in both "
+          "missing resources and 'test impact' warnings (for example, "
+          "multiple retries required) to be reported."), 
+       ValueMap { "2", "3", "4", "5" }, 
+       Values { "No Warnings", "Missing Resources", "Testing Impacts",
+          "All Warnings" }]
+   uint16 SupportedTestWarnings = 3;
+
+};
+
+// ==================================================================
+// DiagnosticRecord
+// ==================================================================
+   [Version ( "2.9.0" ), Description (
+       "Data related to Diagnostics may be recorded in various "
+       "DiagnosticRecord objects. The type of information that is "
+       "recorded in a log is specified via the LogOptions property in "
+       "DiagnosticSetting.")]
+class CIM_DiagnosticRecord : CIM_RecordForLog {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "InstanceID is not re-used across any InstanceIDs produced "
+          "by this or other providers for this instance's NameSpace. \n"
+          "For DMTF defined instances, the 'preferred' algorithm MUST "
+          "be used with the <OrgID> set to 'CIM'.")]
+   string InstanceID;
+
+      [Required, Description (
+          "This property should reflect the value of the underlying "
+          "DiagnosticService.Name property."), 
+       ModelCorrespondence { "CIM_DiagnosticService.Name" }]
+   string ServiceName;
+
+      [Required, Description (
+          "This property SHOULD reflect the value of the underlying "
+          "ManagedElement.ElementName property."), 
+       ModelCorrespondence { "CIM_ManagedElement.ElementName" }]
+   string ManagedElementName;
+
+      [Required, Description (
+          "The date and time that the record instance should be "
+          "deleted. The expiration datetime should be set when the "
+          "record is fully populated with record data. The value "
+          "should be calculated using the ResultPersistence property "
+          "of the DiagnosticSetting class. \n"
+          "If a ResultPersistence value is not provided, the "
+          "ExpirationDate should be set to the current datetime. \n"
+          "Once the date has expired, instances should be deleted as "
+          "soon as possible."), 
+       ModelCorrespondence { "CIM_DiagnosticSetting.ResultPersistence" 
+          }]
+   datetime ExpirationDate;
+
+      [Description (
+          "The RecordType property specifies the nature of the data "
+          "being entered into the ServiceRecord. The value in this "
+          "property should match one of the values indicated by the "
+          "DiagnosticSetting.LogOptions property. A brief summary of "
+          "the various log options can be found in "
+          "CIM_DiagnosticSetting.LogOptions."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14" }, 
+       Values { "Unknown", "Other", "Results", "Subtests", "Actions",
+          "Warnings", "Status", "Device Errors", "Service Errors",
+          "Setting Data", "Statistics", "Hardware Configuration",
+          "Software Configuration", "References", "Debug" }, 
+       ModelCorrespondence { "CIM_DiagnosticSetting.LogOptions",
+          "CIM_DiagnosticRecord.OtherRecordTypeDescription" }]
+   uint16 RecordType;
+
+      [Description (
+          "When \"Other\" (value=1) is entered in the RecordType "
+          "property, OtherRecordTypeDescription can be used to "
+          "describe the message type."), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSetting.OtherLogOptionsDescriptions",
+          "CIM_DiagnosticRecord.RecordType" }]
+   string OtherRecordTypeDescription;
+
+      [Description (
+          "A timestamp indicating when the record was created.")]
+   datetime CreationTimeStamp;
+
+};
+
+// ==================================================================
+// DiagnosticServiceRecord
+// ==================================================================
+   [Version ( "2.9.0" ), Description (
+       "While a DiagnosticService is running, data generated by the "
+       "service may be recorded in DiagnosticServiceRecord objects. A "
+       "DiagnosticServiceRecord is related to its MessageLog via an "
+       "instance of the RecordInLog aggregation class.")]
+class CIM_DiagnosticServiceRecord : CIM_DiagnosticRecord {
+
+      [Description (
+          "If applicable, this string should contain one or more "
+          "vendor specific error codes that the diagnostic service "
+          "detected. These error codes may be used by the vendor for "
+          "variety of purposes such as: fault data base indexing, "
+          "field service trouble ticketing, product quality tracking, "
+          "part failure history, etc. Since these codes are for vendor "
+          "purposes they may assume any form. Details on suggested use "
+          "cases will be left to white papers. The array of error "
+          "codes has model correspondence with an ErrorCount array so "
+          "the number of errors reported can be analyzed by individual "
+          "error code."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticServiceRecord.ErrorCount" }]
+   string ErrorCode[];
+
+      [Description (
+          "Since some tests may detect transient and correctable "
+          "errors such as a network diagnostic or memory test, an "
+          "error count is useful to indicate the severity of the "
+          "failure. This field contains an integer value of the number "
+          "of errors detected by the test. The ErrorCount is an array "
+          "with model correspondence to ErrorCode so that the test can "
+          "report an ErrorCount on each type of error encountered. It "
+          "is recommended that hard errors and correctable or "
+          "recoverable errors be given different codes so that clients "
+          "with knowledge of the error codes can evaluate correctable, "
+          "recoverable, and hard errors independently."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticServiceRecord.ErrorCode" }]
+   uint32 ErrorCount[];
+
+      [Description (
+          "Since some tests may be looped, it is useful to report how "
+          "many iterations passed and failed. This is relevant in "
+          "analyzing transitory failures. For example, if all the "
+          "errors occurred in just one of 100 iterations, the device "
+          "may be viewed as OK or marginal, to be monitored further "
+          "rather then failed. Note: LoopsPassed & LoopsFailed should "
+          "add up to the loops completed. \n"
+          "A value for this property would likely be reported with a "
+          "DiagnosticServiceRecord.RecordType value = "
+          "\"ResultSummary\", which contains a summary result covering "
+          "all iterations of a looped service.")]
+   uint32 LoopsFailed;
+
+      [Description (
+          "Since some tests may be looped, it is useful to report how "
+          "many iterations passed and failed. This is relevant in "
+          "analyzing transitory failures. For example if all the "
+          "errors occurred in just one of 100 iterations, the device "
+          "may be viewed as OK or marginal, to be monitored further "
+          "rather then failed. Note: LoopsPassed & LoopsFailed should "
+          "add up to the loops completed. \n"
+          "A value for this property would likely be reported with a "
+          "DiagnosticServiceRecord.RecordType value = "
+          "\"ResultSummary\", which contains a summary result covering "
+          "all iterations of a looped service.")]
+   uint32 LoopsPassed;
+};
+
+
+// ==================================================================
+// DiagnosticSettingRecord
+// ==================================================================
+   [Version ( "2.9.0" ), Description (
+       "The DiagnosticSettingData that was used to when a Diagnostic "
+       "was run.")]
+class CIM_DiagnosticSettingRecord : CIM_DiagnosticRecord {
+
+      [Description (
+          "The LogOptions property lists the log options that were "
+          "requested for the Diagnostic Service. A brief summary of "
+          "the various log options can be found in "
+          "CIM_DiagnosticSetting.LogOptions."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14" }, 
+       Values { "Unknown", "Other", "Results", "Subtests", "Actions",
+          "Warnings", "Status", "Device Errors", "Service Errors",
+          "Setting Data", "Statistics", "Hardware Configuration",
+          "Software Configuration", "References", "Debug" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSettingRecord.OtherLogOptionsDescriptions",
+          "CIM_DiagnosticSetting.LogOptions" }]
+   uint16 LogOptions[];
+
+      [Description (
+          "Provides additional information regarding the types of test "
+          "messages that are logged when the property LogOptions "
+          "includes the value 1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_DiagnosticSettingRecord.LogOptions",
+          "CIM_DiagnosticSetting.OtherLogOptionsDescriptions" }]
+   string OtherLogOptionsDescriptions[];
+
+      [Description (
+          "When this flag is true, the test will halt after finding "
+          "the first error.")]
+   boolean HaltOnError;
+
+      [Description (
+          "When this flag is true, the test software should attempt to "
+          "run in an accelerated fashion either by reducing the "
+          "coverage or number of tests performed.")]
+   boolean QuickMode;
+
+      [Description (
+          "The requested percentage of coverage for the diagnostic "
+          "service. For example, a hard drive scan test could be asked "
+          "to run at 50%. Permissible values for this property range "
+          "from 0 to 100."), 
+       Units ( "Percent" ), MinValue ( 0 ), MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSetting.PercentOfTestCoverage" }]
+   uint8 PercentOfTestCoverage;
+
+      [Description (
+          "Array entries contain parameters corresponding to entries "
+          "in the LoopControl array, limiting the number of times a "
+          "test should be repeated with a single invocation of RunTest "
+          "by a CIM client."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticSettingRecord.LoopControl",
+          "CIM_DiagnosticSetting.LoopControlParameter" }]
+   string LoopControlParameter[];
+
+      [Description (
+          "LoopControl, used in conjunction with LoopControlParameter, "
+          "sets one or more loop control mechanisms that limits the "
+          "number of times a test should be repeated with a single "
+          "invocation of RunTest by a CIM client. There is an "
+          "array-positional correspondence between LoopControl entries "
+          "& LoopControlParameter entries. The entries in these "
+          "coupled arrays of loop controls can be used in a logical OR "
+          "fashion to achieve the desired loop control. For example, "
+          "if a client wants to loop a test 1000 times, but quit if a "
+          "timer runs out, it could set both controls into the "
+          "LoopControl array as two separate entries in each array. "
+          "The looping test will terminate when the first of the two "
+          "ORed conditions are met. \n"
+          "A brief description for each loop control can be found in "
+          "the description of DiagnosticSetting.LoopControl."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Continuous", "Count", "Timer",
+          "Error Count" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSetting.LoopControlParameter",
+          "CIM_DiagnosticSettingRecord.OtherLoopControlDescriptions" }]
+   uint16 LoopControl[];
+
+      [Description (
+          "Provides additional information for LoopControl when its "
+          "value is set to 1 ('Other')."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticSetting.OtherLoopControlDescriptions",
+          "CIM_DiagnosticSettingRecord.LoopControl" }]
+   string OtherLoopControlDescriptions[];
+
+      [Description (
+          "The desired length of time to persist the messages that "
+          "result from execution of a diagnostic service. Here is a "
+          "summary of the choices and behaviors for different "
+          "ResultPersistence values: \n"
+          "0 = \"No Persistence\": \n"
+          "Setting the timer to zero tells the provider not to persist "
+          "the diagnostic result. The diagnostic information is only "
+          "available while the diagnostic is executing or at its "
+          "conclusion. \n"
+          "Value > 0 and < 0xFFFFFFFF = \"Persist With TimeOut\": \n"
+          "Setting the ResultPersistenceOption to a integer will cause "
+          "the DiagnosticResult to be persisted for that number of "
+          "seconds. At the end of that time, the DiagnosticResult may "
+          "be deleted by the diagnostic service provider. \n"
+          "0xFFFFFFFF = \"Persist Forever\": \n"
+          "By setting the timeout value to the very large value, "
+          "0xFFFFFFFF, the provider shall persist results forever. In "
+          "this case, the client MUST bear the responsibility for "
+          "deleting them."), 
+       Units ( "Seconds" ), 
+       ModelCorrespondence { "CIM_DiagnosticSetting.ResultPersistence" 
+          }]
+   uint32 ResultPersistence;
+
+
+      [Description (
+          "A client may want to specify the volume or detail of "
+          "information logged by a diagnostic service. This metric is "
+          "applied to a corresponding logging option, acting as a "
+          "qualifier on its description. Three levels of verbosity are "
+          "defined as follows: \n"
+          "* \"Minimum\" (value=2): Specified if the least amount of "
+          "information is desired; for example, Pass or Fail. \n"
+          "* \"Standard\" (value=3): This is the standard level of "
+          "messaging provided by the service. It is the form most "
+          "likely to be used if no verbosity value is specified "
+          "(default). \n"
+          "* \"Full\" (value=4): Specified when all information, "
+          "regardless of size, is desired. \n"
+          "Verbosity may not apply to all LogOptions values, in which "
+          "case the default VerbosityLevel of \"Standard\" SHOULD be "
+          "used."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Minimum", "Standard", "Full" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DiagnosticSetting.LogOptions" }]
+   uint16 VerbosityLevel[];
+
+
+};
+
+
+// ==================================================================
+// CorrespondingSettingsRecord
+// ==================================================================
+   [Association, Version ( "2.9.0" ), Description (
+       "CorrespondingSettingsRecord is used to tie a log record to its "
+       "corresponding setting data record.")]
+class CIM_CorrespondingSettingsRecord {
+
+      [Key, Description (
+          "The record containing the result data.")]
+   CIM_DiagnosticRecord REF DataRecord;
+
+      [Key, Description (
+          "The record containing the DiagnosticSetting data that were "
+          "used when the result was created.")]
+   CIM_DiagnosticSettingRecord REF SettingsRecord;
+
+};
+
+// ==================================================================
+// DiagnosticResultForMSE
+// ==================================================================
+   [Association, Deprecated { "No Value" }, Version ( "2.9.0" ), 
+    Description (
+       "This class is being deprecated as part of the deprecation of "
+       "the DiagnosticResult class. \n"
+       "This is an association class relating diagnostic test results "
+       "to the ManagedSystemElement that is/was tested.")]
+class CIM_DiagnosticResultForMSE {
+
+      [Deprecated { "No Value" }, Key, Description (
+          "The diagnostic result.")]
+   CIM_DiagnosticResult REF Result;
+
+      [Deprecated { "No Value" }, Key, Description (
+          "The ManagedSystemElement to which the diagnostic result "
+          "applies.")]
+   CIM_ManagedSystemElement REF SystemElement;
+};
+
+
+// ==================================================================
+// DiagnosticResultForTest
+// ==================================================================
+   [Association, Deprecated { "No Value" }, Version ( "2.9.0" ), 
+    Description (
+       "This class is being deprecated as part of the deprecation of "
+       "the DiagnosticResult class. \n"
+       "This is an association class to relate the results of a test "
+       "to the test itself.")]
+class CIM_DiagnosticResultForTest {
+
+      [Deprecated { "No Value" }, Key, Weak, Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The result object.")]
+   CIM_DiagnosticResult REF DiagnosticResult;
+
+      [Deprecated { "No Value" }, Key, Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The test that generated the result object.")]
+   CIM_DiagnosticTest REF DiagnosticTest;
+};
+
+
+// ==================================================================
+// DiagnosticTestForMSE
+// ==================================================================
+   [Association, Deprecated { "CIM_AvailableDiagnosticService" },
+    Version ( "2.9.0" ), Description (
+       "This class is being deprecated to promote its usage to the "
+       "DiagnosticService level. \n"
+       "This is an association class that relates a DiagnosticTest to "
+       "a ManagedSystemElement. Consumers wishing to 'diagnose' a "
+       "particular Element could query this association, for the "
+       "Element, to determine what tests are available.")]
+class CIM_DiagnosticTestForMSE : CIM_ProvidesServiceToElement {
+
+      [Deprecated { "CIM_AvailableDiagnosticService.ServiceProvided" },
+       Override ( "Antecedent" ), Description (
+          "The test that may be run against a ManagedSystemElement.")]
+   CIM_DiagnosticTest REF Antecedent;
+
+      [Deprecated { "CIM_AvailableDiagnosticService.UserOfService" },
+       Override ( "Dependent" ), Description (
+          "The ManagedSystemElement that can be tested.")]
+   CIM_ManagedSystemElement REF Dependent;
+
+      [Deprecated { 
+          "CIM_AvailableDiagnosticService.EstimatedDurationOfService" }, 
+       Description (
+          "Estimated number of seconds to perform the referenced "
+          "DiagnosticTest against the ManagedSystemElement. Since "
+          "execution times could vary by Element, this property is "
+          "located in the association between the two entities. It is "
+          "also captured in DiagnosticResult, in the "
+          "EstimatedTimeOfPerforming property. \n"
+          "A CIM Consumer can compare this value with the value in "
+          "DiagnosticResult to get an idea of what impact their "
+          "settings have on test execution."), 
+       Units ( "Seconds" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticResult.EstimatedTimeOfPerforming" }]
+   uint32 EstimatedTimeOfPerforming;
+
+      [Deprecated { "CIM_ServiceAffectsElement.ElementEffects" }, 
+       Description (
+          "This property is being deprecated since the same "
+          "characterisitic can be published in the "
+          "CIM_ServiceAffectsElement.ElementEffects array as Value = "
+          "2, \"Exclusive Use\". \n"
+          "If the DiagnosticTest referenced in this object can be run "
+          "concurrently against multiple SystemElements, but only run "
+          "one at a time for the referenced ManagedSystemElement, then "
+          "this boolean is set to TRUE. Alternately, if the test can "
+          "NOT be run concurrently irregardless of the System Elements "
+          "being tested, then the more general \"Is Exclusive\" "
+          "enumerated value (2) should be set in DiagnosticTest. "
+          "Characteristics.")]
+   boolean IsExclusiveForMSE;
+};
+
+
+
+// ==================================================================
+// DiagnosticTestInPackage
+// ==================================================================
+   [Association, Deprecated { "No value" }, Aggregation,
+       Version ( "2.7.0" ), Description (
+       "This class is being deprecated. Tests should be grouped at the "
+       "test level, not in the model. Therefore, the association is "
+       "not appropriate. /n This is an association class that "
+       "identifies a Diagnostic Test as made up of lower level Tests. "
+       "In this case, the test identified as the GroupComponent "
+       "reference (i.e, the higher level test) would have the \"Is "
+       "Package\" enumerated value specified in DiagnosticTest. "
+       "Characteristics.")]
+class CIM_DiagnosticTestInPackage : CIM_Component {
+
+      [Deprecated { "No value" }, Aggregate,
+          Override ( "GroupComponent" ), Description (
+          "The DiagnosticTest object that acts as the container for "
+          "all the tests of the package.")]
+   CIM_DiagnosticTest REF GroupComponent;
+
+      [Deprecated { "No value" }, Override ( "PartComponent" ), 
+       Description (
+          "The DiagnosticTest object that is one of the elements of "
+          "the package.")]
+   CIM_DiagnosticTest REF PartComponent;
+};
+
+
+// ==================================================================
+// DiagnosticResultInPackage
+// ==================================================================
+   [Association, Deprecated { "No value" }, Aggregation,
+       Version ( "2.7.0" ), Description (
+       "This class is being deprecated. Tests should be grouped at the "
+       "test level, not by the model. Therefore, this association is "
+       "no longer appropriate. /n This is an association class that "
+       "identifies a Diagnostic Result as made up of lower level "
+       "Results. In this case, the Result identified as the "
+       "PackageResult reference (i.e., the higher level result) would "
+       "have its IsPackage property set to TRUE.")]
+class CIM_DiagnosticResultInPackage {
+
+      [Deprecated { "No value" }, Key, Aggregate, Description (
+          "The DiagnosticResult object that acts as the container for "
+          "all the results of the package.")]
+   CIM_DiagnosticResult REF PackageResult;
+
+      [Deprecated { "No value" }, Key, Description (
+          "The DiagnosticResult object that is one of the elements of "
+          "the package.")]
+   CIM_DiagnosticResult REF Result;
+};
+
+
+// ==================================================================
+// DiagnosticSettingForTest
+// ==================================================================
+   [Association, Deprecated { "CIM_ElementSetting" },
+    Version ( "2.9.0" ), Description (
+       "This class is no longer required and is being deprecated. Use "
+       "ElementSetting (its parent) instead if the association is "
+       "needed. \n"
+       "This is an association class to relate test settings with "
+       "diagnostic tests.")]
+class CIM_DiagnosticSettingForTest : CIM_ElementSetting {
+
+      [Deprecated { "CIM_ElementSetting.Element" },
+          Override ( "Element" ), Description (
+          "The Test that can use the Setting object.")]
+   CIM_DiagnosticTest REF Element;
+
+      [Deprecated { "CIM_ElementSetting.Setting" },
+          Override ( "Setting" ), Description (
+          "The Setting that can be applied to the execution of the "
+          "DiagnosticTest.")]
+   CIM_DiagnosticSetting REF Setting;
+};
+
+// ==================================================================
+// AvailableDiagnosticService
+// ==================================================================
+   [Association, Version ( "2.9.0" ), Description (
+       "This is an association class that relates a DiagnosticService "
+       "to a ManagedElement. Consumers wishing to 'diagnose' a "
+       "particular Element could query this association to determine "
+       "what services are available.")]
+class CIM_AvailableDiagnosticService : CIM_ServiceAvailableToElement {
+
+      [Override ( "ServiceProvided" ), Description (
+          "The diagnostic service that is available to a "
+          "ManagedElement.")]
+   CIM_DiagnosticService REF ServiceProvided;
+
+      [Description (
+          "Estimated magnitude of time to perform the referenced "
+          "DiagnosticService on the referenced ManagedElement. \n"
+          "Since the processing speed of a system can vary immensely "
+          "due to a variety of factors (e.g., processor speed), this "
+          "property takes on values that are a statement of magnitude, "
+          "not absolute time. If greater accuracy can be provided, a "
+          "quantification may be specified in the corresponding "
+          "integer property, EstimatedDurationQualifier. \n"
+          "Since execution times could vary by Element, this property "
+          "is located in the association between the two entities."), 
+       ValueMap { "0", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Milliseconds", "Seconds", "Minutes",
+          "Hours", "Days" }, 
+       ModelCorrespondence { 
+          "CIM_AvailableDiagnosticService.EstimatedDurationQualifier" }]
+   uint16 EstimatedDurationOfService;
+
+      [Description (
+          "EstimatedDurationQualifier can be used to further quantify "
+          "the magnitude of time to perform the service."), 
+       ModelCorrespondence { 
+          "CIM_AvailableDiagnosticService.EstimatedDurationOfService" }]
+   uint32 EstimatedDurationQualifier;
+
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

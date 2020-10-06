@@ -1,0 +1,539 @@
+===============================================================================
+Please See PEP# 241 for more details on Open Pegasus Stress Tests:
+===============================================================================
+
+Open Pegasus stress tests are expected to exert excessive loads on the CIM
+server. The main intent of these tests are to see how fast, or whether, we can
+get the CIM server to crash or hang.  These tests are designed to allow some
+flexibility in adjusting the desired stress level on the CIM server.
+
+===============================================================================
+Table of Contents:
+===============================================================================
+1.0 Execution model assumptions
+2.0 OpenPegasus Stress Test Overview
+    2.1 TestStressTestController
+    2.2 Stress Test Clients
+    2.3 The Stress Test Configuration File
+3.0 Default Values
+4.0 Running a Stress Test using default values
+5.0 Running the new "stresstest" target
+6.0 Stress Test Logs
+7.0 Stress Test Errors
+8.0 Other Considerations
+===============================================================================
+
+*******************************************************************************
+1.0 Execution model assumptions:
+===============================================================================
+    1.1 The proposed client-side functionality concerning stress test will be
+        tested only on Windows and Linux. Note, that the CIM server that is
+        being stressed can be running on any of the OpenPegasus supported
+        operating system.
+
+    1.2 The CIM server that is being stress tested is expected but not required
+        to be running on a different system than the stress clients. This is
+        mainly to isolate the CIM server that is under stress.
+
+    1.3 ALL OF THE PROPOSED STRESS TEST CLIENTS INVOKED BY A GIVEN EXECUTION OF
+        THE "TestStressTestController" ARE EXPECTED TO BE STRESS TESTING THE SAME
+        CIMSERVER.
+
+===================================================================i===========
+DIAGNOSIS OF CIM SERVER HANGS OR CRASHES CAUSED BY THE STRESS TESTS ARE
+EXPECTED TO BE DONE USING ALREADY EXISTING DEBUGGING AND TRACING TECHNIQUES
+OR TOOLS.
+===============================================================================
+
+*******************************************************************************
+2.0 OpenPegasus Stress Test Overview:
+===============================================================================
+  OpenPegasus Stress Test will be comprised of three major components, as
+  follows:
+
+
+   1. TestStressTestController
+        Command that invokes one or more of the Stress Test Clients.
+
+   2. Stress Test Clients.
+        Client Programs that may contain one or more of the CIM Operation(s).
+
+   3. Stress Test Configuration.
+       A flat file containing test configuration information.
+
+   The "stressTestController" will read the configuration file  and then,
+   invoke the "Stress Test Client" instances specified in the "Stress Test
+   Configuration".  Each of the client instances will be a separate process.
+   These Clients will in turn connect to the same CIM Server and perform
+   their respective operations concurrently.
+
+   2.1 TestStressTestController:
+       =====================
+         This command can be run using the following options:
+         (Usage information may be displayed using "--help" option)
+
+         TestStressTestController [ -s ] [ -h hostname ] [ -p portnumber ]
+                              [ -u username ] [ -w password ] [ --help ]
+                              [ --version ] [ --verbose ] [<config_filename>]
+
+         Options :
+          -h         - Connect to CIM Server on specified hostname
+          --help     - Display this help message
+          -p         - Connect to CIM Server on specified portnumber
+          -s         - Use SSL protocol between 'stressTestController' client
+                       and the CIM Server
+          -u         - Connect to CIM Server using the specified username
+          --version  - Display CIM Server version number
+          --verbose  - Display verbose information
+          -w         - Connect to CIM Server using the specified password
+
+         Operands :
+           <config_filename>
+                     - Specifies the name of the configuration file that is
+                       to be used for the tests.
+
+    2.1.1 The user may specify the name of the configuration file that is to be
+          used for the tests. When a configuration file is not specified at
+          command line, then the TeststressTestController command will use the
+          default configuration file if it exists, otherwise take the default
+          values hard coded in the TestStressTestcontroller.
+
+    2.1.2 This command will also verify the validity of the configuration values
+          specified in the configuration file.
+
+    2.1.3 This command will invoke one or more of the Stress Test Clients
+          specified below.
+
+    2.1.4 This command will end for any of the following reasons:
+           - When "Duration" as specified in the Stress Test  configuration file
+             has elapsed.
+            - If the specified configuration file cannot be found in  the
+              configuration directory.
+            - If the configuration file has any invalid parameter or value.
+            - A persistent failure in one (or more) of the Stress Test Clients.
+                - The configuration can be setup to allow some margin of client
+                  failures. By default, any client failure will be reported
+                  and result in termination of the stress test
+                  (this corresponds to a ToleranceLevel of 0%).
+
+     2.1.5 When the command ends, it will as part of its cleanup also end
+           all the stress clients that it had originally started.
+
+     2.1.6 All the options specified here on the command line will have
+           precedence over similar parameters specified in the configuration
+           file.
+
+     2.1.7 Log files for the controller can be found in
+           $PEGASUS_HOME/test/StressTestController/log/ and will be named as
+           "<controller_pid>_stressTest_<DDMMYYhhmmss>.log "
+            where,
+               "DD" denotes the day.
+               "MM" denotes the month.
+               "YY" denotes the year.
+               "hh" denotes the hour.
+               "mm" denotes the minutes.
+               "ss" denotes the seconds.
+               "controller-pid" denotes the pid of the stressTestController
+
+     2.1.8 Log file for the clients intiated by a controller can be found in
+            $PEGASUS_HOME/test/StressTestController/log/ and will be named as
+            <controller-pid>_StressTestClients.log
+            where,
+                "controller-pid" denotes the pid of the stressTestController
+
+  2.2 Stress Test Clients:
+      ====================
+
+      The following table lists the Stress Test Clients and the associated CIM
+      Operations that each of these clients will perform on the CIM Server.
+      These clients once started will run repeatedly until stopped by the
+      stressTestController command. The expected stress factor imposed on the
+      CIM server is directly proportional to the number of client instances
+      running concurrently against the same CIM Server.
+
+         STRESS TEST CLIENTS                  DESCRIPTION
+
+        TestModelWalkStressClient 	For all the detectable namespaces this
+                                        client will perform an enumeration of
+                                        all Classes, Instances, References,
+                                        Associators & Qualifiers.
+
+        TestWrapperStressClient	        This is a wrapper client that will allow
+                                        existing clients or programs to be
+                                        existing clients or programs to be
+                                        executed. The intended client program
+                                        that is expected to be executed must
+                                        be specified in the configuration file
+                                        when using this client. The client program
+                                        must ensure that it connect to the
+                                        correct cimserver.
+                                        For example, this  client can be used to
+                                        run pegasus CLI's to stress test the CIM
+                                        server.  Also note that the "CLI" command
+                                        uses -l option to set the hostname where the
+                                        CIMServer is running.
+                                        Please refer to section 2.3.8(A Sample
+                                        Configuration File) for an example.
+
+        Note:
+          The above list of stress test Clients can grow as needed.
+          Please see PEP# 241 for possible future "Stress Test Clients":
+
+     2.2.1 Stress Test Clients will Connect to the CIM Server running on the
+           specified hostname. However, if the hostname is not specified then
+           the client will attempt to connect with the CIM server on the same
+           system the client is invoked on.
+
+     2.2.2 "Stress Test Clients" on completion or failure of its operation as
+           specified above will continue to repeat the operations until stopped
+           by the "TestStressTestController".
+
+   2.3 The Stress Test Configuration File:
+       ===================================
+
+     2.3.1 The default configuration filename for the stress test will be named
+           as "default_stresstest.conf".
+
+     2.3.2 The user may specify the name of the configuration file that is to be
+           used for the tests.
+
+     2.3.3 Default configuration file will be kept in
+           $PEGASSUS_ROOT/test/StressTestController/ directory.
+
+     2.3.4 The Configuration file can contain the following common values that
+           would in turn provide the factors required for the stress tests:
+
+          1. Duration of Tests.
+              - Duration in minutes all the .Stress Test  Client. are to be run.
+          2. HostName
+              - Host name or IP address  of the system where the CIM server is
+                expected to be running.
+          3. Port.
+              - Specifies Port number. The default port is 5988.
+          4. Number of Clients.
+              - Number of concurrent clients.
+          5. Name Space.
+              - Name space that will be utilized by the Stress Test Clients.
+          6. Class Name.
+              - Name of the existing class that will be utilized by the Stress
+                Test Clients.
+          7. SSL.
+              - Use SSL protocol between Stress Client and the CIM Server.
+          8. UserName.
+              - User name that the Stress Test Clients will use to connect to
+                the server.
+          9. Password.
+              - Password that is associated to the user name.
+         10. ToleranceLevel.
+              - This represents the percentage of the started "Stress Test
+                client" that can be allowed to fail in every one minute
+                interval without resulting in the termination of the stress
+                tests.
+
+            NOTE:
+              Any reported client failure in a one minute interval corresponds
+              to a "failure status" for that interval. The default is 0%,
+              which means no failures are allowed, or any failures will result
+              in termination of the stress test.
+
+         11. ClientDuration.
+              - Specifies duration in minutes for the corresponding stress
+                client before it should be stopped.
+         12. ClientWait.
+              - Specifies waiting period in minutes before the corresponding
+                stress client is re-started again. "ClientDuration" when used
+                without "ClientWait" will not be re-run. "ClientWait" will
+                only apply when used with "ClientDuration".
+         13. ClientName.
+              - The name of the Client program that will be used by a
+                TestWrapperStressClient instance.
+         14. Options.
+              - The options that are desired for the corresponding Client
+                program that will be used by a TestWrapperStressClient.
+
+      2.3.5 Instances of the Clients may also have unique configurable values.
+            Unique values can be specified for each instance in the
+            configuration file as shown in the Sample Configuration File below.
+            If any of the above parameters are repeated for a client instance,
+            then that particular instance(s) will utilize the new value.
+
+      2.3.6 Parameters "ClientName" and "Options" are only used for
+            "TestWrapperStressClient".
+
+      2.3.7 The parameter "Hostname" will have to be the same for all the
+            Clients.
+
+      NOTE:
+        - Options or values specific for each client or instance must be placed
+          after the corresponding client or instance. Otherwise, the order of
+          the configuration variables in the configuration file is not
+          important.
+        - When using a Client program like a "CLI" or  any other "clients"
+          with the "TestWrapperStressClient", ensure that  options associated
+          to the Client program will connect to the same CIM Server.
+
+          Example:
+               [clientname="CLI",options="niall -l <hostname>"]
+
+         - Running without a failure implies that the client is communicating
+           with the CIMServer and has recieved responses other than an
+           exception or a CIMError.
+
+      2.3.8 A Sample Configuration File:
+            ===========================
+
+           #Machine Host of Server to be tested
+           #If left blank then default is the local host.
+           Hostname=narten
+
+           # Total Duration of the Stress Client Test set as 300 minutes.
+           Duration=300
+
+           # Tolerance level in percentage
+           ToleranceLevel=0
+
+           # Number of Client instances
+           # The format for running a client program:
+           #     <client program name>=<number of instances of clients>
+           #     [option1=<data1>, option2=<data2>, option3=<data3>, ..... ]
+           #
+           #  specify all the options for a Client instance or instances within
+           #  a square bracket "[  .... ]".
+           #
+           #
+           #  TestWrapperStressClient can only have the parameters "ClientName"
+           #  and "Options". All other options will be ignored.
+           #    [ClientName=<ClientProgram>,Options=<actual options for Client>]
+
+           ModelWalkStressClient=1
+           [NameSpace=/root/cimv2,ClassName=CIM_door,ClientDuration=60,ClientWait=10]
+           ModelWalkStressClient=5
+           WrapperStressClient=2
+           [ClientName=CLI,Options="-l narten niall"]
+           WrapperStressClient=10
+           [ClientName=CLI,Options="-l narten ei pg_computersystem"]
+           WrapperStressClient=5
+           [ClientName=osinfo,Options="-h narten",ClientDuration=120]
+
+           # Description:
+           # The above config values sets up the stress tests for the following
+           # stress test clients to be run concurrently:
+           #      1. One ModelWalkStressClient which will use the Name space
+           #         "/root/cimv2" and ClassName "CIM_door" overriding any
+           #         default value.
+           #         This client will be run for 60 minutes then stopped for  10
+           #         minutes before it is re-started again. This process will be
+           #         repeated for the duration of the stress tests.
+           #      2. Five ModelWalkStressClient's using common values.
+           #      3. Two WrapperStressClients will run the commands
+           #         "CLI -l narten niall" concurrently.
+           #      4. Ten WrapperStressCleints will concurrently run the command
+           #         "CLI -l narten ei pg_computersystem".
+           #      5. Five WrapperStressCleints will run the command "osinfo -h
+           #         narten" concurrently for 120 minutes and then stop.
+           #
+           #        Note:
+           #         The 17 wrapper clients instances are also connecting to the
+           #         same hostname as the other clients.(Please refer to items 3, 4
+           #         & 5 under Descriptions)
+           #         Please note that the "CLI" command uses -l option while the
+           #         "osinfo" command uses -h option to set the hostname respectively.
+
+*******************************************************************************
+3.0 Default Values:
+===============================================================================
+
+    3.1  Default Hostname will be the local system where the stress tests are
+         run.
+
+    3.2  Default port will be 5988.
+
+    3.3  Default "Duration" will be set as 180 minutes.
+
+    3.4  Default number of  instances for each of the known clients is "5".
+
+    3.5  Default NameSpace when needed will be "root/cimv2".
+
+    3.6  Default UserName and  Password will  be blank.
+
+    3.7  Default  will not use SSL.
+
+    3.8  Default percentage for "ToleranceLevel" will be set as 0%.
+
+    3.9  Default  ClientWait & ClientDuration will be  blank.
+
+    3.10 Default Clients for the stress tests will be set as follows:
+
+         ModelWalkStressClient=5
+         WrapperStressClient=5
+          [ClientName=CLI, Options=niall]
+
+      Note:
+         The above default sets up the stress tests for the following test
+         clients to be run concurrently:
+           Five ModelWalkStressClient instances using default values.
+           Five WrapperStressClient instances running the command "CLI niall".
+
+*****************************************************************************
+4.0  Running a Stress Test using default values:
+=============================================================================
+Assumptions:
+          CIMServer and Stress Test successfully build.
+          $PEGASUS_ROOT, $PEGASUS_HOME and other pegasus environments are
+          appropriately set.
+
+    4.1 Start the CIM Server on a specific hostname.
+
+    4.2 Run the following command :
+        (Ensure that the hostname specified below matches where the above
+         CIM Server resides.)
+
+         TestStressTestController  -h <hostname>
+
+         NOTE:
+           If the <hostname> is local host run the command without the "-h" option
+           as follows:
+
+           TestStressTestController
+
+    4.3 The "stressTestController" will search for the default file
+        in the configuration directory.
+
+    4.4 Assuming that we are using default values but connecting to the
+        specified host, the "stressController" will then invoke the Five
+        ModelWalkStressClient instances using default values & the Five
+        WrapperStressClient instances running the command
+         "CLI niall -l <hostname>" .
+         (See section 3.0 (Default Values) above for reference)
+
+    4.5  The "TestStressTestController" will log status and other information in its
+         log file.
+
+    4.6  Each instance of the invoked stressClients(ModelWalkStressClient &
+         Wrapper StressClient) will connect  to the specified hostname via the
+         default port and run its operations.
+
+    4.7  Note that the stress clients will repeat these operations until it
+         unexpectedly ends  or is stopped by the "TestStressTestController".
+
+    4.8  TestStressTestController will monitor the overall status of these stress
+         clients for every One minute interval.
+           - If the overall stress client status is less than or equal to the
+             tolerance level then all is well and all the client instances are
+             allowed to chug along.
+           - if the overall stress client status is greater than the tolerance
+             level, then the stressTestController will terminate all the client
+             instances and subsequently end the stress tests while reporting
+             & loging this failure.
+
+    4.9  If  all is well then the tests will continue till the end of the
+         duration of the stress tests, which for default will be 180 minutes.
+
+*****************************************************************************
+5.0  Running the new "stresstest" target:
+=============================================================================
+
+Assumptions:
+   CIMServer successfully build.
+   $PEGASUS_ROOT, $PEGASUS_HOME and other pegasus environments are
+   appropriately set.
+
+    5.1  Change directory to $PEGASUS_ROOT
+
+    5.2  Run the following command.
+             "make stresstests"
+
+         - The new target "stresstests" will run the stress Tests
+           ("stressTestController") using default configuration.
+           The stress test programs are expected to be build already
+           and ready to run.
+
+         - Any failure, will be reported accordingly and end the tests.
+
+    5.3 Target "tests" can also be run from $PEGASUS_ROOT/test/StressTests/tests
+        These tests will run some usage tests for the "TestStressTestController"
+        Any failure, will be reported accordingly and end the tests.
+        (These tests will be run as part of the nightly test.)
+
+        To invoke this target:
+         - Change directory to $PEGASUS_ROOT/test/StressTests/tests/
+         - Run the following command
+              "make tests"
+
+*****************************************************************************
+6.0 Stress Test Logs:
+=============================================================================
+
+    Stress Test logs will contain general information about the stress tests.
+    Most of the informations concerns configuration properties, client status,
+    controller status, actual tolerance status, started/re-started clients,
+    stopped clients and other general information concerning the tests.
+    A little more detailed logs and status reports are kept when the verbose
+    option is selected.
+
+    6.1 Log files for the Stress Tests will be saved in the following directory:
+            $PEGASUS_HOME/test/StressTestController/log/
+
+    6.2 Each test will generate two log files.(One for the controller and one
+        for all the clients executed by this test.)
+
+    6.3 Log files for the controller can be found in above log directory:
+        and will be named as
+           "<controller_pid>_stressTest_<DDMMYYhhmmss>.log "
+             where,
+               "DD" denotes the day.
+               "MM" denotes the month.
+               "YY" denotes the year.
+               "hh" denotes the hour.
+               "mm" denotes the minutes.
+               "ss" denotes the seconds.
+
+    6.4  Log file for all the clients intiated by a controller can also be found
+         in the above log directory and will be named as
+            <controller-pid>_StressTestClients.log
+
+           where,
+             "controller-pid" denotes the pid of the TestStressTestController
+
+*******************************************************************************
+7.0 Stress Test Errors:
+===============================================================================
+   There are several sources of errors in the stress test.
+   They are
+
+   7.1 Stress Test Controller errors
+   (These failures will end the tests)
+         7.1.1 Invalid command options or operands.
+         7.1.2 Non-Existing Configuration file.
+         7.1.3 Syntax Error in Configuration file.
+         7.1.4 Invalid config property in config file.
+         7.1.5 Non-Existing Client PID file.(Failed to Communicate with Client)
+         7.1.6 Error reading Client PID File.
+         7.1.7 Not within tolerance Error.
+
+    7.2 Stress Test Client errors
+         7.2.1 Time out waiting to connect
+               This is an exception thrown by the client. It will be logged and
+               viewed by the controller as a failure.
+
+         7.2.2 Time out waiting for response
+               This is an exception thrown by the client. It will be logged and
+               viewed by the controller as a failure.
+
+         7.2.2 Failed getInstance operation for some classes(See Bugs 4957 &
+               4268).
+
+
+    7.3 Server Response Errors
+
+        7.3.1 Varied error response returned by the server.
+              This kind of error will be logged and viewed by the controller as
+              a failure.
+
+*******************************************************************************
+8.0 Other Considerations:
+===============================================================================
+   Compilation of the "Stress Test Clients" and the associated files will be
+   included in the nightly build. However, testing of the "Stress Test
+   Clients" and the associated files will NOT be included in the
+   nightly tests.

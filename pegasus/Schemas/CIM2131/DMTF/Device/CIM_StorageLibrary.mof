@@ -1,0 +1,92 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_StorageLibrary
+// ==================================================================
+   [UMLPackagePath ( "CIM::Device::StorageLib" ), Version ( "2.6.0" ), 
+    Description (
+       "A StorageLibrary is a collection of ManagedSystemElements that "
+       "operate together to provide cartridge library capabilities. "
+       "This object serves as an aggregation point to group the "
+       "following elements: MediaTransferDevices, a Label Reader, a "
+       "library Door, MediaAccessDevices, and other Library "
+       "components.")]
+class CIM_StorageLibrary : CIM_System {
+
+      [Description (
+          "Capabilities of the StorageLibrary. For example, it can be "
+          "indicated that the Library can perform automatic cleaning "
+          "of the MediaAccessDevices contained in it (value=1) or that "
+          "the Library provides physical door access for an operator "
+          "(value=2)."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Automatic Cleaning",
+          "Manual Operation", "Front Panel Lockable" }]
+   uint16 Capabilities[];
+
+      [Description (
+          "Boolean set to TRUE if there are more PhysicalMedia in a "
+          "Library than there are StorageMediaLocations to contain "
+          "them. For instance, if all MediaAccessDevices have a Media "
+          "loaded in them, and all StorageMediaLocations are loaded by "
+          "an operator, then an Overfilled condition exists.")]
+   boolean Overfilled;
+
+      [Description (
+          "Boolean set to TRUE if the Library can not currently report "
+          "the correct state of each PhysicalMedia within its proper "
+          "StorageMediaLocation.")]
+   boolean AuditNeeded;
+
+      [Description (
+          "Boolean set to TRUE if an audit of the location of some or "
+          "all of the Library's PhysicalMedia is currently being "
+          "performed. That an individual Changer is currently doing an "
+          "audit is indicated by a similar AuditInProgress boolean "
+          "property on the Changer object.")]
+   boolean AuditInProgress;
+
+      [Description (
+          "Maximum time in seconds that it takes for the Storage "
+          "Library to perform a complete audit of each StorageMedia "
+          "Location, to determine the absence or presence of a "
+          "Physical Media. If automated support is not provided, then "
+          "this property's value is undefined."), 
+       Units ( "Seconds" )]
+   uint64 MaxAuditTime;
+
+      [Description (
+          "Boolean set to TRUE if the Library includes a robotics "
+          "mechanism that can be controlled by a ComputerSystem, to "
+          "automatically load and unload PhysicalMedia to/from "
+          "MediaAccessDevices and StorageMediaLocations. The property "
+          "is set to FALSE if the Library represents a repository of "
+          "Media that are inaccessible to a MediaAccess Device without "
+          "human intervention. An example of a non- automated Library "
+          "is a 'shelf' or 'vault' where Physical Media are kept for "
+          "extended periods of time.")]
+   boolean Automated;
+
+      [Description (
+          "Boolean indicating whether the Library's robotics are "
+          "currently active/enabled. If TRUE, then the Library may not "
+          "be safe for a human to enter.")]
+   boolean RoboticsEnabled;
+
+      [Description (
+          "Requests that the Library robotics be enabled for automated "
+          "operation (input parameter, Enabled, set to TRUE), or "
+          "disabled for manual operation (input parameter set to "
+          "FALSE). The return value should be 0 if the request was "
+          "successfully executed, 1 if the request is not supported "
+          "and some other value if an error occurred. In a subclass, "
+          "the set of possible return codes could be specified, using "
+          "a ValueMap qualifier on the method. The strings to which "
+          "the ValueMap contents are 'translated' may also be "
+          "specified in the subclass as a Values array qualifier.")]
+   uint32 EnableRobotics( 
+         [IN, Description (
+             "Set TRUE to enable.")]
+      boolean Enable); 
+};

@@ -1,0 +1,133 @@
+///%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+Remote CMPI Tools
+
+These tools help in setting up a Remote CMPI environment.
+Three scripts are provide:
+
+
+        CreateExtNs.sh
+        ReplaceNs.sh
+	AppendNs.sh
+
+
+                             /*         ----------------------        */
+
+
+CreateExtNs.sh - Create an extended Namespace
+
+        This script enables the creation of namespaces exploiting Shared Schema facilities and namespaces
+        designated to be used as remote namespaces using Remote CMPI facilities.
+
+Usage:
+
+        sh CreateExtNs.sh -n <namespace-name> [ -p <parent-namespace> -l <remote-location> ]
+
+Where
+        -n defines the name of the new nameplates.
+	        Examples: -n root/test
+		          -n root/local
+	-p Optionally define the new namespace to share schema data with an exciting parent namespace.
+	        Example: -p root/cimv2
+	-l Optionally defines this namespace to be represeting a remote locaton with
+	   hostname <remote-location>. CMPIRDeamon must be running at this location.
+	        Example: -l localhost
+		         -l hpc4711
+
+Example:
+        The following command creates a namespace used to execute providers under control of
+	CMPIRDaemon outside of the Pegasus process:
+
+                sh CreateExtNs.sh -l root/local -p root/cimv2 -l localhost
+
+Warning:
+        This script sidesteps pegasus completely and will be changed as soon as the PG_Namespace
+	provider will be available.
+	For the moment you must restart cimserver to activate the new namspace
+
+
+
+
+			     /*         ----------------------        */
+
+
+ReplaceNs.sh - Replace Namspaces property in provider registration MOF fies.
+
+	This script helps in modifying existing registration MOF files, it replaces existing
+	namespace name(s) of the Namespaces property.
+
+Usage:
+        sh ReplaceNs.sh <new-namespace-name> [ ... ] <mof-file-name>
+
+Where
+        new-namespaxe-name is the namespace name to replace the existing Namespaces specification.
+	        Multiple new namespace names can be specified, separated by blanks.
+	mof-file-name is the name of the mof registration file to used.
+
+	Output of the script is routed to std out.
+
+Example:
+        The following command replaces the existing Namespaces specification:
+
+	        sh ReplaceNs.sh root/local root/node* Linux_baseR.mof >Linux_baseCMPIR.mof
+
+        root/node* is used to define the provider supports all namespaces starting with root/node.
+
+
+
+
+
+			     /*         ----------------------        */
+
+
+AppendNs.sh - Append Namespaces property in provider registration MOF fies.
+
+	This script helps in modifying existing registration MOF files, it appends additional
+	namespace names to the Namespaces property.
+
+Usage:
+        sh ReplaceNs.sh <additional-namespace-name> [ ... ] <mof-file-name>
+
+Where
+        additional-namespace-name is the namespace name to be added to existing Namespaces specification.
+	        Multiple namespace names can be specified, separated by blanks.
+	mof-file-name is the name of the mof registration file to used.
+
+	Output of the script is routed to std out.
+
+Example:
+        The following command adds additional namespace names to the existing Namespaces specification:
+
+	        sh ReplaceNs.sh root/local root/node* Linux_baseR.mof >Linux_baseCMPIR.mof
+
+        root/node* is used to define the provider supports all namespaces starting with root/node.
+
+
+
+Adrian Schuur -  schuur@de.ibm.com

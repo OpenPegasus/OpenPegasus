@@ -1,0 +1,604 @@
+// ===================================================================
+// Title: Network_RoutingForwarding
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_RoutingForwarding.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines network routing and
+//              forwarding services.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7.1
+//       - Correct Min(1)->Min(0) overrides (should stay Min(1)) in
+//         HostedForwardingServices and HostedRoutingServices.
+// 
+// Change Log for v2.7
+// CR662 - Deprecate NetworkService and NetworkServicesInAdminDomain
+//       - Modify Descriptions of subclasses of NetworkService
+//         to clarify current status (RouteCalculationService and
+//         ForwardingService)
+//       - Deprecate HostingRoutingServices, HostedForwardingService
+//         and LogicalNetworkService
+// CR788 - Add the classes, RoutingProtocolDomain and RoutingProtocol
+//         DomainInAS, from the OSPF submission
+// CR866 - Cleanup of the RoutingPolicy class
+// CR982 - Removal of Experimental for preliminary to final
+// CR983 - v2.7 Deprecations promoted to final
+// CR1009 - Correct deprecation of NetworkService.ServiceURL
+// Change Log for v2.8
+// CR1128 - Change subclassing from CIM_Dependency to
+//          CIM_HostedDependency for identified classes. This is
+//          needed as a result of the introduction of HostedDependency
+//          by SysDev
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// NetworkService
+// ==================================================================
+   [Deprecated { "CIM_Service" }, Abstract, Version ( "2.7.0" ), 
+    Description (
+       "This is an abstract base class, derived from the Service "
+       "class. It is deprecated in Version 2.7 with the recommendation "
+       "that the Service class be subclassed instead. Distinguishing "
+       "between services that modify traffic versus supporting basic "
+       "communication has not proved useful.")]
+class CIM_NetworkService : CIM_Service {
+
+      [Deprecated { "No value" }, Description (
+          "This is a free-form array of strings that provide "
+          "descriptive words and phrases that can be used in queries. "
+          "To-date, this property has not been implemented, since it "
+          "is not standardized. Also, if this was a necessary query "
+          "construct, then it would be required higher in the "
+          "inheritance hierarchy. The latter has not proven necessary. "
+          "Therefore, the property is deprecated.")]
+   string Keywords [ ];
+
+      [Deprecated { "CIM_ServiceAccessURI" }, Description (
+          "This is a URL that provides the protocol, network location, "
+          "and other service-specific information required in order to "
+          "access the service. It is deprecated with the "
+          "recommendation that ServiceAccessURI be instantiated "
+          "instead. This new class correctly positions the semantics "
+          "of the service access, and clarifies the format of the "
+          "information.")]
+   string ServiceURL;
+
+      [Deprecated { "No value" }, Description (
+          "This is a free-form array of strings that specify any "
+          "specific pre-conditions that must be met in order for this "
+          "service to start correctly. It was expected that subclasses "
+          "would refine the inherited StartService() method to suit "
+          "their specific needs. To-date, this refinement has not been "
+          "necessary. Also, the property is not very useful, since it "
+          "is not standardized. If this was a necessary construct, "
+          "then it would be required higher in the inheritance "
+          "hierarchy (on Service). The latter has not proven true. "
+          "Therefore, the property is deprecated.")]
+   string StartupConditions [ ];
+
+      [Deprecated { "No value" }, Description (
+          "This is a free-form array of strings that specify any "
+          "specific parameters that must be supplied to the "
+          "StartService() method in order for this service to start "
+          "correctly. It was expected that subclasses would refine the "
+          "inherited StartService() methods to suit their specific "
+          "needs. To-date, this refinement has not been necessary. If "
+          "indeed the method were refined, then its parameters would "
+          "more formally convey this information. Therefore, the "
+          "property is deprecated.")]
+   string StartupParameters [ ];
+};
+
+
+// ==================================================================
+// NetworkServicesInAdminDomain
+// ==================================================================
+   [Association, Deprecated { "CIM_HostedDependency" },
+       Version ( "2.7.0" ), Description (
+       "This association establishes the Dependency relationships that "
+       "exist between an administrative domain and the Network "
+       "Services that it hosts. It is deprecated since AdminDomains "
+       "can contain any ManagedSystemElements. There is no special "
+       "relationship needed for NetworkServices. In addition, the Min "
+       "(1) cardinality on AdminDomain is not valid - since it may not "
+       "be possible to define every NetworkService in the context of "
+       "one or more Domains.")]
+class CIM_NetworkServicesInAdminDomain : CIM_HostedDependency {
+
+      [Deprecated { "CIM_Dependency.Antecedent" },
+          Override ( "Antecedent" ), Description (
+          "The AdminDomain that hosts and administers the various "
+          "network services.")]
+   CIM_AdminDomain REF Antecedent;
+
+      [Deprecated { "CIM_Dependency.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The network service that is hosted in the administrative "
+          "domain.")]
+   CIM_NetworkService REF Dependent;
+};
+
+
+// ==================================================================
+// LogicalNetworkService
+// ==================================================================
+   [Association, Deprecated { "No value" }, Version ( "2.7.0" ), 
+    Description (
+       "A LogicalNetworkService represents network services that "
+       "either originate and/or terminate in a LogicalNetwork. This "
+       "association is deprecated since LogicalNetworks aggregate "
+       "ProtocolEndpoints, not their backing Services.")]
+class CIM_LogicalNetworkService {
+
+      [Deprecated { "No value" }, Key, Description (
+          "The LogicalNetwork that contains the network service.")]
+   CIM_LogicalNetwork REF Network;
+
+      [Deprecated { "No value" }, Key, Description (
+          "The NetworkService that is running in the LogicalNetwork.")]
+   CIM_NetworkService REF NetworkService;
+
+      [Deprecated { "No value" }, Description (
+          "An enumeration that explicitly defines this network service "
+          "as originating, terminating, or residing in this "
+          "LogicalNetwork."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Originates In", "Terminates In",
+          "Resides In" }]
+   uint16 ContainmentType;
+};
+
+
+// ==================================================================
+// ForwardingService
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class represents the functions used in forwarding network "
+       "traffic. Its instances act on packets received from one or "
+       "more ProtocolEndpoints or Services, and drop (discard), or "
+       "send those packets to one or more other ProtocolEndpoints or "
+       "Services. The explicit Endpoints being forwarded between, are "
+       "described using the ForwardsAmong association (or one of its "
+       "subclasses). Generally, the Endpoints are at the same protocol "
+       "layer and are usually of similar types, or of the same type. "
+       "ForwardingService is different than RouteCalculation Service "
+       "in that it represents the function of forwarding traffic "
+       "independent of calculating routing information. \n"
+       "\n"
+       "Examining the ForwardingService class definition, note that "
+       "its superclass NetworkService is deprecated. Therefore, "
+       "NetworkService's properties need not be implemented in an "
+       "instance of ForwardingService. Unfortunately, NetworkService "
+       "cannot be removed from the object hierarchy without a major "
+       "Schema release. When/if this occurs, the NetworkService "
+       "superclass will be removed, and ForwardingService will "
+       "subclass from CIM_Service directly. Also note that there are a "
+       "large number of additional protocols that are not currently "
+       "modeled. These will be added over time.")]
+class CIM_ForwardingService : CIM_NetworkService {
+
+      [Description (
+          "This defines the type of protocol that is being forwarded."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19" }, 
+       Values { "Unknown", "Other", "IPv4", "IPv6", "IPv4/IPv6", "IPX",
+          "AppleTalk", "DECnet", "SNA", "CONP", "CLNP", "VINES", "XNS",
+          "ATM", "Frame Relay", "Ethernet", "TokenRing", "FDDI",
+          "Infiniband", "Fibre Channel" }, 
+       ModelCorrespondence { "CIM_ForwardingService.OtherProtocolType" 
+          }]
+   uint16 ProtocolType;
+
+      [Description (
+          "This defines the type of protocol that is being forwarded "
+          "when the value of the ProtocolType attribute is 1 (i.e., "
+          "\"Other\"). This provides for future extensibility."), 
+       MaxLen ( 32 ), 
+       ModelCorrespondence { "CIM_ForwardingService.ProtocolType" }]
+   string OtherProtocolType;
+};
+
+
+// ==================================================================
+// ForwardsAmong
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "This association represents the dependency that exists between "
+       "the ProtocolEndpoints that are used to forward data and the "
+       "ForwardingService that is performing the forwarding of data.")]
+class CIM_ForwardsAmong : CIM_ServiceSAPDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The ProtocolEndpoints that are used to forward the data.")]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The service that is forwarding the data.")]
+   CIM_ForwardingService REF Dependent;
+};
+
+
+// ==================================================================
+// HostedForwardingServices
+// ==================================================================
+   [Association, Deprecated { "CIM_HostedService" },
+    Version ( "2.7.1" ), Description (
+       "This is a specialization of CIM_HostedService, which is an "
+       "association between a Service and the System on which the "
+       "functionality resides. The class, HostedForwardingServices, is "
+       "deprecated since it provides no additional semantics over "
+       "HostedService, and unecessarily restricts the Service to a "
+       "single ComputerSystem, when the Service could reside in a "
+       "Network or other higher level System.")]
+class CIM_HostedForwardingServices : CIM_HostedService {
+
+      [Deprecated { "CIM_HostedService.Antecedent" },
+          Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The hosting router.")]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Deprecated { "CIM_HostedService.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The Service hosted on the System.")]
+   CIM_ForwardingService REF Dependent;
+};
+
+
+// ==================================================================
+// RouteCalculationService
+// ==================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "This is an abstract base class, derived from Service, that "
+       "represents the route calculation aspects of a system. This "
+       "class also addresses functions performed by the system when it "
+       "exchanges routing information. \n"
+       "\n"
+       "Examining the RouteCalculationService class definition, note "
+       "that its superclass NetworkService is deprecated. Therefore, "
+       "NetworkService's properties need not be implemented in an "
+       "instance of RouteCalculationService. Unfortunately, "
+       "NetworkService cannot be removed from the object hierarchy "
+       "without a major Schema release. When/if this occurs, the "
+       "NetworkService superclass will be removed, and "
+       "RouteCalculationService will subclass from CIM_Service "
+       "directly. Also note that there are a large number of "
+       "additional routing protocols that are not currently modeled. "
+       "These will be added over time.")]
+class CIM_RouteCalculationService : CIM_NetworkService {
+
+      [Description (
+          "The RouterID uniquely identifies the router that is "
+          "performing the route calculation. It is the highest IP "
+          "address on the router (or the highest loopback interface, "
+          "if there is one).")]
+   string RouterID;
+
+      [Description (
+          "This is an enumerated value that defines the routing "
+          "algorithm used in this route calculation."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "RIPv1", "RIPv2", "OSPFv1", "OSPFv2",
+          "BGPv1", "BGPv2", "BGPv3", "BGPv4" }]
+   uint16 AlgorithmType;
+};
+
+
+// ==================================================================
+// CalculatesAmong
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This is a specialization of the ServiceSAPDependency "
+       "association, indicating that the referenced ProtocolEndpoint "
+       "is utilized by the RouteCalculationService to provide its "
+       "functionality.")]
+class CIM_CalculatesAmong : CIM_ServiceSAPDependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The required ProtocolEndpoint.")]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The RouteCalculationService, which is dependent on the "
+          "underlying ProtocolEndpoint.")]
+   CIM_RouteCalculationService REF Dependent;
+
+      [Deprecated { "No value" }, Description (
+          "TRUE indicates that this ProtocolEndpoint represents a "
+          "static route, and FALSE means that it represents a "
+          "dynamically-learned route. This property is deprecated "
+          "since a Service may use an Endpoint to output several "
+          "routes, some static and others dynamic.")]
+   boolean IsStatic;
+};
+
+
+// ==================================================================
+// HostedRoutingServices
+// ==================================================================
+   [Association, Deprecated { "CIM_HostedService" },
+    Version ( "2.7.1" ), Description (
+       "This is a specialization of CIM_HostedService, which is an "
+       "association between a Service and the System on which the "
+       "functionality resides. The class, HostedRoutingServices, is "
+       "deprecated since it provides no additional semantics over "
+       "HostedService, and unecessarily restricts the Service to a "
+       "single ComputerSystem, when the Service could reside in a "
+       "Network or other higher level System.")]
+class CIM_HostedRoutingServices : CIM_HostedService {
+
+      [Deprecated { "CIM_HostedService.Antecedent" },
+          Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The hosting router.")]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Deprecated { "CIM_HostedService.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The Service hosted on the System.")]
+   CIM_RouteCalculationService REF Dependent;
+};
+
+
+// ====================================================================
+// RoutingProtocolDomain
+// ====================================================================
+   [Version ( "2.7.0" ), Description (
+       "A Routing Protocol Domain is a collection of routers which "
+       "coordinate their routing knowledge using a single [instance of "
+       "a] routing protocol. This class represents the "
+       "area/layer/level/zone like property of a routing protocol, "
+       "such as an OSPF (area), IS-IS (layer) or PNNI (level). It does "
+       "not represent the entire routing domain in every case. For "
+       "example for OSPF, it represents an Area, but in the case of "
+       "RIP, it represents the whole RIP domain. Any common attributes "
+       "of these routing domains can be placed in this class in future "
+       "versions of CIM.")]
+class CIM_RoutingProtocolDomain : CIM_AdminDomain {
+};
+
+
+// ====================================================================
+// RoutingProtocolDomainInAS
+// ====================================================================
+   [Association, Aggregation, Version ( "2.7.0" ), Description (
+       "This assocation connects an AutonomousSystem to the routing "
+       "domains that it contains.")]
+class CIM_RoutingProtocolDomainInAS : CIM_ContainedDomain {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The autonomous system.")]
+   CIM_AutonomousSystem REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "The routing domain.")]
+   CIM_RoutingProtocolDomain REF PartComponent;
+};
+
+
+// ==================================================================
+// RoutingPolicy
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "This class is used to implement routing policies. It "
+       "aggregates a set of FilterLists, along with other appropriate "
+       "constructs, into a unit. One of the most important uses of "
+       "this class is to change the routing policy by changing values "
+       "of various attributes in a consistent manner. \n"
+       "\n"
+       "A RoutingPolicy is weak to the network device (i.e., the "
+       "ComputerSystem) that contains it. Hence, the ComputerSystem "
+       "keys are propagated to this class. \n"
+       "\n"
+       "Note that this class was defined before the Policy Model and "
+       "hence is not positioned in that hierarchy. The class will be "
+       "repositioned in a later release of the Network Model.")]
+class CIM_RoutingPolicy : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_ComputerSystem.CreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_ComputerSystem.Name" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "This is the name of the Routing Policy."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "This defines the type of action that will be performed if "
+          "the match conditions of the policy are met. The match "
+          "conditions are defined by the associated ListsIn "
+          "RoutingPolicy. There are essentially three choices: forward "
+          "the traffic unmodified, forward the traffic but modify "
+          "either the attributes describing the route and/or other "
+          "attributes that define how to condition the traffic (e.g., "
+          "its ToS byte settings), or prevent the traffic from being "
+          "forwarded."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Accept As Is",
+          "Accept With Protocol Attribute Changes",
+          "Accept and Remark Packet",
+          "Accept With Protocol Attribute Changes and Remark",
+          "Accept With Other Action",
+          "Accept With Protocol Attribute Changes and Other Action",
+          "Accept with Remark and Other Action",
+          "Accept with Protocol Attribute Changes, Remark and Other "
+           "Action", "Deny" }]
+   uint16 Action;
+
+      [Description (
+          "This controls whether protocol-specific attributes replace, "
+          "get prepended, or get appended to their existing values."), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Replace", "Prepend", "Append" }, 
+       ModelCorrespondence { "CIM_RoutingPolicy.BGPAction" }]
+   uint16 AttributeAction;
+
+      [Description (
+          "This defines one or more BGP-specific attributes that "
+          "should be used to modify this routing update."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }, 
+       Values { "Origin", "AS_Path", "NEXT_HOP", "Multi_Exit_Disc",
+          "Local_Pref", "Atomic_Aggregate", "Aggregator", "Community",
+          "Originator_ID", "Cluster_List" }, 
+       ModelCorrespondence { "CIM_RoutingPolicy.BGPValue" }]
+   uint16 BGPAction;
+
+      [Description (
+          "The value for the corresponding BGPAction."), 
+       ModelCorrespondence { "CIM_RoutingPolicy.BGPAction" }]
+   string BGPValue;
+
+      [Description (
+          "This defines a remarking action for this traffic."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Change DSCP", "Change ToS", "Change 802.1Q Value",
+          "Change CIR", "Change CBR", "Change ABR", "Change VBR" }, 
+       ModelCorrespondence { "CIM_RoutingPolicy.RemarkValue" }]
+   uint16 RemarkAction;
+
+      [Description (
+          "The value for the corresponding RemarkAction."), 
+       ModelCorrespondence { "CIM_RoutingPolicy.RemarkAction" }]
+   string RemarkValue;
+
+      [Description (
+          "This defines another action to be taken for this traffic."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Other", "Input Flow Policing", "Output Flow Policing",
+          "Input Aggregate Policing", "Output Aggregate Policing",
+          "Police By Marking Down", "Police By Dropping Down" }, 
+       ModelCorrespondence { "CIM_RoutingPolicy.ConditioningValue",
+          "CIM_RoutingPolicy.OtherConditioningAction" }]
+   uint16 ConditioningAction;
+
+      [Description (
+          "If the value of the ConditioningAction property of this "
+          "class is 1, this contains an application-specific type of "
+          "conditioning that is to be performed. Otherwise, if the "
+          "ConditioningAction property is any other value, the value "
+          "of this property should be NULL."), 
+       ModelCorrespondence { "CIM_RoutingPolicy.ConditioningAction" }]
+   string OtherConditioningAction;
+
+      [Description (
+          "The value for the corresponding ConditioningAction, if "
+          "appropriate."), 
+       ModelCorrespondence { "CIM_RoutingPolicy.ConditioningAction" }]
+   string ConditioningValue;
+};
+
+
+// ==================================================================
+// HostedRoutingPolicy
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A RoutingPolicy is weak to the network device (i.e., the "
+       "ComputerSystem) that contains it. This association formalizes "
+       "that relationship.")]
+class CIM_HostedRoutingPolicy : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The network device/computer system that scopes the "
+          "RoutingPolicy.")]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The routing policy defined in the context of the network "
+          "device.")]
+   CIM_RoutingPolicy REF Dependent;
+};
+
+
+// ==================================================================
+// ListsInRoutingPolicy
+// ==================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "This is a specialization of the CIM_Component aggregation "
+       "which is used to define a set of FilterLists that are "
+       "aggregated by a particular RoutingPolicy.")]
+class CIM_ListsInRoutingPolicy : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The RoutingPolicy, which aggregates the set of FilterLists.")]
+   CIM_RoutingPolicy REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "A FilterList, which is part-of the RoutingPolicy.")]
+   CIM_FilterList REF PartComponent;
+
+      [Description (
+          "The position of the FilterList relative to all other "
+          "entries in the RoutingPolicy.")]
+   uint16 ListSequence;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

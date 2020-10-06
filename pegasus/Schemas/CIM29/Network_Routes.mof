@@ -1,0 +1,650 @@
+// ===================================================================
+// Title: Network_Routes
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_Routes.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines network/next hop routes
+//              (for use for both static and dynamic routes). Also,
+//              default administrative distances for a system are
+//              modeled - to be used when selecting a route.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR805 - Deprecate NextHopRouting, IPRoute, CalculatedRoutes,
+//         RouteFowardedByService, and ForwardedRoutes
+//       - Add NextHopRoute, HostedRoute, NextHopIPRoute,
+//         RouteUsesEndpoint, and AssociatedNextHop
+// CR866 - Add default values to the definition of the distance
+//         properties in AdministrativeDistance; Override the Name
+//         property since it is inherited from MSE
+// CR982 - Removal of Experimental for preliminary to final
+// CR983 - v2.7 Deprecations promoted to final
+// CR994 - Update the InstanceID property Description
+// Change Log for v2.8
+// CR1128 - Change subclassing from CIM_Dependency to
+//          CIM_HostedDependency for identified classes. This is
+//          needed as a result of the introduction of HostedDependency
+//          by SysDev
+// CR1232 - Property CIM_NextHopRouting.DestinationMask
+// (CIM_NextHopRoute.DestinationMask)
+//                      reference does not exist
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// NextHopRoute
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "NextHopRoute represents one of a series of 'hops' to reach a "
+       "network destination. A route is administratively defined, or "
+       "calculated/learned by a particular routing process. A "
+       "ConcreteDependency associaton may be instantiated between a "
+       "route and its routing service to indicate this. (In this "
+       "scenario, the route is dependent on the service.)")]
+class CIM_NextHopRoute : CIM_ManagedElement {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority. (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "InstanceID is not re-used across any InstanceIDs produced "
+          "by this or other providers for this instance's NameSpace. \n"
+          "For DMTF defined instances, the 'preferred' algorithm MUST "
+          "be used with the <OrgID> set to 'CIM'.")]
+   string InstanceID;
+
+      [Description (
+          "The address which serves as the destination to be reached.")]
+   string DestinationAddress;
+
+      [Description (
+          "The specific administrative distance of this route, "
+          "overriding any default distances specified by the system or "
+          "routing service.")]
+   uint16 AdminDistance;
+
+      [Description (
+          "RouteMetric provides a numeric indication as to the "
+          "preference of this route, compared to other routes that "
+          "reach the same destination.")]
+   uint16 RouteMetric;
+
+      [Description (
+          "TRUE indicates that this is a static route, and FALSE "
+          "indicates a dynamically-learned route.")]
+   boolean IsStatic;
+
+      [Description (
+          "An enumerated integer indicating whether the route is "
+          "administrator-defined (value=2), computed (via a routing "
+          "protocol/algorithm, value=3) or the actual route "
+          "implemented in the network (value=4). The default is a "
+          "computed route."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Administrator Defined Route", "Computed Route",
+          "Actual Route" }]
+   uint16 TypeOfRoute=3;
+};
+
+
+// ==================================================================
+// HostedRoute
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "HostedRoute describes the relationship between the route and "
+       "the system in whose context it is defined.")]
+class CIM_HostedRoute : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The network element that scopes/provides context for the "
+          "route.")]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The next hop route defined on the System.")]
+   CIM_NextHopRoute REF Dependent;
+};
+
+
+// ==================================================================
+// NextHopIPRoute
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "NextHopIPRoute specifies routing in an IP network.")]
+class CIM_NextHopIPRoute : CIM_NextHopRoute {
+
+      [Description (
+          "An enumerated integer indicating how the route was derived. "
+          "This is useful for display and query purposes."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11" }, 
+       Values { "Unknown", "Other", "Connected", "User-Defined",
+          "IGRP", "EIGRP", "RIP", "Hello", "EGP", "BGP", "ISIS",
+       "OSPF" }, 
+       ModelCorrespondence { "CIM_NextHopIPRoute.OtherDerivation" }]
+   uint16 RouteDerivation;
+
+      [Description (
+          "A string describing how the route was derived when the "
+          "RouteDerivation property is 1 (\"Other\")."), 
+       ModelCorrespondence { "CIM_NextHopIPRoute.RouteDerivation" }]
+   string OtherDerivation;
+
+      [Description (
+          "The mask for the Ipv4 destination address.")]
+   string DestinationMask;
+
+      [Description (
+          "The prefix length for the IPv6 destination address.")]
+   uint8 PrefixLength;
+
+      [Description (
+          "An enumeration that describes the format of the address "
+          "properties."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "IPv4", "IPv6" }]
+   uint16 AddressType;
+};
+
+
+// ==================================================================
+// RouteUsesEndpoint
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "RouteUsesEndpoint depicts the relationship between a next hop "
+       "route and the local Endpoint that is used to transmit the "
+       "traffic to the 'next hop'.")]
+class CIM_RouteUsesEndpoint : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The endpoint used to reach the route's destination.")]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The route using the endpoint.")]
+   CIM_NextHopRoute REF Dependent;
+};
+
+
+// ==================================================================
+// AssociatedNextHop
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "AssociatedNextHop depicts the relationship between a route and "
+       "the specification of its next hop. The next hop is external to "
+       "a System, and hence is defined as a kind of "
+       "RemoteServiceAccessPoint. Note that this relationship is "
+       "independent of RouteUsesEndpoint (the local Endpoint used to "
+       "transmit the traffic), and both may be defined for a route.")]
+class CIM_AssociatedNextHop : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The next hop for the route.")]
+   CIM_RemoteServiceAccessPoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The route sending traffic to the next hop.")]
+   CIM_NextHopRoute REF Dependent;
+};
+
+
+// ==================================================================
+// NextHopRouting
+// ==================================================================
+   [Deprecated { "CIM_NextHopRoute" }, Abstract, Version ( "2.7.0" ), 
+    Description (
+       "NextHopRouting relates a destination address to the address or "
+       "interface through which the remote address may be reached. An "
+       "instance of this class can represent either static or dynamic "
+       "routing, and may represent a routing table entry (but it is "
+       "not required that all NextHopRoutes be in a routing table). "
+       "Static routes are distinguished by setting the IsStatic "
+       "boolean property to TRUE. Subclasses of NextHopRouting provide "
+       "specific protocol and Key information. NextHopRoutes are "
+       "dependent on at least one ForwardingService to execute them. "
+       "This is conveyed by the CIM_NextHopForwardedByService "
+       "association. \n"
+       "\n"
+       "NextHopRouting is deprecated in lieu of the more general, "
+       "concrete NextHopRoute class. NextHopRoute allows the "
+       "definition of BOTH a next hop address and an interface for "
+       "transmission of the traffic. Also, it does not mandate the "
+       "instantiation of a ForwardingService class. The latter is not "
+       "needed if the sole purpose of the instance is to specify a "
+       "'desired/configured' route. This is simply a specification of "
+       "the next hop.")]
+class CIM_NextHopRouting : CIM_LogicalElement {
+
+      [Deprecated { "CIM_NextHopRoute.DestinationAddress" }, 
+       Description (
+          "The address which serves as the destination to be reached.")]
+   string DestinationAddress;
+
+      [Deprecated { "no value" }, Description (
+          "The mask for the DestinationAddress.")]
+   string DestinationMask;
+
+      [Deprecated { "CIM_AssociatedNextHop.Antecedent",
+          "CIM_RouteUsesEndpoint.Antecedent" }, Description (
+          "This contains either the address of the next-hop router, or "
+          "the interface used to reach the destination.")]
+   string NextHop;
+
+      [Deprecated { "CIM_NextHopRoute.IsStatic" }, Description (
+          "TRUE indicates that this is a static route, and FALSE "
+          "indicates a dynamically-learned route.")]
+   boolean IsStatic;
+};
+
+
+// ==================================================================
+// IPRoute
+// ==================================================================
+   [Deprecated { "CIM_NextHopIPRoute" }, Abstract, Version ( "2.7.0" ), 
+    Description (
+       "An IPRoute relates a destination address to the address or "
+       "interface through which the remote address may be reached. The "
+       "destination address may be a specific IP endpoint or a subnet, "
+       "dependent on the mask. An instance of this class represents "
+       "either static or dynamic routing. Static routes are "
+       "distinguished by setting the IsStatic boolean property to "
+       "TRUE. \n"
+       "\n"
+       "Since many routes between endpoints can be defined (using "
+       "different route calculation algorithms), the CIM_IPRoute class "
+       "is defined as Abstract. This forces subclassing (for example, "
+       "see CIM_BGPIPRoute) and allows the instances of its subclasses "
+       "to be distinguished based on their CreationClassName key "
+       "property. \n"
+       "\n"
+       "IPRoute is deprecated in lieu of the more general, concrete "
+       "NextHopIPRoute class. NextHopIPRoute allows the definition of "
+       "BOTH a next hop address and an interface for transmission of "
+       "the traffic. Also, it does not mandate the instantiation of a "
+       "ForwardingService class.")]
+class CIM_IPRoute : CIM_NextHopRouting {
+
+      [Deprecated { "No value" }, Key,
+          Propagated ( "CIM_ForwardingService.SystemCreationClassName" 
+          ), Description (
+          "The scoping ForwardingService's SystemCreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Deprecated { "No value" }, Key,
+          Propagated ( "CIM_ForwardingService.SystemName" ), 
+       Description (
+          "The scoping ForwardingService's SystemName."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Deprecated { "No value" }, Key,
+          Propagated ( "CIM_ForwardingService.CreationClassName" ), 
+       Description (
+          "The scoping ForwardingService's CreationClassName."), 
+       MaxLen ( 256 )]
+   string ServiceCreationClassName;
+
+      [Deprecated { "No value" }, Key,
+          Propagated ( "CIM_ForwardingService.Name" ), Description (
+          "The scoping ForwardingService's Name."), 
+       MaxLen ( 256 )]
+   string ServiceName;
+
+      [Deprecated { "No value" }, Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Deprecated { "CIM_NextHopIPRoute.DestinationAddress" }, Key, 
+       Description (
+          "The IP address which serves as the destination of the "
+          "traffic, formatted according to the appropriate convention "
+          "as defined in the AddressType property of this class. \n"
+          "\n"
+          "This property has the same semantics as DestinationAddress "
+          "inherited from the NextHopRouting superclass, but a "
+          "different property name. This is because this property and "
+          "class were defined before NextHopRouting and are Key "
+          "properties. They cannot be removed. ModelCorrespondence "
+          "indicates that they should be set to equivalent values for "
+          "consistency and ease of query."), 
+       ModelCorrespondence { "CIM_IPRoute.DestinationAddress" }]
+   string IPDestinationAddress;
+
+      [Deprecated { "CIM_NextHopIPRoute.DestinationMask" }, Key, 
+       Description (
+          "The mask for the destination IP address, formatted "
+          "according to the appropriate convention as defined in the "
+          "AddressType property of this class. \n"
+          "\n"
+          "This property has the same semantics as DestinationMask "
+          "inherited from the NextHopRouting superclass, but a "
+          "different property name. This is because this property and "
+          "class were defined before NextHopRouting and are Key "
+          "properties. They cannot be removed. ModelCorrespondence "
+          "indicates that they should be set to equivalent values for "
+          "consistency and ease of query."), 
+       ModelCorrespondence { "CIM_IPRoute.DestinationMask" }]
+   string IPDestinationMask;
+
+      [Deprecated { "CIM_NextHopIPRoute.AddressType" }, Key, 
+       Description (
+          "An enumeration that describes the format of the address "
+          "property. Addresses that can be formatted in IPv4 format, "
+          "must be formatted that way to ensure mixed IPv4/IPv6 "
+          "support. \n"
+          "\n"
+          "AddressType is part of the key so that an IPv4 and an IPv6 "
+          "route to IP subnets with the same network number but "
+          "different IP versions (v4/v6) can coexist."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "IPv4", "IPv6" }]
+   uint16 AddressType;
+
+      [Deprecated { "No value" }, Override ( "DestinationAddress" ), 
+       ModelCorrespondence { "CIM_IPRoute.IPDestinationAddress" }]
+   string DestinationAddress;
+
+      [Deprecated { "No value" }, Override ( "DestinationMask" ), 
+       ModelCorrespondence { "CIM_IPRoute.IPDestinationMask" }]
+   string DestinationMask;
+};
+
+
+// ==================================================================
+// RouteForwardedByService
+// ==================================================================
+   [Association, Deprecated { "No value" }, Version ( "2.7.0" ), 
+    Description (
+       "This assocation makes explicit the next hops that are "
+       "forwarded by a specific ForwardingService, to reach the "
+       "destination. Every ForwardingService can have its own unique "
+       "set of routing destinations and next hops. The association is "
+       "deprecated since it is incorrect to mandate the existence of a "
+       "ForwardingService in order to define the existence of a route.")]
+class CIM_RouteForwardedByService : CIM_Dependency {
+
+      [Deprecated { "No value" }, Override ( "Antecedent" ), Min ( 1 ), 
+       Description (
+          "The forwarding service for the route.")]
+   CIM_ForwardingService REF Antecedent;
+
+      [Deprecated { "No value" }, Override ( "Dependent" ), 
+       Description (
+          "The route being forwarded.")]
+   CIM_NextHopRouting REF Dependent;
+
+      [Deprecated { "CIM_NextHopRoute.AdminDistance" }, Description (
+          "This property contains the current administrative distance "
+          "of this route, for the ForwardingService. Note that this "
+          "property indicates current, specific values - whereas an "
+          "instance of the CIM_AdministrativeDistance class defines "
+          "default distances.")]
+   uint16 AdminDistance;
+
+      [Deprecated { "CIM_NextHopRoute.RouteMetric" }, Description (
+          "PathMetric provides a numeric indication as to the "
+          "preference of this route compared to other routes that "
+          "reach the same destination.")]
+   uint16 PathMetric;
+};
+
+
+// ==================================================================
+// ForwardedRoutes
+// ==================================================================
+   [Association, Deprecated { "No value" }, Version ( "2.7.0" ), 
+    Description (
+       "This assocation makes explicit the IP routes that are defined "
+       "in the context of a specific ForwardingService. Every "
+       "ForwardingService can have its own unique set of IP routing "
+       "destinations. The association is deprecated since it is "
+       "incorrect to mandate the existence of a ForwardingService in "
+       "order to define the existence of a route.")]
+class CIM_ForwardedRoutes : CIM_RouteForwardedByService {
+
+      [Deprecated { "No value" }, Override ( "Antecedent" ), Min ( 1 ),
+       Max ( 1 ), Description (
+          "The forwarding service for the route.")]
+   CIM_ForwardingService REF Antecedent;
+
+      [Deprecated { "No value" }, Override ( "Dependent" ), Weak, 
+       Description (
+          "The IP route being forwarded.")]
+   CIM_IPRoute REF Dependent;
+};
+
+
+// ==================================================================
+// CalculatedRoutes
+// ==================================================================
+   [Association, Deprecated { "CIM_ConcreteDependency",
+       "CIM_NextHopIPRoute.RouteDerivation" }, Version ( "2.7.0" ), 
+    Description (
+       "This assocation makes explicit the routes that are calculated "
+       "by a specific RouteCalculationService. Thus, every "
+       "RouteCalculationService can have its own unique set of "
+       "calculated routes. The association is not necessary in the "
+       "model and has been deprecated. An instance of the general "
+       "ConcreteDependency association can tie a NextHopIPRoute to a "
+       "RouteCalculationService. In addition, information on how the "
+       "route was derived is available in NextHopIPRoute's "
+       "RouteDerivation enumeration.")]
+class CIM_CalculatedRoutes : CIM_Dependency {
+
+      [Deprecated { "CIM_ConcreteDependency.Antecedent",
+          "CIM_NextHopIPRoute.RouteDerivation" },
+          Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The route's calculation service.")]
+   CIM_RouteCalculationService REF Antecedent;
+
+      [Deprecated { "CIM_ConcreteDependency.Dependent" },
+          Override ( "Dependent" ), Description (
+          "The IP route calculated by a specific service.")]
+   CIM_IPRoute REF Dependent;
+};
+
+
+// ==================================================================
+// AdministrativeDistance
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "Information in this class affects the choice of one protocol "
+       "over another, when two protocols learn the same route. "
+       "Properties define the preference of a protocol, called its "
+       "distance. The lower the distance, the higher the preference "
+       "for that protocol. This class affects ALL routes and contains "
+       "the default distances. Specific administrative distances "
+       "relative to an individual route and Forwarding Service are "
+       "defined in the NextHopForwardedByService association, its "
+       "AdminDistance property. \n"
+       "\n"
+       "AdministrativeDistance, being a global object, is weak to the "
+       "AdminDomain that contains it. Hence, the AdminDomain keys are "
+       "propagated to this class.")]
+class CIM_AdministrativeDistance : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_AdminDomain.CreationClassName" ), 
+       Description (
+          "The scoping AdminDomain's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_AdminDomain.Name" ), Description (
+          "The scoping AdminDomain's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified.")]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "This is the name of the AdministrativeDistance class."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "The distance for directly connected peers. It has a default "
+          "value of 0.")]
+   uint8 DirectConnect = 0;
+
+      [Description (
+          "The distance for staticly connected peers. It has a default "
+          "value of 1.")]
+   uint8 Static = 1;
+
+      [Description (
+          "The distance for peers using EBGP. It has a default value "
+          "of 20.")]
+   uint8 EBGP = 20;
+
+      [Description (
+          "The distance for peers using internal EIGRP. It has a "
+          "default value of 90.")]
+   uint8 EIGRPInternal = 90;
+
+      [Description (
+          "The distance for peers using IGRP. It has a default value "
+          "of 100.")]
+   uint8 IGRP = 100;
+
+      [Description (
+          "The distance for peers using OSPF. It has a default value "
+          "of 110.")]
+   uint8 OSPF = 110;
+
+      [Description (
+          "The distance for peers using ISIS. It has a default value "
+          "of 115.")]
+   uint8 ISIS = 115;
+
+      [Description (
+          "The distance for peers using RIP. It has a default value of "
+          "120.")]
+   uint8 RIP = 120;
+
+      [Description (
+          "The distance for peers using EGP. It has a default value of "
+          "140.")]
+   uint8 EGP = 140;
+
+      [Description (
+          "The distance for peers using external EIGRP. It has a "
+          "default value of 170.")]
+   uint8 EIGRPExternal = 170;
+
+      [Description (
+          "The distance for peers using IBGP. It has a default value "
+          "of 200.")]
+   uint8 IBGP = 200;
+
+      [Description (
+          "The distance for peers using BGP locally. It has a default "
+          "value of 200.")]
+   uint8 BGPLocal = 200;
+
+      [Description (
+          "The distance for peers using an unknown protocol. It has a "
+          "default value of 255.")]
+   uint8 Unknown = 255;
+};
+
+
+// ==================================================================
+// HostedAdminDistance
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "AdministrativeDistance, being a global object, is weak to the "
+       "AdminDomain that contains it. This association formalizes that "
+       "relationship.")]
+class CIM_HostedAdminDistance : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The AdminDomain that scopes the AdministrativeDistance.")]
+   CIM_AdminDomain REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The table of (global) administrative distances that are "
+          "defined in the context of the AdminDomain.")]
+   CIM_AdministrativeDistance REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

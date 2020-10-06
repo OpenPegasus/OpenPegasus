@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#
+# The following set of commands tests the new Classes configured through the
+# sample provider interface.
+#
+# $1 = CIM Operation abbreviation accepted by the CLI command.
+#
+
+if [ ! -n "$1" ]
+then
+	echo "Requires cim operation as a command arg."
+	exit
+else
+	rm -f $1-auth.log
+	CLI $1 -n root/SampleProvider CIMOMSample 2>&1 | tee $1-auth.log
+	CLI $1 -n root/SampleProvider CIMOMSample -u guest -p nothing 2>&1 | tee -a $1-auth.log
+	CLI $1 -n root/SampleProvider CIMOMSample -u guest -p guest 2>&1 | tee -a $1-auth.log
+	CLI $1 -n root/SampleProvider CIMOMSample -u subodh -p soni 2>&1 | tee -a $1-auth.log
+fi

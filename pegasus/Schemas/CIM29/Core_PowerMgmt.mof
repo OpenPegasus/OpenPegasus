@@ -1,0 +1,187 @@
+// ===================================================================
+// Title: Core_PowerMgmt
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Core_PowerMgmt.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Core Model defines basic management concepts.
+//              This file defines the concepts for power
+//              management.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1210 - Removal of experimental qualifiers for core.
+// CR1223 - SysDev Omnibus CR - Minor MOF corrections.
+// 
+// Change Log for v2.8 Preliminary
+// CR932  - Add power mode status to OperationalStatus.
+//           Move the specific power mode states from availability
+//          to a property between the PowerMgmt service and its ME.
+//          Remove the overlapping properties from Logical Device.
+// CR950 - Add ArrayType to CIM_ManagedSystemElement properties
+// CR1002 -  Move the power on statistics to their own statistic class
+// CR1019 - CIM Versioning for 2.8 Preliminary
+// 
+// Change Log for v2.7 Final
+// CR968 - Remove the Experimental qualifier
+// 
+// Change Log for v2.7
+// CR720 - Introduce PowerManagementCapabilities &
+//         PowerManagementService
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// PowerManagementCapabilites
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "A class derived from Capabilities that describes the power "
+       "management aspects of an element (typically a system or "
+       "device). The element's power management capabilities are "
+       "decoupled from a PowerManagementService, since a single "
+       "service could apply to multiple elements, each with specific "
+       "capabilities.")]
+class CIM_PowerManagementCapabilities : CIM_Capabilities {
+
+      [Description (
+          "An enumeration indicating the specific power-related "
+          "capabilities of a managed element. Since this is an array, "
+          "multiple values may be specified. The current values in the "
+          "enumeration are: \n"
+          "0 = Unknown \n"
+          "1 = Other \n"
+          "2 = Power Saving Modes Entered Automatically, describing "
+          "that a managed element can change its power state based on "
+          "usage or other criteria \n"
+          "3 = Power State Settable, indicating that the SetPowerState "
+          "method is supported \n"
+          "4 = Power Cycling Supported, indicating that the "
+          "SetPowerState method can be invoked with the PowerState "
+          "input variable set to 'Power Cycle' \n"
+          "5 = Timed Power On Supported, indicating that the "
+          "SetPowerState method can be invoked with the PowerState "
+          "input variable set to 'Power Cycle' and the Time parameter "
+          "set to a specific date and time, or interval, for power-on."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other",
+          "Power Saving Modes Entered Automatically",
+          "Power State Settable", "Power Cycling Supported",
+          "Timed Power On Supported" }, 
+       MappingStrings { "MIF.DMTF|System Power Controls|001.2" }, 
+       ModelCorrespondence { "CIM_PowerManagementCapabilities." 
+          "OtherPowerCapabilitiesDescriptions",
+          "CIM_PowerManagementService.SetPowerState" }]
+   uint16 PowerCapabilities[];
+
+      [Description (
+          "An array of strings describing an element's additional "
+          "power management capabilities, used when the "
+          "PowerCapabilities array includes the value 1, \"Other\"."), 
+       ModelCorrespondence { 
+          "CIM_PowerManagementCapabilities.PowerCapabilities" }]
+   string OtherPowerCapabilitiesDescriptions[];
+};
+
+
+// ===================================================================
+// PowerManagementService
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "A class derived from Service that describes power management "
+       "functionality, hosted on a System. The fact that this service "
+       "may be used to affect the power state of a particular element "
+       "is defined by the CIM_ServiceAvailable ToElement association.")]
+class CIM_PowerManagementService : CIM_Service {
+
+      [Description (
+          "SetPowerState defines the desired power state of the "
+          "managed element, and when the element should be put into "
+          "that state. The SetPowerState method has three input "
+          "parameters, no output parameters, and a result. \n"
+          "- PowerState indicates the desired power state. \n"
+          "- ManagedElement indicates the element whose state is set. "
+          "This element SHOULD be associated to the service using the "
+          "ServiceAvailableToElement relationship. \n"
+          "- Time indicates when the power state should be set, either "
+          "as a regular date-time value or as an interval value (where "
+          "the interval begins when the method invocation is "
+          "received). \n"
+          "Note that when the PowerState parameter is equal to 5, "
+          "\"Power Cycle\", the Time parameter indicates when the "
+          "managed element should powered on again. Power off is "
+          "immediate. \n"
+          "SetPowerState should return 0 if successful, 1 if the "
+          "specified State and Time request is not supported for the "
+          "element, and some other value if any other error occurred. "
+          "In a subclass, the set of possible return codes could be "
+          "specified, using a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' may "
+          "also be specified in the subclass as a Values array "
+          "qualifier.")]
+   uint32 SetPowerState( 
+         [IN, Description (
+             "The power state for ManagedElement."), 
+          ValueMap { "1", "2", "3", "4", "5", "6", "7", "8" }, 
+          Values { "Full Power", "Power Save - Low Power Mode",
+             "Power Save - Standby", "Power Save - Other",
+             "Power Cycle", "Power Off", "Hibernate", "Soft Off" }]
+      uint16 PowerState, 
+         [IN, Description (
+             "ManagedElement indicates the element whose state is set.")]
+      CIM_ManagedElement REF ManagedElement, 
+         [IN, Description (
+             "Time indicates when the power state should be set, "
+             "either as a regular date-time value or as an interval "
+             "value (where the interval begins when the method "
+             "invocation is received.")]
+      datetime Time); 
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

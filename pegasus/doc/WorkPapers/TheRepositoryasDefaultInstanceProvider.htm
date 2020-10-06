@@ -1,0 +1,199 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Pegasus Project Working Paper</title>
+</head>
+
+<body>
+
+<H1 align="center">Pegasus Project Working Paper</H1>
+
+<H1 align="center">Unsupported Classes in the Repository</H1>
+
+<b>AUTHORS:</b>&nbsp;
+<p><font size="1">Last Update <!--webbot bot="Timestamp" startspan
+S-Type="EDITED" S-Format="%A, %B %d, %Y %I:%M %p" -->Friday, October 19, 2001 08:07 AM<!--webbot
+bot="Timestamp" i-CheckSum="57739" endspan -->
+</font></p>
+<p>Revision Status</p>
+<table border="1" width="80%" height="124">
+  <tr>
+    <td width="20%" height="19">Revision</td>
+    <td width="30%" height="19">Date</td>
+    <td width="25%" height="19">Author(s)</td>
+    <td width="25%" height="19">Reason</td>
+  </tr>
+  <tr>
+    <td width="20%" height="19">1.0</td>
+    <td width="30%" height="19">&nbsp;15 October 2001</td>
+    <td width="25%" height="19">K. Schopmeyer</td>
+    <td width="25%" height="19">Original</td>
+  </tr>
+  <tr>
+    <td width="20%" height="18">2.0</td>
+    <td width="30%" height="18">19 October 2001</td>
+    <td width="25%" height="18">KS</td>
+    <td width="25%" height="18">Comments from Denise. Distribute this version to
+      Pegasus for Comment</td>
+  </tr>
+  <tr>
+    <td width="20%" height="19">&nbsp;</td>
+    <td width="30%" height="19">&nbsp;</td>
+    <td width="25%" height="19">&nbsp;</td>
+    <td width="25%" height="19">&nbsp;</td>
+  </tr>
+  <tr>
+    <td width="20%" height="19">&nbsp;</td>
+    <td width="30%" height="19">&nbsp;</td>
+    <td width="25%" height="19">&nbsp;</td>
+    <td width="25%" height="19">&nbsp;</td>
+  </tr>
+</table>
+
+<h2>Introduction</h2>
+
+<p>The instance operation routing algorithms for the Pegasus platform treats the
+instance repository (if it is activated) as the provider of last result so that
+any instance operation request (create, enumerate, modify, etc.) for which there
+is not a specific provider defined (via the provider qualifier today) is routed
+to the instance repository for handling.&nbsp; Thus, if a create instance for
+any class which does not have a provider defined is received it is routed to the
+instance repository or if an enumerate instance request arrives for a class that
+does not have a provider defined, the request is passed to the instance
+repository handler and the response provided according to any instance
+information for the target class that might be in the instance repository.</p>
+
+<p>At the same time, we typically load all of the classes of all or most of the
+DMTF CIM Schemas and then add the classes required for our implementation and/or
+environment. This means that typically there are a significant number of classes
+in the class repository which are not&nbsp; supported by providers.</p>
+
+<p>Pegasus users have identified this as a potential problem for several
+reasons:</p>
+
+<ol>
+  <li>Existence of a class in the schema does not imply that the class is&nbsp;
+    implemented/instrumented.&nbsp;</li>
+  <li>Clients can not differentiate implemented classes from unimplemented
+    &nbsp;classes.&nbsp;</li>
+  <li>Browsers and other tools will produce a list of all classes giving no clue
+    to the user if there is any provider support other than the provider
+    qualifier.</li>
+  <li>CIM Clients can create instances for classes that are not supported and
+    this instance information will be placed in the instance repository with no
+    known strategy for ever understanding that it is worthless information.</li>
+  <li>A client may create an instance of the class, expecting an underlying
+    resource to be affected (e.g., a client may create an instance of a User
+    class expecting the user to get added).&nbsp;&nbsp;</li>
+  <li>A client may see an instance created by another client and believe it
+    &nbsp;reflects the state of an underlying resource</li>
+</ol>
+<p>It appears then that there is a requirement to be able to separate classes
+that are supported in some way by the CIMOM and providers from those that are
+not.&nbsp; At the same time, this is not as simple as just using the provider
+qualifier (or in the future the provider registration) because there may be
+valid reasons for using the instance repository for storage of instance
+information about selected classes.</p>
+
+<p>For these reasons, it appears that the repository should be explicitly
+registered for the classes it serves rather than the current situation of
+letting it act as default.<br>
+</p>
+
+<h3>Limiting Access/Modification for Static Information</h3>
+
+<p>
+A related issue is that there is fundamentally a difference between a
+&quot;provider&quot; manipulating instances that are served by the repository
+and clients manipulating those instances. &nbsp;That is, the instances generally
+relate to the state of some underlying managed resource. &nbsp;The resource
+owner knows that state and can accurately supply the instance information to be
+kept in the repository. &nbsp;Clients, on the other hand, want to retrieve this
+information rather than supply it. &nbsp;Those clients should not generally be
+trusted to manipulate the instances in the repository.<br>
+<br>
+Microsoft addresses this issue by defining &quot;push providers&quot; (as
+opposed to the &quot;pull providers&quot; like what Pegasus currently has).
+&nbsp;</p>
+
+<p>HP has&nbsp; proposed that we devise a mechanism for Pegasus that allows static
+instances to be created/manipulated by the resource owner while allowing only
+read access by clients. We could be more general than this if we create access
+control at the class level so that, for example, the resource owner could
+dictate the access by other potential.&nbsp; Thus the resource owner could
+dictate read-only access by other users.</p>
+
+<p>Somewhere in there there is a logical ground.&nbsp; We probably do need to
+limit the ability to change on some basis.&nbsp; However, I suggest that we can
+try to do that as part of the access control mechanisms we are planning to
+design (which is another use case for class level access control) rather than
+building a special mechanism.&nbsp;&nbsp;</p>
+
+<p>Therefore, I propose that we move this discussion to the access control
+discussion and in this note consider primarily the algorithms for routing,
+especially those dealing with the instance repository.</p>
+
+<h3>Proposal to Establish ownership of Classes</h3>
+
+<p>Note: Much of this discussion bears a strong relationship to ideas that would
+come from ownership of entities within the CIMOM, Primarily the classes.&nbsp;
+However, until we resolve the access control definitions (authorization rules)
+we do not know what we can do with ownership technologies.</p>
+
+<h3>Proposal to Modify Operation of CIMOM Routing</h3>
+
+<p>
+We therefore propose that what we want to do is to force the identification of
+not only classes with valid providers (that would be identified through the
+provider qualifier or provider registration) but also to identify those classes
+for which the instance repository is to be the &quot;provider&quot;.&nbsp; In essence
+we are establishing ownership of classes. With the
+provider qualifier this is a simple change since there is no concept of
+ownership and involves:</p>
+
+<ol>
+  <li>Change the CIMOM routing so that there is no default provider.&nbsp; Any
+    instance operations against instances of classes for which there is no
+    provider will receive an error return.&nbsp; Any class for which the
+    instance repository is to be used must have the provider qualifier set to
+    &quot;Repository&quot;.</li>
+  <li>At the same time, this then requires that the provider qualifier be
+    supplied for all classes for which we are interested in using the instance
+    repository. Since today setting the provider qualifier is a very manual
+    activity (adding a qualifier to the class definition)&nbsp; with no real
+    defined provider registration tools. We simply set the qualifier for classes
+    that will use the repository as part of the general process of setting the
+    provider qualifier. Thus a provider that wanted to register itself would add
+    the provider qualifier to classes that were to be routed directly to the
+    provider and also set the provider qualifier to &quot;repository&quot; for
+    classes that it wished to manipulate through the instance repository.</li>
+</ol>
+<p>This becomes more complex when we move to using provider registration as the
+tool for determining the provider associated with a class.&nbsp; The provider
+class today lists the classes associated with a particular provider so that
+these classes are &quot;registered&quot; for the provider when an instance of
+the provider class in installed in the CIMOM.&nbsp; However, to date, we have
+assumed that the classes for which we are registering are to be associated with
+the provider being registered.&nbsp; However, we may want to register classes
+against the &quot;repository&quot; provider in addition to registering classes
+against the provider being registered. Thus the process of registering a
+provider may associated certain classes with this provider but also associate
+certain classes with the instance repository.&nbsp; Further, when the provider
+is de-registered, we would assume that these classes in the instance repository
+might also be de-registered.</p>
+
+<p>NOTE: At this point I am just preparing to look&nbsp; through Christinas definitions
+(an interop proposal) for provider registration to determine if we need to add something.</p>
+
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+
+<p>---END OF DOCUMENT--</p>
+
+</body>
+
+</html>

@@ -1,0 +1,573 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+// ===================================================================
+// Title:       Internet Protocol Address and Routing
+// Filename:    PG_IP20.mof
+// Version:     0.6 (based on DTMF CIM v2.6 Final)
+// Status:      Draft
+// Date:        2002/07/19
+// ==================================================================
+// Clipped from:
+//
+//     - CIM_Core26.mof  (Final)
+//		. CIM_ManagedElement
+//		. CIM_Dependency
+//		. CIM_ManagedSystemElement
+//		. CIM_LogicalElement
+//		. CIM_SAPSAPDependency
+//
+//     - CIM_Network26.mof  (Final)
+//		. CIM_ProtocolEndpoint
+//		. CIM_IPProtocolEndpoint
+//		. CIM_NextHopRouting
+//		. CIM_IPRoute
+//		. CIM_BindsTo
+//		. CIM_BindsToLANEndpoint
+//
+// Additional subclass(es):
+//		. PG_BindsIPToLANEndpoint
+//		. PG_IPRoute
+//
+// ==================================================================
+
+// ===================================================================
+// Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// ===================================================================
+
+// ==================================================================
+//    ManagedElement
+// ================================================================== 
+   [Abstract, Version ("2.6.0"), Description (
+     "ManagedElement is an abstract class that provides a common "  
+     "superclass (or top of the inheritance tree) for the "
+     "non-association classes in the CIM Schema.") ]
+class CIM_ManagedElement {  
+      [MaxLen (64), Description (  
+        "The Caption property is a short textual description (one-"    
+        "line string) of the object.") ]   
+   string Caption;  
+      [Description (  
+        "The Description property provides a textual description of "
+        "the object.") ]   
+   string Description;    
+};
+     
+
+// ==================================================================
+//    Dependency   
+// ==================================================================
+   [Association, Abstract, Version ("2.6.0"), Description (   
+     "CIM_Dependency is a generic association used to establish "   
+     "dependency relationships between ManagedElements.") ]    
+class CIM_Dependency {   
+      [Key, Description (   
+        "Antecedent represents the independent object in this "   
+        "association.") ]    
+   CIM_ManagedElement REF Antecedent;   
+      [Key, Description (   
+        "Dependent represents the object dependent on the "   
+        "Antecedent.") ]    
+   CIM_ManagedElement REF Dependent;   
+};   
+ 
+                 
+// ================================================================== 
+//    ManagedSystemElement
+// ==================================================================
+   [Abstract, Version ("2.6.0"), Description (
+     "CIM_ManagedSystemElement is the base class for the System "
+     "Element hierarchy. Membership Criteria: Any distinguishable "
+     "component of a System is a candidate for inclusion in this "
+     "class. Examples: software components, such as files; and "
+     "devices, such as disk drives and controllers, and physical "
+     "components such as chips and cards.") ] 
+class CIM_ManagedSystemElement : CIM_ManagedElement {
+      [Description (
+        "A datetime value indicating when the object was installed. "
+        "A lack of a value does not indicate that the object is not "
+        "installed."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.5"} ] 
+   datetime InstallDate;
+      [MaxLen (256), Description (
+        "The Name property defines the label by which the object is "
+        "known. When subclassed, the Name property can be overridden "
+        "to be a Key property.") ] 
+   string Name;
+      [MaxLen (10), Description ( 
+        "  A string indicating the current status of the object. " 
+        "Various operational and non-operational statuses are " 
+        "defined. Operational statuses are \"OK\", \"Degraded\", " 
+        "\"Stressed\" and \"Pred Fail\". \"Stressed\" indicates that " 
+        "the Element is functioning, but needs attention. Examples " 
+        "of \"Stressed\" states are overload, overheated, etc. The " 
+        "condition \"Pred Fail\" (failure predicted) indicates that " 
+        "an Element is functioning properly but predicting a failure " 
+        "in the near future. An example is a SMART-enabled hard " 
+        "drive. \n" 
+        "  Non-operational statuses can also be specified. These " 
+        "are \"Error\", \"NonRecover\", \"Starting\", \"Stopping\", " 
+        " \"Stopped\", " 
+        "\"Service\", \"No Contact\" and \"Lost Comm\". \"NonRecover\" " 
+        "indicates that a non-recoverable error has occurred. " 
+        "\"Service\" describes an Element being configured, maintained, " 
+        "cleaned, or otherwise administered. This status could apply " 
+        "during mirror-resilvering of a disk, reload of a user " 
+        "permissions list, or other administrative task. Not all such " 
+        "work is on-line, yet the Element is neither \"OK\" nor in " 
+        "one of the other states. \"No Contact\" indicates that the " 
+        "current instance of the monitoring system has knowledge of " 
+        "this Element but has never been able to establish " 
+        "communications with it. \"Lost Comm\" indicates that the " 
+        "ManagedSystemElement is known to exist and has been contacted " 
+        "successfully in the past, but is currently unreachable. " 
+        "\"Stopped\" indicates that the ManagedSystemElement is known " 
+        "to exist, it is not operational (i.e. it is unable to " 
+        "provide service to users), but it has not failed. It has " 
+        "purposely been made non-operational. The Element " 
+        "may have never been \"OK\", the Element may have initiated its " 
+        "own stop, or a management system may have initiated the stop."), 
+       ValueMap {"OK", "Error", "Degraded", "Unknown", "Pred Fail", 
+                 "Starting", "Stopping", "Service", "Stressed", 
+                 "NonRecover", "No Contact", "Lost Comm", "Stopped"} ] 
+   string Status; 
+};
+
+     
+// ==================================================================
+//    LogicalElement
+// ==================================================================
+   [Abstract, Version ("2.6.0"), Description (
+     "CIM_LogicalElement is a base class for all the components of "
+     "a System that represent abstract system components, such "
+     "as Files, Processes, or LogicalDevices.") ] 
+class CIM_LogicalElement : CIM_ManagedSystemElement {
+};
+
+
+// ==================================================================
+//    ServiceAccessPoint
+// ==================================================================
+   [Abstract, Version ("2.6.0"), Description (
+     "CIM_ServiceAccessPoint represents the ability to utilize or "
+     "invoke a Service.  Access points represent that a Service is "
+     "made available to other entities for use.") ] 
+class CIM_ServiceAccessPoint : CIM_LogicalElement {
+      [Propagated ("CIM_System.CreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ] 
+   string SystemCreationClassName;
+      [Propagated ("CIM_System.Name"), Key, MaxLen (256),
+       Description ("The scoping System's Name.") ] 
+   string SystemName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Override ("Name"), Key, MaxLen (256), Description (
+        "The Name property uniquely identifies the ServiceAccessPoint "
+        "and provides an indication of the functionality that is "
+        "managed.  This functionality is described in more detail in "
+        "the object's Description property.") ] 
+   string Name;
+};
+
+
+// ==================================================================
+//    SAPSAPDependency
+// ==================================================================
+   [Association, Version ("2.6.0"), Description (
+     "CIM_SAPSAPDependency is an association between a Service"
+     "AccessPoint and another ServiceAccessPoint indicating that "
+     "the latter is required in order for the former ServiceAccess"
+     "Point to utilize or connect with its Service. For example, "
+     "to print at a network printer, local Print Access Points "
+     "must utilize underlying network-related SAPs, or "
+     "ProtocolEndpoints, in order to send the print request.") ] 
+class CIM_SAPSAPDependency:CIM_Dependency {
+      [Override ("Antecedent"), Description (
+        "The required ServiceAccessPoint.") ] 
+   CIM_ServiceAccessPoint REF Antecedent;
+      [Override ("Dependent"), Description (
+        "The ServiceAccessPoint that is dependent on an underlying "
+        "SAP.") ] 
+   CIM_ServiceAccessPoint REF Dependent;
+};
+
+
+// ==================================================================
+//     ProtocolEndpoint
+// ==================================================================
+        [Version ("2.6.0"), Description (
+         "A communication point from which data may be sent or "
+         "received. ProtocolEndpoints link router interfaces and "
+         "switch ports to LogicalNetworks.") ]
+class CIM_ProtocolEndpoint : CIM_ServiceAccessPoint {
+        [Override ("Name"), MaxLen(256), Description (
+         "A string which identifies this ProtocolEndpoint with either "
+         "a port or an interface on a device. To ensure uniqueness, "
+         "the Name property should be prepended or appended with "
+         "information from the Type or OtherTypeDescription "
+         "properties. The method chosen is described in the "
+         "NameFormat property of this class.") ]
+    string Name;
+        [MaxLen (256), Description (
+         "NameFormat contains the naming heuristic that is chosen to "
+         "ensure that the value of the Name property is unique. For "
+         "example, one might choose to prepend the name of the port "
+         "or interface with the Type of ProtocolEndpoint that this "
+         "instance is (e.g., IPv4) followed by an underscore.") ]
+    string NameFormat;
+        [Description (
+         "ProtocolType is an enumeration providing information to "
+         "categorize and classify different instances of this class. "
+         "For most instances, information in this enumeration and the "
+         "subclass' definition overlap. However, there are several cases "
+         "where a specific subclass of ProtocolEndpoint is not required "
+         "(for example, there is no Fibre Channel Endpoint). Hence, this "
+         "property is needed to define the type of Endpoint. Note that "
+         "in a future major release of the CIM Schema, it is likely "
+         "that ProtocolEndpoint will be ABSTRACT, forcing "
+         "subclassing and removing the need for this property."), 
+         ValueMap {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", 
+          "19", "20", "21", "22", "23", "24", "25", "26", "27"},
+         Values {"Unknown", "Other", "IPv4", "IPv6", "IPX", 
+          "AppleTalk", "DECnet", "SNA", "CONP", "CLNP",
+          "VINES", "XNS", "ATM", "Frame Relay",
+          "Ethernet", "TokenRing", "FDDI", "Infiniband", 
+          "Fibre Channel", "ISDN BRI Endpoint", 
+          "ISDN B Channel Endpoint", "ISDN D Channel Endpoint", 
+          // 22
+          "IPv4/v6", "BGP", "OSPF", "MPLS", "UDP", "TCP"},
+         ModelCorrespondence {
+          "CIM_ProtocolEndpoint.OtherTypeDescription"} ] 
+    uint16 ProtocolType;
+        [MaxLen(64), Description (
+         "A string describing the type of ProtocolEndpoint when "
+         "the Type property of this class (or any of its "
+         "subclasses) is set to 1 (i.e., \"Other\"). This "
+         "property should be set to NULL when the Type property "
+         "is any value other than 1."),
+	   ModelCorrespondence {"CIM_ProtocolEndpoint.ProtocolType"} ]
+   string OtherTypeDescription;
+};
+
+
+// ==================================================================
+//     IPProtocolEndpoint
+// ==================================================================
+        [Version ("2.6.0"), Description (
+         "A ProtocolEndpoint that is dedicated to running IP.") ]
+class CIM_IPProtocolEndpoint : CIM_ProtocolEndpoint {
+        [Description (
+         "The IP address that this ProtocolEndpoint represents, "
+         "formatted according to the appropriate convention as "
+         "defined in the AddressType property of this class " 
+         "(e.g., 171.79.6.40).") ] 
+    string Address;
+        [Description (
+         "The mask for the IP address of this ProtocolEndpoint, "
+         "formatted according to the appropriate convention as "
+         "defined in the AddressType property of this class " 
+         "(e.g., 255.255.252.0).") ] 
+    string SubnetMask;
+        [Description (
+         "An enumeration that describes the format of the address "
+         "property. Whenever possible, IPv4-compatible addresses "
+         "should be used instead of native IPv6 addresses (see "
+         "RFC 2373, section 2.5.4). In order to have a consistent "
+         "format for IPv4 addresses in a mixed IPv4/v6 environment, "
+         "all IPv4 addresses and both IPv4-compatible IPv6 addresses "
+         "and IPv4-mapped IPv6 addresses, per RFC 2373, section "
+         "2.5.4, should be formatted in standard IPv4 format."),
+         ValueMap {"0", "1", "2"},
+         Values {"Unknown", "IPv4", "IPv6"} ]
+    uint16 AddressType;
+        [Description (
+         "It is not possible to tell from the address alone if a "
+         "given IPProtocolEndpoint can support IPv4 and IPv6, or "
+         "just one of these. This property explicitly defines the "
+         "support for different versions of IP that this "
+         "IPProtocolEndpoint has."),
+         ValueMap {"0", "1", "2"},
+         Values {"Unknown", "IPv4 Only", "IPv6 Only"} ]
+    uint16 IPVersionSupport;
+};
+
+
+// ================================================================== 
+//     NextHopRouting
+// ==================================================================
+        [Abstract, Version ("2.6.0"), Description (
+         "NextHopRouting relates a destination address to the "
+         "address or interface through which the remote address "
+         "may be reached.  An instance of this class can represent "
+         "either static or dynamic routing, and may represent a routing "
+         "table entry (but it is not required that all NextHopRoutes be "
+         "in a routing table).  Static routes are distinguished by "
+         "setting the IsStatic boolean property to TRUE. \n"
+         "\n"
+         "Subclasses of NextHopRouting provide specific protocol "
+         "and Key information. For example, the IPRoute subclass "
+         "contains an AddressType property as part of its key "
+         "structure. This property is not required for next hop "
+         "information defined for Infiniband. \n"
+         "\n"
+         "NextHopRoutes are dependent on at least one "
+         "ForwardingService to execute them. This is conveyed by the "
+         "CIM_NextHopForwardedByService association.") ]
+class CIM_NextHopRouting : CIM_LogicalElement {
+        [Description (
+         "The address which serves as the destination to be "
+         "reached.") ]
+    string DestinationAddress;
+        [Description (
+         "The mask for the DestinationAddress.") ]
+    string DestinationMask;
+        [Description (
+         "This contains either the address of the next-hop router, "
+         "or the interface used to reach the destination.") ]
+    string NextHop;
+        [Description (
+         "TRUE indicates that this is a static route, and FALSE "
+         "indicates a dynamically-learned route.") ]
+    boolean IsStatic;
+};
+
+
+// ==================================================================
+//     IPRoute
+// ==================================================================
+        [Abstract, Version ("2.6.0"), Description (
+         "An IPRoute relates a destination address to the "
+         "address or interface through which the remote address "
+         "may be reached. The destination address may be a "
+         "specific IP endpoint or a subnet, dependent on the mask. "
+         "An instance of this class represents either static or "
+         "dynamic routing. Static routes are distinguished by "
+         "setting the IsStatic boolean property to TRUE. \n"
+         "\n"
+         "Since many routes between endpoints can "
+         "be defined (using different route calculation algorithms), "
+         "the CIM_IPRoute class is defined as Abstract.  This "
+         "forces subclassing (for example, see CIM_BGPIPRoute) "
+         "and allows the instances of its subclasses to be "
+         "distinguished based on their CreationClassName key "
+         "property.") ]
+class CIM_IPRoute : CIM_NextHopRouting {
+        [Propagated("CIM_ForwardingService.SystemCreationClassName"), 
+         Key, MaxLen (256), Description (
+          "The scoping ForwardingService's SystemCreationClassName.") ]
+    string SystemCreationClassName;
+        [Propagated("CIM_ForwardingService.SystemName"), Key, MaxLen (256),
+         Description (
+          "The scoping ForwardingService's SystemName.") ]
+    string SystemName;
+        [Propagated("CIM_ForwardingService.CreationClassName"), 
+         Key, MaxLen (256), Description (
+          "The scoping ForwardingService's CreationClassName.") ]
+    string ServiceCreationClassName;
+        [Propagated("CIM_ForwardingService.Name"), Key, MaxLen (256),
+         Description (
+          "The scoping ForwardingService's Name.") ]
+    string ServiceName;
+        [Key, MaxLen (256), Description (
+         "CreationClassName indicates the name of the class or the "
+         "subclass used in the creation of an instance. When used "
+         "with the other key properties of this class, this property "
+         "allows all instances of this class and its subclasses to "
+         "be uniquely identified.") ]
+    string CreationClassName;
+        [Key, Description (
+         "The IP address which serves as the destination of the "
+         "traffic, formatted according to the appropriate convention "
+         "as defined in the AddressType property of this class. \n"
+         "\n"
+         "This property has the same semantics as DestinationAddress "
+         "inherited from the NextHopRouting superclass, but a different "
+         "property name. This is because this property and class were "
+         "defined before NextHopRouting and are Key properties. They "
+         "cannot be removed. ModelCorrespondence indicates that they "
+         "should be set to equivalent values for consistency and "
+         "ease of query."), 
+         ModelCorrespondence {"CIM_IPRoute.DestinationAddress"} ] 
+    string IPDestinationAddress;
+        [Key, Description (
+         "The mask for the destination IP address, formatted "
+         "according to the appropriate convention as defined in the "
+         "AddressType property of this class. \n"
+         "\n"
+         "This property has the same semantics as DestinationMask "
+         "inherited from the NextHopRouting superclass, but a different "
+         "property name. This is because this property and class were "
+         "defined before NextHopRouting and are Key properties. They "
+         "cannot be removed. ModelCorrespondence indicates that they "
+         "should be set to equivalent values for consistency and "
+         "ease of query."), 
+         ModelCorrespondence {"CIM_IPRoute.DestinationMask"} ] 
+    string IPDestinationMask;
+        [Key, Description (
+         "An enumeration that describes the format of the address "
+         "property. Addresses that can be formatted in IPv4 format, "
+         "must be formatted that way to ensure mixed IPv4/IPv6 "
+         "support. "
+         "\n\n"
+         "AddressType is part of the key so that an IPv4 and an IPv6 "
+         "route to IP subnets with the same network number but "
+         "different versions (v4/v6) can coexist "),
+         ValueMap {"0", "1", "2"},
+         Values {"Unknown", "IPv4", "IPv6"} ]
+    uint16 AddressType;
+        [Override ("DestinationAddress"),
+         ModelCorrespondence {"CIM_IPRoute.IPDestinationAddress"} ]
+    string DestinationAddress;
+        [Override ("DestinationMask"),
+         ModelCorrespondence {"CIM_IPRoute.IPDestinationMask"} ]
+    string DestinationMask;
+};
+
+
+// ==================================================================
+//    BindsTo
+// ==================================================================
+        [Association, Version ("2.6.0"), Description (
+         "This association establishes a ServiceAccessPoint "
+         "as a requestor of protocol services from a "
+         "ProtocolEndpoint. Typically, this association runs "
+         "between SAPs and endpoints on a single system. Since a "
+         "ProtocolEndpoint is a kind of ServiceAccessPoint, this "
+         "binding can be used to establish a layering of two "
+         "protocols, the upper layer represented by the Dependent "
+         "and the lower layer represented by the Antecedent.") ]
+class CIM_BindsTo : CIM_SAPSAPDependency {
+        [Override ("Antecedent") ]
+    CIM_ProtocolEndpoint REF Antecedent;
+        [Override ("Dependent") ]
+    CIM_ServiceAccessPoint REF Dependent;
+};
+
+
+// ==================================================================
+//    BindsToLANEndpoint
+// ==================================================================
+        [Association, Version ("2.6.0"), Description (
+         "This association makes explicit the dependency of a "
+         "ProtocolEndpoint on some lower layer ProtocolEndpoint on "
+         "the same system.") ]
+class CIM_BindsToLANEndpoint : CIM_BindsTo {
+        [Override ("Antecedent") ]
+    CIM_LANEndpoint REF Antecedent;
+        [Description (
+         "This describes the framing method for the upper layer "
+         "protocol endpoint that is bound to a LANEndpoint. Note: "
+         "\"Raw802.3\" is only known to be used with the IPX "
+         "protocol."),
+         ValueMap {"0", "1", "2", "3", "4"},
+         Values {"Unknown", "Ethernet", "802.2", "SNAP", "Raw802.3"} ]
+    uint16 FrameType;
+};
+
+// ==========================================================================
+// End of Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// ==========================================================================
+
+
+// ==================================================================
+//    PG_BindsIPToLANEndpoint
+// ==================================================================
+        [Association, Version ("0.6.0"), Description (
+         "This association makes explicit the dependency of an "
+         "IPProtocolEndpoint on a lower layer LANEndpoint on the "
+         "same system.") ]
+class PG_BindsIPToLANEndpoint : CIM_BindsToLANEndpoint {
+        [Override ("Dependent") ]
+    CIM_IPProtocolEndpoint REF Dependent;
+};
+
+
+// ==================================================================
+//    PG_IPRoute
+// ==================================================================
+        [Version ("0.6.0"), Description (
+         "This class is used to make concrete instances of the "
+         "abstract class CIM_IPRoute. ") ]
+class PG_IPRoute : CIM_IPRoute {
+};
+
+
+// ==================================================================
+//    PG_NextHopIPRoute
+// ==================================================================
+        [Version ("0.6.0"), Description (
+         "This class is used to make concrete instances of the "
+         "abstract class CIM_NextHopIPRoute. ") ]
+class PG_NextHopIPRoute : CIM_NextHopIPRoute {
+};
+
+// ==================================================================
+//    PG_RemoteServiceAccessPoint
+// ==================================================================
+        [Version ("0.6.0"), Description (
+         "This class is used to make concrete instances of the "
+         "abstract class CIM_RemoteServiceAccessPoint. ") ]
+class PG_RemoteServiceAccessPoint : CIM_RemoteServiceAccessPoint {
+};
+
+// ==================================================================
+//    PG_RouteUsesEndpoint
+// ==================================================================
+        [Version ("0.6.0"), Description (
+         "This class is used to make concrete instances of the "
+         "abstract class CIM_RouteUsesEndpoint. ") ]
+class PG_RouteUsesEndpoint : CIM_RouteUsesEndpoint {
+};
+
+// ==================================================================
+//    PG_AssociatedNextHop
+// ==================================================================
+        [Version ("0.6.0"), Description (
+         "This class is used to make concrete instances of the "
+         "abstract class CIM_AssociatedNextHop. ") ]
+class PG_AssociatedNextHop : CIM_AssociatedNextHop {
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

@@ -1,0 +1,1272 @@
+// ===================================================================
+// Title: Device_Controller
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_Controller.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines
+//              the concepts and classes for Controllers.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1202 - Remove Experimental Qualifier
+// CR1233 - SysDev omnibus CR - Minor MOF corrections
+// 
+// CR1071 - Reintroduce PortController and SCSILun.
+// CR885 - Add Serial ATA to Controller.protocolssupported
+// CR1015 - ProtocolController:
+//            - Change descriptions for controller,controlledby
+//            - deprecate scsicontroller,scsiinterface
+//            - remove SCSILun
+// 
+// Change Log for v2.7 Final
+// CR934 - Remove Controller.PortNumber
+// CR971 - Remove PortController and SCSILUN, so they can remain
+//         experimental in 2.8.
+// 
+// Change Log for v2.7
+// CR622 - Fix the DMI mapping string to include the attribute number
+//         for Controller.ProtocolSupported, .MaxNumberControlled, &
+//            .ProtocolDescription,
+//         SCSIController.MaxDataWidth & .MaxTransferRate,
+//         SCSIInterface.InitiatorId, .TargetId & .SCSISignal
+// CR632 - Add PortController
+// CR654 - Update the description for Controller
+//       - Add Controller.PortNumber
+//       - Update the Description for ControlledBy
+//       - Add ControlledBy.DeviceNumber
+//       - Add SCSILUN
+// CR830 - Update the Description for ControlledBy
+//       - Modify type of ControlledBy.DeviceNumber from uint64 to
+//         a string
+//       - Add ControlledBy.AccessMode and ControlledBy.AccessPriority
+//       - Update SCSILUN.DeviceNumber to match change to ContolledBy
+// CR892 - Fix the subclassing inconsistency of VideoController
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// Controller
+// ===================================================================
+   [Abstract, Version ( "2.8.0" ), Description (
+       "Controller is a superclass for grouping the miscellaneous "
+       "control-related Devices that provide a 'classic' bus master "
+       "interface. Examples of Controllers are USBControllers, "
+       "SerialControllers, etc. The Controller class is an abstraction "
+       "for Devices with a single protocol stack, which exist to "
+       "control communications (data, control, and reset) to "
+       "'downstream' devices. Note that a new abstract class "
+       "(ProtocolController) has been created to model more complex "
+       "interface controllers such as SCSI.")]
+class CIM_Controller : CIM_LogicalDevice {
+
+      [Description (
+          "Time of last reset of the Controller.")]
+   datetime TimeOfLastReset;
+
+      [Description (
+          "The protocol used by the Controller to access 'controlled' "
+          "Devices."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+          "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+          "31", "32", "33", "34", "35", "36", "37", "38", "39", "40",
+          "41", "42", "43", "44", "45", "46", "47", "48" }, 
+       Values { "Other", "Unknown", "EISA", "ISA", "PCI", "ATA/ATAPI",
+          "Flexible Diskette", "1496", "SCSI Parallel Interface", 
+          // 10               
+          "SCSI Fibre Channel Protocol", "SCSI Serial Bus Protocol",
+          "SCSI Serial Bus Protocol-2 (1394)",
+          "SCSI Serial Storage Architecture", "VESA", "PCMCIA",
+          "Universal Serial Bus", "Parallel Protocol", "ESCON",
+          "Diagnostic", 
+          // 20               
+          "I2C", "Power", "HIPPI", "MultiBus", "VME", "IPI",
+          "IEEE-488", "RS232", "IEEE 802.3 10BASE5",
+          "IEEE 802.3 10BASE2", 
+          // 30               
+          "IEEE 802.3 1BASE5", "IEEE 802.3 10BROAD36",
+          "IEEE 802.3 100BASEVG", "IEEE 802.5 Token-Ring",
+          "ANSI X3T9.5 FDDI", "MCA", "ESDI", "IDE", "CMD", "ST506", 
+          // 40               
+          "DSSI", "QIC2", "Enhanced ATA/IDE", "AGP",
+          "TWIRP (two-way infrared)", "FIR (fast infrared)",
+          "SIR (serial infrared)", "IrBus", "Serial ATA" }, 
+       MappingStrings { "MIF.DMTF|Bus Port|004.2",
+          "MIF.DMTF|Disks|003.3" }, 
+       ModelCorrespondence { "CIM_Controller.ProtocolDescription" }]
+   uint16 ProtocolSupported;
+
+      [Description (
+          "Maximum number of directly addressable entities supported "
+          "by this Controller. A value of 0 should be used if the "
+          "number is unknown or unlimited."), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.9" }]
+   uint32 MaxNumberControlled;
+
+      [Description (
+          "A free form string providing more information related to "
+          "the ProtocolSupported by the Controller."), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.3" }, 
+       ModelCorrespondence { "CIM_Controller.ProtocolSupported" }]
+   string ProtocolDescription;
+};
+
+
+// ===================================================================
+// ControlledBy
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "The ControlledBy relationship indicates which Devices are "
+       "controlled by a CIM_Controller.")]
+class CIM_ControlledBy : CIM_DeviceConnection {
+
+      [Override ( "Antecedent" ), Description (
+          "The Controller.")]
+   CIM_Controller REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The controlled Device.")]
+   CIM_LogicalDevice REF Dependent;
+
+      [Description (
+          "The State property indicates whether the Controller is "
+          "actively commanding or accessing the Device (value=1) or "
+          "not (value=2). Also, the value, \"Unknown\" (0), can be "
+          "defined. This information is necessary when a LogicalDevice "
+          "can be commanded by, or accessed through, multiple "
+          "Controllers."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "Active", "Inactive" }]
+   uint16 AccessState;
+
+      [Description (
+          "The time that the downstream Device was last reset by the "
+          "Controller.")]
+   datetime TimeOfDeviceReset;
+
+      [Description (
+          "Number of hard resets issued by the Controller. A hard "
+          "reset returns the Device to its initialization or 'boot-up' "
+          "state. All internal Device state information and data are "
+          "lost."), 
+       Counter]
+   uint32 NumberOfHardResets;
+
+      [Description (
+          "Number of soft resets issued by the Controller. A soft "
+          "reset does not completely clear current Device state and/or "
+          "data. Exact semantics are dependent on the Device, and on "
+          "the protocols and mechanisms used to communicate to it."), 
+       Counter]
+   uint32 NumberOfSoftResets;
+
+      [Description (
+          "Address of associated Device in context of the antecedent "
+          "Controller.")]
+   string DeviceNumber;
+
+      [Description (
+          "This property describes the accessibility of the device "
+          "thru the antedecent controller."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "ReadWrite", "ReadOnly", "NoAccess" }]
+   uint16 AccessMode;
+
+      [Description (
+          "The property describes the priority given to accesses of "
+          "the device thru this controller. The highest priority path "
+          "will have the lowest value for this parameter.")]
+   uint16 AccessPriority;
+};
+
+
+// ===================================================================
+// ESCONController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of an ESCONController.")]
+class CIM_ESCONController : CIM_Controller {
+};
+
+
+// ===================================================================
+// IDEController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of an IDEController.")]
+class CIM_IDEController : CIM_Controller {
+};
+
+
+// ===================================================================
+// InfraredController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of an InfraredController.")]
+class CIM_InfraredController : CIM_Controller {
+};
+
+
+// ===================================================================
+// ManagementController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and managment of a ManagementController. An I2C "
+       "microcontroller is a type of ManagementController.")]
+class CIM_ManagementController : CIM_Controller {
+};
+
+
+// ===================================================================
+// ParallelController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of the ParallelController.")]
+class CIM_ParallelController : CIM_Controller {
+
+      [Description (
+          "Set to true if the ParallelController supports DMA."), 
+       MappingStrings { "MIF.DMTF|Parallel Ports|003.7" }]
+   boolean DMASupport;
+
+      [Description (
+          "An integer enumeration indicating the capabilities of the "
+          "ParallelController."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "XT/AT Compatible",
+          "PS/2 Compatible", "ECP", "EPP", "PC-98", "PC-98-Hireso",
+          "PC-H98" }, 
+       MappingStrings { "MIF.DMTF|Parallel Ports|003.8" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_ParallelController.CapabilityDescriptions" }]
+   uint16 Capabilities[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the ParallelController features "
+          "indicated in the Capabilities array. Note, each entry of "
+          "this array is related to the entry in the Capabilities "
+          "array that is located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ParallelController.Capabilities" }]
+   string CapabilityDescriptions[];
+
+      [Description (
+          "An enumeration indicating the operational security for the "
+          "Controller. For example, information that the Device's "
+          "external interface is locked out (value=4) or \"Boot "
+          "Bypass\" (value=6) can be described using this property."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "None",
+          "External Interface Locked Out",
+          "External Interface Enabled", "Boot Bypass" }, 
+       MappingStrings { "MIF.DMTF|Parallel Ports|003.10" }]
+   uint16 Security;
+};
+
+
+// ===================================================================
+// PCMCIAController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of a PCMCIAController.")]
+class CIM_PCMCIAController : CIM_Controller {
+};
+
+
+// ===================================================================
+// SCSIController
+// ===================================================================
+   [Deprecated { "CIM_SCSIProtocolController" }, Version ( "2.8.0" ), 
+    Description (
+       "The use of this class is deprecated in lieu of "
+       "SCSIProtocolController. The latter reflects the protocol- "
+       "related issues of SCSI interfaces, since these are not bus "
+       "master-type Controllers. Capabilities and management of the "
+       "SCSIController.")]
+class CIM_SCSIController : CIM_Controller {
+
+      [Deprecated { "No Value" }, Description (
+          "An integer enumeration indicating whether or not the "
+          "SCSIController provides redundancy or protection against "
+          "device failures."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "Unprotected", "Protected",
+          "Protected through SCC (SCSI-3 Controller Command)",
+          "Protected through SCC-2 (SCSI-3 Controller Command)" }, 
+       MappingStrings { "MIF.DMTF|Storage Controller|001.3" }]
+   uint16 ProtectionManagement;
+
+      [Deprecated { "No Value" }, Description (
+          "Maximum data width (in bits) supported by the SCSI "
+          "Controller."), 
+       Units ( "Bits" ), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.7" }]
+   uint32 MaxDataWidth;
+
+      [Deprecated { "No Value" }, Description (
+          "Maximum transfer rate (in Bits per Second) supported by the "
+          "SCSIController."), 
+       Units ( "Bits per Second" ), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.8" }]
+   uint64 MaxTransferRate;
+
+      [Deprecated { "No Value" }, Description (
+          "Number of SCSIController timeouts that have occurred since "
+          "the TimeOfLastReset."), 
+       Counter]
+   uint32 ControllerTimeouts;
+
+      [Deprecated { "No Value" }, Description (
+          "Signal capabilities that can be supported by the SCSI "
+          "Controller. For example, the Controller may support "
+          "\"Single Ended\" and \"Differential\". In this case, the "
+          "values 3 and 4 would be written to the Signal Capabilities "
+          "array."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "Single Ended", "Differential",
+          "Low Voltage Differential", "Optical" }, 
+       ModelCorrespondence { "CIM_SCSIInterface.SCSISignal" }]
+   uint16 SignalCapabilities[];
+};
+
+// ===================================================================
+// SCSIInterface
+// ===================================================================
+   [Association, Deprecated { "CIM_ProtocolControllerAccessesUnit" },
+    Version ( "2.8.0" ), Description (
+       "The use of this class is deprecated in lieu of "
+       "ProtocolControllerForUnit, since the SCSIController class "
+       "involved in this association is itself deprecated. The "
+       "protocol-related aspects of SCSI are better reflected in the "
+       "new classes and associations. SCSIInterface is a ControlledBy "
+       "relationship indicating which Devices are accessed through a "
+       "SCSIController and the characteristics of this access.")]
+class CIM_SCSIInterface : CIM_ControlledBy {
+
+      [Deprecated { "No Value" }, Override ( "Antecedent" ), 
+       Description (
+          "The SCSIController.")]
+   CIM_SCSIController REF Antecedent;
+
+      [Deprecated { "No Value" }, Description (
+          "Number of SCSI timeouts that have occurred since last hard "
+          "or soft reset related to the controlled Device. The time of "
+          "last reset is indicated in the TimeOfDeviceReset property, "
+          "inherited from the ControlledBy association."), 
+       Counter]
+   uint32 SCSITimeouts;
+
+      [Deprecated { "No Value" }, Description (
+          "Number of SCSI retries that have occurred since last hard "
+          "or soft reset related to the controlled Device. The time of "
+          "last reset is indicated in the TimeOfDeviceReset property, "
+          "inherited from the ControlledBy association."), 
+       Counter, 
+       MappingStrings { "MIF.DMTF|Mass Storage Statistics|001.18" }]
+   uint32 SCSIRetries;
+
+      [Deprecated { "No Value" }, Description (
+          "The SCSI Initiator ID."), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.5" }]
+   uint32 InitiatorId;
+
+      [Deprecated { 
+          "CIM_ProtocolControllerAccessesUnit.TargetControllerNumber" }, 
+       Description (
+          "The SCSI Target ID."), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.5" }]
+   uint32 TargetId;
+
+      [Deprecated { "CIM_ProtocolControllerForDevice.DeviceNumber" }, 
+       Description (
+          "The SCSI Target LUN."), 
+       MappingStrings { "MIF.DMTF|Storage Devices|001.4" }]
+   uint64 TargetLUN;
+
+      [Deprecated { "No Value" }, Description (
+          "SCSIReservation indicates the type of SCSI reservation that "
+          "currently exists between the source and destination."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "None", "Simple", "Persistent" }]
+   uint16 SCSIReservation;
+
+      [Deprecated { "No Value" }, Description (
+          "The SCSI signal characteristics being used for this "
+          "connection. The value listed here must also be listed in "
+          "the SCSIController's SignalCapabilities field."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "Single Ended", "Differential",
+          "Low Voltage Differential", "Optical" }, 
+       MappingStrings { "MIF.DMTF|Bus Port|004.4" }, 
+       ModelCorrespondence { "CIM_SCSIController.SignalCapabilities" }]
+   uint16 SCSISignal;
+
+      [Deprecated { "No Value" }, Description (
+          "Maximum number of Command Descriptor Blocks (CDBs) that can "
+          "be supported by the target. This data can not be obtained "
+          "under all circumstances.")]
+   uint32 MaxQueueDepth;
+
+      [Deprecated { "No Value" }, Description (
+          "The maximum number of concurrent Command Descriptor Blocks "
+          "(CDBs) that the initiator will send to the target. This "
+          "value should never be greater than MaxQueueDepth.")]
+   uint32 QueueDepthLimit;
+};
+
+// ===================================================================
+// SerialController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of the SerialController.")]
+class CIM_SerialController : CIM_Controller {
+
+      [Description (
+          "The Capabilities property defines chip level compatibility "
+          "for the SerialController. Therefore, this property "
+          "describes the buffering and other capabilities of the "
+          "SerialController, that may be inherent in the chip "
+          "hardware. The property is an enumerated integer."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "160", "161" }, 
+       Values { "Other", "Unknown", "XT/AT Compatible",
+          "16450 Compatible", "16550 Compatible", "16550A Compatible", 
+          // 160               
+          "8251 Compatible", "8251FIFO Compatible" }, 
+       MappingStrings { "MIF.DMTF|Serial Ports|004.7" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SerialController.CapabilityDescriptions" }]
+   uint16 Capabilities[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the SerialController features "
+          "indicated in the Capabilities array. Note, each entry of "
+          "this array is related to the entry in the Capabilities "
+          "array that is located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_SerialController.Capabilities" }]
+   string CapabilityDescriptions[];
+
+      [Description (
+          "Maximum baud rate in Bits per Second supported by the "
+          "SerialController."), 
+       Units ( "Bits per Second" ), 
+       MappingStrings { "MIF.DMTF|Serial Ports|004.6" }]
+   uint32 MaxBaudRate;
+
+      [Description (
+          "An enumeration indicating the operational security for the "
+          "Controller. For example, information that the Device's "
+          "external interface is locked out (value=4) or \"Boot "
+          "Bypass\" (value=6) can be described using this property."), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "None",
+          "External Interface Locked Out",
+          "External Interface Enabled", "Boot Bypass" }, 
+       MappingStrings { "MIF.DMTF|Serial Ports|004.9" }]
+   uint16 Security;
+};
+
+
+// ===================================================================
+// SerialInterface
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "SerialInterface is a ControlledBy relationship indicating "
+       "which Devices are accessed through the SerialController and "
+       "the characteristics of this access.")]
+class CIM_SerialInterface : CIM_ControlledBy {
+
+      [Override ( "Antecedent" ), Description (
+          "The SerialController.")]
+   CIM_SerialController REF Antecedent;
+
+      [Override ( "NegotiatedDataWidth" ), Description (
+          "For the SerialInterface, NegotiatedDataWidth is the number "
+          "of data bits to be transmitted, without stop bits or "
+          "parity."), 
+       Units ( "Bits" )]
+   uint32 NegotiatedDataWidth;
+
+      [Description (
+          "Number of stop bits to be transmitted."), 
+       Units ( "Bits" )]
+   uint16 NumberOfStopBits;
+
+      [Description (
+          "Information on the parity setting for transmitted data. No "
+          "parity (value=1), even (2) or odd (3) can be specified."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "None", "Even", "Odd" }]
+   uint16 ParityInfo;
+
+      [Description (
+          "An integer enumeration indicating the flow control "
+          "(Xon-Xoff and/or RTS/CTS) for transmitted data."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Not Supported", "None", "XonXoff",
+          "RTS/CTS", "Both XonXoff and RTS/CTS" }]
+   uint16 FlowControlInfo;
+};
+
+
+// ===================================================================
+// SSAController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of an SSAController (Serial "
+       "Storage Architecture).")]
+class CIM_SSAController : CIM_Controller {
+};
+
+
+// ===================================================================
+// USBController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and managment of a USB Host Controller.")]
+class CIM_USBController : CIM_Controller {
+
+      [Description (
+          "Indicates the latest USB Version supported by the "
+          "Controller. The property is expressed as a Binary-Coded "
+          "Decimal (BCD) where a decimal point is implied between the "
+          "2nd and 3rd digits. For example, a value of 0x201 indicates "
+          "that version 2.01 is supported.")]
+   uint16 USBVersion;
+
+      [Description (
+          "The type of interface used between the host system software "
+          "and the USBController."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "UHCI", "OHCI" }, 
+       ModelCorrespondence { "CIM_USBController.ControllerVersion" }]
+   uint16 InterfaceType;
+
+      [Description (
+          "Indicates the version of the USB Host Controller register "
+          "set, specific to the InterfaceType. The property is "
+          "expressed as a Binary-Coded Decimal (BCD) value where a "
+          "decimal point is implied between the 2nd and 3rd digits. "
+          "For example, a value of 0x103 indicates that version 1.03 "
+          "is supported."), 
+       ModelCorrespondence { "CIM_USBController.InterfaceType" }]
+   uint16 ControllerVersion;
+};
+
+
+// ===================================================================
+// VideoController
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "Capabilities and management of the VideoController.")]
+class CIM_VideoController : CIM_Controller {
+
+      [Override ( "Description" ), 
+       MappingStrings { "MIF.DMTF|Video|004.18" }]
+   string Description;
+
+      [Description (
+          "A free-form string describing the video "
+          "processor/Controller.")]
+   string VideoProcessor;
+
+      [Description (
+          "An integer enumeration indicating the type of video memory."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13" }, 
+       Values { "Other", "Unknown", "VRAM", "DRAM", "SRAM", "WRAM",
+          "EDO RAM", "Burst Synchronous DRAM", "Pipelined Burst SRAM", 
+          //10 
+          "CDRAM", "3DRAM", "SDRAM", "SGRAM" }, 
+       MappingStrings { "MIF.DMTF|Video|004.6" }]
+   uint16 VideoMemoryType;
+
+      [Description (
+          "Number of video pages supported given the current "
+          "resolutions and available memory.")]
+   uint32 NumberOfVideoPages;
+
+      [Description (
+          "Maximum amount of memory supported in bytes."), 
+       Units ( "Bytes" )]
+   uint32 MaxMemorySupported;
+
+      [Description (
+          "An array of integers indicating the graphics and 3D "
+          "capabilities of the VideoController."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Graphics Accelerator",
+          "3D Accelerator", "PCI Fast Write", "MultiMonitor Support",
+          "PCI Mastering", "Second Monochrome Adapter Support",
+          "Large Memory Address Support" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_VideoController.CapabilityDescriptions" }]
+   uint16 AcceleratorCapabilities[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the video Accelerator features "
+          "indicated in the Capabilities array. Note, each entry of "
+          "this array is related to the entry in the Capabilities "
+          "array that is located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_VideoController.AcceleratorCapabilities" }]
+   string CapabilityDescriptions[];
+
+      [Description (
+          "The number of bits used to display each pixel."), 
+       Units ( "Bits" ), 
+       MappingStrings { "MIF.DMTF|Video|004.12" }]
+   uint32 CurrentBitsPerPixel;
+
+      [Description (
+          "Current number of horizontal pixels."), 
+       Units ( "Pixels" ), 
+       MappingStrings { "MIF.DMTF|Video|004.11" }]
+   uint32 CurrentHorizontalResolution;
+
+      [Description (
+          "Current number of vertical pixels."), 
+       Units ( "Pixels" ), 
+       MappingStrings { "MIF.DMTF|Video|004.10" }]
+   uint32 CurrentVerticalResolution;
+
+      [Description (
+          "Maximum refresh rate of the VideoController in Hertz."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Video|004.5" }]
+   uint32 MaxRefreshRate;
+
+      [Description (
+          "Minimum refresh rate of the Video Controller in Hertz."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Video|004.4" }]
+   uint32 MinRefreshRate;
+
+      [Description (
+          "Current refresh rate in Hertz."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Video|004.15" }]
+   uint32 CurrentRefreshRate;
+
+      [Description (
+          "Current scan mode. \"Interlaced\" (value=3) or \"Non "
+          "Interlaced\" (4) can be defined using this property."), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Unknown", "Interlaced", "Non Interlaced" }, 
+       MappingStrings { "MIF.DMTF|Video|004.8" }]
+   uint16 CurrentScanMode;
+
+      [Description (
+          "If in character mode, number of rows for this Video "
+          "Controller. Otherwise, enter 0."), 
+       MappingStrings { "MIF.DMTF|Video|004.13" }]
+   uint32 CurrentNumberOfRows;
+
+      [Description (
+          "If in character mode, number of columns for this "
+          "VideoController. Otherwise, enter 0."), 
+       MappingStrings { "MIF.DMTF|Video|004.14" }]
+   uint32 CurrentNumberOfColumns;
+
+      [Description (
+          "Number of colors supported at the current resolutions.")]
+   uint64 CurrentNumberOfColors;
+};
+
+
+// ===================================================================
+// PCVideoController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of a PCVideoController, a subtype "
+       "of VideoController.")]
+class CIM_PCVideoController : CIM_VideoController {
+
+      [Description (
+          "The video architecture. For example, VGA (value=5) or PC-98 "
+          "(160) may be specified."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "160" }, 
+       Values { "Other", "Unknown", "CGA", "EGA", "VGA", "SVGA", "MDA",
+          "HGC", "MCGA", 
+          // 10               
+          "8514A", "XGA", "Linear Frame Buffer", "PC-98" }, 
+       MappingStrings { "MIF.DMTF|Video|004.2" }]
+   uint16 VideoArchitecture;
+
+      [Description (
+          "Current video mode."), 
+       MappingStrings { "MIF.DMTF|Video|004.3" }]
+   uint16 VideoMode;
+
+      [Description (
+          "Current number of color planes. If this value is not "
+          "applicable for the current video configuration, enter 0.")]
+   uint16 NumberOfColorPlanes;
+};
+
+
+// ===================================================================
+// AGPVideoController
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Capabilities and management of an AGPVideoController.")]
+class CIM_AGPVideoController : CIM_VideoController {
+
+      [Deprecated { "CIM_VideoController.AcceleratorCapabilities" }, 
+       Description (
+          "This property has been incorporated into the inherited "
+          "AcceleratorCapabilities property. Capabilities of the AGP "
+          "Graphics Controller. For example, the Device may support "
+          "multiple monitors, PCI Mastering and large memory "
+          "addresses. In this case, the values 3, 4 and 6 would be "
+          "written to the Capabilities array."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Other", "PCI Fast Write",
+          "MultiMonitor Support", "PCI Mastering",
+          "Second Monochrome Adapter Support",
+          "Large Memory Address Support" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_AGPVideoController.CapabilityDescriptions" }]
+   uint16 Capabilities[];
+
+      [Description (
+          "Size of the non-local video memory in KB."), 
+       Units ( "KiloBytes" )]
+   uint32 NonlocalVideoMemorySize;
+
+      [Description (
+          "Width of the internal bus in the graphics Controller, in "
+          "bits."), 
+       Units ( "Bits" )]
+   uint32 LocalBusWidth;
+
+      [Description (
+          "An integer enumeration indicating the usage model of the "
+          "graphics Controller. Usage model indicates how the "
+          "Controller does manipulations of graphics surfaces, "
+          "textures, etc. in memory. DMA indicates that the graphics "
+          "Controller brings structures from the system memory to its "
+          "local memory to perform needed manipulations or renderings. "
+          "Execute specifies that the graphics Controller can directly "
+          "access a specified region in main memory (called the "
+          "graphics aperture) using GART - Graphics Aperture Remapping "
+          "Table. It then performs manipulations in that range as if "
+          "that whole graphics aperture were part of its local memory. "
+          "A value of \"Both\" DMA and Execute models may also be "
+          "specified."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Execute", "DMA", "Both" }]
+   uint16 UsageModel;
+
+      [Description (
+          "An integer enumeration indicating the data transfer rate of "
+          "the graphics Controller."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "1X", "2X", "4X" }]
+   uint16 DataTransferRate;
+
+      [Description (
+          "An integer enumeration indicating the addressing mode of "
+          "the graphics Controller."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "Sideband", "Pipeline" }]
+   uint16 AddressingMode;
+
+      [Description (
+          "The maximum number of AGP Transaction requests that the "
+          "master (AGP Graphics Controller) is allowed to enqueue into "
+          "the target.")]
+   uint32 MaximumAGPCommandQueuePath;
+
+      [Description (
+          "The number of AGP Transaction that the core logic (chipset) "
+          "can accept into its transaction request queue from the "
+          "Controller.")]
+   uint32 MaxNumberOfPipelinedAGPTransactions;
+
+      [Description (
+          "Size of the graphics aperture in KB."), 
+       Units ( "KiloBytes" )]
+   uint32 GraphicsApertureSize;
+
+      [Description (
+          "A string containing the AGP specification version to which "
+          "this graphics Controller conforms.")]
+   string AGPSpecificationVersionConformance;
+};
+
+
+// ===================================================================
+// VideoControllerResolution
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "VideoControllerResolution describes the various video modes "
+       "that a VideoController can support. Video modes are defined by "
+       "the possible horizontal and vertical resolutions, refresh "
+       "rate, scan mode and number of colors settings supported by a "
+       "Controller. The actual resolutions, etc. that are in use, are "
+       "the values specified in the VideoController object.")]
+class CIM_VideoControllerResolution : CIM_Setting {
+
+      [Key, Override ( "SettingID" ), Description (
+          "The inherited SettingID serves as part of the key for a "
+          "VideoControllerResolution instance."), 
+       MaxLen ( 256 )]
+   string SettingID;
+
+      [Description (
+          "Controller's horizontal resolution in Pixels."), 
+       Units ( "Pixels" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.2" }, 
+       ModelCorrespondence { 
+          "CIM_VideoController.CurrentHorizontalResolution" }]
+   uint32 HorizontalResolution;
+
+      [Description (
+          "Controller's vertical resolution in Pixels."), 
+       Units ( "Pixels" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.3" }, 
+       ModelCorrespondence { 
+          "CIM_VideoController.CurrentVerticalResolution" }]
+   uint32 VerticalResolution;
+
+      [Description (
+          "Refresh rate in Hertz. If a range of rates is supported, "
+          "use the MinRefreshRate and MaxRefreshRate properties, and "
+          "set RefreshRate (this property) to 0."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.4" }, 
+       ModelCorrespondence { "CIM_VideoController.CurrentRefreshRate" }]
+   uint32 RefreshRate;
+
+      [Description (
+          "Minimum refresh rate in Hertz, when a range of rates is "
+          "supported at the specified resolutions."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.6" }, 
+       ModelCorrespondence { "CIM_VideoController.MinRefreshRate" }]
+   uint32 MinRefreshRate;
+
+      [Description (
+          "Maximum refresh rate in Hertz, when a range of rates is "
+          "supported at the specified resolutions."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.7" }, 
+       ModelCorrespondence { "CIM_VideoController.MaxRefreshRate" }]
+   uint32 MaxRefreshRate;
+
+      [Description (
+          "Integer indicating whether the Controller operates in "
+          "interlaced (value=5) or non-interlaced (4) mode."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Not Supported",
+          "Non-Interlaced Operation", "Interlaced Operation" }, 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.5" }, 
+       ModelCorrespondence { "CIM_VideoController.CurrentScanMode" }]
+   uint16 ScanMode;
+
+      [Description (
+          "Number of colors supported at the current resolutions."), 
+       ModelCorrespondence { 
+          "CIM_VideoController.CurrentNumberOfColors" }]
+   uint64 NumberOfColors;
+};
+
+
+// ===================================================================
+// VideoSetting
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "VideoSetting associates the VideoControllerResolution Setting "
+       "with the Controller(s) to which it applies.")]
+class CIM_VideoSetting : CIM_ElementSetting {
+
+      [Override ( "Element" ), Description (
+          "The VideoController.")]
+   CIM_VideoController REF Element;
+
+      [Override ( "Setting" ), Description (
+          "The resolutions, refresh rates, scan mode and number of "
+          "colors that can be set for the Controller.")]
+   CIM_VideoControllerResolution REF Setting;
+};
+
+
+// ===================================================================
+// PCIController
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PCIController is a superclass for the PCIBridge and PCIDevice "
+       "classes. These classes model adapters and bridges on a PCI "
+       "bus. The properties in PCIController and its subclasses are "
+       "defined in the various PCI Specifications published by the PCI "
+       "SIG.")]
+class CIM_PCIController : CIM_Controller {
+
+      [Description (
+          "Current contents of the register that provides basic "
+          "control over the device's ability to respond to, and/or "
+          "perform PCI accesses.")]
+   uint16 CommandRegister;
+
+      [Description (
+          "An array of integers indicating controller capabilities. "
+          "Information such as \"Supports 66MHz\" (value=2) is "
+          "specified in this property. The data in the Capabilities "
+          "array is gathered from the PCI Status Register and the PCI "
+          "Capabilities List as defined in the PCI Specification."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12" }, 
+       Values { "Unknown", "Other", "Supports 66MHz",
+          "Supports User Definable Features",
+          "Supports Fast Back-to-Back Transactions", "PCI-X Capable",
+          "PCI Power Management Supported",
+          "Message Signaled Interrupts Supported",
+          "Parity Error Recovery Capable", "AGP Supported", 
+          // 10               
+          "Vital Product Data Supported",
+          "Provides Slot Identification", "Hot Swap Supported" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PCIController.CapabilityDescriptions" 
+          }]
+   uint16 Capabilities[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the PCIController features "
+          "indicated in the Capabilities array. Note, each entry of "
+          "this array is related to the entry in the Capabilities "
+          "array that is located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PCIController.Capabilities" }]
+   string CapabilityDescriptions[];
+
+      [Description (
+          "The slowest device select timing for a target device."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Fast", "Medium", "Slow",
+          "Reserved" }]
+   uint16 DeviceSelectTiming;
+
+      [Description (
+          "Register of 8 bits that identifies the basic function of "
+          "the PCI device. This is only the upper byte (offset 0Bh) of "
+          "the 3 byte ClassCode field. Note that the property's "
+          "ValueMap array specifies the decimal representation of this "
+          "information."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18..254",
+          "255" }, 
+       Values { "Pre 2.0", "Mass Storage", "Network", "Display",
+          "Multimedia", "Memory", "Bridge", "Simple Communications",
+          "Base Peripheral", "Input", 
+          // 10               
+          "Docking Station", "Processor", "Serial Bus", "Wireless",
+          "Intelligent I/O", "Satellite Communication",
+          "Encryption/Decryption",
+          "Data Acquisition and Signal Processing", 
+          // 18 - 255               
+          "PCI Reserved", "Other" }]
+   uint8 ClassCode;
+
+      [Description (
+          "Specifies the system cache line size in doubleword "
+          "increments (e.g., a 486-based system would store the value "
+          "04h, indicating a cache line size of four doublewords."), 
+       Units ( "DoubleWords" )]
+   uint8 CacheLineSize;
+
+      [Description (
+          "Defines the minimum amount of time, in PCI clock cycles, "
+          "that the bus master can retain ownership of the bus."), 
+       Units ( "PCI clock cycles" )]
+   uint8 LatencyTimer;
+
+      [Description (
+          "Defines the PCI interrupt request pin (INTA# to INTD#) to "
+          "which a PCI functional device is connected."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "None", "INTA#", "INTB#", "INTC#", "INTD#", "Unknown" }]
+   uint16 InterruptPin;
+
+      [Description (
+          "Doubleword Expansion ROM base memory address."), 
+       Units ( "DoubleWords" )]
+   uint32 ExpansionROMBaseAddress;
+
+      [Description (
+          "Reports if the PCI device can perform the self test "
+          "function. Returns bit 7 of the BIST register as a boolean.")]
+   boolean SelfTestEnabled;
+
+      [Description (
+          "Method to invoke PCI device self-test. This method sets bit "
+          "6 of the BIST register. The return result is the lower four "
+          "bits of the BIST register where 0 indicates success and "
+          "non-zero is a device dependent failure. Support for this "
+          "method is optional in the PCI Specification.")]
+   uint8 BISTExecution( ); 
+};
+
+
+// ===================================================================
+// PCIDevice
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of a PCI device controller on an "
+       "adapter card.")]
+class CIM_PCIDevice : CIM_PCIController {
+
+      [Description (
+          "Array of doubleword base memory addresses.")]
+   uint32 BaseAddress[6];
+
+      [Description (
+          "Subsystem identifier code.")]
+   uint16 SubsystemID;
+
+      [Description (
+          "Subsystem vendor ID. ID information is reported from a "
+          "PCIDevice via protocol-specific requests. The correct place "
+          "in the CIM Schema for this information is in CIM_Physical "
+          "Element (the Manufacturer property) for hardware, and "
+          "CIM_Product (the Vendor property) if the information is "
+          "related to Product acquisition. This data is also reported "
+          "here since it is part of the standard output from the "
+          "Device, and as an optimization.")]
+   uint16 SubsystemVendorID;
+
+      [Description (
+          "Register indiating how long the master would like to retain "
+          "PCI bus ownership whenever it initiates a transaction. A "
+          "zero value indicates no requirement."), 
+       Units ( "250 nanoseconds" )]
+   uint8 MinGrantTime;
+
+      [Description (
+          "Register specifying how often the device needs access to "
+          "the PCI bus in 250ns. A zero value indicates no "
+          "requirement."), 
+       Units ( "250 nanoseconds" )]
+   uint8 MaxLatency;
+};
+
+
+// ===================================================================
+// PCIBridge
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of a PCI controller providing "
+       "bridge to bridge capability.")]
+class CIM_PCIBridge : CIM_PCIController {
+
+      [Description (
+          "Array of doubleword base memory addresses.")]
+   uint32 BaseAddress[2];
+
+      [Description (
+          "The type of bridge. Except for \"Host\" (value=0), the type "
+          "of bridge is PCI to <value>. For type \"Host\", the device "
+          "is a Host to PCI bridge."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "128" }, 
+       Values { "Host", "ISA", "EISA", "Micro Channel", "PCI",
+          "PCMCIA", "NuBus", "CardBus", "RACEway", 
+          // 128               
+          "Other" }]
+   uint16 BridgeType;
+
+      [Description (
+          "The timeslice for the secondary interface when the bridge "
+          "is acting as an initiator. A zero value indicates no "
+          "requirement."), 
+       Units ( "PCI clock cycles" )]
+   uint8 SecondaryLatencyTimer;
+
+      [Description (
+          "The number of the highest numbered bus that exists behind "
+          "the bridge.")]
+   uint8 SubordinateBusNumber;
+
+      [Description (
+          "The number of the PCI bus segment to which the secondary "
+          "interface of the bridge is connected.")]
+   uint8 SecondayBusNumber;
+
+      [Description (
+          "The number of the PCI bus segment to which the primary "
+          "interface of the bridge is connected.")]
+   uint8 PrimaryBusNumber;
+
+      [Description (
+          "The contents of the Bridge's SecondaryStatusRegister. For "
+          "more information on the contents of this register, refer to "
+          "the PCI-to-PCI Bridge Architecture Specification.")]
+   uint16 SecondaryStatusRegister;
+
+      [Description (
+          "The slowest device select timing for a target device on the "
+          "secondary bus."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Fast", "Medium", "Slow",
+          "Reserved" }]
+   uint16 SecondaryBusDeviceSelectTiming;
+
+      [Description (
+          "End address of the I/O addresses supported by the bus. The "
+          "upper four bits of this property specify the address bits, "
+          "AD[15::12], of the I/O address. The remaining 12 bits of "
+          "the I/O address are assumed to be all 1's.")]
+   uint8 IOLimit;
+
+      [Description (
+          "Base address of I/O addresses supported by the bus. The "
+          "upper four bits of this property specify the address bits, "
+          "AD[15::12], of the I/O address. The remaining 12 bits of "
+          "the I/O address are assumed to be 0.")]
+   uint8 IOBase;
+
+      [Description (
+          "End address of the memory supported by the bus. The upper "
+          "twelve bits of this property specify the address bits, "
+          "AD[31::20], of a 32-bit memory address. The remaining 20 "
+          "bits of the address are assumed to be all 1's.")]
+   uint16 MemoryLimit;
+
+      [Description (
+          "Base address of the memory supported by the bus. The upper "
+          "twelve bits of this property specify the address bits, "
+          "AD[31::20], of a 32-bit memory address. The remaining 20 "
+          "bits of the address are assumed to be 0.")]
+   uint16 MemoryBase;
+
+      [Description (
+          "End address of the memory that can be prefetched by the "
+          "bus. The upper twelve bits of this property specify the "
+          "address bits, AD[31::20], of a 32-bit memory address. The "
+          "remaining 20 bits of the address are assumed to be all 1's.")]
+   uint16 PrefetchMemoryLimit;
+
+      [Description (
+          "Base address of the memory that can be prefetched by the "
+          "bus. The upper twelve bits of this property specify the "
+          "address bits, AD[31::20], of a 32-bit memory address. The "
+          "remaining 20 bits of the address are assumed to be 0.")]
+   uint16 PrefetchMemoryBase;
+
+      [Description (
+          "Upper 32 bits of the supported prefetch end address when "
+          "64-bit addressing is used. The lower 32 bits are assumed to "
+          "be all 1's.")]
+   uint32 PrefetchLimitUpper32;
+
+      [Description (
+          "Upper 32 bits of the supported prefetch base address when "
+          "64-bit addressing is used. The lower 32 bits are assumed to "
+          "be 0.")]
+   uint32 PrefetchBaseUpper32;
+
+      [Description (
+          "Upper 16 bits of the supported I/O end address when 32-bit "
+          "I/O addressing is used. The lower 16 bits are assumed to be "
+          "all 1's.")]
+   uint16 IOLimitUpper16;
+
+      [Description (
+          "Upper 16 bits of the supported I/O base address when 32-bit "
+          "I/O addressing is used. The lower 16 bits are assumed to be "
+          "0.")]
+   uint16 IOBaseUpper16;
+};
+
+
+// ==================================================================
+// PortController
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "PortController is a logical device corresponding to a hardware "
+       "network port controller. Port controllers provide various "
+       "features depending on their types and versions.")]
+class CIM_PortController : CIM_Controller {
+
+      [Description (
+          "The type or model of the port controller. Specific values "
+          "will be enumerated in a later release of this schema. When "
+          "set to 1 (\"Other\"), the related property "
+          "OtherControllerType contains a string description of the "
+          "controller's type."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Ethernet", "IB", "FC", "FDDI",
+          "ATM", "Token Ring", "Frame Relay" }, 
+       ModelCorrespondence { "CIM_PortController.OtherControllerType" }]
+   uint16 ControllerType;
+
+      [Description (
+          "A string value for controller types not captured by the "
+          "ControllerType enumeration. This should only be used when "
+          "the value of the ControllerType property is set to 1, "
+          "\"Other\"."), 
+       ModelCorrespondence { "CIM_PortController.ControllerType" }]
+   string OtherControllerType;
+
+      [Description (
+          "The revision number of the controller.")]
+   uint16 ControllerVersion;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

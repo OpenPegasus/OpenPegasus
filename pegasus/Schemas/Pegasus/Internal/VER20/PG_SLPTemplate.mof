@@ -1,0 +1,193 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// WBEMSLPTemplate
+// ==================================================================
+[ Version ("2.0.1"), Description (
+    "Defines the attributes in a Pegasus SLP template. The SLP template is "
+    "based on the DMTF WBEM SLP Template. Each property in this class "
+    "represents one object in the template registration. Note that today "
+    "this class is used only as a presentation tool and not to actually "
+    "set template properties. Note that M type attributes are reported "
+    "in this class as a single string, not as an array." ) ]
+class PG_WBEMSLPTemplate {
+   [key, Description ("Unique key for the instances of this class") ]
+   string InstanceID;
+   
+   [Description ("Template type parameter. Should be the default below"
+   "and should not be modified in the instances.") ]
+   string template_type="wbem";
+
+   [Description ("This version of the template. This should not be modified"
+   "by the instances and should reflect the template version used")]
+   string template_version="1.0";
+   
+   string template_description="This template describes the attributes used "
+     " for advertising CIM Servers.";
+
+   [ Description ("The template-url-syntax MUST be the WBEM URI Mapping of "
+    "the location of one service access point offered by the WBEM Server " 
+    "over TCP transport. This attribute must provide sufficient addressing " 
+    "information so that the WBEM Server can be addressed directly using " 
+    "the URL. The WBEM URI Mapping is defined in the WBEM URI Mapping " 
+    "Specification (DSP0207)." )]
+   string template_url_syntax;
+
+  [Description ("This string is used as a name of the CIM service for human "
+    "interfaces. This attribute MUST be the "
+    "CIM_ObjectManager.ElementName property value.") ]
+   string service_hi_name;
+   
+  [Description ("This string is used as a description of the CIM service "
+    "for human interfaces. This attribute MUST be the "
+    "CIM_ObjectManager.Description property value.") ]
+   string service_hi_description;
+
+   [Description ( "The ID of this WBEM Server. The value MUST be the "
+    "CIM_ObjectManager.Name property value." )]
+   string service_id;
+
+   // string service_location_tcp;
+   
+   [Description ("The communication mechanism (protocol) used by the CIM "
+    "Object Manager for the service-location-tcp defined in this advertisement. " 
+    "This information MUST be the "
+    "CIM_ObjectManagerCommunicationMechanism.CommunicationMechanism. " 
+    "property value.")]
+   string CommunicationMechanism;
+
+   [Description ("The other communication mechanism defined for the CIM Server "
+    " in the casehe \"Other\" value is set in the CommunicationMechanism "
+    "string. This attribute MUST be the "
+    " CIM_ObjectManagerCommunicationMechanism.OtherCommunicationMechanism "
+    "property value. This attribute is optional because it is only required if "
+    "the \"other\" value is set in CommunicationMechansim. The value returned "
+    "is a free-form string." )]
+   string OtherCommunicationMechanismDescription;
+   
+   [Description ("Namespace within the target WBEM Server where the CIM "
+    "Interop Schema can be accessed. Multiple namespaces may be provided. "
+    "Each namespace provided MUST contain the same information." )]
+   string InteropSchemaNamespace;
+   
+   [Description ("The version of the protocol. It MUST be the "
+    "CIM_ObjectManagerCommunicationMechanism.Version property value.")]
+   string ProtocolVersion;
+   
+   [Description ("ProfilesSupported defines the CIM Operation profiles "
+    "supported by the CIM Object Manager. This attribute MUST be the "
+    "CIM_ObjectManagerCommunicationMechansim.FunctionalProfilesSupported "
+    "property value.")]
+   string FunctionalProfilesSupported;
+   
+   [Description ("Other profile description if the \"other\" value is set in "
+    "the ProfilesSupported attribute. This attribute is optional because it "
+    "is returned only if the \"other\" value is set in the ProfilesSupported "
+    "attribute. If provided it MUST be equal to the "
+    "CIM_ObjectManagerCommunicationMechanism.FunctionalProfileDescriptions "
+    "property value.")]
+   string FunctionalProfileDescriptions;
+   
+   [Description ("Defines whether the CIM Object Manager supports batch "
+    "operations. This attribute MUST be the "
+    "CIM_ObjectManagerCommunicationMechanism.MultipleOperationsSupported.")]
+   boolean MultipleOperationsSupported;
+   
+   [Description ("Defines the authentication mechanism supported by the CIM "
+    "Object Manager. This attributed MUST be the "
+    "CIM_ObjectManagerCommunicationMechanism.AuthenticationMechanismsSupported "
+    "property value.")]
+   string AuthenticationMechanismsSupported;
+   
+   [Description ("Defines other Authentication mechanisms supported by the "
+    "CIM Object Manager in the case where the \"Other\" value is set in any "
+    "of the AuthenticationMechanismSupported attribute values. If provided, "
+    "this attribute MUST be the CIM_ObjectManagerCommunicationMechanism. "
+    "AuthenticationMechansimDescriptions property value.")]
+   string OtherAuthenticationDescription;
+   
+   [Description ("Namespace(s) supported on the CIM Object Manager. "
+    "This attribute MUST be the " 
+    "CIM_Namespace.name property value for each instance of CIM_Namespace "
+    "that exists. This attribute is optional. " 
+    "NOTE: This value is literal (L) because "
+    "the namespace names MUST not be translated into other languages." )]
+   string Namespace;
+   
+   [Description ("This attributes is optional but if used, the values MUST be "
+    "the CIM_Namespace.Classinfo property value. "
+    "The values represent the classinfo (CIM Schema version, etc.) for "
+    "the namespaces defined in the corresponding namespace listed in the "
+    "Namespace attribute. Each entry in this attribute MUST correspond "
+    "to the namespace defined in the same position of the namespace "
+    "attribute. There must be one entry in this attribute for each "
+    "entry in the namespace attribute.")]
+   string Classinfo;
+   
+   [Description ("RegisteredProfilesSupported defines the Profiles that "
+    "this WBEM Server has support for. Each entry in this " 
+    "attribute MUST be in the form of " 
+    "Organization:Profile Name{:Subprofile Name}")]
+   string RegisteredProfilesSupported;
+   
+   [ Description ("String representing the complete registered template. "
+       "This string is primarily a diagnostic to see what the produced "
+       "template looks like.")]
+   string RegisteredTemplate;
+   
+   [Description ("Time that this entry was registered with the SA") ]
+   datetime registeredTime;
+   
+   [Description ("Method Initiate the registration process based on the "
+   "CIMServer characteristics."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Already Registered",
+       "Unspecified Error", "Timeout", "Failed", "Invalid Parameter",
+       "Reserved", "Vendor Specific" } ]
+   Uint32 register();
+   
+   [ Description ("Method to remove any existing SLP registrations."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Nothing Registered",
+       "Unspecified Error", "Timeout", "Failed", "Invalid Parameter",
+       "Reserved", "Vendor Specific" } ]
+   Uint32 unregister();
+   
+   [ Description ("Method to force an update to any existing registrations."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Nothing Registered",
+       "Unspecified Error", "Timeout", "Failed", "Invalid Parameter",
+       "Reserved", "Vendor Specific" } ]
+   Uint32 update();
+   
+};

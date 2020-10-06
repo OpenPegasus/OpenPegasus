@@ -1,0 +1,54 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_PowerManagementCapabilities
+// ==================================================================
+   [UMLPackagePath ( "CIM::Core::PowerMgmt" ), Version ( "2.7.0" ), 
+    Description (
+       "A class derived from Capabilities that describes the power "
+       "management aspects of an element (typically a system or "
+       "device). The element's power management capabilities are "
+       "decoupled from a PowerManagementService, since a single "
+       "service could apply to multiple elements, each with specific "
+       "capabilities.")]
+class CIM_PowerManagementCapabilities : CIM_Capabilities {
+
+      [Description (
+          "An enumeration indicating the specific power-related "
+          "capabilities of a managed element. Since this is an array, "
+          "multiple values may be specified. The current values in the "
+          "enumeration are: \n"
+          "0 = Unknown \n"
+          "1 = Other \n"
+          "2 = Power Saving Modes Entered Automatically, describing "
+          "that a managed element can change its power state based on "
+          "usage or other criteria \n"
+          "3 = Power State Settable, indicating that the SetPowerState "
+          "method is supported \n"
+          "4 = Power Cycling Supported, indicating that the "
+          "SetPowerState method can be invoked with the PowerState "
+          "input variable set to 'Power Cycle' \n"
+          "5 = Timed Power On Supported, indicating that the "
+          "SetPowerState method can be invoked with the PowerState "
+          "input variable set to 'Power Cycle' and the Time parameter "
+          "set to a specific date and time, or interval, for power-on."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other",
+          "Power Saving Modes Entered Automatically",
+          "Power State Settable", "Power Cycling Supported",
+          "Timed Power On Supported" }, 
+       MappingStrings { "MIF.DMTF|System Power Controls|001.2" }, 
+       ModelCorrespondence { "CIM_PowerManagementCapabilities." 
+          "OtherPowerCapabilitiesDescriptions",
+          "CIM_PowerManagementService.SetPowerState" }]
+   uint16 PowerCapabilities[];
+
+      [Description (
+          "An array of strings describing an element's additional "
+          "power management capabilities, used when the "
+          "PowerCapabilities array includes the value 1, \"Other\"."), 
+       ModelCorrespondence { 
+          "CIM_PowerManagementCapabilities.PowerCapabilities" }]
+   string OtherPowerCapabilitiesDescriptions[];
+};

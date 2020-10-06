@@ -1,0 +1,899 @@
+// ===================================================================
+// Title: Device_StorageExtents
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_StorageExtents.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file describes
+//              the modeling of storage hierarchies (extents,
+//              volumes, partitions, etc.).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// 
+// Change Log for v2.8.2
+// CR1505 - Fix wording of StorageVolume.NameFormat to clarify MUSTs
+// CR1304 - Fix StorageVolume.NameFormat value/valuemap mismatch
+// 
+// Change Log for v2.8 Final
+// CR1202 - Remove Experimental Quaifiers
+// CR1027 - Clarify StorageVolume.NameFormat
+// 
+// Change Log for v2.8 Preliminary
+// CR891 - Add NameFormat to StorageVolume
+// 
+// Change Log for v2.7 Final
+// CR970 - Removal of the Experimental qualifier
+//       - Remove several properties from StorageVolume and make them
+//         Experimental in 2.8
+// 
+// Change Log for v2.7
+// CR722 - Add ProtectedExtentBasedOn, CompositeExtent, and
+//         CompositeExtentBasedOn
+// CR882 - Deprecate Snapshot and SnapshotOfExtent. Therefore moved
+//         definitions to SccExtents.mof
+// CR884 - Move RAID centric properties from StorageExtent to
+//         StorageVolume
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// MediaPresent
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Where a StorageExtent must be accessed through a MediaAccess "
+       "Device, this relationship is described by the MediaPresent "
+       "association."), 
+    MappingStrings { "MIF.DMTF|Storage Devices|001.8" }]
+class CIM_MediaPresent : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The MediaAccessDevice.")]
+   CIM_MediaAccessDevice REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The StorageExtent accessed using the MediaAccessDevice.")]
+   CIM_StorageExtent REF Dependent;
+
+      [Description (
+          "Boolean indicating that the accessed StorageExtent is fixed "
+          "in the MediaAccessDevice and can not be ejected.")]
+   boolean FixedMedia;
+};
+
+
+// ===================================================================
+// RealizesExtent
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "StorageExtents can be realized by PhysicalComponents. For "
+       "example, disks or tapes are realized by PhysicalMedia. Memory "
+       "is realized by PhysicalMemory. This relationship of Extents to "
+       "PhysicalComponents is made explicit by the RealizesExtent "
+       "association. In addition, the StartingAddress of the "
+       "StorageExtent on the Component is specified here.")]
+class CIM_RealizesExtent : CIM_Realizes {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The PhysicalComponent on which the Extent is realized.")]
+   CIM_PhysicalComponent REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The StorageExtent that is located on the Component.")]
+   CIM_StorageExtent REF Dependent;
+
+      [Description (
+          "The starting address on the PhysicalComponent where the "
+          "StorageExtent begins. Ending address of the StorageExtent "
+          "is determined using the NumberOfBlocks and Block Size "
+          "properties of the StorageExtent object.")]
+   uint64 StartingAddress;
+};
+
+
+// ===================================================================
+// RealizedOnSide
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Since removable PhysicalMedia can be dual-sided, there is the "
+       "possibility for StorageExtents to be realized on a single side "
+       "of the Media. This association is a specialization of the "
+       "RealizesExtent relationship, adding a Side property to express "
+       "the Media's orientation details.")]
+class CIM_RealizedOnSide : CIM_RealizesExtent {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The PhysicalMedia on which the Extent is realized.")]
+   CIM_PhysicalMedia REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The StorageExtent that is located on the Component.")]
+   CIM_StorageExtent REF Dependent;
+
+      [Description (
+          "An enumeration expressing on which 'Side' the Extent is "
+          "realized. Since sides can be named by various schemes (0/1 "
+          "or A/B), both schemes are expressed in the Values array of "
+          "this property."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Side 0", "Side 1", "Side A", "Side B" }]
+   uint16 Side;
+};
+
+
+// ===================================================================
+// StorageVolume
+// ===================================================================
+   [Version ( "2.8.2" ), Description (
+       "A StorageVolume is an Extent that is presented to the "
+       "Operating System (for example, by a hardware RAID cabinet), to "
+       "a File System (for example, by a software volume manager) or "
+       "to another entity. StorageVolumes do NOT participate in "
+       "StorageRedundancy Groups. They are directly Realized in "
+       "hardware or are the end result of assembling lower level "
+       "Extents.")]
+class CIM_StorageVolume : CIM_StorageExtent {
+
+      [Override ( "Name" ), Description (
+          "A unique identifier for the Volume."), 
+       MappingStrings { "ANSI|T10|SCSI SPC-3|8.6" }, 
+       ModelCorrespondence { "CIM_StorageVolume.NameFormat" }]
+   string Name;
+
+      [Description (
+          "Note - this property originally touched on two concepts "
+          "that are now separated into this property and "
+          "NameNamespace. Values 2,3,4,5,6, and 8 are retained for "
+          "backwards compatibility but are deprecated in lieu of the "
+          "corresponding values in CIM_StorageVolume.NameNamespace. "
+          "Format of the Name property. Values are (per SCSI SPC-3): \n"
+          "2 = VPD Page 83, NAA IEEE Registered Extended (VPD83NAA6) \n"
+          "(DEPRECATED) \n"
+          "3 = VPD Page 83, NAA IEEE Registered (VPD83NAA5) \n"
+          "(DEPRECATED) \n"
+          "4 = VPD Page 83, (VPD83Type2) (DEPRECATED) \n"
+          "5 = VPD Page 83, \n"
+          "T10 Vendor Identification (VPD83Type1) (DEPRECATED) \n"
+          "6 = VPD Page 83, Vendor Specific (VPD83Type0) (DEPRECATED) "
+          "\n7 = Serial Number/Vendor/Model (SNVM) SNVM is 3 strings "
+          "representing the vendor name, product name within the "
+          "vendor namespace, and the serial number within the model "
+          "namespace. Strings are delimited with a '+'. Spaces may be "
+          "included and are significant. The serial number is the text "
+          "representation of the serial number in hexadecimal upper "
+          "case. Vendor and Model represent the vendor and model ID "
+          "from SCSI Inquiry data, the vendor field MUST be 8 "
+          "characters wide and the product field MUST be 16 characters "
+          "wide. For example, 'ACME +SUPER DISK +124437458' \n"
+          "8 = Node WWN (for single LUN/controller) (NodeWWN) \n"
+          "(DEPRECATED) \n"
+          "9 = NAA as a generic format. See \n"
+          "http://standards.ieee.org/regauth/oui/tutorials/fibrecomp_id.html "
+          "Formatted as 16 or 32 unseparated uppercase hex characters "
+          "(2 per binary byte). For example '21000020372D3C73' \n"
+          "10 = EUI as a generic format (EUI64) See \n"
+          "http://standards.ieee.org/regauth/oui/tutorials/EUI64.html "
+          "\nFormatted as 16 unseparated uppercase hex characters (2 "
+          "per binary byte) \n"
+          "11 = T10 vendor identifier format as returned by SCSI "
+          "Inquiry VPD page 83, identifier type 2. See T1- SPC-3 "
+          "specification. The 8-byte ASCII vendor ID from the T10 "
+          "registry followed by a vendor specific ASCII identifier; "
+          "spaces are permitted. For non SCSI volumes, 'SNVM' may be "
+          "the most appropriate choice."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11" }, 
+       Values { "Unknown", "Other", "VPD83NAA6", "VPD83NAA5",
+          "VPD83Type2", "VPD83Type1", "VPD83Type0", "SNVM", "NodeWWN",
+          "NAA", "EUI64", "T10VID" }, 
+       ModelCorrespondence { "CIM_StorageVolume.Name",
+          "CIM_StorageVolume.OtherNameFormat" }]
+   uint16 NameFormat;
+
+      [Description (
+          "The preferred source for volume names is SCSI VPD Page 83 "
+          "responses. Page 83 returns a list of identifiers for "
+          "various device elements. The metadata for each identifier "
+          "includes an Association field, identifiers with association "
+          "of 0 apply to volumes. Page 83 supports several namespaces "
+          "specified in the Type field in the identifier metadata. See "
+          "SCSI SPC-3 specification. 2 = VPD Page 83, Type 3 NAA "
+          "(NameFormat should be NAA) 3 = VPD Page 83, Type 2 EUI64 "
+          "(NameFormat EUI) 4 = VPD Page 83, Type 1 T10 Vendor "
+          "Identification; (NameFormat T10) Less preferred namespaces "
+          "from other interfaces: 5 = VPD page 80, Serial number "
+          "(NameFormat should be Other) 6 = FC NodeWWN (NameFormat "
+          "should be NAA or EUI) 7 = Serial Number/Vendor/Model "
+          "(NameFormat should be SNVM)"), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "VPD83Type3", "VPD83Type2",
+          "VPD83Type1", "VPD80", "NodeWWN", "SNVM" }, 
+       MappingStrings { "INCITS|T10|SCSI SPC-3|Vital Product Data " 
+          "Parameters" }, 
+       ModelCorrespondence { "CIM_StorageVolume.Name",
+          "CIM_StorageVolume.OtherNameNamespace" }]
+   uint16 NameNamespace;
+
+      [Description (
+          "A string describing the namespace of the Name property when "
+          "NameNamespace includes the value 1, \"Other\"."), 
+       ModelCorrespondence { "CIM_StorageVolume.NameNamespace" }]
+   string OtherNameNamespace;
+
+
+      [Description (
+          "A string describing the format of the Name property when "
+          "NameFormat includes the value 1, \"Other\"."), 
+       ModelCorrespondence { "CIM_StorageVolume.NameFormat" }]
+   string OtherNameFormat;
+};
+
+
+// ===================================================================
+// MediaPartition
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A MediaPartition is a presentation of a contiguous range of "
+       "logical blocks and has identifying data written on/to it. It "
+       "may include a signature written by the OS or by an "
+       "application. This class is a common superclass for Disk and "
+       "TapePartions. Partitions are directly realized by Physical "
+       "Media (indicated by the RealizesExtent association) or built "
+       "on StorageVolumes (indicated by the BasedOn association).")]
+class CIM_MediaPartition : CIM_StorageExtent {
+
+      [Description (
+          "Boolean indicating that the Partition is labeled as "
+          "bootable. (Note that this does not mean that an Operating "
+          "System is actually loaded on the Partition.) With the "
+          "advent of bootable Tape and other bootable media, this "
+          "property is included in the higher level MediaPartition "
+          "class, rather than in a subclass such as DiskPartition.")]
+   boolean Bootable;
+
+      [Description (
+          "Boolean indicating that the Partition is available and may "
+          "be allocated for use.")]
+   boolean Allocatable;
+
+      [Description (
+          "An identifying string written to the Partition. Additional "
+          "information related to this 'Signature' may be found in the "
+          "properties, SignatureState and SignatureAlgorithm."), 
+       ModelCorrespondence { "CIM_MediaPartition.SignatureState",
+          "CIM_MediaPartition.SignatureAlgorithm" }]
+   string Signature;
+
+      [Description (
+          "A free-form string describing the algorithm used to define "
+          "the Partition Signature. The value of this property is "
+          "dependent on the Signature's State."), 
+       ModelCorrespondence { "CIM_MediaPartition.Signature",
+          "CIM_MediaPartition.SignatureState" }]
+   string SignatureAlgorithm;
+
+      [Description (
+          "An enumeration describing the state of the Partition's "
+          "identifying Signature string. Information such as "
+          "\"Uninitialized\" (value=2), or \"Assigned by Owning "
+          "Application\" (value=5) are possible entries."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Unimplemented", "Uninitialized",
+          "Calculated by Operating System",
+          "Calculated by a Media Manager",
+          "Assigned by Owning Application" }, 
+       ModelCorrespondence { "CIM_MediaPartition.Signature",
+          "CIM_MediaPartition.SignatureAlgorithm" }]
+   string SignatureState;
+
+      [Description (
+          "Boolean indicating that the Partition can be grown/extended "
+          "without reformatting.")]
+   boolean Extendable;
+};
+
+
+// ===================================================================
+// DiskPartition
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A DiskPartition is a presentation of a contiguous range of "
+       "logical blocks that is identifiable by the Operating System "
+       "via the Partition's type and subtype fields. Disk Partitions "
+       "should be directly realized by PhysicalMedia (indicated by the "
+       "RealizesDiskPartition association) or built on StorageVolumes "
+       "(indicated by the PartitionBasedOnVolume association.")]
+class CIM_DiskPartition : CIM_MediaPartition {
+
+      [Description (
+          "Boolean indicating that the DiskPartition is labelled as "
+          "the primary partition for a ComputerSystem.")]
+   boolean PrimaryPartition;
+
+      [Description (
+          "The type of Partition."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Primary", "Extended", "Logical" }]
+   uint16 PartitionType;
+
+      [Description (
+          "The 'sub' type of a primary, extended, or logical "
+          "Partition. The list of possible values corresponds to the "
+          "decimal representation of the typical values in the "
+          "Partition record."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "14", "15", "16", "17", "18", "20", "22",
+          "23", "27", "28", "33", "35", "36", "38", "49", "51", "52",
+          "53", "54", "55", "60", "64", "65", "66", "67", "80", "81",
+          "82", "83", "84", "85", "86", "97", "99", "100", "101",
+          "102", "103", "104", "105", "113", "115", "116", "117",
+          "118", "119", "120", "121", "128", "129", "130", "131",
+          "132", "134", "135", "147", "148", "161", "163", "164",
+          "165", "166", "177", "179", "180", "182", "183", "184",
+          "193", "196", "198", "199", "216", "219", "225", "227",
+          "228", "229", "230", "239", "240", "241", "242", "243",
+          "244", "246", "254", "255", "65535" }, 
+       Values { "Empty | Microsoft", "DOS 12-bit FAT", "XENIX root",
+          "XENIX usr", "DOS 16-bit FAT", "DOS Extended",
+          "DOS 16-bit FAT (> 32MB)",
+          "OS/2 HPFS | Win NTFS | QNX Ver 2 | Adv UNIX",
+          "AIX Boot | OS /2 | Dell (Array) | Commodore DOS",
+          "AIX Data, Coherent", "OS/2 Boot Manager", "32-bit FAT",
+          "32-bit FAT", "Microsoft 16-bit FAT",
+          "Microsoft DOS Extended", "OPUS | OS/2 2.0",
+          "OS/2 (MOSS) Inactive Type 1",
+          "Compaq Diagnostics Partition | Microsoft",
+          "OS/2 (MOSS) Inactive Type 4", "OS/2 (MOSS) Inactive Type 6",
+          "OS/2 (MOSS) Inactive Type 7", "OS/2 (MOSS) Inactive Type B",
+          "OS/2 (MOSS) Inactive Type C", "Microsoft", "Microsoft",
+          "Microsoft", "Microsoft", "Microsoft", "Microsoft",
+          "Microsoft", "OS/2 Logical Volume Manager", "Microsoft",
+          "OS/2 JFS Log", "PowerQuest", "VENIX 80286 | Series/1 Disk",
+          "Personal RISC Boot", "Veritas", "Veritas",
+          "OnTrack Disk Manager Read Only DOS",
+          "OnTrack Disk Manager Read/Write DOS",
+          "CPM | Microport System V/386 | OnTrack Disk Mgr | " 
+          "Microsoft", "OnTrack Disk Manager",
+          "OnTrack Disk Manager Non-DOS",
+          "Micro House EZ-Drive Non-DOS",
+          "Golden Bow Vfeature | Microsoft",
+          "Storage Dimensions SpeedStor | Microsoft",
+          "UNIX - AT&T System V/386 | SCO UNIX",
+          "Novell NetWare | Speedstore", "Novell NetWare",
+          "Novell NetWare", "Novell", "Novell", "Novell", "Microsoft",
+          "Microsoft", "Microsoft", "PC/IX IBM", "Microsoft",
+          "QNX POSIX", "QNX POSIX (Secondary)",
+          "QNX POSIX (Secondary)",
+          "Minix (<=1.4a) | Linux | Microsoft",
+          "Minix (>=1.4b) | Microsoft", "Linux Swap | Prime",
+          "Linux Native | Apple", "System Hibernation for APM",
+          "Microsoft", "HPFS FT mirror", "Amoeba | Microsoft",
+          "Amoeba BBT | Microsoft", "Microsoft", "Microsoft",
+          "Microsoft", "BSD/386", "Microsoft", "Microsoft",
+          "Microsoft", "Microsoft", "Microsoft", "BSDI fs | Microsoft",
+          "BSDI Swap | Microsoft", "Microsoft", "Microsoft",
+          "Microsoft", "Syrinx | HPFS FT Disabled Mirror", "CP/M 86",
+          "Digital Research CPM-86 | Concurrent DOS | OUTRIGGER",
+          "SpeedStor 12-bit FAT Extended",
+          "DOS Read-Only | Storage Dimensions",
+          "SpeedStor 16-bit FAT Extended", "Microsoft", "Microsoft",
+          "Intel", "OS/2 Raw Data", "Storage Dimensions",
+          "DOS (Secondary)", "Microsoft",
+          "SpeedStor Large | Storage Dimensions", "Microsoft",
+          "Lan Step | SpeedStor | IBM PS/2 IML", "Bad Block Tables",
+          "Unknown" }]
+   uint16 PartitionSubtype;
+};
+
+
+// ===================================================================
+// DiskPartitionBasedOnVolume
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "DiskPartitions should be BasedOn a single StorageVolume (for "
+       "example, exposed by a hardware RAID cabinet), an SCC "
+       "VolumeSet, or realized directly in PhysicalMedia. The first "
+       "two relationships are made explicit in this association. The "
+       "latter is conveyed by the RealizesDiskPartition association.")]
+class CIM_DiskPartitionBasedOnVolume : CIM_BasedOn {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The StorageVolume.")]
+   CIM_StorageVolume REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The DiskPartition which is built on the Volume.")]
+   CIM_DiskPartition REF Dependent;
+};
+
+
+// ===================================================================
+// RealizesDiskPartition
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "DiskPartitions can be directly realized on a PhysicalMedia. "
+       "This is used to model the creation of Partitions on a raw SCSI "
+       "or IDE drive, using the fdisk (DOS and Unix) or pdisk (Unix) "
+       "command. The StartingAddress of the DiskPartition on the "
+       "PhysicalMedia is also specified as a property of this "
+       "relationship. An alternative is that Partitions can be BasedOn "
+       "StorageVolumes, such as a VolumeSet or a Volume exposed by a "
+       "hardware RAID cabinet. The latter relationship is modeled "
+       "using the DiskPartitionBasedOnVolume association.")]
+class CIM_RealizesDiskPartition : CIM_RealizesExtent {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The PhysicalMedia on which the Extent is realized.")]
+   CIM_PhysicalMedia REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The DiskPartition that is located on the Media.")]
+   CIM_DiskPartition REF Dependent;
+};
+
+
+// ===================================================================
+// TapePartition
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of a TapePartition StorageExtent. "
+       "Note that if a PhysicalTape is not partitioned, only a generic "
+       "StorageExtent that represents the entire Tape should be "
+       "instantiated. TapePartitions may be BasedOn other "
+       "StorageExtents or directly Realized on a PhysicalTape.")]
+class CIM_TapePartition : CIM_MediaPartition {
+
+      [Description (
+          "Number of blocks that are currently unused/not written on "
+          "the Partition. When this number is multiplied by the "
+          "BlockSize, inherited from StorageExtent, the total number "
+          "of bytes available for writing can be computed."), 
+       Gauge]
+   uint64 UnusedBlocks;
+};
+
+
+// ===================================================================
+// TapePartitionOnSurface
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "TapePartitionOnSurface represents the ability to have one or "
+       "more TapePartitions on each surface of a PhysicalTape. The "
+       "individual surfaces are represented as instances of "
+       "CIM_StorageExtent.")]
+class CIM_TapePartitionOnSurface : CIM_BasedOn {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The StorageExtent that represents the Tape's surface.")]
+   CIM_StorageExtent REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The TapePartition which is built on the Extent.")]
+   CIM_TapePartition REF Dependent;
+};
+
+
+// ===================================================================
+// RealizesTapePartition
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "TapePartitions are realized on PhysicalTape. This relationship "
+       "is made explicit by the RealizesTapePartition association.")]
+class CIM_RealizesTapePartition : CIM_RealizesExtent {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The PhysicalTape on which the Partition is realized.")]
+   CIM_PhysicalTape REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The TapePartition that is located on the Media.")]
+   CIM_TapePartition REF Dependent;
+};
+
+
+// ===================================================================
+// LogicalDisk
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A LogicalDisk is a presentation of a contiguous range of "
+       "logical blocks that is identifiable by a FileSystem via the "
+       "Disk's DeviceId (key) field. For example in a Windows "
+       "environment, the DeviceID field would contain a drive letter. "
+       "In a Unix environment, it would contain the access path; and "
+       "in a NetWare environment, DeviceID would contain the volume "
+       "name. LogicalDisks are typically built on a DiskPartition or "
+       "Storage Volume (for example, exposed by a software volume "
+       "manager) using the LogicalDiskBasedOnPartition or "
+       "LogicalDiskBasedOn Volume associations. However, it can be "
+       "based on other StorageExtents, like CIM_Memory, in the case of "
+       "a RAM disk. The latter is described using the "
+       "LogicalDiskBasedOnExtent relationship. (Indeed, the "
+       "BasedOnExtent association is the superclass for the "
+       "BasedOnPartition and BasedOnVolume relationships.)")]
+class CIM_LogicalDisk : CIM_StorageExtent {
+};
+
+
+// ===================================================================
+// LogicalDiskBasedOnExtent
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "LogicalDisks can be BasedOn a single StorageVolume, Memory (in "
+       "the case of a RAM Disk), a DiskPartition or other "
+       "StorageExtent. These relationships are made explicit in this "
+       "association. Subclasses of the association, LogicalDiskBasedOn "
+       "Partition and LogicalDiskBasedOnVolume, detail the 'typical' "
+       "semantics.")]
+class CIM_LogicalDiskBasedOnExtent : CIM_BasedOn {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The StorageExtent.")]
+   CIM_StorageExtent REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDisk which is built on the StorageExtent.")]
+   CIM_LogicalDisk REF Dependent;
+};
+
+
+// ===================================================================
+// LogicalDiskBasedOnVolume
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "LogicalDisks can be BasedOn a single Volume (for example, "
+       "exposed by a software volume manager), or be BasedOn a Disk "
+       "Partition directly. The former relationship is made explicit "
+       "in this association.")]
+class CIM_LogicalDiskBasedOnVolume : CIM_LogicalDiskBasedOnExtent {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The StorageVolume.")]
+   CIM_StorageVolume REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDisk which is built on the StorageExtent.")]
+   CIM_LogicalDisk REF Dependent;
+};
+
+
+// ===================================================================
+// LogicalDiskBasedOnPartition
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "LogicalDisks can be BasedOn a DiskPartition. For example, a "
+       "personal computer's C: drive may be located on a Partition on "
+       "local PhysicalMedia. In this association of LogicalDisks to "
+       "Partitions, note that the cardinality of the Antecedent, Disk "
+       "Partition, is Max (1). This dictates that a LogicalDisk can "
+       "not span more than one Partition. However, there are cases "
+       "where this is true. When it occurs, the LogicalDisk is really "
+       "based on some kind of RAID configuration (for example, a "
+       "mirror or stripe set). In these scenarios, the LogicalDisk is "
+       "more correctly BasedOn a StorageVolume. To prevent incorrectly "
+       "using the LogicalDiskBasedOnPartition association, the Max (1) "
+       "qualifier was put on the Antecedent reference to the "
+       "DiskPartition.")]
+class CIM_LogicalDiskBasedOnPartition : CIM_LogicalDiskBasedOnExtent {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The DiskPartition.")]
+   CIM_DiskPartition REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDisk which is built on the StorageExtent.")]
+   CIM_LogicalDisk REF Dependent;
+};
+
+
+// ===================================================================
+// ProtectedExtentBasedOn
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "Protected StorageExtents map to an underlying StorageExtent. "
+       "This mapping includes information about the placement of check "
+       "data on the underlying extent. The mapping is made explicit in "
+       "this association.")]
+class CIM_ProtectedExtentBasedOn : CIM_BasedOn {
+
+      [Override ( "Antecedent" ), Description (
+          "The underlying StorageExtent.")]
+   CIM_StorageExtent REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Protected Space is built on this StorageExtent.")]
+   CIM_StorageExtent REF Dependent;
+
+      [Override ( "StartingAddress" ), Description (
+          "The starting logical block address of the underlying "
+          "StorageExtent from which this protected StorageExtent is "
+          "derived. In SCC, this is equivalent to the START LBA_P "
+          "field in the Redundancy Group P_Extent Descriptor."), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.2" }]
+   uint64 StartingAddress;
+
+      [Description (
+          "The size of the protected space. Note that this is limited "
+          "by the Antecedent->NumberOfBlocks, but is included "
+          "explicitly to provide for the DMTF MIF mapping. In SCC, "
+          "this is equivalent to the NUMBER OF LBA_P(s) field in the "
+          "Redundancy Group P_Extent Descriptor."), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.3" }, 
+       ModelCorrespondence { "CIM_StorageExtent.NumberOfBlocks" }]
+   uint64 NumberOfBlocks;
+
+      [Description (
+          "The block size of the protected space. Note that this is "
+          "limited by the Antecedent->BlockSize. In SCC, this is "
+          "equivalent to the NUMBER OF BYTES PER LBA_P field in the "
+          "Redundancy Group P_Extent Descriptor."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.4" }, 
+       ModelCorrespondence { "CIM_StorageExtent.BlockSize" }]
+   uint64 BlockSize;
+
+      [Description (
+          "Number of bytes of user data to skip before starting the "
+          "check data interleave."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.6" }]
+   uint64 UnitsBeforeCheckDataInterleave;
+
+      [Description (
+          "Number of bytes to be reserved for check data."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.7" }]
+   uint64 UnitsOfCheckData;
+
+      [Description (
+          "Number of bytes to be reserved for user data."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.8" }]
+   uint64 UnitsOfUserData;
+};
+
+
+// ===================================================================
+// CompositeExtent
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "A CompositeExtent is used to model the distribution of user "
+       "data across one or more underlying StorageExtents, which may "
+       "or not be protected by some redundancy mechanism. "
+       "CompositeExtents represent a contiguous range of logical "
+       "blocks. CompositeExtents may overlap, however, the underlying "
+       "StorageExtents within the overlap shall not contain any check "
+       "data. Distribution of check data may be specified using the "
+       "CompositeExtentBasedOn association.")]
+class CIM_CompositeExtent : CIM_StorageExtent {
+
+      [Override ( "NumberOfBlocks" ), 
+       MappingStrings { "MIF.DMTF|Volume Set|001.3" }]
+   uint64 NumberOfBlocks;
+
+      [Description (
+          "Number of contiguous underlying StorageExtents counted "
+          "before looping back to the first underlying StorageExtent "
+          "of the current stripe. It is the number of StorageExtents "
+          "forming the user data stripe."), 
+       MappingStrings { "MIF.DMTF|Volume Set|001.4" }]
+   uint64 ExtentStripeLength;
+
+      [Description (
+          "Number of StorageExtents to stripe as a collective set. In "
+          "SCC, this value is defined as the number of stripes to "
+          "count before continuing to map into the next contiguous set "
+          "of Extents, beyond the current stripe."), 
+       MappingStrings { "MIF.DMTF|Volume Set|001.5" }]
+   uint64 ExtentInterleaveDepth;
+
+      [Description (
+          "True indicates that the data is concatenated across the "
+          "various StorageExtents in the Group.")]
+   boolean IsConcatenated;
+};
+
+
+// ===================================================================
+// CompositeExtentBasedOn
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "This specialization defines how data is striped across "
+       "StorageExtents. Additionally, it includes information on "
+       "distribution of check data so that the 'usual case' RAID "
+       "devices can be created in one step.")]
+class CIM_CompositeExtentBasedOn : CIM_BasedOn {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The underlying StorageExtent.")]
+   CIM_StorageExtent REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The CompositeExtent which is built on the StorageExtent.")]
+   CIM_CompositeExtent REF Dependent;
+
+      [Required, Override ( "OrderIndex" ), Description (
+          "Order matters to CompositeExtents. An example of the use of "
+          "this property is when defining a RAID-0 striped array of 3 "
+          "disks. The resultant RAID array is a CompositeExtent that "
+          "is dependent on (as described by CompositeExtentBasedOn) "
+          "the StorageExtents that represent each of the 3 disks. The "
+          "OrderIndex of each CompositeExtentBasedOn association from "
+          "the disk Extents to the RAID array could be specified as 1, "
+          "2 and 3 to indicate the order in which the disk Extents are "
+          "used to access the RAID data."), 
+       MappingStrings { "MIF.DMTF|Protected Space Extent|001.1" }]
+   uint16 OrderIndex;
+
+      [Description (
+          "True if logical blocks in the underlying StorageExtents are "
+          "mapped in decrementing order. This property corresponds to "
+          "the INCDEC value in the SCC-2 Volume Set PS_Extent "
+          "Descriptor.")]
+   boolean LBAsMappedByDecrementing;
+
+      [Description (
+          "True if the logical block mapping algorithm includes check "
+          "data bytes. This property corresponds to the NOCHKSKIP "
+          "attribute in the SCC-2 Volume Set PS_Extent Descriptor.")]
+   boolean LBAMappingIncludesCheckData;
+
+      [Description (
+          "The total number of blocks that will be consumed on the "
+          "Dependent Extent. This is limited by the Antecedent's "
+          "NumberOfBlocks, but is included explicitly to provide for "
+          "the DMTF MIF mapping. In SCC, this is equivalent to the "
+          "NUMBER OF LBA_PS(s) field in the Volume Set PS_Extent "
+          "Descriptor."), 
+       MappingStrings { "MIF.DMTF|Protected Space Extent|001.3" }, 
+       ModelCorrespondence { "CIM_StorageExtent.NumberOfBlocks" }]
+   uint64 NumberOfBlocks;
+
+      [Description (
+          "The Dependent's BlockSize is limited by the Antecedent's. "
+          "In SCC, this is equivalent to the NUMBER OF BYTES PER "
+          "LBA_PS field in the RedundancyGroup P_Extent Descriptor."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Protected Space Extent|001.4" }, 
+       ModelCorrespondence { "CIM_StorageExtent.BlockSize" }]
+   uint64 BlockSize;
+
+      [Description (
+          "Number of bytes which form the stripe size for the "
+          "Dependent StorageExtent. If the CompositeExtent is "
+          "concatenated instead of striped, then UserDataStripeDepth "
+          "should be set to zero."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Protected Space Extent|001.6" }]
+   uint64 UserDataStripeDepth;
+
+      [Description (
+          "Number of bytes of user data to skip before starting the "
+          "check data interleave."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.6" }]
+   uint64 UnitsBeforeCheckDataInterleave;
+
+      [Description (
+          "Number of bytes to be reserved for check data."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.7" }]
+   uint64 UnitsOfCheckData;
+
+      [Description (
+          "Number of bytes to be reserved for user data."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Physical Extent|001.8" }]
+   uint64 UnitsOfUserData;
+};
+
+
+// ===================================================================
+// StorageError
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "StorageError defines blocks of media or memory space that are "
+       "mapped 'out of use' due to errors. The Key of the class is the "
+       "StartingAddress of the bytes in error.")]
+class CIM_StorageError : CIM_ManagedElement {
+
+      [Key, Propagated ( "CIM_StorageExtent.SystemCreationClassName" ), 
+       Description (
+          "The scoping System's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_StorageExtent.SystemName" ), 
+       Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Propagated ( "CIM_StorageExtent.CreationClassName" ), 
+       Description (
+          "The scoping StorageExtent's CreationClassName."), 
+       MaxLen ( 256 )]
+   string DeviceCreationClassName;
+
+      [Key, Propagated ( "CIM_StorageExtent.DeviceID" ), Description (
+          "The scoping StorageExtent's DeviceID."), 
+       MaxLen ( 64 )]
+   string DeviceID;
+
+      [Key, Description (
+          "The starting address of the bytes in error.")]
+   uint64 StartingAddress;
+
+      [Description (
+          "The ending address of the bytes in error.")]
+   uint64 EndingAddress;
+};
+
+
+// ===================================================================
+// StorageDefect
+// ===================================================================
+   [Association, Aggregation, Version ( "2.6.0" ), Description (
+       "The StorageDefect aggregation collects the StorageErrors for a "
+       "StorageExtent.")]
+class CIM_StorageDefect {
+
+      [Key, Aggregate, Min ( 1 ), Max ( 1 ), Description (
+          "The Extent reference defines the StorageExtent on which the "
+          "errors occurred.")]
+   CIM_StorageExtent REF Extent;
+
+      [Key, Weak, Description (
+          "Error references the Error object, defining the starting "
+          "and ending addresses that are 'mapped out' of the Storage "
+          "Extent.")]
+   CIM_StorageError REF Error;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

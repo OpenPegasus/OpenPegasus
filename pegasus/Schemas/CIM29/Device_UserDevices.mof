@@ -1,0 +1,438 @@
+// ===================================================================
+// Title: Device_UserDevices
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_UserDevices.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file models
+//              user devices (monitors, keyboards, pointing devices,
+//              etc.).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 - None
+// 
+// Change Log for v2.7
+// CR622 - Fix the DMI mapping string to include the attribute number
+//         for PointingDevice.PointingType & .NumberOfButtons and
+//         Keyboard.Layout
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// UserDevice
+// ===================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "UserDevices are LogicalDevices that allow a ComputerSystem's "
+       "users to input, view or hear data. It is a superclass from "
+       "which other classes, such as Keyboard or DesktopMonitor, "
+       "descend.")]
+class CIM_UserDevice : CIM_LogicalDevice {
+
+      [Description (
+          "An indication of whether the Device is locked, preventing "
+          "user input or output.")]
+   boolean IsLocked;
+};
+
+
+// ===================================================================
+// PointingDevice
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "PointingDevice represents those Devices used to 'point' to "
+       "regions of a Display.")]
+class CIM_PointingDevice : CIM_UserDevice {
+
+      [Description (
+          "The type of the pointing device."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Other", "Unknown", "Mouse", "Track Ball",
+          "Track Point", "Glide Point", "Touch Pad", "Touch Screen",
+          "Mouse - Optical Sensor" }, 
+       MappingStrings { "MIF.DMTF|Pointing Device|003.1" }]
+   uint16 PointingType;
+
+      [Description (
+          "Number of buttons. If the PointingDevice has no buttons, "
+          "enter 0."), 
+       MappingStrings { "MIF.DMTF|Pointing Device|003.4" }]
+   uint8 NumberOfButtons;
+
+      [Description (
+          "Integer indicating whether the PointingDevice is configured "
+          "for right (value=2) or left handed operation (value=3). "
+          "Also, the values, \"Unknown\" (0) and \"Not Applicable\" "
+          "(1), can be defined."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Not Applicable", "Right Handed Operation",
+          "Left Handed Operation" }]
+   uint16 Handedness;
+
+      [Description (
+          "Tracking resolution of the PointingDevice in Counts per "
+          "Inch."), 
+       Units ( "Counts per Inch" )]
+   uint32 Resolution;
+};
+
+
+// ===================================================================
+// Keyboard
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Capabilities and management of the Keyboard LogicalDevice.")]
+class CIM_Keyboard : CIM_UserDevice {
+
+      [Description (
+          "Number of function keys on the Keyboard.")]
+   uint16 NumberOfFunctionKeys;
+
+      [Description (
+          "A free-form string indicating the format and layout of the "
+          "Keyboard."), 
+       MappingStrings { "MIF.DMTF|Keyboard|004.1" }]
+   string Layout;
+
+      [Description (
+          "An integer indicating whether a hardware-level password is "
+          "enabled at the keyboard (value=4), preventing local input. "
+          "Other values are: \"Disabled\" (3), \"Not Implemented\" "
+          "(5), \"Other\" (1) and \"Unknown\" (2)."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Disabled", "Enabled",
+          "Not Implemented" }, 
+       MappingStrings { "MIF.DMTF|System Hardware Security|001.2" }]
+   uint16 Password;
+};
+
+
+// ===================================================================
+// Display
+// ===================================================================
+   [Abstract, Version ( "2.6.0" ), Description (
+       "Display is a superclass for grouping the miscellaneous display "
+       "devices that exist.")]
+class CIM_Display : CIM_UserDevice {
+};
+
+
+// ===================================================================
+// DesktopMonitor
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of the DesktopMonitor (CRT) "
+       "LogicalDevice.")]
+class CIM_DesktopMonitor : CIM_Display {
+
+      [Description (
+          "The type of DesktopMonitor or CRT. For example, multiscan "
+          "color or monochrome monitors (values 2 or 3, respectively) "
+          "can be indicated in this property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Multiscan Color",
+          "Multiscan Monochrome", "Fixed Frequency Color",
+          "Fixed Frequency Monochrome" }]
+   uint16 DisplayType;
+
+      [Description (
+          "Monitor's bandwidth in MHertz. If unknown, enter 0."), 
+       Units ( "MegaHertz" )]
+   uint32 Bandwidth;
+
+      [Description (
+          "The logical height of the Display in screen coordinates.")]
+   uint32 ScreenHeight;
+
+      [Description (
+          "The logical width of the Display in screen coordinates.")]
+   uint32 ScreenWidth;
+};
+
+
+// ===================================================================
+// FlatPanel
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of the FlatPanel LogicalDevice.")]
+class CIM_FlatPanel : CIM_Display {
+
+      [Description (
+          "FlatPanel's horizontal resolution in Pixels."), 
+       Units ( "Pixels" )]
+   uint32 HorizontalResolution;
+
+      [Description (
+          "FlatPanel's vertical resolution in Pixels."), 
+       Units ( "Pixels" )]
+   uint32 VerticalResolution;
+
+      [Description (
+          "A FlatPanel's scan mode indicating either single (value=2) "
+          "or dual scan (3)."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "Single Scan", "Dual Scan" }]
+   uint16 ScanMode;
+
+      [Description (
+          "An integer enumeration describing the type of flat panel "
+          "display."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "Unknown", "Other", "Passive Matrix LCD",
+          "Active Matrix LCD", "Cholesteric LCD",
+          "Field Emission Display", "Electro Luminescent Display",
+          "Gas Plasma", "LED" }]
+   uint16 DisplayType;
+
+      [Description (
+          "A description of the display illumination type. For "
+          "example, backlit (value=2) or reflective (4) can be "
+          "specified."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Backlit", "Edgelit",
+       "Reflective" }]
+   uint16 LightSource;
+
+      [Description (
+          "Boolean indicating whether the FlatPanel supports color "
+          "display.")]
+   boolean SupportsColor;
+};
+
+
+// ===================================================================
+// Scanner
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Capabilities and management of the Scanner LogicalDevice.")]
+class CIM_Scanner : CIM_LogicalDevice {
+};
+
+
+// ===================================================================
+// Door
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A Door is the abstraction of hardware providing access to the "
+       "internal componentry of a System. When a Door is 'opened', "
+       "typically all accessible, moving components are stopped or "
+       "suspended to prevent physical harm.")]
+class CIM_Door : CIM_LogicalDevice {
+
+      [Description (
+          "Boolean indicating the 'open' (TRUE) or 'closed' (FALSE) "
+          "status of the Door.")]
+   boolean Open;
+
+      [Description (
+          "Boolean indicating that the Door is 'locked' (TRUE) or "
+          "'unlocked' (FALSE). When the Door is locked, access to the "
+          "componentry is prevented, without the use of a physical key "
+          "or the issuance of a software unlock command.")]
+   boolean Locked;
+
+      [Description (
+          "When a Door is 'Open', all accessible, moving componentry "
+          "and Device operation are typically stopped. The Timeout "
+          "property provides a mechanism to event on a Door left open "
+          "for a period of time (in seconds) exceeding the property's "
+          "value."), 
+       Units ( "Seconds" )]
+   uint32 Timeout;
+
+      [Description (
+          "Date and time that the Door was last opened.")]
+   datetime LastOpened;
+
+      [Description (
+          "The Capabilities of the Door. For example, information on "
+          "whether the Door is \"Host System Lockable\" (value=2) "
+          "and/or whether a key is available (value=3) are specified "
+          "in this property. The value 4, \"All Drives Dismounted "
+          "Before Access\", pertains to a Door on a StorageLibrary or "
+          "set of drive bays. If specified for the Door, it means that "
+          "it can not be opened unless all Media are first unloaded "
+          "from the accessible MediaAccessDevices."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Host System Lockable",
+          "Physical Key", "All Drives Dismounted Before Access" }]
+   uint16 Capabilities[];
+};
+
+
+// ===================================================================
+// DoorAccessToPhysicalElement
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Doors provide access to PhysicalElements for hot swap, repair "
+       "and similar activities. The entities accessed through a Door "
+       "are indicated in this relationship.")]
+class CIM_DoorAccessToPhysicalElement : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Door that provides access.")]
+   CIM_Door REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PhysicalElement that is accessed.")]
+   CIM_PhysicalElement REF Dependent;
+};
+
+
+// ===================================================================
+// DoorAccessToDevice
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Doors provide access to PhysicalElements for hot swap, repair "
+       "and similar activities. In turn, PhysicalElements 'Realize' "
+       "LogicalDevices. Since it may not be possible to define all the "
+       "PhysicalElements that exist, and optimizing the retrieval of "
+       "Devices 'behind' the Door may be desirable, the DoorAccessTo "
+       "Device association provides a shortcut mechanism for defining "
+       "the LogicalDevices ('hardware') accessed through a Door.")]
+class CIM_DoorAccessToDevice : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Door that provides access.")]
+   CIM_Door REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The LogicalDevice that is accessed.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+// ===================================================================
+// MonitorResolution
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "MonitorResolution describes the relationship between "
+       "horizontal and vertical resolutions, refresh rate and scan "
+       "mode for a DesktopMonitor. The actual resolutions, etc. that "
+       "are in use, are the values specified in the VideoController "
+       "object.")]
+class CIM_MonitorResolution : CIM_Setting {
+
+      [Key, Override ( "SettingID" ), Description (
+          "The inherited SettingID serves as part of the key for a "
+          "MonitorResolution instance."), 
+       MaxLen ( 256 )]
+   string SettingID;
+
+      [Description (
+          "Monitor's horizontal resolution in Pixels."), 
+       Units ( "Pixels" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.2" }, 
+       ModelCorrespondence { 
+          "CIM_VideoController.CurrentHorizontalResolution" }]
+   uint32 HorizontalResolution;
+
+      [Description (
+          "Monitor's vertical resolution in Pixels."), 
+       Units ( "Pixels" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.3" }, 
+       ModelCorrespondence { 
+          "CIM_VideoController.CurrentVerticalResolution" }]
+   uint32 VerticalResolution;
+
+      [Description (
+          "Monitor's refresh rate in Hertz. If a range of rates is "
+          "supported, use the MinRefreshRate and MaxRefreshRate "
+          "properties, and set RefreshRate (this property) to 0."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.4" }, 
+       ModelCorrespondence { "CIM_VideoController.CurrentRefreshRate" }]
+   uint32 RefreshRate;
+
+      [Description (
+          "Monitor's minimum refresh rate in Hertz, when a range of "
+          "rates is supported at the specified resolutions."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.6" }, 
+       ModelCorrespondence { "CIM_VideoController.MinRefreshRate" }]
+   uint32 MinRefreshRate;
+
+      [Description (
+          "Monitor's maximum refresh rate in Hertz, when a range of "
+          "rates is supported at the specified resolutions."), 
+       Units ( "Hertz" ), 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.7" }, 
+       ModelCorrespondence { "CIM_VideoController.MaxRefreshRate" }]
+   uint32 MaxRefreshRate;
+
+      [Description (
+          "Integer indicating whether the monitor operates in "
+          "interlaced (value=5) or non-interlaced (4) mode."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Unknown", "Not Supported",
+          "Non-Interlaced Operation", "Interlaced Operation" }, 
+       MappingStrings { "MIF.DMTF|Monitor Resolutions|002.5" }, 
+       ModelCorrespondence { "CIM_VideoController.CurrentScanMode" }]
+   uint16 ScanMode;
+};
+
+
+// ===================================================================
+// MonitorSetting
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "MonitorSetting associates the MonitorResolution Setting object "
+       "with the DesktopMonitor to which it applies.")]
+class CIM_MonitorSetting : CIM_ElementSetting {
+
+      [Override ( "Element" ), Description (
+          "The DesktopMonitor.")]
+   CIM_DesktopMonitor REF Element;
+
+      [Override ( "Setting" ), Description (
+          "The MonitorResolution associated with the DesktopMonitor.")]
+   CIM_MonitorResolution REF Setting;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

@@ -1,0 +1,279 @@
+// ===================================================================
+// Title: Network_Pipes
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_Pipes.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file models network pipes, based on
+//              the ITU M.3100 definitions.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR696 - Add M.3100 concepts of Pipe; Define the associations,
+//         HostedPipe, EndpointOfPipe, and PipeComposition
+// CR850 - Change CIM_Pipe to CIM_NetworkPipe; Propagate this change
+//         through the model; Make similar name changes throughout
+//         the other classes
+// CR961 - Changes to Enabled and RequestedState in NetworkPipe,
+//         inherited from EnabledLogicalElement
+// CR982 - Removal of Experimental for preliminary to final
+// CR994 - Update of the InstanceID property Description
+// Change Log for v2.8
+// CR1128 - Change subclassing from CIM_Dependency to
+//          CIM_HostedDependency for identified classes. This is
+//          needed as a result of the introduction of HostedDependency
+//          by SysDev
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ================================================================
+// NetworkPipe
+// ================================================================
+   [Version ( "2.7.0" ), Description (
+       "NetworkPipe is a subclass of EnabledLogicalElement, "
+       "representing the state and management of a connection or trail "
+       "between endpoints. This object is different than the "
+       "association between the endpoints (CIM_ActiveConnection) since "
+       "the emphasis is NOT on the endpoints but on the management of "
+       "the pipe itself - its state, configuration, etc. NetworkPipes "
+       "are defined in the context of a CIM_Network and represent the "
+       "'transfer of information . . . between . . . endpoints'. These "
+       "concepts are aligned with the definition of the Pipe object in "
+       "ITU's M.3100 specification."), 
+    MappingStrings { "Recommendation.ITU|M3100.Pipe",
+       "Recommendation.ITU|M3100.TrailR1",
+       "Recommendation.ITU|M3100.ConnectionR1",
+       "Recommendation.ITU|M3100.SubNetworkConnection" }]
+class CIM_NetworkPipe : CIM_EnabledLogicalElement {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority. (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. (For DMTF defined instances, the 'preferred' "
+          "algorithm MUST be used with the <OrgID> set to 'CIM'.) \n"
+          "<LocalID> MUST include either a vendor specified unique "
+          "identifier, or if mapping from an ITU M.3100 environment, "
+          "the trailID, connectionID or subNetworkConnectionID of the "
+          "instances of PipeR2."), 
+       MappingStrings { "Recommendation.ITU|M3100.TrailR1.trailId",
+          "Recommendation.ITU|M3100.ConnectionR1.connectionID",
+          "Recommendation.ITU|M3100.SubNetworkConnection." 
+          "subNetworkConnectionID" }]
+   string InstanceID;
+
+      [Description (
+          "Indicates whether the pipe is bi-directional (value = 2), "
+          "unidirectional (value = 3), or this information is not "
+          "known (value = 0). For unidirectional pipes, the source and "
+          "sink are indicated by a property (SourceOrSink) of the "
+          "association, EndpointOfNetworkPipe."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "Bi-Directional", "Unidirectional" }, 
+       MappingStrings { "Recommendation.ITU|M3100.Pipe.directionality" 
+          }]
+   uint16 Directionality;
+
+      [Description (
+          "Indicates whether the pipe is composed of lower-level "
+          "pipes, and if so, how these lower-level pipes are "
+          "aggregated (in parallel or in sequence). The specific "
+          "instances of NetworkPipe that are combined are described "
+          "using the NetworkPipeComposition association. \n"
+          "\n"
+          "In the context of M.3100, the ability to be composed of "
+          "lower-level pipes is modeled as a Trail. A Trail is made up "
+          "of one or more Connections. (Note that both Trails and "
+          "Connections are subclasses of Pipe). Because of the "
+          "flexibility of the NetworkPipeComposition association, "
+          "there is no need to subclass NetworkPipe, as was done in "
+          "M.3100, but merely to instantiate the "
+          "NetworkPipeComposition association to describe the bundling "
+          "of the lower-level pipes (i.e., the connections), or the "
+          "sequencing of them."), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "No Lower-Level Composition",
+          "Combined In Parallel", "Combined In Sequence" }]
+   uint16 AggregationBehavior;
+
+      [Override ( "EnabledState" ), 
+       MappingStrings { 
+          "Recommendation.ITU|M3100.Pipe.operationalState" }]
+   uint16 EnabledState;
+
+      [Override ( "RequestedState" ), Write, 
+       MappingStrings { 
+          "Recommendation.ITU|M3100.Pipe.administrativeState" }]
+   uint16 RequestedState = 5;
+};
+
+
+// ==================================================================
+// HostedNetworkPipe
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "HostedNetworkPipe is an association between a pipe and the "
+       "network in whose context the pipe is defined. The cardinality "
+       "of this association is 1-to-many. A network may host many "
+       "pipes, and pipes are scoped/contained by only one network.")]
+class CIM_HostedNetworkPipe : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The hosting network.")]
+   CIM_Network REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The pipe in the network.")]
+   CIM_NetworkPipe REF Dependent;
+};
+
+
+// ==================================================================
+// EndpointOfNetworkPipe
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "EndpointOfNetworkPipe describes the endpoints between which a "
+       "pipe transfers information. Whether an endpoint is a source or "
+       "sink is indicated by a property of the association, "
+       "SourceOrSink."), 
+    MappingStrings { "Recommendation.ITU|M3100.Pipe.a-TPInstance",
+       "Recommendation.ITU|M3100.Pipe.z-TPInstance" }]
+class CIM_EndpointOfNetworkPipe : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 2 ), Max ( 2 ), Description (
+          "One of the endpoints of the pipe.")]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The pipe which is dependent on the endpoints as the source "
+          "or sink of the transferred information.")]
+   CIM_NetworkPipe REF Dependent;
+
+      [Description (
+          "Indicates whether the endpoint is a source (value = 2), or "
+          "sink (value = 3) for the pipe. If this information is not "
+          "applicable, the property is set to 4. If the information is "
+          "not known, the property is set to 0."), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Source", "Sink", "Not Applicable" }]
+   uint16 SourceOrSink;
+};
+
+
+// ==================================================================
+// NetworkPipeComposition
+// ==================================================================
+   [Association, Aggregation, Composition, Version ( "2.7.0" ), 
+    Description (
+       "NetworkPipeComposition describes the makeup a pipe, based on "
+       "lower-level ones. If the pipe is not composed of lower-level "
+       "entities (i.e., its AggregationBehavior property is set to 2), "
+       "then no instances of this association should be defined where "
+       "the pipe has the role of GroupComponent. \n"
+       "\n"
+       "In the context of M.3100, this semantic is modeled as a Trail "
+       "that is made up of one or more Connections. Both Trails and "
+       "Connections are subclasses of M.3100's Pipe. Because of the "
+       "flexibility of the NetworkPipeComposition association, there "
+       "is no need to subclass NetworkPipe, as was done in M.3100, but "
+       "merely to instantiate this association to describe the "
+       "bundling of the lower-level pipes (connections), or the "
+       "sequencing of them. How the lower-level pipes are aggregated "
+       "is described by the property, AggregationBehavior, of "
+       "NetworkPipe. If the pipes are combined in a sequence, the "
+       "ordering is conveyed via the property, AggregationSequence, on "
+       "this association."), 
+    MappingStrings { 
+       "Recommendation.ITU|M3100.TrailR1.serverConnectionListPackage",
+       "Recommendation.ITU|M3100.TrailR1.clientConnectionListPackage" }]
+class CIM_NetworkPipeComposition : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Description (
+          "The higher level pipe that is composed of lower-level "
+          "parts/pipes.")]
+   CIM_NetworkPipe REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "A pipe which is a part of a higher-level one.")]
+   CIM_NetworkPipe REF PartComponent;
+
+      [Description (
+          "Indicates the ordering of the PartComponent pipes in the "
+          "GroupComponent. If the AggregationBehavior property of the "
+          "GroupComponent pipe is set to 0 or 3 (\"Unknown\" or "
+          "\"Combined In Parallel\"), then this property MUST be set "
+          "to 0. If the AggregationBehavior is set to 4 (\"Combined In "
+          "Sequence\"), then this property SHOULD indicate the "
+          "ordering of the component pipes. Ordering starts with 1 and "
+          "larger numbers indicate subsequent pipes. The numbering "
+          "does not have to be in sequence. The word SHOULD is used in "
+          "this Description, since the specific ordering of all the "
+          "component pipes may not be known. In these cases, a value "
+          "of 0 would be placed in AggregationSequence to indicate "
+          "that ordering information is not available.")]
+   uint16 AggregationSequence;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

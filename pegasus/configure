@@ -1,0 +1,1007 @@
+#!/bin/sh
+#set -x
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+
+##==============================================================================
+##
+## Check for existence of pegasus config.mak. If this does not exist, it means
+## that the distribution is incomplete or that the configure file has been run
+## from the wrong directory.
+##
+##==============================================================================
+tiny=0
+prefix=""
+test_option=0
+disable_tests=0
+disable_tests=0
+interop_name=""
+enable_pertinst=0
+dis_wsman=0
+config=mak/config.mak
+
+echo ===================
+echo WARNING: This script is experimental and has known problems. Please
+echo      use it at your own risk and review the results carefully in the \
+echo      options.mak file that it creates.  Until this script is completed
+echo      the traditional OpenPegasus build configuration through environment
+echo      variables will remain in place and is the prefered setup tool
+echo ===================
+
+if [ ! -f "$config" ]; then
+    echo "$0: Error: ./configure must be run from root of Pegasus distribution."
+    echo
+    exit 1
+fi
+
+##==============================================================================
+##
+## Collection command line options.
+##
+##==============================================================================
+
+help=
+
+for opt
+do
+
+  optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
+
+  case $opt in
+
+    -h | --help)
+      help=1
+      ;;
+
+    --prefix=*)
+      prefix=$optarg
+      ;;
+
+    --test)
+      test_option=1
+      ;;
+
+    --tiny)
+      tiny=1
+      disable_trace=1
+      disable_tests=1
+      interop_name=interop
+      enable_perinst=1
+      ;;
+
+    --flavor=*)
+      flavor=$optarg
+      ;;
+ 
+    --disable-wsman)
+      dis_wsman=1
+      ;;
+
+    *)
+      echo "$0: unknown option:  $opt"
+      exit 1
+      ;;
+
+  esac
+done
+
+##==============================================================================
+##
+## Print help message if --help given on command line.
+##
+##==============================================================================
+
+if [ "$help" = "1" ]; then
+cat<<END
+
+Usage: ./configure [OPTION]...
+
+Configures OpenPegasus build options.
+
+   WARNING: This script is experimental and has known problems. Please
+      use it at your own risk and review the results carefully in the
+      options.mak file that it creates.Until this script is completed
+      the traditional OpenPegasus build configuration through environment
+      variables will remain in place and is the prefered setup tool
+
+Configure examples.
+    $ ./configure
+    $ make
+
+Options:
+    --help
+        Print this help message.
+    --prefix=DIR
+        Install under DIR
+    --test
+        Build with test options included.
+    --tiny
+        Build tiny version of pegasus with support to SSL,SLP,ICU and
+        PAM all disabled.
+    --flavor
+        Building pegasus with the given flavor tag.
+END
+fi
+
+
+
+##==============================================================================
+##
+## Guess the platform.
+##
+##==============================================================================
+if [ "$help" != "1" ]; then
+if [ -z "$platform" ]; then
+
+  machine=`(uname -m) 2>/dev/null` || machine=unknown
+  system=`(uname -s) 2>/dev/null`  || system=unknown
+  token="$machine:$system"
+
+  case "$token" in
+
+    i686:Linux)
+      platform=LINUX_IX86_GNU
+      libbase=lib
+      ;;
+
+    x86_64:Linux)
+      platform=LINUX_X86_64_GNU
+      libbase=lib64
+      ;;
+
+    sun*:SunOS)
+      platform=SOLARIS_SPARC_64_CC
+      libbase=lib/64
+      ;;
+
+    i86pc:SunOS)
+      platform=SOLARIS_X86_64_CC
+      libbase=lib/64
+      ;;
+    
+    ia64:HP-UX)
+      platform=HPUX_IA64_ACC
+      libbase=lib/64
+      ;;
+ 
+    9000/800:HP-UX)
+      platform=HPUX_PARISC_ACC
+      libbase=lib
+      ;;
+
+    ia64:Linux)
+      platform=LINUX_IA64_GNU
+      libbase=lib/64
+      ;;
+    
+    ppc:Linux)
+      platform=LINUX_PPC_GNU
+      libbase=lib
+      ;;
+   
+    ppc64:Linux)
+      platform=LINUX_PPC64_GNU
+      libbase=lib/64
+      ;;
+
+    s390x:Linux)
+      platform=LINUX_ZSERIES64_GNU
+      libbase=lib/64
+      ;;
+
+    s390:Linux)
+      platform=LINUX_ZSERIES_GNU
+      libbase=lib/64
+      ;;
+
+
+    *)
+        
+     unresolved=1
+     ;;
+
+  esac
+
+  if [ "unresolved" = "1" ]; then
+      Machine=`(Uname -m) 2>/dev/null`||Machine=unknown
+      System=`(Uname -s) 2>/dev/null`||System=unknown
+      Token="$Machine:$System"  
+
+      case "$Token" in
+
+      alpha:VMS)
+         platform=VMS_ALPHA_DECCXX
+         libbase=lib
+         ;;
+
+      IA64:OpenVMS)
+         platform=VMS_IA64_DECCXX
+         libbase=lib/64
+         ;;
+
+      *)
+        echo "$0: Failed to guess platform"
+        echo "  machine=$machine"
+        echo "  system=$system"
+        exit 1
+        ;;
+   
+      esac
+   fi
+fi
+
+##==============================================================================
+##
+## Resolve default directory names.
+##
+##==============================================================================
+
+# --prefix:
+
+if [ -z "$prefix" ]; then
+  prefix=`pwd`
+fi
+
+# --bindir:
+
+if [ -z "$bindir" ]; then
+  bindir=$prefix/bin
+fi
+
+# --sbindir:
+
+if [ -z "$sbindir" ]; then
+  sbindir=$prefix/sbin
+fi
+
+# --libdir:
+
+if [ -z "$libdir" ]; then
+  libdir=$prefix/$libbase
+fi
+
+# --includedir:
+
+if [ -z "$includedir" ]; then
+  includedir=$prefix/include
+fi
+
+if [ -z "$with_pam" ]; then
+  with_pam=/etc/pam.d
+fi
+
+##=============================================================================
+##
+##Check for Pre-Requsite
+##
+##============================================================================
+
+path="$PATH"
+IFS=":"
+ccYes=0
+missing=0
+cmdlist="cc:gcc:g++:make"
+for cc in $cmdlist
+do
+echo "checking for $cc"
+for i in $path
+do
+  if test -f $i/$cc; then
+     ccYes=1
+     break
+  fi
+done
+
+if [ "$ccYes" = "1" ];
+then
+   echo "$cc :yes"
+else
+   echo "$cc :no"
+   missing=1
+   break
+fi
+done
+
+if [ "missing" = "1" ]; then
+   echo "$0: missing dependency $cc"
+   exit 1;
+fi    
+
+##==============================================================================
+##
+## Detect openssl.
+##
+##==============================================================================
+enable_ssl=0
+with_ssl=""
+if [ "$tiny" != "1" ] ;then
+sslcmd="openssl"
+sslYes=0
+echo "checking for $sslcmd"
+for i in $path
+do
+  if test -f $i/$sslcmd; then
+     sslYes=1
+     withssl=$i
+     break
+  fi
+done
+if [ "$sslYes" = "1" ]; then
+   echo "ssl: Yes = $withssl/$sslcmd"
+   with_ssl=${withssl%/*}
+else
+   echo "ssl: No"
+fi
+
+if [ ! -z "$with_ssl" ]; then
+
+  if [ ! -d "$with_ssl" ]; then
+    echo "$0: Error: No such directory: --with-ssl=$with_ssl"
+    exit 1;
+  fi
+
+  if [ ! -f "$with_ssl/include/openssl/ssl.h" ]; then
+    echo "$0: missing dependency: \$with_ssl/include/openssl/ssl.h"
+    missing=1
+  fi
+
+  if [ ! -f "$with_ssl/$libbase/libssl.so" ]; then
+    echo "$0: missing dependency: \$with_ssl/$libbase/libssl.so"
+    missing=1
+  fi
+
+  if [ "$missing" = "1" ]; then
+    echo "$0: where --with-ssl=$with_ssl"
+    unset with_ssl
+  else
+    enable_ssl=1
+  fi
+
+fi
+fi
+##==============================================================================
+##
+## Detect openslp.
+## Note that if openslp is not found it should use pegasus slp.
+##
+##==============================================================================
+enable_slp=0
+with_openslp=""
+enable_openslp=0
+if [ "$tiny" != "1" ] ;then
+slpcmd="slptool"
+slpYes=0
+echo "checking for openslp"
+for i in $path
+do
+  if test -f $i/$slpcmd; then
+     slpYes=1
+     withslp=$i
+     break
+  fi
+done
+if [ "$slpYes" = "1" ]; then
+    echo "slp: Yes = $withslp/$slpcmd"
+    with_openslp=${withslp%/*}
+else
+    echo "slp: No"
+fi
+
+
+
+if [ ! -z "$with_openslp" ]; then
+
+  if [ ! -d "$with_openslp" ]; then
+    echo "$0: Error: No such directory: --with-openslp=$with_openslp"
+    exit 1;
+  fi
+
+  if [ ! -f "$with_openslp/include/slp.h" ]; then
+    echo "$0: missing dependency: \$with_openslp/include/slp.h"
+    missing=1
+  fi
+
+  if [ ! -f "$with_openslp/$libbase/libslp.so" ]; then
+    echo "$0: missing dependency: \$with_openslp/$libbase/libslp.so"
+    missing=1
+  fi
+
+  if [ "$missing" = "1" ]; then
+    echo "$0: where --with-openslp=$with_openslp"
+    enable_slp=1
+  else
+    enable_openslp=1  
+  fi
+
+fi
+fi
+
+##==============================================================================
+##
+## Detect sqlite.
+##
+##==============================================================================
+enable_sql=0
+
+if [ "$tiny" != "1" ] ;then
+sqlcmd="sqlite3"
+sqlYes=0
+echo "checking for sql"
+for i in $path
+do
+  if test -f $i/$sqlcmd; then
+     sqlYes=1
+     withsql=$i
+     break
+  fi
+done
+if [ "$sqlYes" = "1" ]; then
+    echo "sql: Yes = $withsql/$sqlcmd"
+    with_sql=${withsql%/*}
+else
+    echo "sql: No"
+fi
+
+
+
+if [ ! -z "$with_sql" ]; then
+
+  if [ ! -d "$with_sql" ]; then
+    echo "$0: Error: No such directory: $with_sql"
+    exit 1;
+  fi
+
+  if [ ! -f "$with_sql/lib64/libsqlite3.so" ]; then
+    echo "$0: missing dependency: \$with_sql/lib64/libsqlite3.so"
+    missing=1
+  fi
+  if [ ! -f "$with_sql/include/sqlite3.h" ]; then
+    echo "$0:missing dependency :\$with_sql/include/sqlite3.h"
+    missing=1
+  fi
+  if [ "$missing" = "1" ]; then
+    echo "$0: sql not installed properly at $with_sql"
+  else
+    enable_sql=1
+  fi
+
+fi
+fi
+
+##==============================================================================
+##
+## Detect net-snmp.
+##
+##==============================================================================
+
+enable_snmp=0
+if [ "$tiny" != "1" ]; then
+snmpcmd="net-snmp-config"
+snmpYes=0
+echo "checking for net-snmp"
+for i in $path
+do
+  if test -f $i/$snmpcmd; then
+     snmpYes=1
+     withsnmp=$i
+     break
+  fi
+done
+if [ "$snmpYes" = "1" ]; then
+    echo "snmp: Yes = $withsnmp/$snmpcmd"
+    with_snmp=${withsnmp%/*}
+else
+    echo "snmp: No"
+fi
+
+
+
+if [ ! -z "$with_snmp" ]; then
+
+  if [ ! -d "$with_snmp" ]; then
+    echo "$0: Error: No such directory: $with_snmp"
+    exit 1;
+  fi
+
+  if [ ! -f "$with_snmp/lib64/libnetsnmp.so" ]; then
+    echo "$0: missing dependency: "
+    missing=1
+  fi
+
+  if [ "$missing" = "1" ]; then
+    echo "$0: snmp not installed properly at $with_snmp"
+  else
+    enable_snmp=1
+  fi
+
+fi
+fi
+
+##=============================================================================
+##
+##Detect icu ( Currently supported till 3.6)
+##
+##=============================================================================
+supporticu=0
+if [ "$tiny" != "1" ] ;then
+icucmd="icu-config"
+gencmd="genrb"
+icuYes=0
+echo "checking for icu"
+for i in $path
+do
+  if test -f $i/$icucmd ;then
+     if test -f $i/$gencmd ; then
+         icuYes=1
+         withicu=$i
+         break
+     fi
+  fi
+done
+if [ "$icuYes" = "1" ]; then
+    echo "icu: Yes = $withicu/$icucmd"
+    with_icu=${withicu%/*}
+else
+    echo "icu: No"
+fi
+
+if [ "$icuYes" = "1" ]; then
+   icuversion=$(icu-config --version)
+
+   echo $icuversion
+   IFS='.'
+   op=0
+   for i in $icuversion
+   do
+      if [ "$op" = "0" ]; then
+         icumajor=$i
+      fi
+      if [ "$op" = "1" ]; then
+         icuminor=$i
+      fi
+      if [ "$op" -gt "1" ]; then
+         break
+      fi
+      op=$((op+1))
+   done
+   IFS='@@@'
+   supporticu=0
+
+   if [ "$icumajor" -le "3" -a "$icuminor" -le "6" ]; then
+      supporticu=1
+   fi
+
+   if [ "$supporticu" = "1" ]; then
+      
+      if test -f $with_icu/$libbase/libicul18n.so; then
+        echo " missing dependency "
+        missing=1
+        supporticu=0
+      fi
+   fi
+
+fi
+
+fi
+
+##=============================================================================
+##
+##Detect libz 
+##
+##=============================================================================
+libzpath=/usr
+enable_libz=1
+if [ ! -f "$libzpath/$libbase/libz.so" ]; then
+    echo " libz not found"
+    enable_libz=0
+fi
+if [ ! -f "$libzpath/include/zlib.h" ]; then
+    echo " libz not found"
+    enable_libz=0
+fi
+
+if [ "$libbase" = "lib64" ]; then
+   enable_32bit=1
+fi
+
+##==============================================================================
+##
+## These options (if non-empty) must denote absolute directory names.
+##
+##==============================================================================
+
+for i in \
+  prefix \
+  bindir \
+  sbindir \
+  libdir \
+  includedir \
+  datadir
+do
+
+  eval v=$`echo $i`
+
+  case $v in
+    /* | "")
+      ;;
+
+    *)
+      echo "$0: Error: Must be an absolute directory name: --$i=$v"
+      exit 1;
+      ;;
+  esac
+
+done
+if [ "$tiny" != "1" ] ;then
+for i in \
+  with_ssl \
+  with_pam 
+do
+
+  eval v=$`echo $i`
+
+  case $v in
+    /* | "")
+      ;;
+
+    *)
+      echo "$0: Error: Must be an absolute directory name: --$i=$v"
+      exit 1;
+      ;;
+  esac
+
+done
+fi 
+     
+##==============================================================================
+##
+## Check whether the test user will be able to access pegasus home.
+##
+##==============================================================================
+if [ "$test_option" = "-1" ] ; then
+with_test_user=guest
+with_test_user_pass=guest
+uid=`id -u`
+cwd=`/bin/pwd`
+
+if [ "$uid" = "0" -a "$disable_tests" != "1" ]; then
+
+  if [ "$enable_pam" = "1" -o "$enable_pam_standalone" = "1" ]; then
+
+    su $with_test_user -c "/bin/true"
+
+    if [ "$?" != "0" ]; then
+      echo "$0: The test user account ($with_test_user) does not exist on this system. Please create a test user with this name or designate an existing one with the --with-test-user option."
+      exit 1
+    fi
+
+    su $with_test_user -c "cd $cwd 2> /dev/null"
+
+    if [ "$?" != "0" ]; then
+      echo "$0: The test user account ($with_test_user) has insufficient privileges to access the pegasus root directory ($cwd), which will cause the user-context tests to fail. Please configure from a different directory."
+      exit 1
+    fi
+  else
+     echo "Warning: Using --with-test-user without --enable_pam or --enable-pam-standalone"
+  fi
+
+
+fi
+fi
+##==============================================================================
+##
+## Detect pam
+##
+##==============================================================================
+enable_pam=0
+if [ "$tiny" != "1" ] ;then
+pamcmd="pam_console_apply"
+pamYes=0
+IFS=':'
+echo "checking for pam"
+for i in $path
+do
+  if test -f $i/$pamcmd; then
+     pamYes=1
+     withpam=$i
+     break
+  fi
+done
+if [ "$pamYes" = "1" ]; then
+    echo "pam: Yes = $withpam/$pamcmd"
+    with_pam=${withpam%/*}
+    if [ "$with_pam" = "" ]; then
+       with_pam=/
+    fi
+else
+    echo "pam: No"
+fi
+
+
+if [ ! -z "$with_pam" ]
+then
+
+  if [ ! -f "/usr/include/security/pam_appl.h" -a \
+       ! -f "/usr/local/include/security/pam_appl.h" ]
+  then
+      echo "$0: <security/pam_appl.h> is missing (required by --enable_pam)"
+      exit 1
+  else
+      enable_pam=1
+  fi
+
+fi
+fi
+
+
+##==============================================================================
+##
+## Create options.mak
+##
+##==============================================================================
+
+options=options.mak
+rm -f $options
+echo "# This file was generated by configure." >> $options
+echo "# ./configure $*" >> $options
+echo " "  >> $options
+echo "## WARNING: The configure script is experimental and has known problems."   >> $options
+echo "##       Use it at your own risk and review the results carefully in this"   >> $options
+echo "##      options.mak file that it created."  >> $options
+PEGASUS_HOME=$prefix
+PEGASUS_ROOT=$prefix
+PEGASUS_PLATFORM=$platform
+echo "export ROOT=$prefix" >> $options
+#echo "export PATH=$PATH:$cwd/$platform/bin" >> $options
+#echo "export LD_LIBRARY_PATH=$cwd/$platform/lib:$libdir" >> $options
+echo "export PEGASUS_PLATFORM=$platform" >> $options
+echo "export PEGASUS_ROOT=$prefix" >> $options
+echo "export PEGASUS_HOME=$prefix" >> $options
+
+if [ "$tiny" != "1" ]; 
+then
+enable_debug=1
+interop_name=root/PG_InterOp
+echo "export PEGASUS_ENABLE_AUDIT_LOGGER=true" >> $options
+echo "export PEGASUS_ENABLE_DMTF_INDICATION_PROFILE_SUPPORT=true" >> $options
+echo "export PEGASUS_ENABLE_EMAIL_HANDLER=true" >> $options
+echo "export PEGASUS_ENABLE_INDICATION_COUNT=true" >> $options
+echo "export PEGASUS_ENABLE_INTEROP_PROVIDER=true" >> $options
+if [ "$dis_wsman" != "1" ]; then
+echo "export PEGASUS_ENABLE_PROTOCOL_WSMAN=true" >> $options
+fi
+echo "export PEGASUS_ENABLE_SYSTEM_LOG_HANDLER=true" >> $options
+echo "export PEGASUS_ENABLE_USERGROUP_AUTHORIZATION=true" >> $options
+#echo "export PEGASUS_ENABLE_PRIVILEGE_SEPARATION=true" >>$options
+fi
+
+
+if [ "$disable_oop" = "1" ]
+then
+  echo "export PEGASUS_DEFAULT_ENABLE_OOP=false" >> $options
+  echo "export PEGASUS_DISABLE_PROV_USERCTXT=1" >> $options
+  echo "export PEGASUS_DISABLE_PRIVILEGED_TESTS=true" >> $options
+fi
+
+  echo "export PEGASUS_ENABLE_CQL=true" >> $options
+  echo "export PEGASUS_ENABLE_WQL=true" >> $options
+
+if [ "$disable_ipv6" = "1" ];
+then
+  echo "export PEGASUS_ENABLE_IPV6=false" >> $options
+else
+  echo "export PEGASUS_ENABLE_IPV6=true" >> $options
+fi
+
+echo "export PEGASUS_INTEROP_NAMESPACE=$interop_name" >> $options
+if [ "$disable_trace" = "1" ];
+then
+  echo "export PEGASUS_REMOVE_TRACE=1" >> $options
+fi
+
+if [ "$disable_tests" = "1" ];
+then
+  echo "export PEGASUS_SKIP_MOST_TEST_DIRS=true" >> $options
+fi
+if [ "$enable_perinst" = "1" ];
+then 
+  echo "export PEGASUS_DISABLE_PERFINST=true" >> $options
+  echo "export PEGASUS_INDICATION_PERFINST=true" >> $options
+fi
+
+if [ "$enable_debug" = 1 ]
+then
+  echo "export PEGASUS_DEBUG=1" >> $options
+fi
+
+if [ "$enable_mrr_generation" = 1 ]
+then
+  echo "export PEGASUS_ENABLE_MRR_GENERATION=1" >> $options
+fi
+
+if [ "$enable_mrr" = 1 ]
+then
+  echo "export PEGASUS_ENABLE_MRR=1" >> $options
+fi
+if [ "$enable_pam" = "1" ]; then
+  echo "export PEGASUS_PAM_AUTHENTICATION=true" >> $options
+  echo "export PEGASUS_USE_PAM_STANDALONE_PROC=false" >> $options
+   \cp -f $PEGASUS_ROOT/rpm/wbem /etc/pam.d
+   chmod 0644 /etc/pam.d/wbem
+fi
+
+if [ "$enable_pam_standalone" = "1" ]; then
+  echo "export PEGASUS_PAM_AUTHENTICATION=true" >> $options
+  echo "export PEGASUS_USE_PAM_STANDALONE_PROC=true" >> $options
+  \cp -f $PEGASUS_ROOT/rpm/wbem /etc/pam.d
+  chmod 0644 /etc/pam.d/wbem
+fi
+
+if [ "$enable_binary_repository" = "1" ]; then
+  echo "export PEGASUS_REPOSITORY_MODE=BIN" >> $options
+fi
+
+if [ "$enable_libz" = "1" ]; then
+  echo "export PEGASUS_ENABLE_COMPRESSED_REPOSITORY=1" >> $options
+fi
+
+if [ "$enable_ssl" = "1" ]; then
+  echo "export PEGASUS_HAS_SSL=true" >> $options
+  echo "export PEGASUS_ENABLE_SSL_CRL_VERIFICATION=true" >> $options
+fi
+
+if [ ! -z "$with_ssl" ]; then
+  echo "export OPENSSL_HOME=$with_ssl" >> $options
+fi
+
+if [ "$enable_slp" = "1" ]; then
+    echo "export PEGASUS_ENABLE_SLP=true" >> $options
+fi
+
+if [ "$enable_sql" = "1" ]; then
+    echo "export PEGASUS_USE_SQLITE_REPOSITORY=true" >> $options
+    echo "export SQLITE_HOME=$with_sql">> $options
+fi
+if [ "$enable_snmp" = "1" ]; then
+    echo "export PEGASUS_ENABLE_NET_SNMPV3=true" >> $options
+    echo "export PEGASUS_USE_NET_SNMP=true" >> $options
+fi
+
+if [ "$enable_openslp" = "1" ]; then
+    echo "export PEGASUS_ENABLE_SLP=true" >> $options
+    echo "export PEGASUS_USE_EXTERNAL_SLP=openslp" >> $options
+fi
+
+#if [ ! -z "$with_external_slp" ]; then
+#    echo "export PEGASUS_ENABLE_SLP=true" >> $options
+#    echo "export PEGASUS_USE_EXTERNAL_SLP=$with_external_slp" >> $options
+#fi
+
+if [ ! -z "$with_external_slp_dir" ]; then
+  echo "export PEGASUS_EXTERNAL_SLP_HOME=$with_external_slp_dir" >> $options
+fi
+
+if [ ! -z "$with_openslp" ]; then
+  echo "export PEGASUS_EXTERNAL_SLP_HOME=$with_openslp" >> $options
+fi
+
+if [ "$disable_cmpi" != "1" ]; then
+  echo "export PEGASUS_ENABLE_CMPI_PROVIDER_MANAGER=true" >> $options
+fi
+
+if [ ! -z "$flavor" ]; then
+  echo "export PEGASUS_FLAVOR=tog">>$options
+fi
+
+if [ "$supporticu" = "1" ]; then
+  echo "export PEGASUS_HAS_MESSAGES=true">>$options
+  echo "export PEGASUS_HAS_ICU=true">>$options
+  echo "export PEGASUS_USE_DEFAULT_MESSAGES=true">>$options
+# echo "export ICU_INSTALL=$with_icu">>$options
+fi
+
+if [ "$enable_32bit" = "1" ]; then
+  #echo "export PEGASUS_INTERNAL_ENABLE_32BIT_PROVIDER_SUPPORT=true" >> $options
+  echo "export PEGASUS_PLATFORM_FOR_32BIT_PROVIDER_SUPPORT=$platform" >> $options
+fi
+
+if [ "$test_option" = "1" ]; then
+   echo "export PEGASUS_CCOVER=true" >> $options
+   echo "export PEGASUS_DISABLE_PRIVILEGED_TESTS=false" >> $options
+   echo "export PEGASUS_ENABLE_GCOV=true" >> $options
+   echo "export PEGASUS_ENABLE_SORTED_DIFF=true" >> $options
+   echo "export PEGASUS_TEST_ENABLE_DEBUG_TRACE=true" >> $options
+   echo "export PEGASUS_TEST_ISGROUP_GROUP=root" >> $options
+   echo "export PEGASUS_TEST_ISGROUP_USER_FAILURE=test" >> $options
+   echo "export PEGASUS_TEST_ISGROUP_USER_SUCCESS=root" >> $options
+   echo "export PEGASUS_TEST_SDK=true" >> $options
+   echo "export PEGASUS_TEST_USER_DEFINED=false" >> $options
+   echo "#export PEGASUS_TEST_USER_ID=" >> $options
+   echo "#export PEGASUS_TEST_USER_PASS=" >> $options
+   echo "export PEGASUS_TEST_VALGRIND_LOG_DIR=." >> $options
+   echo "export PEGASUS_OVERRIDE_SSL_CERT_VERIFICATION_RESULT=true" >> $options
+   echo "export PEGASUS_TMP=." >> $options
+   echo "export PLATFORM_CORE_PATTERN=true" >> $options
+fi 
+   echo "export PATH=$bindir:$PATH" >> $options
+   echo "export LD_LIBRARY_PATH=$libdir:$LD_LIBRARY_PATH" >> $options
+
+IFS="@@@"
+export PATH=$bindir:$PATH 
+export LD_LIBRARY_PATH=$libdir:$LD_LIBRARY_PATH
+export PEGASUS_HOME PEGASUS_ROOT PEGASUS_PLATFORM
+
+echo "created $options"
+
+## if the output file exists, make a backup
+if [ -f $options ]; then
+    echo backup $options to $options.bak
+    cp -f $options $options.bak
+fi
+
+. ./$options
+##==============================================================================
+##
+## Create GNUmakefile
+##
+##==============================================================================
+
+cat > GNUmakefile << END
+include options.mak
+
+export PATH := \$(PATH):\$(PEGASUS_HOME)/bin
+export LD_LIBRARY_PATH := \$(LD_LIBRARY_PATH):\$(PEGASUS_HOME)/bin
+
+include Makefile
+
+distclean:
+	rm -f GNUmakefile
+	rm -f options.mak
+	rm -f options.mak.bak
+END
+
+echo "created GNUmakefile"
+
+##==============================================================================
+##
+## Print final message:
+##
+##==============================================================================
+
+echo "configured for $platform"
+echo ===================
+echo WARNING: This script is experimental and has known problems. Please
+echo      use it at your own risk and review the results carefully in the \
+echo      options.mak file that it creates.  Until this script is completed
+echo      the traditional OpenPegasus build configuration through environment
+echo      variables will remain in place and is the prefered setup tool
+echo ===================
+echo
+fi
+#set +x

@@ -1,0 +1,389 @@
+// ===================================================================
+// Title: Database_System
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Database_System.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description:
+//       This file contains the classes and associations that are
+// related to the database system, how it is deployed, and the
+// runtime aspects of the database environment.
+// 
+// ===================================================================
+// Change Log for V2.8 Preliminary
+// CR1087 - Update DatabaseAdministrator description to reference
+//          UserContact
+// 
+// Change Log for V2.8 Final
+// CR1150 - Deprecate LastStatusChangeTime
+// CR1179 - Update CIM_DatabaseSystem Description
+// ==================================================================
+
+#pragma Locale ("en-US")
+
+// ==================================================================
+// DatabaseSystem
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A database environment is composed of a database system (the "
+       "application system represented by this class), one or more "
+       "database services, and one or more databases. See the "
+       "descriptions of CIM_DatabaseService and CIM_CommonDatabase to "
+       "get more detailed information about database services and "
+       "databases. \n"
+       "Each separately manageable database system SHOULD have an "
+       "instance in this class. This class can be used: \n"
+       "- to determine the software that belongs to the database "
+       "system. \n"
+       "- to perform database system wide management operations, such "
+       "as stopping all the databases that were created by the "
+       "database system for maintenance purposes. \n"
+       "- to view runtime statistics in the context of a database "
+       "system. \n"
+       "Many of the management capabilities needed to represent a "
+       "database system as an application system have already been "
+       "modeled in the CIM_ApplicationSystem class from which "
+       "CIM_DatabaseSystem extends. CIM_DatabaseSystem provides a "
+       "logical entity to define the relationships that are specific "
+       "to the database management domain.")]
+class CIM_DatabaseSystem : CIM_ApplicationSystem {
+};
+
+
+// ==================================================================
+// CommonDatabase
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A database is a collection of interrelated data, treated as a "
+       "unit, which is organized into one or more schemas. The "
+       "CIM_CommonDatabase class defines the properties that are "
+       "common across database model and vendor implementations for "
+       "the database entity that is represented by the unit of "
+       "interrelated data. \n"
+       "Databases are manipulated through one or more database "
+       "services. More detailed information on database services is "
+       "provided in the description of the CIM_DatabaseService class.")]
+class CIM_CommonDatabase : CIM_EnabledLogicalElement {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority. (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "InstanceID is not re-used across any InstanceIDs produced "
+          "by this or other providers for this instance's NameSpace. \n"
+          "For DMTF defined instances, the 'preferred' algorithm MUST "
+          "be used with the <OrgID> set to 'CIM'.")]
+   string InstanceID;
+
+      [Description (
+          "The version number for the database. If the version is not "
+          "relevant, the value for this property must be set to NULL."), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsDbInfoVersion" }]
+   string DatabaseVersion;
+
+      [Description (
+          "The date and time when the latest complete or partial "
+          "backup of the database was performed. If the database has "
+          "never been backed up, then this property has no meaning. "
+          "The value of this property should be set to all zeros if "
+          "the database has never been backed up."), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsDbInfoLastBackup" }]
+   datetime LastBackup;
+
+      [Description (
+          "The estimated amount of disk space (in units) that has been "
+          "reserved for database use."), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsDbInfoSizeAllocated" }]
+   uint32 SizeAllocated;
+
+      [Description (
+          "The units for the SizeAllocated property and the SizeUsed "
+          "property that is defined in the "
+          "CIM_CommonDatabaseStatistics class. Mapping is 1 - Bytes, 2 "
+          "- Kilobytes, 3 - Megabytes, 4 - Gigabytes and 5 - "
+          "Terabytes."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Bytes", "Kilobyes", "Megabytes", "Gigabytes",
+          "Terabytes" }, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsDbInfoSizeUnits" }]
+   uint16 SizeUnits;
+};
+
+
+// ==================================================================
+// AssociatedDatabaseSystem
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "The CIM_AssociatedDatabaseSystem association identifies the "
+       "database system that is responsible for the database.")]
+class CIM_AssociatedDatabaseSystem : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Description (
+          "The database system that is responsible for the database.")]
+   CIM_DatabaseSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The database.")]
+   CIM_CommonDatabase REF Dependent;
+};
+
+
+// ==================================================================
+// DatabaseAdministrator
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "The DatabaseAdministrator association identifies a UserEntity "
+       "as a database administrator of a CommonDatabase. \n"
+       "The current version of CIM includes a UserContact class that "
+       "is concrete and extends from UserEntity. UserContact contains "
+       "the information needed to contact a database administrator. "
+       "The DatabaseAdministrator association should be implemented "
+       "through the UserContact class in favor creating a vendor "
+       "specific concrete class to define database administrator "
+       "contact information.")]
+class CIM_DatabaseAdministrator : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The database that is being administered.")]
+   CIM_CommonDatabase REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The user entity who is responsible for the administration "
+          "of the database.")]
+   CIM_UserEntity REF Dependent;
+};
+
+
+// ==================================================================
+// DatabaseService
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "Database services perform tasks for a database. Examples of "
+       "tasks that are performed by a database service include "
+       "providing user access to the database, performing data and "
+       "metadata manipulation, database administration, and "
+       "maintenance operations. \n"
+       "One or more database services can perform tasks for a "
+       "database. The database services can reside on the same "
+       "computer system as the database or on different computer "
+       "systems. Database services may be implemented as one or more "
+       "processes.")]
+class CIM_DatabaseService : CIM_Service {
+
+      [Description (
+          "The date and time when the database service was last "
+          "started. If the database service has an OperationalStatus "
+          "of Stopped or Starting, then this value is not meaningful "
+          "and the contents MUST be set to zeros."), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoStartupTime" }]
+   datetime StartupTime;
+
+      [Override ( "OperationalStatus" ), Description (
+          "This property contains the operational status of the "
+          "database service. OK means that the database service is "
+          "operational and available for general use. Stopped means "
+          "that the service is unavailable and cannot be used. Service "
+          "implies an administrative state of unavailability. Degraded "
+          "means that the database service is operating at a less than "
+          "optimal level. Starting means that the database service is "
+          "in the process of becoming operational. \n"
+          "These status values map to the RFC1697 OperStatus values as "
+          "follows: OK - UP, Stopped - DOWN, In Service - HALTED, "
+          "Stressed - CONGESTED, and Starting - RESTARTING. Any "
+          "additional status variables that are defined are CIM "
+          "specific."), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoOperStatus" }]
+   uint16 OperationalStatus[];
+
+      [Deprecated { "CIM_EnabledLogicalElement.TimeOfLastStateChange" }, 
+       Description (
+          "The LastStatusChangeTime property is deprecated in lieu of "
+          "the TimeOfLastStateChange property that is inherited from "
+          "CIM_EnabledLogicalElement. The date and time when the "
+          "status of the database service last changed."), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoLastChange" }]
+   datetime LastStatusChangeTime;
+
+      [Override ( "TimeOfLastStateChange" ), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoLastChange" }]
+   datetime TimeOfLastStateChange;
+
+      [Description (
+          "The maximum number of active inbound connections that can "
+          "be concurrently opened on the service."), 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoMaxInboundAssociations" }]
+   uint32 ConnectionLimit;
+};
+
+
+// ==================================================================
+// ServiceAvailableToDatabase
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "The CIM_ServiceAvailableToDatabase association relates "
+       "databases to the database services that are available for "
+       "database use.")]
+class CIM_ServiceAvailableToDatabase : CIM_ServiceAvailableToElement {
+
+      [Override ( "ServiceProvided" ), Description (
+          "The database service that is providing service.")]
+   CIM_DatabaseService REF ServiceProvided;
+
+      [Override ( "UserOfService" ), Description (
+          "The database that is being served.")]
+   CIM_CommonDatabase REF UserOfService;
+
+      [Description (
+          "The AvailableState property indicates the current state of "
+          "a database service regarding its ability to access a "
+          "specific database. A service can be actively using a "
+          "database (ACTIVE), or it can be waiting for a task to "
+          "perform (AVAILABLE), or the service can be less than "
+          "completely available for use by the database (RESTRICTED), "
+          "or the database is not accessible from this service "
+          "(UNAVAILABLE). Any service states that do not match one of "
+          "these values should specify (OTHER)."), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Active", "Available", "Restricted",
+          "Unavailable" }, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsRelState" }, 
+       ModelCorrespondence { 
+          "CIM_ServiceAvailableToDatabase.OtherAvailableState" }]
+   uint16 AvailableState;
+
+      [Description (
+          "A string describing the service's available state when the "
+          "AvailableState property is set to 1 (\"Other\"). This "
+          "property MUST be set to NULL when AvailableState is any "
+          "value other than 1."), 
+       ModelCorrespondence { 
+          "CIM_ServiceAvailableToDatabase.AvailableState" }]
+   string OtherAvailableState;
+
+      [Description (
+          "The time that the database was made active by this service. "
+          "If the AvailableState property is not active, then the "
+          "value of this property MUST be set to zero."), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsRelActiveTime" }]
+   datetime ActiveTime;
+};
+
+
+// ==================================================================
+// DatabaseParameter
+// ==================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "The CIM_DatabaseParameter class extends from "
+       "CIM_ScopedSettingData. This is an abstract class that "
+       "specifies the database and service configuration parameters "
+       "that are common across database models and vendor "
+       "implementations. \n"
+       "The SNMP RDBMS MIB defines database and service parameters as "
+       "name/value pair combinations rather than as specific named "
+       "properties of the class. In order to maintain a consistent "
+       "mapping between SNMP and CIM a CIM_SNMPDatabaseParameter class "
+       "extends from the abstract CIM_DatabaseParameter class which "
+       "defines parameters as a name value pair. \n"
+       "In a future release of the database MOF, the working group may "
+       "choose to create a new class that extends from "
+       "CIM_DatabaseParameter that specifies properties for common "
+       "configuration parameters. \n"
+       "The parameter context for a specific database or database "
+       "service is established by collecting the SettingData using the "
+       "CIM_ElementProfile association. \n"
+       "The SNMP RDBMS MIB defines generic tables that contain rows of "
+       "named database or service configuration entries. A parameter "
+       "entry contains a parameter name, description, and value. See "
+       "the description of the rdbmsDbParamTable or the "
+       "rdbmsSrvParamTable for more information on the SNMP "
+       "definitions.")]
+class CIM_DatabaseParameter : CIM_ScopedSettingData {
+};
+
+
+// ==================================================================
+// SNMPDatabaseParameter
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "The CIM_SNMPDatabaseParameter class extends from "
+       "CIM_DatabaseParameter. This class is included in the CIM "
+       "database schema to provide explicit mapping to the way that "
+       "the SNMP MIB defines database and service parameters. More "
+       "information on the SNMP MIB parameters can be found in RFC "
+       "1697. \n"
+       "The SNMP RDBMS MIB defines generic tables that contain rows of "
+       "named database or service configuration entries. A parameter "
+       "entry contains a parameter name, description, and value. See "
+       "the description of the rdbmsDbParamTable or the "
+       "rdbmsSrvParamTable for more information on the SNMP "
+       "definitions.")]
+class CIM_SNMPDatabaseParameter : CIM_DatabaseParameter {
+
+      [Description (
+          "The value of a database or service parameter represented as "
+          "a string."), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsDbParamCurrValue" }]
+   string ParameterValue;
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

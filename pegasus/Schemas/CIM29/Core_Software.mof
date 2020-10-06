@@ -1,0 +1,313 @@
+// ===================================================================
+// Title: Core_Software
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Core_Software.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Core Model defines basic management concepts.
+//              This file defines the SoftwareIdentity class,
+//              representing software assets/inventory/units of
+//              existence.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.9 Final
+// CR1549 - Finalize SoftwareIdentity TargetType and ReleaseDate
+// 
+// Change Log for v2.8 Final
+// CR1189 - Add SerialNumber property to SoftwareIdentity
+// CR1200 - ElementSoftwareIdentity
+// CR1210 - Removal of experimental Qualifiers for core.
+// 
+// Change Log for v2.8 Preliminary
+// CR1019 - CIM Versioning for 2.8 Preliminary
+// CR1020 - Add ServiceSoftware relationship
+// CR1049 - Modify the ServiceSoftware association to be
+//          ServiceSoftwareIdentity
+// CR1098 - Addition of InstalledSoftwareIdentity
+// CR1131 - Add enumerations to SoftwareIdentity.Classification
+// 
+// Change Log for v2.7
+// CR968 - Remove the Experimental qualifier
+// CR994 - Update the description of InstanceID
+// 
+// Change Log for v2.7
+// CR753 - Add SoftwareIdentity
+// CR904 - Added missing brackets to SoftwareIdentity.
+//         ClassificationDescriptions array
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// SoftwareIdentity
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "SoftwareIdentity represents software, viewed as an asset "
+       "and/or individually identifiable entity (similar to Physical "
+       "Element). It does NOT indicate whether the software is "
+       "installed, executing, etc. (The latter is the role of the "
+       "SoftwareFeature/ SoftwareElement classes and the Application "
+       "Model.) Since software may be acquired, SoftwareIdentity can "
+       "be associated with a Product using the "
+       "ProductSoftwareComponent relationship. \n"
+       "Note that the Application Model manages the deployment and "
+       "installation of software via the classes, SoftwareFeatures and "
+       "SoftwareElements. The deployment/installation concepts are "
+       "related to the asset/identity one. In fact, a SoftwareIdentity "
+       "may correspond to a Product, or to one or more "
+       "SoftwareFeatures or SoftwareElements - depending on the "
+       "granularity of these classes and the deployment model. The "
+       "correspondence of Software Identity to Product, "
+       "SoftwareFeature or SoftwareElement is indicated using the "
+       "ConcreteIdentity association. Note that there may not be "
+       "sufficient detail or instrumentation to instantiate "
+       "ConcreteIdentity. And, if the association is instantiated, "
+       "some duplication of information may result. For example, the "
+       "Vendor described in the instances of Product and "
+       "SoftwareIdentity MAY be the same. However, this is not "
+       "necessarily true, and it is why vendor and similar information "
+       "are duplicated in this class. \n"
+       "Note that ConcreteIdentity can also be used to describe the "
+       "relationship of the software to any LogicalFiles that result "
+       "from installing it. As above, there may not be sufficient "
+       "detail or instrumentation to instantiate this association.")]
+class CIM_SoftwareIdentity : CIM_LogicalElement {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "InstanceID is not re-used across any InstanceIDs produced "
+          "by this or other providers for this instance's NameSpace. \n"
+          "For DMTF defined instances, the 'preferred' algorithm MUST "
+          "be used with the <OrgID> set to 'CIM'.")]
+   string InstanceID;
+
+      [Description (
+          "The major number component of the software's version "
+          "information - for example, '12' from version 12.1(3)T. This "
+          "property is defined as a numeric value to allow the "
+          "determination of 'newer' vs. 'older' releases. A 'newer' "
+          "major release is indicated by a larger numeric value.")]
+   uint16 MajorVersion;
+
+      [Description (
+          "The minor number component of the software's version "
+          "information - for example, '1' from version 12.1(3)T. This "
+          "property is defined as a numeric value to allow the "
+          "determination of 'newer' vs. 'older' releases. A 'newer' "
+          "minor release is indicated by a larger numeric value.")]
+   uint16 MinorVersion;
+
+      [Description (
+          "The revision or maintenance release component of the "
+          "software's version information - for example, '3' from "
+          "version 12.1(3)T. This property is defined as a numeric "
+          "value to allow the determination of 'newer' vs. 'older' "
+          "releases. A 'newer' revision is indicated by a larger "
+          "numeric value.")]
+   uint16 RevisionNumber;
+
+      [Description (
+          "The build number of the software.")]
+   uint16 BuildNumber;
+
+      [Description (
+          "A string representing the complete software version "
+          "information - for example, '12.1(3)T'. This string and the "
+          "numeric major/minor/revision/build properties are "
+          "complementary. Since vastly different representations and "
+          "semantics exist for versions, it is not assumed that one "
+          "representation is sufficient to permit a client to perform "
+          "computations (i.e., the values are numeric) and a user to "
+          "recognize the software's version (i.e., the values are "
+          "understandable and readable). Hence, both numeric and "
+          "string representations of version are provided.")]
+   string VersionString;
+
+      [Description (
+          "Specifies the target operating systems of the software. Due "
+          "to the extreme variability in operating systems, this "
+          "property is defined as a string array.")]
+   string TargetOperatingSystems[];
+
+      [Description (
+          "Manufacturer of this software.")]
+   string Manufacturer;
+
+      [Description (
+          "The language editions supported by the software. The "
+          "language codes defined in ISO 639 should be used.")]
+   string Languages[];
+
+      [Description (
+          "An array of enumerated integers that classify this "
+          "software. For example, the software MAY be instrumentation "
+          "(value=5) or firmware and diagnostic software (10 and 7). "
+          "The use of value 6, Firmware/BIOS, is being deprecated. "
+          "Instead, either the value 10 (Firmware) and/or 11 "
+          "(BIOS/FCode) SHOULD be used."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "..", "0x8000..0xFFFF" }, 
+       Values { "Unknown", "Other", "Driver", "Configuration Software",
+          "Application Software", "Instrumentation", "Firmware/BIOS",
+          "Diagnostic Software", "Operating System", "Middleware",
+          "Firmware", "BIOS/FCode", "DMTF Reserved",
+       "Vendor Reserved" }, ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SoftwareIdentity.ClassificationDescriptions" }]
+   uint16 Classifications[];
+
+      [Description (
+          "An array of free-form strings providing more detailed "
+          "explanations for any of the entries in the Classifications "
+          "array. Note that each entry is related to one in the "
+          "Classifications array located at the same index."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_SoftwareIdentity.Classifications" }]
+   string ClassificationDescriptions[];
+
+      [Description (
+          "A manufacturer-allocated number used to identify the "
+          "software.")]
+   string SerialNumber;
+
+      [Description (
+          "The date the software was released.")]
+   datetime ReleaseDate;
+
+};
+
+// ===================================================================
+// ElementSoftwareIdentity
+// ===================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "ElementSoftwareIdentity allows a Managed Element to report its "
+       "software related asset information (firmware, drivers, "
+       "configuration software, and etc.)")]
+class CIM_ElementSoftwareIdentity : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "A LogicalElement's Software Asset.")]
+   CIM_SoftwareIdentity REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The ManagedElement that requires or uses the software.")]
+   CIM_ManagedElement REF Dependent;
+
+      [Description (
+          "Indicates the element's ability to upgrade this software "
+          "asset. \n"
+          "'Resides off element'(2), indicates the persistence of the "
+          "software is outside of the element. Typically for a element "
+          "this software is part of the OperatingSystem is typically "
+          "upgradeable. \n"
+          "'Owner Upgradeable' (3), indicates the persistence of the "
+          "software is on the element and is upgradeable by the owner. "
+          "\n'FactoryUpgradeable' (4),indicates the persistence of the "
+          "software is on the element and is upgradeable by the "
+          "manufacturer. \n"
+          "'Not Upgradeable' (5), indicates the presistence of the "
+          "software is on the element and is not upgradeable. (i.e. "
+          "burned into a non replaceable ROM chip."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..","0x8000..0xFFFF" }, 
+       Values { "Unknown", "Other", "Resides off device",
+          "Owner Upgradeable", "Factory Upgradeable","Not Upgradeable",
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_ElementSoftwareIdentity.OtherUpgradeCondition" }]
+   uint16 UpgradeCondition;
+
+      [Description (
+          "Describes the upgrade condition, when UpgradeCondition is "
+          "set to 1 (\"Other\")."), 
+       ModelCorrespondence { 
+          "CIM_ElementSoftwareIdentity.UpgradeCondition" }]
+   string OtherUpgradeCondition;
+};
+
+// ==================================================================
+// InstalledSoftwareIdentity
+// ==================================================================
+   [Association, Version ( "2.8.0" ), Description (
+       "The InstalledSoftwareIdentity association identifies the "
+       "System on which a SoftwareIdentity is installed. This class is "
+       "a corollary to InstalledSoftwareElement, but deals with the "
+       "asset aspects of software (as indicated by SoftwareIdentity), "
+       "versus the deployment aspects (as indicated by "
+       "SoftwareElement).")]
+class CIM_InstalledSoftwareIdentity {
+
+      [Key, Description (
+          "The system on which the software is installed.")]
+   CIM_System REF System;
+
+      [Key, Description (
+          "The SoftwareIdentity that is installed.")]
+   CIM_SoftwareIdentity REF InstalledSoftware;
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

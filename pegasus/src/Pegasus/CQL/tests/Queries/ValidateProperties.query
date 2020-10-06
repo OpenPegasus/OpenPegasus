@@ -1,0 +1,179 @@
+# Validate Properties testcases
+#
+# First chain element is a property not on the FROM class
+SELECT NonExistent FROM CQL_TestElement
+SELECT * FROM CQL_TestElement WHERE NonExistent = 3
+SELECT PropertyString FROM CQL_TestElement
+SELECT * FROM CQL_TestElement WHERE PropertyString = 'abc'
+#
+# Multiple chain elements, one property not on the FROM class
+SELECT InstanceID, NotThere FROM CQL_TestElement
+SELECT NotThere1, NotThere2 FROM CQL_TestElement
+SELECT * FROM CQL_TestElement WHERE InstanceID = 3 AND NotThere = 'abc'
+#
+# First chain element is a property on the FROM class
+SELECT InstanceID FROM CQL_TestElement
+SELECT * FROM CQL_TestElement WHERE InstanceID = 3
+SELECT InstanceID FROM CQL_TestPropertyTypes
+SELECT * FROM CQL_TestPropertyTypes WHERE InstanceID = 3
+#
+# First chain element is not the FROM class
+SELECT CQL_NonExistent.InstanceID FROM CQL_TestElement
+SELECT * FROM CQL_TestElement WHERE CQL_NonExistent.InstanceID = 3
+#
+# First chain element is the FROM class
+SELECT CQL_TestElement.InstanceID FROM CQL_TestElement
+SELECT * FROM CQL_TestElement WHERE CQL_TestElement.InstanceID = 3
+SELECT alias.InstanceID FROM CQL_TestElement alias
+SELECT * FROM CQL_TestElement alias WHERE alias.InstanceID = 3
+#
+# First chain element is the FROM class, but invalid property
+SELECT CQL_TestElement.NotThere FROM CQL_TestElement
+SELECT * FROM CQL_TestElement WHERE CQL_TestElement.NotThere = 3
+SELECT alias.NotThere FROM CQL_TestElement alias
+SELECT * FROM CQL_TestElement alias WHERE alias.NotThere = 3
+#
+# Scoping tests - scoping class does not exist
+SELECT CQL_NotThere::someprop FROM CQL_TestElement
+SELECT CQL_TestElement.CQL_NotThere::someprop FROM CQL_TestElement
+SELECT alias.CQL_NotThere::someprop FROM CQL_TestElement alias
+#
+# Scoping tests - scoping class exists but not related to FROM
+SELECT CIM_ComputerSystem::EnabledState FROM CQL_TestElement
+SELECT CQL_TestElement.CIM_ComputerSystem::EnabledState FROM CQL_TestElement alias
+SELECT alias.CIM_ComputerSystem::EnabledState FROM CQL_TestElement as alias
+#
+# Scoping tests - scoping class is superclass of FROM
+SELECT CQL_TestElement::InstanceID FROM CQL_TestPropertyTypes
+SELECT CQL_TestPropertyTypes.CQL_TestElement::InstanceID FROM CQL_TestPropertyTypes
+SELECT alias.CQL_TestElement::InstanceID FROM CQL_TestPropertyTypes alias
+#
+# Scoping tests - scoping class is the FROM
+SELECT CQL_TestPropertyTypes::InstanceID FROM CQL_TestPropertyTypes
+SELECT CQL_TestPropertyTypes.CQL_TestPropertyTypes::InstanceID FROM CQL_TestPropertyTypes
+SELECT alias.CQL_TestPropertyTypes::InstanceID FROM CQL_TestPropertyTypes alias
+SELECT CQL_TestPropertyTypes::PropertyString FROM CQL_TestPropertyTypes
+SELECT CQL_TestPropertyTypes.CQL_TestPropertyTypes::PropertyString FROM CQL_TestPropertyTypes
+SELECT alias.CQL_TestPropertyTypes::PropertyString FROM CQL_TestPropertyTypes alias
+SELECT alias::InstanceID FROM CQL_TestPropertyTypes as alias
+SELECT CQL_TestPropertyTypes.alias::InstanceID FROM CQL_TestPropertyTypes as alias
+SELECT alias.alias::InstanceID FROM CQL_TestPropertyTypes as alias
+SELECT alias::PropertyString FROM CQL_TestPropertyTypes as alias
+SELECT CQL_TestPropertyTypes.alias::PropertyString FROM CQL_TestPropertyTypes as alias
+SELECT alias.alias::PropertyString FROM CQL_TestPropertyTypes as alias
+#
+# Scoping tests - scoping class is subclass of FROM
+SELECT CQL_TestPropertyTypes::InstanceID FROM CQL_TestElement
+SELECT CQL_TestElement.CQL_TestPropertyTypes::InstanceID FROM CQL_TestElement
+SELECT alias.CQL_TestPropertyTypes::InstanceID FROM CQL_TestElement as alias
+SELECT CQL_TestPropertyTypes::PropertyString FROM CQL_TestElement
+SELECT CQL_TestElement.CQL_TestPropertyTypes::PropertyString FROM CQL_TestElement
+SELECT alias.CQL_TestPropertyTypes::PropertyString FROM CQL_TestElement as alias
+#
+# Scoping tests - property does not exist on the scoping class
+SELECT CQL_TestElement::PropertyString FROM CQL_TestPropertyTypes
+SELECT CQL_TestPropertyTypes.CQL_TestElement::PropertyString FROM CQL_TestPropertyTypes
+SELECT alias.CQL_TestElement::PropertyString FROM CQL_TestPropertyTypes alias
+SELECT CQL_TestElement::PropertyString FROM CQL_TestElement
+SELECT CQL_TestElement.CQL_TestElement::PropertyString FROM CQL_TestElement
+SELECT alias.CQL_TestElement::PropertyString FROM CQL_TestElement as alias
+#
+#
+# Embedded object tests
+#
+# Validation of select list.  This test should pass.
+# Properties Used:
+# EmbObjSub
+# EmbObjSub.*
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.*
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyReal64Array
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString
+# EmbObjBase.CQL_EmbeddedTestElement::SomeString
+# EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::InstanceId
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description
+#
+SELECT EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.*, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString, EmbObjBase.CQL_EmbeddedTestElement::SomeString, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyReal64Array, EmbObjSub, EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::InstanceId, EmbObjSub.*, EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8, EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description FROM CQL_EmbeddedSubClass
+#
+# Validation of select list.
+# This test should fail due to scoping class CQL_NonExistent does not exist.
+# Properties used:
+# EmbObjSub
+# EmbObjSub.*
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.*
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_NonExistent::propertyReal64Array
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString
+# EmbObjBase.CQL_EmbeddedTestElement::SomeString
+# EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::InstanceId
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description
+#
+SELECT EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.*, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString, EmbObjBase.CQL_EmbeddedTestElement::SomeString, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_NonExistent::propertyReal64Array, EmbObjSub, EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::InstanceId, EmbObjSub.*, EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8, EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description FROM CQL_EmbeddedSubClass
+#
+# Validation of select list.
+# This test should fail due to property NotThere not existing on its scoping class
+# Properties used:
+# EmbObjSub
+# EmbObjSub.*
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.*
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyReal64Array
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString
+# EmbObjBase.CQL_EmbeddedTestElement::SomeString
+# EmbObjBase.CQL_EmbeddedTestElement::NotThere.CQL_TestElement::InstanceId
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description
+#
+SELECT EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.*, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString, EmbObjBase.CQL_EmbeddedTestElement::SomeString, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyReal64Array, EmbObjSub, EmbObjBase.CQL_EmbeddedTestElement::NotThere.CQL_TestElement::InstanceId, EmbObjSub.*, EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8, EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description FROM CQL_EmbeddedSubClass
+#
+# Validation of select list.
+# This test should fail due to property SomeUint8 being used as embedded when
+# it is not embedded in the class definition.
+# Properties used:
+# EmbObjSub
+# EmbObjSub.*
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8.CQL_TestPropertyTypes::propertyString
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.*
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyReal64Array
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString
+# EmbObjBase.CQL_EmbeddedTestElement::SomeString
+# EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::InstanceId
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description
+#
+SELECT EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.*, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString, EmbObjBase.CQL_EmbeddedTestElement::SomeString, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT, EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyReal64Array, EmbObjSub, EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::InstanceId, EmbObjSub.*, EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8.CQL_TestPropertyTypes::propertyString, EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description FROM CQL_EmbeddedSubClass
+#
+# Validation of WHERE list
+# This test should pass.
+#
+# Properties used:
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString
+# EmbObjBase.CQL_EmbeddedTestElement::SomeString
+# EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::InstanceId
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description
+SELECT * FROM CQL_EmbeddedSubClass WHERE EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState = 2 AND EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString = 'abc' AND EmbObjBase.CQL_EmbeddedTestElement::SomeString = 'abc' AND EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::InstanceId = 3 AND EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8 = 3 AND EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description = 'abc'
+#
+# Validation of WHERE list
+# This test should fail due to property NotThere does not exist on the scoping class.
+#
+# Properties used:
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8
+# EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString
+# EmbObjBase.CQL_EmbeddedTestElement::SomeString
+# EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::NotThere
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState
+# EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description
+SELECT * FROM CQL_EmbeddedSubClass WHERE EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::EnabledState = 2 AND EmbObjSub.CQL_EmbeddedTestPropertyTypes::TPT.CQL_TestPropertyTypes::propertyString = 'abc' AND EmbObjBase.CQL_EmbeddedTestElement::SomeString = 'abc' AND EmbObjBase.CQL_EmbeddedTestElement::TE.CQL_TestElement::NotThere = 3 AND EmbObjSub.CQL_EmbeddedTestPropertyTypes::SomeUint8 = 3 AND EmbObjBase.CQL_EmbeddedTestElement::CS.CIM_ComputerSystem::Description = 'abc'
+
+# Special tests for ISA
+SELECT * FROM CQL_TestPropertyTypes WHERE CQL_TestPropertyTypes ISA CQL_NonExistent
+SELECT * FROM CQL_TestPropertyTypes WHERE CQL_TestPropertyTypes ISA CQL_TestElement
+SELECT * FROM CQL_TestPropertyTypes WHERE CQL_TestPropertyTypes ISA CQL_TestElement AND CQL_TestPropertyTypes.BogusProperty ISA CQL_TestElement

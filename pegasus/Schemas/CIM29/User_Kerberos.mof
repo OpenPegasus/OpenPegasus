@@ -1,0 +1,177 @@
+// ===================================================================
+// Title: User_Kerberos
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: User_Kerberos.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The User Model extends the management concepts that
+//              are related to users and security.
+//              This file defines the classes modeling a Kerberos
+//              security service and credentials.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ===================================================================
+// Change Log for v2.8 Final
+//  CR1235 - Accepted KerberosTicket's Description change as Final
+// 
+// Change Log for v2.8 Preliminary
+//  CR1011 - Modified description for KerberosTicket
+// 
+// Change Log for v2.7
+//  CR784 - Promoted 2 properties, Issued and Expired, from
+//          CIM_KerberosTicket to CIM_Credential.
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ==================================================================
+// KerberosKeyDistributionCenter
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The Kerberos KDC.")]
+class CIM_KerberosKeyDistributionCenter : CIM_CredentialManagementService {
+
+      [Override ( "Name" ), Description (
+          "The Realm served by this KDC.")]
+   string Name;
+
+      [Description (
+          "The version of Kerberos supported by this service."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "V4", "V5", "DCE", "MS" }]
+   uint16 Protocol[];
+};
+
+
+// ==================================================================
+// KerberosTicket
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "A CIM_KerberosTicket represents a credential issued by a "
+       "particular Kerberos Key Distribution Center (KDC) to establish "
+       "an identity, as the result of a successful authentication "
+       "process. There are two types of tickets that a KDC may issue - "
+       "a TicketGranting ticket, which is used to protect and "
+       "authenticate communications between an entity and the KDC, and "
+       "a Session ticket, which the KDC issues to two entities to "
+       "allow them to communicate with each other.")]
+class CIM_KerberosTicket : CIM_Credential {
+
+      [Key,
+          Propagated ( "CIM_KerberosKeyDistributionCenter.SystemCreationClassName" 
+          ), Description (
+          "The scoping System's CCN."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key,
+       Propagated ( "CIM_KerberosKeyDistributionCenter.SystemName" ), 
+       Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key,
+          Propagated ( "CIM_KerberosKeyDistributionCenter.CreationClassName" 
+          ), Description (
+          "The scoping Service's CCN."), 
+       MaxLen ( 256 )]
+   string ServiceCreationClassName;
+
+      [Key, Propagated ( "CIM_KerberosKeyDistributionCenter.Name" ), 
+       Description (
+          "The scoping Service's Name. The Kerberos KDC Realm of "
+          "CIM_KerberosTicket is used to record the security "
+          "authority, or Realm, name so that tickets issued by "
+          "different Realms can be separately managed and enumerated."), 
+       MaxLen ( 256 )]
+   string ServiceName;
+
+      [Key, Description (
+          "The name of the service for which this ticket is used."), 
+       MaxLen ( 256 )]
+   string AccessesService;
+
+      [Key, Description (
+          "RemoteID is the name by which the user is known at the KDC "
+          "security service."), 
+       MaxLen ( 256 )]
+   string RemoteID;
+
+      [Description (
+          "The Type of CIM_KerberosTicket is used to indicate whether "
+          "the ticket in question was issued by the Kerberos Key "
+          "Distribution Center (KDC) to support ongoing communication "
+          "between the Users Access and the KDC (\"TicketGranting\"), "
+          "or was issued by the KDC to support ongoing communication "
+          "between two Users Access entities (\"Session\")."), 
+       ValueMap { "0", "1" }, 
+       Values { "Session", "TicketGranting" }]
+   uint16 TicketType;
+};
+
+
+// ===================================================================
+// KDCIssuesKerberosTicket
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "The KDC issues and owns Kerberos tickets. This association "
+       "captures the relationship between the KDC and its issued "
+       "tickets.")]
+class CIM_KDCIssuesKerberosTicket : CIM_ManagedCredential {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The issuing KDC.")]
+   CIM_KerberosKeyDistributionCenter REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The managed credential.")]
+   CIM_KerberosTicket REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

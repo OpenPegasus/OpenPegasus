@@ -1,0 +1,262 @@
+.\" .TA c \" lowercase initial letter of .TH name
+.TH "cimprovider" "1" "" "" ""
+.SH "NAME"
+cimprovider \- disable, enable, remove , group, list or display status of registered CIM providers or 
+CIM provider modules
+.SH "SYNOPSIS"
+\fBcimprovider\fP \fB\-d\fP \fB\-m\fP module
+
+\fBcimprovider\fP \fB\-e\fP \fB\-m\fP module
+
+\fBcimprovider\fP \fB\-r\fP \fB\-m\fP module [ \fB\-p\fP provider ]
+
+\fBcimprovider\fP \fB\-g\fP group \fB\-m\fP module
+
+\fBcimprovider\fP \fB\-l\fP  [ \fB\-s\fP | \fB\-f\fP | \fB\-m\fP module ]
+
+\fBcimprovider\fP \fB\-h\fP
+
+\fBcimprovider\fP \fB\-\-help\fP
+
+\fBcimprovider\fP \fB\-\-version\fP
+
+.SS Remarks
+The
+.B \-l
+option for this command
+can be executed by any user(s). All other options require superuser permissions.
+.PP 
+This command disables, enables, or removes one CIM provider
+module or CIM provider at a time.
+.SH "DESCRIPTION"
+The 
+.B cimprovider 
+command provides a command line interface to disable, enable, unregister, group
+and list registered CIM providers.  If a CIM provider is disabled, the CIM Server 
+rejects any requests to the provider.  If a CIM provider is enabled, the CIM 
+Server forwards requests to the provider.  And if a CIM provider is 
+unregistered, the CIM Server will no longer have any information about the 
+provider.
+.PP 
+In order to use the 
+.B cimprovider 
+command, 
+.B cimserver
+has to be running and 
+the specified provider module (a grouping of providers 
+in the same shared library) or provider has to be registered with WBEM Services.
+.PP 
+The first form of 
+.B cimprovider 
+disables the specified provider module.  
+When a specified provider module is in the disabled state, any
+new requests to the providers that are contained in the specified provider module will be rejected.
+.PP 
+The second form of 
+.B cimprovider 
+enables the providers that are contained in the specified provider module. 
+The providers that are contained in the 
+specified provider module are now ready to accept new requests.
+.PP 
+The third form of 
+.B cimprovider 
+removes (un\-registers) the specified provider module and all of its contained 
+providers or the specified provider in the specified provider module.
+Once removed, a provider or provider module
+must be re\-registered (typically by loading its registration schema via the 
+.B cimmof 
+command).
+.PP
+The fourth form of
+.B cimprovider
+sets the provider module group. If the provider module is  active, provider module is disabled first,
+group is set and enabled again. If group name is 
+.B CIMServer,
+provider module is loaded into 
+.B CIMServer
+process depending on 
+.B UserContext
+value. Specify empty string to remove from grouping.
+.PP 
+The last form of 
+.B cimprovider 
+lists all the registered provider modules and module status or 
+all the providers in the specified provider module. To list all providers in 
+all modules, issue 
+a 
+.B cimprovider \-l 
+command, followed by 
+.B cimprovider \-l \-m 
+for each listed module.
+.PP
+The following provider module status values are defined:
+.TP 15
+.B OK
+The provider module is enabled.
+.TP
+.B Stopping
+The provider module is in the process of being disabled.
+.TP
+.B Stopped
+The provider module is disabled.
+.TP
+.B Degraded
+A failure was detected in an out-of-process provider module.  Disable and re-enable the provider module to ensure any active indication subscriptions are being served.
+.TP
+.B Error
+An invalid registration instance was encountered upon CIM Server initialization.
+.PP 
+Specifying no options with the 
+.B cimprovider 
+command displays the command
+usage.
+.SS Options
+The 
+.B cimprovider 
+command recognizes the following options:
+.RS
+.TP 15
+.B \-d
+Disables the specified CIM provider 
+.I R module . 
+If user(s) try to disable a module that is already 
+disabled, an error message is returned and no action is taken.
+.TP 
+.B \-e
+Enables the specified CIM provider 
+.I R module . 
+If user(s) try to enable a module that is already enabled 
+or try to enable a module that is disabling, an error message is returned and 
+no action is taken.
+.TP 
+.B \-h, \-\-help
+Display command usage information.
+.TP 
+.B \-l 
+Displays all the registered provider modules.
+.TP 
+\fB\-m\fP module
+Specifies the provider
+.I module
+for the operation.
+.TP 
+\fB\-p\fP provider
+Specifies the
+.I provider
+for the operation.
+.TP 
+.B \-r
+Removes the specified provider 
+.I module 
+and all of its contained providers.  If
+.I provider
+is specified, removes the specified 
+.I provider
+in the specified provider
+.I module
+(not affecting any other providers in that module).
+.TP
+.B \-g
+Sets the CIM provider module
+.I group.
+Specify empty string to remove from 
+.I grouping.
+If the
+.I provider module
+is  active,
+.I provider module
+is disabled first, 
+.I group
+is set and enabled again. All 
+.I provider modules
+with the same
+.I group
+name are loaded into a single agent process except when overridden by specific
+.I UserContext
+values. If
+.I group
+name is
+.I CIMServer
+,
+.I provider module
+is loaded into 
+.I CIMServer process depending on 
+.I UserContext
+value. 
+.TP 
+.B \-s
+Displays the status of provider modules.
+.TP 
+.B \-f
+Displays the full status of provider modules with group name.
+.TP 
+.B \-\-version
+Display CIM Server version number.
+.SH "EXIT STATUS"
+.PP 
+When an error occurs, an error message is written to stderr and an
+error value 1 is returned.  The following return values are returned:
+.RS
+.TP 
+.B 0
+Successful completion
+.PD 0
+.TP 
+.B 1
+Error
+.PD
+.RE
+.SH "USAGE NOTES"
+.PP 
+The 
+.B cimprovider 
+command requires that the CIM Server is running. If an operation requires
+more than two minutes to be processed, the
+.B cimprovider 
+command prints a timeout message and returns an error value.
+.SH "EXAMPLES "
+.PP 
+Disable provider module "OperatingSystemProvider" and 
+all of its contained providers (placing them in a stopped state).
+.IP 
+.B cimprovider \-d \-m OperatingSystemProvider
+.PP 
+Enable provider module "OperatingSystemProvider" and 
+all of its contained providers (placing them in an OK state).
+.IP 
+.B cimprovider \-e \-m OperatingSystemProvider
+.PP 
+Remove (un\-register) the "OperatingSystemProvider" 
+provider module and all of its contained providers.
+.IP 
+.B cimprovider \-r \-m OperatingSystemProvider
+.PP 
+Remove (un\-register) the "PG_OperatingSystemProvider" 
+provider that is contained in the "OperatingSystemProvider" provider module.
+.IP 
+.B cimprovider \-r \-m OperatingSystemProvider \-p PG_OperatingSystemProvider
+.PP 
+List the registered provider modules.
+.IP 
+.B cimprovider \-l
+.PP 
+List the registered provider modules and their status 
+(such as OK, Stopping, Stopped).
+.IP 
+.B cimprovider \-l \-s
+.PP 
+List the registered providers which are contained in the 
+"OperatingSystemProvider" provider module.
+.IP 
+.B cimprovider \-l \-m OperatingSystemProvider
+.PP
+Set the group name of the "OperatingSystemProvider" provider module to "CIMServer".
+.IP
+.B cimprovider \-g CIMServer \-m OperatingSystemProvider
+.PP
+Remove "OperatingSystemProvider" provider module from grouping.
+.IP
+.B cimprovider \-g """"""  \-m OperatingSystemProvider
+.SH "SEE ALSO"
+.PP 
+cimmof(1), cimserver(1).

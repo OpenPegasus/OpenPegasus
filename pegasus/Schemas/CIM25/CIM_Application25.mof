@@ -1,0 +1,1466 @@
+
+// ===================================================================
+// Title:       Application MOF specification 2.5
+// Filename:    CIM_Application25.mof
+// Version:     2.5
+// Status:      Final
+// Date:        06/12/2001
+// ===================================================================
+// Copyright "2001" Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.  
+// DMTF is a not-for-profit association of industry members dedicated 
+// to promoting enterprise and systems management and interoperability. 
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members, 
+// provided that correct attribution is given. 
+// As DMTF specifications may be revised from time to time, 
+// the particular version and release cited should always be noted.
+// Description: These object classes define the user and security 
+//              model for CIM and includes classes needed to represent
+//              users, groups and organizational entities as well as 
+//              security services and authentication and authorization 
+//              information.
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined 
+//		    by other working groups, are omitted. 
+// ===================================================================
+// Description: The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined 
+//	        by other working groups, are omitted.
+// ==================================================================
+// Author:      DMTF Applications Working Group
+// ==================================================================
+// ===================================================================
+//              06/23/1998 The cardinalities for the associations did not coorespond
+//                         to those specified in CR172B.  The errors were corrected
+//                         for the following associations:
+//                           CIM_SoftwareElementChecks
+//                           CIM_DirectorySpecificationFile
+//                           CIM_SoftwareElementActions
+//                           CIM_SoftwareFeatureSoftwareElements
+//                           CIM_ProductSoftwareFeature
+//                           CIM_ToDirectorySpecification
+//                           CIM_FromDirectorySpecification
+//                           CIM_ToDirectoryAction
+//                           CIM_FromDirectoryAction
+//                           CIM_InstalledSoftwareElement (This corrected CR174b)
+//                          Also, CR232 (fix mappingstring qualifier) was implemented.
+//
+//               09/24/98  Implemented CR244a and CR275: Added additional architecture types.
+//
+//               09/29/98  Fixed ModelCorrespondence syntax ( change "()" to "{}" )
+//
+//               09/30/98  Changed 3 names (CR296)
+//
+//               06/07/99  Added FRUIncludesSoftwareFeature association (CR277b)
+//                         Removed min(1) from SoftwareFeatureSoftwareElement (CR395)
+//                         Added more processor types (CR318c)
+//                         Added video processor to Arch Type (CR377)
+//                         Added Sparc processor to Arch Type (CR297)
+//                         Added additional OS type (CR363)
+//                         Added VSE and TPF OS types (CR409)
+//
+//               01/10/00  Add keys to refs of FRUIncludesSoftwareFeature (CR453)
+//                         Add Itanium processor to Arch Type (CR449)
+//
+//               01/17/00  Updated Mappingstrings qualifiers (CR431)
+//
+//               03/07/00  Change Intel Processor types for legal reasons (CR438) 
+//
+//               06/08/00  Added SoftwareElementService/SAPImplementation
+//                           associations (CR482a)
+//
+//		     08/08/00 - Version 2.4
+//				  - CR474 Add Processor types to CIM_Processor.Family
+//               11/29/00 - Version 2.5
+//                        - CR527 Add to CIM_ArchitectureCheck.ArchitectureType
+//                          24 = AMD(R) Duron(TM)  Processor
+//                        - CR530 Correct enumerations in
+//                          CIM_ArchitectureCheck.ArchitectureType number 19 & 24
+//                        - CR531 Add to CIM_ArchitectureCheck.ArchitectureType
+//                          120 = "Crusoe(TM) TM5000 Family"
+//                          121 = "Crusoe(TM) TM3000 Family"
+//                        - CR533b Add Windows(R) Me to *.TargetOperatingSystem*
+//                        - CR540c Add SoftwareFeatureComponent Association
+//                        - CR542 Add "Not Applicable" to the 
+//                                *TargetOperatingSystem*
+//                        - CR546a Add InstalledProduct Collection
+//                        - CR558 subclass Action and Check from ManagedElement
+//
+//
+// Author     : DMTF Application Management Working Group
+// Description: The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined 
+//		    by other working groups, are omitted.
+//
+// ===================================================================
+#pragma locale ("en_US")
+ 
+// ==================================================================
+//    ApplicationSystem
+// ==================================================================
+        [Description (
+        " The CIM_ApplicationSystem class is used to represent an  application "
+        "or a software system that supports a particular  business function and "
+        "that can be managed as an independent  units. Such a system can be "
+        "decomposed into its functional  components using the "
+        "CIM_SoftwareFeature class. The software  features for a particular "
+        "application or software system are  located using the "
+        "CIM_ApplicationSystemSoftwareFeature  association.  ") ] 
+class CIM_ApplicationSystem:CIM_System
+{
+};
+     
+// ==================================================================
+//    CIM_SoftwareElement
+// ==================================================================
+        [Description (" The CIM_SoftwareElement class is used to decompose  a "
+        "CIM_SoftwareFeature object into a set of individually  manageable or "
+        "deployable parts for a particular platform.   A software element's "
+        "platform is uniquely identified by its  underlying hardware "
+        "architecture and operating system  (for example Sun Solaris on Sun "
+        "Sparc or Windows NT on Intel).   As such, to understand the details of "
+        "how the functionality  of a particular software feature is provided on "
+        "a particular  platform, the CIM_SoftwareElement objects referenced by   "
+        "CIM_SoftwareFeatureSoftwareElement associations are organized   in "
+        "disjoint sets based on the TargetOperatingSystem property.    A "
+        "CIM_SoftwareElement object captures the management  details of a part "
+        "or component in one of  four states  characterized by the "
+        "SoftwareElementState property.   ") ] 
+class CIM_SoftwareElement:CIM_LogicalElement
+{
+        [key, maxlen (256) , override ("Name") , Description (
+        "The name used to identify this software element") ] 
+    string Name ;
+        [key, Maxlen (64) , Description (
+        "Version should be in the form <Major>.<Minor>.<Revision> or <Major>."
+        "<Minor><letter><revision>") , MappingStrings {
+        "MIF.DMTF|SubComponent Software |001.4"} ] 
+    string Version ;
+        [key, Description (
+        " The SoftwareElementState is defined in this model to identify various "
+        "states of a software elements life cycle. \n"
+        " - A software element in the deployable state describes the details "
+        "necessary to successfully distribute it and the details (conditions "
+        "and actions) required to create a software element in the installable "
+        "state (i.e, the next state). \n"
+        " - A software element in the installable state describes     "
+        "the details necessary to successfully install it and the details ("
+        "conditions and actions) required to create a software element in the "
+        "executable state (i.e., the next state). \n"
+        " - A software element in the executable state describes the details "
+        "necessary to successfully start it and the details (conditions and "
+        "actions) required to create a software element in the running state "
+        "(i.e., the next state). \n"
+        " - A software element in the running state describes the details "
+        "necessary to monitor and operate on a started element.") , 
+        Values {"Deployable", "Installable", "Executable", "Running"} ] 
+    uint16 SoftwareElementState ;
+        [key, maxlen (256) , Description (
+        " This is an identifier for this software element and is designed to be  "
+        "used in conjunction with other keys to create a unique representation  "
+        "of this SoftwareElement") ] 
+    string SoftwareElementID ;
+        [key, MappingStrings {"MIF.DMTF|SubComponent Software|001.8"} 
+        , Description (
+        " The Target Operating System property allows the provider to specify "
+        "the  operating system environment. The value of this property does not  "
+        "ensure binary executable.  Two other pieces of information are needed.  "
+        " First, the version of the OS needs to be specified. using the OS  "
+        "Version Check. The second piece of information is the architecture the  "
+        "OS runs on. This information is capture with the ArchitectureCheck  "
+        "class. The combination of these constructs allows the provider to  "
+        "clearly identify the level of OS required for a particular software  "
+        "element.") , Values {"Unknown", "Other", "MACOS", "ATTUNIX", "DGUX", 
+        "DECNT", "Digital Unix", "OpenVMS", "HPUX", "AIX", "MVS", "OS400", 
+        "OS/2", "JavaVM", "MSDOS", "WIN3x", "WIN95", "WIN98", "WINNT", "WINCE", 
+        "NCR3000", "NetWare", "OSF", "DC/OS", "Reliant UNIX", "SCO UnixWare", 
+        "SCO OpenServer", "Sequent", "IRIX", "Solaris", "SunOS", "U6000", 
+        "ASERIES", "TandemNSK", "TandemNT", "BS2000", "LINUX", "Lynx", "XENIX", 
+        "VM/ESA", "Interactive UNIX", "BSDUNIX", "FreeBSD", "NetBSD", "GNU Hurd",
+        "OS9", "MACH Kernel", "Inferno", "QNX", "EPOC", "IxWorks", "VxWorks", 
+        "MiNT", "BeOS", "HP MPE", "NextStep", "PalmPilot", "Rhapsody", 
+        "Windows 2000", "Dedicated","VSE","TPF", "Windows (R) Me",
+        "Not Applicable" } , 
+        ModelCorrespondence {"CIM_OperatingSystem.OSType"} ] 
+    uint16 TargetOperatingSystem ;
+        [Description (
+        " The OtherTargetOS property records the manufacturer and  operating "
+        "system type for a software element when  the TargetOperatingSystem "
+        "property has a value of  1 (\"Other\").  Therefore, when the "
+        "TargetOperating System property has a value of \"Other\", the "
+        "OtherTargetOS  property must have a non-null value.  For all other "
+        "values  of TargetOperatingSystem, the OtherTargetOS property is to be "
+        "NULL. ") , Maxlen (64) , ModelCorrespondence {
+        "CIM_OperatingSystem.OtherTypeDescription"} ] 
+    string OtherTargetOS ;
+        [Maxlen (256) , MappingStrings {"MIF.DMTF|SubComponent Software|001.3"} , 
+        Description ("Manufacturer of this software element") ] 
+    string Manufacturer ;
+        [Maxlen (64) , MappingStrings {
+        "MIF.DMTF|Software Component Information|002.4"} , Description (
+        "The internal identifier for this compilation of this software element."
+        ) ] 
+    string BuildNumber ;
+        [Maxlen (64) , MappingStrings {"MIF.DMTF|ComponentID|001.4"} , 
+        Description ("The assigned serial number of this software element.") ] 
+    string SerialNumber ;
+        [Maxlen (64) , Description (
+        "The code set used by this software element. ") ] 
+    string CodeSet ;
+        [Maxlen (64) , MappingStrings {
+        "MIF.DMTF|SubComponent Software|001.6"} , Description (
+        " The value of this property is the manufacturer's identifier for this "
+        "software element. Often this will be a stock keeping unit (SKU) or a "
+        "part number.") ] 
+    string IdentificationCode ;
+        [Maxlen (32) , MappingStrings {
+        "MIF.DMTF|SubComponent Software|001.7"} , Description (
+        "The value of this property identifies the language edition of this "
+        "software element. The language codes defined in ISO 639 should be used. "
+        "Where the software element represents multi-lingual or international "
+        "version of a product, the string multilingual should be used.") ] 
+    string LanguageEdition ;
+};
+     
+// ==================================================================
+//    CIM_SoftwareFeature
+// ==================================================================
+        [Description (
+        " The CIM_SoftwareFeature class defines a particular function  or "
+        "capability of a product or application system.  This  class in intended "
+        "to capture the level of granularity that  is meaningful to a consumer "
+        "or user of a product rather than  the units that reflect how the "
+        "product is built or packaged.  The latter detailed is captured using a "
+        "CIM_SoftwareElement  class.   When a software feature can exist on "
+        "multiple platforms or  operating systems (for example, a client "
+        "component of a  three tiered client/server applications might run on "
+        "Solaris,  Windows NT, and Windows 95), a software feature is a "
+        "collection of all the software elements for these different platforms. "
+        " In this case, the users of the model must be aware of this situation  "
+        "since typically they will be interested in a sub-collection of the  "
+        "software elements required for a particular platform.   Software "
+        "Features are always defined in the context of a  CIM_Product class "
+        "using the CIM_ProductSoftwareFeature  association since features are "
+        "delivered through products.  Optionally, software features from one or "
+        "more products  can be organized into application systems using the  "
+        "CIM_ApplicationSystemSoftwareFeature association. ") ] 
+class CIM_SoftwareFeature:CIM_LogicalElement
+{
+        [Propagated ("CIM_Product.IdentifyingNumber"), Key, Maxlen (64), 
+        Description (
+        "Product identification such as a serial number on software or a die "
+        "number on a hardware chip"), 
+        MappingStrings {"DMTF|ComponentID|001.4"} ] 
+    string IdentifyingNumber ;
+        [Propagated ("CIM_Product.Name"), Key, Maxlen (256), 
+        Description ("Commonly used Product name"), 
+        MappingStrings {"DMTF|ComponentID|001.2"} ] 
+    string ProductName ;
+        [Propagated ("CIM_Product.Vendor"), Key, Maxlen (256), 
+        Description (
+        "The name of the Product's supplier. Corresponds to the Vendor property "
+        "in the Product object in the DMTF Solution Exchange Standard."), 
+        MappingStrings {"DMTF|ComponentID|001.1"} ] 
+    string Vendor ;
+        [Propagated ("CIM_Product.Version"), Key, Maxlen (64), Description (
+        "Product version information.  Corresponds to the Version property in "
+        "the Product object in the DMTF Solution Exchange Standard."), 
+        MappingStrings {"DMTF|ComponentID|001.3"} ] 
+    string Version ;
+        [key, override ("Name"), Description (
+        "The Name property defines the label by which the object is known to the "
+        "world outside the data processing system. This label is a "
+        "human-readable name that uniquely identifies the element in the context "
+        "of the element's namespace."), Maxlen (256) ] 
+    string Name ;
+};
+     
+// ==================================================================
+//    CIM_Check
+// ==================================================================
+        [Abstract, Description (
+        " A Check is a condition or characteristic that is  expected to be true "
+        "in an environment defined or  scoped by an instance of a "
+        "CIM_ComputerSystem.   The checks associated with a particular software  "
+        "element are organized into one of two groups  using the Phase property "
+        "of the CIM_SoftwareElementChecks  association. Conditions that are "
+        "expected to be  satisfied when a software element is in a particular  "
+        "environment are known as in-state conditions.  Conditions that need to "
+        "be satisfied in order to  transition the current software element to "
+        "its  next state are known as next-state conditions   A "
+        "CIM_ComputerSystem object represents the  environment in which "
+        "CIM_SoftwareElements are already  installed or in which "
+        "CIM_SoftwareElements will be installed.  For the case in which a "
+        "software element is already installed,  the "
+        "CIM_InstalledSoftwareElement association is used to  identify the "
+        "CIM_ComputerSystem object that represents  the \"environment\". When a "
+        "software elements is being  distributed and installed on a different "
+        "computer system, the CIM_ComputerSystem object for the targeted system  "
+        "is the environment.") ] 
+class CIM_Check : CIM_ManagedElement
+{
+        [Propagated ("CIM_SoftwareElement.Name") , key, maxlen (256) , 
+        Description ("The name used to identify this software element") ] 
+    string Name ;
+        [Propagated ("CIM_SoftwareElement.Version") , key, Maxlen (64) , 
+        Description (
+        "Version should be in the form <Major>.<Minor>.<Revision> or <Major>."
+        "<Minor><letter><revision>") , MappingStrings {
+        "MIF.DMTF|ComponentID|001.3"} ] 
+    string Version ;
+        [Propagated ("CIM_SoftwareElement.SoftwareElementState") , key, 
+        Description (" The SoftwareElementState of a software element ") , 
+        Values {"Deployable", "Installable", "Executable", "Running"} ] 
+    uint16 SoftwareElementState ;
+        [Propagated ("CIM_SoftwareElement.SoftwareElementID") , key, maxlen (256
+        ) , Description (" This is an identifier for this software element.") ] 
+    string SoftwareElementID ;
+        [Propagated ("CIM_SoftwareElement.TargetOperatingSystem") , key, 
+        MappingStrings {"MIF.DMTF|Software Component Information|002.5"} , 
+        Description (
+        " The Target Operating System of the this software element.") , Values {
+        "Unknown", "Other", "MACOS", "ATTUNIX", "DGUX", "DECNT", "Digital Unix",
+        "OpenVMS", "HPUX", "AIX", "MVS", "OS400", "OS/2", "JavaVM", "MSDOS", 
+        "WIN3x", "WIN95", "WIN98", "WINNT", "WINCE", "NCR3000", "NetWare", "OSF",
+        "DC/OS", "Reliant UNIX", "SCO UnixWare", "SCO OpenServer", "Sequent", 
+        "IRIX", "Solaris", "SunOS", "U6000", "ASERIES", "TandemNSK", "TandemNT",
+        "BS2000", "LINUX", "Lynx", "XENIX", "VM/ESA", "Interactive UNIX", 
+        "BSDUNIX", "FreeBSD", "NetBSD", "GNU Hurd", "OS9", "MACH Kernel", 
+        "Inferno", "QNX", "EPOC", "IxWorks", "VxWorks", "MiNT", "BeOS", "HP MPE",
+        "NextStep", "PalmPilot", "Rhapsody","Windows 2000", "Dedicated","VSE",
+        "TPF", "Windows (R) Me", "Not Applicable" } ] 
+    uint16 TargetOperatingSystem ;
+        [key, maxlen (256) , Description (
+        "An identifier used in conjunction with other keys to unquely identify "
+        "the check") ] 
+    string CheckID ;
+        [Description (
+        " The CheckMode property is used to indicate whether the condition is  "
+        "expected to exist or not exist in the environment.  When the value is "
+        "True, the condition is expected to exist  (e.g., a file is expected to "
+        "be on a system) so invoke() is expected to  return True.  When the "
+        "value is False, the condition is not expect to exist  (e.g., a file is "
+        "not to be on a system) so invoke is expected to return false ") ] 
+    boolean CheckMode ;
+        [Description (
+        " The invoke method is to to evaluate a particular check. The  details "
+        "of how the method evaluates a particular check in   a CIM context is "
+        "described by the non-abstract Check sub classes.  The results of the "
+        "method are based on the return value.    - A 0 (zero) is returned if "
+        "the condition is satisfied.   - A 1 (one) is returned if the method is "
+        "not supported.    - Any other value indicates the condition is not "
+        "satisfied. ") ] 
+    uint32 Invoke() ;
+};
+     
+// ==================================================================
+//    CIM_DirectorySpecification
+// ==================================================================
+        [Description (
+        " The CIM_DirectorySpecification class captures the major directory  "
+        "structure of a software element.  This class is used to organize  the "
+        "files of a software element into manageable units that can  be "
+        "relocated on a computer system.  ") ] 
+class CIM_DirectorySpecification:CIM_Check
+{
+        [Description (
+        " The DirectoryType property characterizes the type of directory being  "
+        "described. ") , Values {"Product base directory", 
+        "Product executable directory", "Product library directory", 
+        "Product configuration directory", "Product include directory", 
+        "Product working directory", "Product log directory", 
+        "Shared base directory", "Shared executable directory", 
+        "Shared library directory", "Shared include directory", 
+        "System base directory", "System executable directory", 
+        "System library directory", "System configuration directory", 
+        "System include directory", "System log directory", "Other"} , 
+        MappingStrings {"MIF.DMTF|Location|001.2"} ] 
+    uint16 DirectoryType ;
+        [Maxlen (1024) , Description (
+        "The DirectoryPath property is used to capture the name of a directory.  "
+        "The value supplied by an application provider is actually a default or "
+        "recommended path name.  The value can be changed for a particular "
+        "environment.") ] 
+    string DirectoryPath ;
+};
+     
+// ==================================================================
+//    CIM_ArchitectureCheck
+// ==================================================================
+        [Description (
+        " The Architecture Check specifies the hardware platform a software "
+        "element can run on.  The details of this checks are compared with the  "
+        "corresponding details found in a CIM_Processor  object referenced by a "
+        "CIM_ComputerSystemProcessor  association for the CIM_ComputerSystem "
+        "object that  describes the environment.  As long as there is at least "
+        "one CIM_Processor that  satisfies the details of the condition, the "
+        "check is  satisfied. In other words, all the processors on  the "
+        "relevant computer system do not need to satistfy the  condition. There "
+        "needs to be at least one. ") ] 
+class CIM_ArchitectureCheck:CIM_Check
+{
+        [Description (
+        " The ArchitectureType property identifies a particular  type of "
+        "architecture or architecture family that is required  to properly "
+        "execute a particular software element.  The intent is to capture the "
+        "details about the machine  instructions exploited by the executables of "
+        "the software  element. ") ,
+       ValueMap {"1", "2", "3", "4", "5", "6", 
+		"7", "8", "9", "10", "11", 
+		"12", "13", 
+		"14", "15", 
+		"16", "17", "18", 
+		"19", "24", 
+            "25", "26", "27", "28", 
+		"29", "30", "31", "32", 
+		"33", "34", "35", 
+		"36", "37", "38", 
+		"39", "48", "49", 
+		"50", "51", "52", 
+		"53", "54", "55", 
+		"64", "65", "66", 
+		"67", "68", "69", 
+		"80", "81", "82", 
+		"83", "84", "85", 
+		"86", "87", "88", 
+		"96", "97", "98", "99", "100", 
+		"101", "112", 
+            "120", "121",
+            "128", "130", 
+		"144", "145", "146", 
+		"147", "148", "149", 
+		"150", "160", "176", 
+		"177",
+            "178", 
+		"180", "200", "201", "202", "250", "251", 
+		"260", "261", "280", "281", "300", "301", "302", 
+		"320", "350", "500"},
+       Values {"Other", "Unknown", "8086", "80286", "80386", "80486",
+	       "8087", "80287", "80387", "80487", "Pentium(R) brand",
+	       "Pentium(R) Pro", "Pentium(R) II", 
+		"Pentium(R) processor with MMX(TM) technology", "Celeron(TM)",
+	       "Pentium(R) II Xeon(TM)", "Pentium(R) III", "M1 Family", 
+           	"AMD Athlon(TM) Processor Family", "AMD Duron(TM)  Processor", 
+            "K5 Family", "K6 Family", "K6-2", "K6-3", 
+           	"K7", "AMD29000 Family", "K6-2+", "Power PC Family", 
+           	"Power PC 601", "Power PC 603", "Power PC 603+", 
+           	"Power PC 604", "Power PC 620", "Power PC X704", 
+           	"Power PC 750", "Alpha Family", "Alpha 21064", 
+           	"Alpha 21066", "Alpha 21164", "Alpha 21164PC", 
+           	"Alpha 21164a", "Alpha 21264", "Alpha 21364", 
+           	"MIPS Family", "MIPS R4000", "MIPS R4200", 
+           	"MIPS R4400", "MIPS R4600", "MIPS R10000", 
+           	"SPARC Family", "SuperSPARC", "microSPARC II", 
+           	"microSPARC IIep", "UltraSPARC", "UltraSPARC II", 
+           	"UltraSPARC IIi", "UltraSPARC III", "UltraSPARC IIIi", 
+           	"68040", "68xxx Family", "68000", "68010", "68020", 
+           	"68030", "Hobbit Family", 
+            "Crusoe(TM) TM5000 Family", "Crusoe(TM) TM3000 Family",
+            "Weitek", "Itanium(TM) Processor",
+		"PA-RISC Family", "PA-RISC 8500", "PA-RISC 8000", 
+		"PA-RISC 7300LC", "PA-RISC 7200", "PA-RISC 7100LC", 
+		"PA-RISC 7100", "V30 Family", "Pentium(R) III Xeon(TM)", 
+		"Pentium(R) III Processor with Intel(R) SpeedStep(TM) Technology",
+            "Pentium(R) 4 Processor",
+		"AS400 Family", "IBM390 Family", "G4", "G5", "i860", "i960", 
+		"SH-3", "SH-4", "ARM", "StrongARM", "6x86", "MediaGX", "MII",
+	       	"WinChip", "DSP", "Video Processor"},
+        MappingStrings {"MIF.DMTF|Processor|004.3"} , 
+        ModelCorrespondence {"CIM_Processor.Family"} ] 
+    uint16 ArchitectureType ;
+};
+
+// ==================================================================
+//    CIM_MemoryCheck
+// ==================================================================
+        [Description (
+        " The MemoryCheck specifies a condition for the minimum amount  of "
+        "memory that needs to be available on a system.  The amount is specified "
+        "in the MemorySize property.  The details of this checks are compared "
+        "with the  value of the FreePhysicalMemory property of the  "
+        "CIM_OperatingSystem object referenced by an InstalledOS  association "
+        "for the CIM_ComputerSystem object that describes  the environment.   "
+        "When the value of FreePhyscalMemory property is greater  than or equal "
+        "to the value specified in MemorySize, the  condition is satisfied. ") 
+        ] 
+class CIM_MemoryCheck:CIM_Check
+{
+        [Description (
+        "The amount of memory that needs to exist on a  computer system for a "
+        "software element to executing  properly. ") , units ("KiloBytes") , 
+        ModelCorrespondence {"CIM_OperatingSystem.FreePhysicalMemory"} ] 
+    uint64 MemorySize ;
+};
+     
+// ==================================================================
+//    CIM_DiskSpaceCheck
+// ==================================================================
+        [Description (
+        " The Disk Space Check the amount of disk space the needs  to be "
+        "available on the system. The amount is specified in  the "
+        "AvailableDiskSpace property.  The details of this checks are compared "
+        "with the  value of the AvailableSpace property of the  CIM_FileSystem "
+        "object associated with the  CIM_ComputerSystem object that describes "
+        "the environment.   When the value of AvailableSpace property is greater "
+        " than or equal to the value specified in  AvailableDiskSpace, the "
+        "condition is satisfied. ") ] 
+class CIM_DiskSpaceCheck:CIM_Check
+{
+        [units ("KiloBytes") , ModelCorrespondence {
+        "CIM_FileSystem.AvailableSpace "} ] 
+    uint64 AvailableDiskSpace ;
+};
+     
+// ==================================================================
+//    CIM_SwapSpaceCheck
+// ==================================================================
+        [Description (
+        " The Swap Space Check specifies the amount of swap space  that needs to "
+        "be available on the system. The amount is  specified in the "
+        "SwapSpaceSize property.  The details of this checks are compared with "
+        "the  corresponding details found in a CIM_OperatingSystem  object "
+        "referenced by InstalledOS association for the  CIM_ComputerSystem "
+        "object describing the environment.  When the value of "
+        "TotalSwapSpaceSize property is greater  than or equal to the value "
+        "specified in  SwapSpacesize, the condition is satisfied. ") ] 
+class CIM_SwapSpaceCheck:CIM_Check
+{
+        [units ("KiloBytes") , Description (
+        " The SwapSpaceSize property specifies the minimum number of Kilo bytes  "
+        "of swap space that needs to be available on the target system.") , 
+        ModelCorrespondence {"CIM_OperatingSystem.TotalSwapSpaceSize"} ] 
+    uint64 SwapSpaceSize ;
+};
+     
+// ==================================================================
+//    CIM_OSVersionCheck
+// ==================================================================
+        [Description (
+        " The OS Version Check class specifies the versions of the OS that  can "
+        "support this software element. This check can be for a specific, "
+        "minimum, maximum or a range of releases of an OS.   To specify a "
+        "specific version the minimum and maximum versions must be the same. To "
+        "specify a minimum,  the minimum version needs only be specified. To "
+        "specify a maximum  version, the maximum version needs only be specified."
+        " To specify  a range both minimum and maximum version need to be "
+        "specified.   The type of operating system is specified in the  "
+        "TargetOperatingSystem property of the owning SoftwareElement.  The "
+        "details of this checks are compared with the  corresponding details "
+        "found in a CIM_OperatingSystem  object referenced by InstalledOS "
+        "association for the  CIM_ComputerSystem object that describes the "
+        "environment.  As long as there is at least one CIM_OperatingSystem that "
+        " satisfies the details of the condition, the check is  satisfied. In "
+        "other words, all the operating systems on  the relevant computer system "
+        "do not need to satistfy the  condition. There needs to be at least one. "
+        " Also, note the the OSType property of the CIM_OperatingSystem  class "
+        "must match the type of the TargetOperatingSystem  property. ") ] 
+class CIM_OSVersionCheck:CIM_Check
+{
+        [maxlen (64) , Description (
+        " Minimum version of required operating system. The value  is encoded as "
+        "    <major>.<minor>.<revision> or     <major>.<minor><letter revision>"
+        ) , ModelCorrespondence {"CIM_OperatingSystem.Version"} ] 
+    string MinimumVersion ;
+        [maxlen (64) , Description (
+        " Maximum version of required operating system. The value  is encoded as "
+        "    <major>.<minor>.<revision> or     <major>.<minor><letter revision>"
+        ) , ModelCorrespondence {"CIM_OperatingSystem.Version"} ] 
+    string MaximumVersion ;
+};
+     
+// ==================================================================
+//    CIM_SoftwareElementVersionCheck
+// ================================================================== 
+        [Description (
+        " The Software Element Version Check class specifies  a type of software "
+        "element that must exist in the  environment. This check can be for a "
+        "specific,  minimum, maximum or a range of versions. To specify  a "
+        "specific version the lower and upper versions must  be the same. To "
+        "specify a minimum the lower version  needs only be specified. To "
+        "specify a maximum version the  upper version needs only be specified. "
+        "To specify a range  both upper and lower version need to be specified.  "
+        "The details of this checks are compared with the  corresponding details "
+        "found in a CIM_SoftwareElement  object referenced by an "
+        "InstalledSoftwareElement  association for the CIM_ComputerSystem object."
+        " As long as there is at least one CIM_SoftwareElement that  satisfies "
+        "the details of the condition, the check is  satisfied. In other words, "
+        "all the software elements on  the relevant computer system do not need "
+        "to satistfy the  condition. There needs to be at least one. ") ] 
+class CIM_SoftwareElementVersionCheck:CIM_Check
+{
+        [maxlen (256) , Description (
+        " The name of the software element being checked. ") , 
+        ModelCorrespondence {"CIM_SoftwareElement.Name"} ] 
+    string SoftwareElementName ;
+        [maxlen (64) , Description (
+        " The minimum version of a software elements being checked.") , 
+        ModelCorrespondence {"CIM_SoftwareElement.Version"} ] 
+    string LowerSoftwareElementVersion ;
+        [maxlen (64) , Description (
+        " The maximum version of a software elements being checked.") , 
+        ModelCorrespondence {"CIM_SoftwareElement.Version"} ] 
+    string UpperSoftwareElementVersion ;
+        [maxlen (64) , Description (
+        " The state of the software element being checked.") , Values {
+        "Deployable", "Installable", "Executable", "Running"} , 
+        ModelCorrespondence {"CIM_SoftwareElement.SoftwareElementState"} ] 
+    uint16 SoftwareElementStateDesired ;
+        [maxlen (64) , Description (
+        " The target operating system of the software element  being checked.") 
+        , Values {"Unknown", "Other", "MACOS", "ATTUNIX", "DGUX", "DECNT", 
+        "Digital Unix", "OpenVMS", "HPUX", "AIX", "MVS", "OS400", "OS/2", 
+        "JavaVM", "MSDOS", "WIN3x", "WIN95", "WIN98", "WINNT", "WINCE", 
+        "NCR3000", "NetWare", "OSF", "DC/OS", "Reliant UNIX", "SCO UnixWare", 
+        "SCO OpenServer", "Sequent", "IRIX", "Solaris", "SunOS", "U6000", 
+        "ASERIES", "TandemNSK", "TandemNT", "BS2000", "LINUX", "Lynx", "XENIX", 
+        "VM/ESA", "Interactive UNIX", "BSDUNIX", "FreeBSD", "NetBSD", "GNU Hurd",
+        "OS9", "MACH Kernel", "Inferno", "QNX", "EPOC", "IxWorks", "VxWorks", 
+        "MiNT", "BeOS", "HP MPE", "NextStep", "PalmPilot", "Rhapsody", 
+        "Windows 2000", "Dedicated","VSE","TPF", "Windows (R) Me", 
+        "Not Applicable" } , 
+        ModelCorrespondence {"CIM_SoftwareElement.TargetOperatingSystem"} ] 
+    uint16 TargetOperatingSystemDesired ;
+};
+     
+// ==================================================================
+//    CIM_FileSpecification
+// ==================================================================
+        [Description (
+        " A CIM_FileSpecification identifies a file that is either to  be on or "
+        "off the system. The file is to be located in the  directory identified "
+        "by the DirectorySpecificationFile  associations.   When the invoke() "
+        "method is used, it is expected that  it will use the combination of "
+        "information provided to  check for the file existance. Therefore, any "
+        "of the  properties with a NULL value are not checked. So, if  only the "
+        "Name and the MD5 properties have values, they  are the only ones "
+        "consider by the invoke() method.  ") ] 
+class CIM_FileSpecification:CIM_Check
+{
+        [maxlen (1024) , Description (
+        " Either the name of the file or the name of the file with a  directory "
+        "prefix.  ") ] 
+    string FileName ;
+        [Description ("The creation date and time of the file. ") ] 
+    datetime CreateTimeStamp ;
+        [units ("KiloBytes") ] 
+    uint64 FileSize ;
+        [Description (
+        " The File Checksum property  is a checksum calculated as the 16-bit  "
+        "sum of the first 32 bytes of the file.") , MappingStrings {
+        "MIF.DMTF|Software Signature|002.4"} ] 
+    uint32 CheckSum ;
+        [Description (
+        " The File CRC 1 property is the CRC value calculated using the middle  "
+        "512K bytes.") , MappingStrings {"MIF.DMTF|Software Signature|002.5"} ] 
+    uint32 CRC1 ;
+        [Description (
+        " The File CRC 2 is the CRC value for the middle 512K bytes with a  "
+        "offset modulo 3 to the start of the file of zero.") , MappingStrings {
+        "MIF.DMTF|Software Signature|002.6"} ] 
+    uint32 CRC2 ;
+        [maxlen (16) , Description (
+        " The MD5 algorithm is a well-known algorithm for computing a 128-bit  "
+        "checksum for any file or object. The likelihood of two different   "
+        "filesproducing the same MD5 checksum is very small  (about 1 in 2^64), "
+        "and as such, the MD5 checksum of a file can be  used to construct a "
+        "reliable content identifier that is very  likely to uniquely identify "
+        "the file. The reverse is also true.  If two files have the same MD5 "
+        "checksum, it is very likely that  the files are identical. For purposes "
+        "of MOF specification  of the MD5 property, the MD5 algorithm always "
+        "generates a 32  character string. For example: The string "
+        "abcdefghijklmnopqrstuvwxyz  generates the string "
+        "c3fcd3d76192e4007dfb496cca67e13b. See http://www. rsa.com/pub/rfc1321."
+        "txt for details on the implementation of the MD5  algorithm.") ] 
+    string MD5Checksum ;
+};
+     
+// ==================================================================
+//    CIM_VersionCompatibilityCheck
+// ==================================================================
+        [Description (
+        " The VersionCompatibilityCheck class specifies whether it is  "
+        "permissible to create the next state of a software element. ") ] 
+class CIM_VersionCompatibilityCheck:CIM_Check
+{
+        [Description (
+        " The AllowDownVersion property indicates that this software element  "
+        "can transition to its next state even if a higher or latter version  of "
+        "the software element already exists in the  environment.") ] 
+    boolean AllowDownVersion ;
+        [Description (
+        " The AllowMultipleVersions option controls the ability to configure  "
+        "multiple versions of a product on a system.") ] 
+    boolean AllowMultipleVersions ;
+        [Description (
+        " The Reinstall property indicates that this software element can  "
+        "transition to its next state even if a software element of the same  "
+        "version  already exists in the environment.") ] 
+    boolean Reinstall ;
+};
+     
+// ==================================================================
+//    CIM_Action
+// ==================================================================
+        [Abstract, Description (
+        " A CIM_Action is an operation that is part of a process to  either "
+        "create a SoftwareElement in its next state or  to eliminate the "
+        "SoftwareElement in the current state. ") ] 
+class CIM_Action : CIM_ManagedElement
+{
+        [Propagated ("CIM_SoftwareElement.Name") , key, maxlen (256) , 
+        Description ("The name used to identify this software element") ] 
+    string Name ;
+        [Propagated ("CIM_SoftwareElement.Version") , key, Maxlen (64) , 
+        Description (
+        "Version should be in the form <Major>.<Minor>.<Revision> or <Major>."
+        "<Minor><letter><revision>") , MappingStrings {
+        "MIF.DMTF|ComponentID|001.3"} ] 
+    string Version ;
+        [Propagated ("CIM_SoftwareElement.SoftwareElementState") , key, 
+        Description (" The SoftwareElementState of a software element ") , 
+        Values {"Deployable", "Installable", "Executable", "Running"} ] 
+    uint16 SoftwareElementState ;
+        [Propagated ("CIM_SoftwareElement.SoftwareElementID") , key, maxlen (256
+        ) , Description (" This is an identifier for this software element.") ] 
+    string SoftwareElementID ;
+        [Propagated ("CIM_SoftwareElement.TargetOperatingSystem") , key, 
+        MappingStrings {"MIF.DMTF|Software Component Information|002.5"} , 
+        Description (
+        " The Target Operating System of the owning software element.") , 
+        Values {"Unknown", "Other", "MACOS", "ATTUNIX", "DGUX", "DECNT", 
+        "Digital Unix", "OpenVMS", "HPUX", "AIX", "MVS", "OS400", "OS/2", 
+        "JavaVM", "MSDOS", "WIN3x", "WIN95", "WIN98", "WINNT", "WINCE", 
+        "NCR3000", "NetWare", "OSF", "DC/OS", "Reliant UNIX", "SCO UnixWare", 
+        "SCO OpenServer", "Sequent", "IRIX", "Solaris", "SunOS", "U6000", 
+        "ASERIES", "TandemNSK", "TandemNT", "BS2000", "LINUX", "Lynx", "XENIX", 
+        "VM/ESA", "Interactive UNIX", "BSDUNIX", "FreeBSD", "NetBSD", "GNU Hurd",
+        "OS9", "MACH Kernel", "Inferno", "QNX", "EPOC", "IxWorks", "VxWorks", 
+        "MiNT", "BeOS", "HP MPE", "NextStep", "PalmPilot", "Rhapsody",
+        "Windows 2000", "Dedicated","VSE","TPF", "Windows (R) Me", 
+        "Not Applicable" } ] 
+    uint16 TargetOperatingSystem ;
+        [key, Description (
+        " The ActionID property is a unique identifier assigned to a particular  "
+        "action for a softare element. ") , maxlen (256) ] 
+    string ActionID ;
+        [Description (
+        " The Direction property is used to indicate whether a particular   "
+        "Actionobject is part of a sequence of actions to transition the   "
+        "currentsoftware element to its next state, such as Install or to  "
+        "remove the current software element, such as Uninstall.") , Values {
+        "Install", "Uninstall"} ] 
+    uint16 Direction ;
+        [Description (
+        " The invoke method is to take a particular action. The  details of how "
+        "the method performs the action is implementation  specific.  The "
+        "results of the method are based on the return value.    - A 0 (zero) is "
+        "returned if the condition is satisfied.   - A 1 (one) is returned if "
+        "the method is not supported.    - Any other value indicates the "
+        "condition is not satisfied. ") ] 
+    uint32 Invoke() ;
+};
+     
+// ==================================================================
+//    CIM_DirectoryAction
+// ==================================================================
+        [Abstract, Description (
+        " The DirectoryAction is an abstract class that is used for  directories "
+        "to be managed. Creation of directories is handled  by the "
+        "CreateDirectoriesAction and removal is handled by  the RemoveDirectory "
+        "action. ") ] 
+class CIM_DirectoryAction:CIM_Action
+{
+        [maxlen (1024) ] 
+    string DirectoryName ;
+};
+     
+// ==================================================================
+//    CIM_CreateDirectoryAction
+// ==================================================================
+        [Description (
+        " The CreateDirectory action creates empty directories for  "
+        "SoftwareElements to be installed locally.") ] 
+class CIM_CreateDirectoryAction:CIM_DirectoryAction
+{
+};
+     
+// ==================================================================
+//    CIM_RemoveDirectoryAction
+// ==================================================================
+        [Description (
+        " The RemoveDirectoryAction removes directories for SoftwareElements. "
+        ) ] 
+class CIM_RemoveDirectoryAction:CIM_DirectoryAction
+{
+    boolean MustBeEmpty ;
+};
+     
+// ==================================================================
+//    CIM_FileAction
+// ==================================================================
+        [Abstract, Description (
+        " The CIM_FileAction allows the author to locate files that  already "
+        "exist on the users machine, and move or copy those  files to a new "
+        "location.") ] 
+class CIM_FileAction:CIM_Action
+{
+};
+     
+// ==================================================================
+//    CIM_CopyFileAction
+// ==================================================================
+        [Description (
+        " The CIM_CopyFileAction specifies files that  exist on a computer "
+        "system, and to move or copy those  files to a new location.   The "
+        "to/from information for the copy is specified using  either the "
+        "ToDirectorySpecification/FromDirectorySpecification  or the "
+        "ToDirectoryAction/FromDirectoryAction associations.  The first set is "
+        "used when the source and/or the target are to  exist before any actions "
+        "are taken. The second set is  used when the source and/or target are "
+        "created as a part  of a previous action. In the latter case, the action "
+        " to create the directory must occur prior to the  CopyFileAction object."
+        "  ") ] 
+class CIM_CopyFileAction:CIM_FileAction
+{
+        [maxlen (1024) ] 
+    string Source ;
+        [maxlen (1024) ] 
+    string Destination ;
+    boolean DeleteAfterCopy ;
+};
+     
+// ==================================================================
+//    CIM_RemoveFileAction
+// ==================================================================
+        [Description ("The RemoveFileAction uninstalls files.") ] 
+class CIM_RemoveFileAction:CIM_FileAction
+{
+        [maxlen (1024) ] 
+    string File ;
+};
+     
+// ==================================================================
+//    RebootAction
+// ==================================================================
+        [Description (
+        " The RebootAction Causes a reboot of the system where the  "
+        "SoftwareElement is installed. ") ] 
+class CIM_RebootAction:CIM_Action
+{
+};
+     
+// ==================================================================
+//    CIM_ExecuteProgram
+// ==================================================================
+        [Description (
+        " The ExecuteProgram causes files to be executed on the system  where "
+        "the SoftwareElement is installed. ") ] 
+class CIM_ExecuteProgram:CIM_Action
+{
+        [maxlen (1024) ] 
+    string ProgramPath ;
+        [Description ("A string that is invocable on a system command line.") ] 
+    string CommandLine ;
+};
+     
+// ==================================================================
+//    SoftwareElementChecks
+// ==================================================================
+        [Association, Aggregation, Description (
+        " Since software elements in a runnable state cannot transition into  "
+        "another state, the value of the Phase property is restricted to  "
+        "In-State for SoftwareElement objects in a runable state. ") ] 
+class CIM_SoftwareElementChecks
+{
+        [Min (1) , Max (1) , Aggregate] 
+    CIM_SoftwareElement REF Element;
+        [Min (0) , Max (NULL), Weak] 
+    CIM_Check REF Check;
+        [Description (
+        " The Phase property indicates whether the referenced check is an  "
+        "in-state check or a next-state check.") , Values {"In-State", 
+        "Next-State"} ] 
+    uint16 Phase ;
+};
+     
+// ==================================================================
+//    SettingCheck
+// ==================================================================
+        [Description (
+        " This class specifies information needed to check a particular setting "
+        "file for a specific entry that contains  a value that is equal to, or "
+        "contains, the value specified.  All compares are assumed to be case "
+        "insensitive.") ] 
+class CIM_SettingCheck:CIM_Check
+{
+        [Description ("Key of section containing the settings to be checked.") 
+        , Maxlen (256) ] 
+    string SectionKey ;
+        [Description ("Name of the Entry to be checked") , Maxlen (256) ] 
+    string EntryName ;
+        [Description (
+        "Value to be checked that is associated with the named entry.") ] 
+    string EntryValue ;
+        [Description (
+        "This specifies the way the setting value should be compared.") , 
+        Values {"Matches", "Contains"} ] 
+    uint16 CheckType ;
+        [Description ("File name of the setting file to be checked.") , Maxlen (
+        1024) ] 
+    string FileName ;
+};
+     
+// ==================================================================
+//    ModifySettingAction
+// ==================================================================
+        [Description (
+        "This class specifies the information to be used to modify a particular "
+        "setting file for a specific entry with a specific value. The value "
+        "specified is created as a new entry or appends to, replaces, removes "
+        "from,  or deletes the specified entry. All additions are assumed to be "
+        "case sensitive. Removes are assumed to be case insensitive.") ] 
+class CIM_ModifySettingAction:CIM_Action
+{
+        [Description (
+        "This is the key of the section of the setting entry to be modified.") 
+        , Maxlen (256) ] 
+    string SectionKey ;
+        [Description ("Name of Entry to be modified.") , Maxlen (256) ] 
+    string EntryName ;
+        [Description (
+        "This is the value to be used to add, append, or replace to the "
+        "specified setting.") ] 
+    string EntryValue ;
+        [Description ("File Name of setting file entry to be modified.") , 
+        Maxlen (1024) ] 
+    string FileName ;
+        [Description (
+        "Type of action to be performed on the specified setting entry.  Create "
+        "-  Creates the specified entry. Delete - Deletes the specified entry. "
+        "Append - Append to the end of the specified entry. Remove - Remove the "
+        "value from the specified entry.") , Values {"Create", "Delete", 
+        "Append", "Remove"} ] 
+    uint16 ActionType ;
+};
+     
+// ==================================================================
+//    DirectorySpecificationFile
+// ==================================================================
+        [Association, Description (
+        " The CIM_DirectorySpecificationFile association identifies the   "
+        "directorythat contains the file being specified by referencing  the "
+        "CIM_DirectorySpecification class. ") ] 
+class CIM_DirectorySpecificationFile
+{
+        [Min (0) , Max (1) ] 
+    CIM_DirectorySpecification REF DirectorySpecification;
+        [Min (0) , Max (NULL)] 
+    CIM_FileSpecification REF FileSpecification;
+};
+     
+// ==================================================================
+//    ActionSequence
+// ==================================================================
+        [Association, Description (
+        " The CIM_ActionSequence association is used to define a series of  "
+        "operations that either transitions the software element, referenced  by "
+        "the CIM_SoftwareElementActions association, to its next state or  "
+        "removes the software element from its current environment. The Action "
+        "classes participating in this association must have the same value for "
+        "the Direction property since they are either part of a sequence to  "
+        "transition a software element into its next state or to uninstall a  "
+        "software element. The next-state actions and uninstall actions  "
+        "associated with a particular software element must be a continuos  "
+        "sequence. Since the ActionSequence is an association the loops on  the "
+        "Action class with roles for the 'prior' action and 'next' action in a "
+        "sequence, the need for a continous sequence imples:  (1)Within the set "
+        "of next-state or uninstall actions, there is one and only one action "
+        "that does not have an instance of the ActionSequence  association "
+        "referencing it in the 'next' role. This is the first action in the "
+        "sequence. (2) Within the set of next-state or uninstall actions, there "
+        "is one and only one action that does not have an instance of the "
+        "ActionSequence association referencing it in the \"prior\" role. This  "
+        "is the last action in the sequence. (3) All other actions within the  "
+        "set of next-state and uninstall actions must participate in two  "
+        "instances of the ActionSequence association, one in a  prior role and "
+        "one in the next role.") ] 
+class CIM_ActionSequence
+{
+        [Min (0) , Max (1) ] 
+    CIM_Action REF Next;
+        [Min (0) , Max (1) ] 
+    CIM_Action REF Prior;
+};
+     
+// ==================================================================
+//    SoftwareElementActions
+// ==================================================================
+        [Association, Aggregation, Description (
+        " This association is used to identify the actions for a software "
+        "element. ") ] 
+class CIM_SoftwareElementActions
+{
+        [Min (1) , Max (1) , Aggregate] 
+    CIM_SoftwareElement REF Element;
+        [Min (0) , Max (NULL), Weak] 
+    CIM_Action REF Action;
+};
+     
+// ==================================================================
+//    SoftwareFeatureSoftwareElements
+// ==================================================================
+        [Association, Aggregation, Description (
+        " The SoftwareFeatureSoftwareElements associations identifies the "
+        "software elements that make up a particular software feature.") ] 
+class CIM_SoftwareFeatureSoftwareElements : CIM_Component
+{
+        [Min (0) , Max (NULL), Aggregate, Override ("GroupComponent") ] 
+    CIM_SoftwareFeature REF GroupComponent;
+        [Min (0) , Max (NULL), Override ("PartComponent") ] 
+    CIM_SoftwareElement REF PartComponent;
+};
+     
+// ==================================================================
+//    ProductSoftwareFeatures
+// ==================================================================
+        [Association, Aggregation, Description (
+        " The ProductSoftwareFeatures association identifies the software   "
+        "features for a particular product. ") ] 
+class CIM_ProductSoftwareFeatures
+{
+        [Min (1) , Max (1) , Aggregate] 
+    CIM_Product REF Product;
+        [Min (0) , Max (NULL), Weak] 
+    CIM_SoftwareFeature REF Component;
+};
+     
+// ==================================================================
+//    ToDirectorySpecification
+// ==================================================================
+        [Association, Description (
+        " The ToDirectorySpecification association identifies the target  "
+        "directory for the file action. When this association is used,  the "
+        "assumption is that the target directory already existed.   This "
+        "association cannot exist with a ToDirectoryAction association since a "
+        "file action can only involve a  single target directory.") ] 
+class CIM_ToDirectorySpecification
+{
+        [Min (0) , Max (1) ] 
+    CIM_DirectorySpecification REF DestinationDirectory;
+        [Min (0) , Max (NULL)] 
+    CIM_CopyFileAction REF FileName;
+};
+     
+// ==================================================================
+//    FromDirectorySpecification
+// ==================================================================
+        [Association, Description (
+        " The FromDirectorySpecification association identifies the source  "
+        "directory for the file action. When this association is used,  the "
+        "assumption is that the source directory already existed.  This "
+        "association cannot exist with a  FromDirectoryAction association since "
+        "a file action  can only involve single source directory.") ] 
+class CIM_FromDirectorySpecification
+{
+        [Min (0) , Max (1) ] 
+    CIM_DirectorySpecification REF SourceDirectory;
+        [Min (0) , Max (NULL)] 
+    CIM_FileAction REF FileName;
+};
+     
+// ==================================================================
+//    ToDirectoryAction
+// ==================================================================
+        [Association, Description (
+        " The ToDirectoryAction association identifies the target directory for  "
+        "the file action. When this association is used, the assumption  is that "
+        "the target directory was created by a previous action.   This "
+        "association cannot exist with a ToDirectorySpecification  association "
+        "since a file action can only  involve a single target directory. ") ] 
+class CIM_ToDirectoryAction
+{
+        [Min (0) , Max (1) ] 
+    CIM_DirectoryAction REF DestinationDirectory;
+        [Min (0) , Max (NULL)] 
+    CIM_CopyFileAction REF FileName;
+};
+     
+// ==================================================================
+//    FromDirectoryAction
+// ==================================================================
+        [Association, Description (
+        " The FromDirectoryAction association identifies the source directory  "
+        "for the file action. When this association is used, the assumption  is "
+        "that the source directory was created by a previous action.  This "
+        "association cannot exist with a FromDirectorySpecification  association "
+        "since a file action can only  involve a single source directory. ") ] 
+class CIM_FromDirectoryAction
+{
+        [Min (0) , Max (1) ] 
+    CIM_DirectoryAction REF SourceDirectory;
+        [Min (0) , Max (NULL)] 
+    CIM_FileAction REF FileName;
+};
+     
+// ==================================================================
+//    SoftwareFeatureServiceImplementation
+// ==================================================================
+        [Association, Description (
+        " An association between a Service and how it is implemented in software."
+        "  The cardinality of this association is many-to-many.  A Service may "
+        "be  provided by more than one SoftwareFeature, operating in conjunction."
+        "   And, any software Feature may provide more than one Service.  When  "
+        "multiple SoftwareFeatures are associated with a single Service, it is  "
+        "assumed that these elements operate in conjunction to provide the  "
+        "Service.  If different implementations of a Service exist, each of  "
+        "these implementations would result in individual instantiations of the  "
+        "Service object.  These individual instantiations would then have  "
+        "associations to the unique implementations. ") ] 
+class CIM_SoftwareFeatureServiceImplementation : CIM_Dependency
+{
+        [Min (0) , Max (NULL), Override ("Antecedent") ] 
+    CIM_SoftwareFeature REF Antecedent;
+        [Min (0) , Max (NULL), Override ("Dependent") ] 
+    CIM_Service REF Dependent;
+};
+     
+// ==================================================================
+//    SoftwareFeatureSAPImplementation
+// ==================================================================
+        [Association, Description (
+        " An association between a ServiceAccessPoint and how it is   "
+        "implementedin software.  The cardinality of this association  is "
+        "many-to-many.  A SAP may be provided by more than one  SoftwareFeature, "
+        "operating in conjunction.  And, any  SoftwareFeature may provide more "
+        "than one ServiceAccessPoint. a  When many SoftwareFeatures are "
+        "associated with single SAP,  it is assumed that these elements operate "
+        "in conjunction to  provide the AccessPoint.  If different "
+        "implementations of a  SAP exist, each of these implementations would "
+        "result in  individual instantiations of the ServiceAccessPoint object.  "
+        "These individual instantiations would then have associations  to the "
+        "unique implementations. ") ] 
+class CIM_SoftwareFeatureSAPImplementation : CIM_Dependency
+{
+        [Min (0) , Max (NULL), Override ("Antecedent") ] 
+    CIM_SoftwareFeature REF Antecedent;
+        [Min (0) , Max (NULL), Override ("Dependent") ] 
+    CIM_ServiceAccessPoint REF Dependent;
+};
+     
+// ==================================================================
+//    ApplicationSystemSoftwareFeature
+// ==================================================================
+        [Association, Aggregation, Description (
+        " The ApplicationSystemSoftwareFeature associations identifies the  "
+        "software features that make up a particular application system.  The "
+        "software features can be part of different products. ") ] 
+class CIM_ApplicationSystemSoftwareFeature : CIM_SystemComponent
+{
+        [Min (0) , Max (NULL), Override ("GroupComponent") , Aggregate, 
+        Description ("The parent system in the Association") ] 
+    CIM_ApplicationSystem REF GroupComponent;
+        [Min (0) , Max (NULL), Override ("PartComponent") , Description (
+        "The child element that is a component of a system") ] 
+    CIM_SoftwareFeature REF PartComponent;
+};
+     
+// ==================================================================
+//    InstalledSoftwareElement
+// ==================================================================
+        [Association, Description (
+        " The InstalledSoftwareElement association allows one to  to identify "
+        "the Computer System a particular Software element is installed on. ") 
+        ] 
+class CIM_InstalledSoftwareElement
+{
+        [Min (0) , Max (NULL), Description (
+        "References the software element that is installed.") ] 
+    CIM_SoftwareElement REF Software;
+        [Min (0) , Max (1) , Description (
+        "References the computer system hosting a particular software element. "
+        ) ] 
+    CIM_ComputerSystem REF System;
+};
+     
+// ================================================================== 
+//    FRUIncludesSoftwareFeature 
+// ================================================================== 
+[Association, Aggregation, 
+ Description( "The FRUIncludesSoftwareFeature association identifies "
+   "the software features packaged with a particular FRU. A common way "
+   "this association can be used is to support a management task to "
+   "determine if a particular FRU is compatible with a particular hardware "
+   "product. In order to determine whether or not a FRU is compatible with "
+   "a particular hardware product, the following conditions need to verified: "
+   "(1) Is the physical package of the FRU compatible with the slots or "
+   "equivalent of the hardware device? (2) Are there any physical constraints "
+   "(like power consumption) that prevent the FRU from being installed "
+   "properly? (3) Are the software features packaged with the FRU compatiable "
+   "with the underlying operating system and other software already installed "
+   "in the hardware product? This latter question can be answered by first "
+   "seeing if an instance of the FRUIncludesSoftwareFeature association exists. "
+   "If it does, then the compatibility of each SoftwareFeature can be "
+   "determined by evaluating the Check classes that are referenced by the " 
+   "SoftwareElementChecks association on each SoftwareElement. For example, "
+   "there might be a SoftwareElementVersionCheck that declares that a "
+   "SoftwareElement of the FRU's SoftwareFeature is not compatible with "
+   "another SoftwareFeature." )
+] 
+class CIM_FRUIncludesSoftwareFeature 
+{ 
+        [Key, Min(0), Max(1), Aggregate ] 
+    CIM_FRU REF FRU; 
+        [Key, Min(0), Max(NULL) ] 
+    CIM_SoftwareFeature REF Component; 
+}; 
+
+// ==================================================================
+//    SoftwareElementServiceImplementation
+// ==================================================================
+        [Association, Description (
+        "  An association between a Service and how it is implemented "
+        "by one or more executable SoftwareElements. Note that this "
+        "association is restricted to 'executable' Elements. In "
+        "earlier phases of deployment, the SoftwareFeatureService"
+        "Implementation association is adequate and recommended. \n"
+        "  The relationship between this association and SoftwareFeature"
+        "ServiceImplementation is more fully described here. Software"
+        "ElementServiceImplementation allows the description of greater "
+        "granularity than SoftwareFeatureServiceImplementation, when a "
+        "SoftwareFeature is fully deployed and results in several "
+        "executable Elements. These Elements may implement several "
+        "different Services. \n"
+        "  Since SoftwareFeatures decompse into SoftwareElements, "
+        "it is possible to describe how software implements a Service "
+        "by using either this association or the SoftwareFeatureService"
+        "Implementation relationship.  One or the other should be chosen. "
+        "Both associations should not be used for a particular Service, "
+        "since their information is redundant. \n"
+        "  This relationship is especially important when the "
+        "SoftwareFeature and Product aspects are not described for a "
+        "SoftwareElement (ie, when the acquisition and deployment of "
+        "the software is not detailed). In this case, the Software"
+        "ElementServiceImplementation association is the only one "
+        "available to describe how a Service is implemented in "
+        "software.  Since SoftwareFeatures are not instantiated, it "
+        "is not possible to use the SoftwareFeatureService"
+        "Implementation association. \n"
+        "  The cardinality of this association is many-to-many. A "
+        "Service may be provided by more than one SoftwareElement. (If "
+        "this is true, it is assumed that the SoftwareElements operate "
+        "in conjunction.) And, any SoftwareElement may provide more "
+        "than one Service.") ]
+class CIM_SoftwareElementServiceImplementation : CIM_Dependency
+{
+        [Override ("Antecedent"), 
+        Description (
+        "The executable SoftwareElement implementing the Service.") ]
+    CIM_SoftwareElement REF Antecedent;
+        [Override ("Dependent"), 
+        Description (
+        "The Service implemented by the SoftwareElement.") ]
+    CIM_Service REF Dependent;
+};
+
+// ==================================================================
+//    SoftwareElementSAPImplementation
+// ==================================================================
+        [Association, Description (
+        "  An association between a ServiceAccessPoint and how it is "
+        "implemented by one or more executable SoftwareElements. Note "
+        "that this association is restricted to 'executable' Elements. "
+        "In earlier phases of deployment, the SoftwareFeatureSAP"
+        "Implementation association is adequate and recommended. \n"
+        "  The relationship between this association and SoftwareFeature"
+        "SAPImplementation is more fully described here. Software"
+        "ElementSAPImplementation allows the description of greater "
+        "granularity than SoftwareFeatureSAPImplementation, when a "
+        "SoftwareFeature is fully deployed and results in several "
+        "executable Elements. These Elements may implement several "
+        "different ServiceAccessPoints. \n"
+        "  Since SoftwareFeatures decompse into SoftwareElements, "
+        "it is possible to describe how software implements a SAP "
+        "by using either this association or the SoftwareFeatureSAP"
+        "Implementation relationship.  One or the other should be chosen. "
+        "Both associations should not be used for a particular Access"
+        "Point, since their information is redundant. \n"
+        "  This relationship is especially important when the "
+        "SoftwareFeature and Product aspects are not described for a "
+        "SoftwareElement (ie, when the acquisition and deployment of "
+        "the software is not detailed). In this case, the Software"
+        "ElementSAPImplementation association is the only one "
+        "available to describe how an AccessPoint is implemented in "
+        "software.  Since SoftwareFeatures are not instantiated, it "
+        "is not possible to use the SoftwareFeatureSAP"
+        "Implementation association. \n"
+        "  The cardinality of this association is many-to-many. A "
+        "ServiceAccessPoint may be provided by more than one Software"
+        "Element. (If this is true, it is assumed that the Software"
+        "Elements operate in conjunction.) And, any SoftwareElement "
+        "may provide more than one SAP.") ]
+class CIM_SoftwareElementSAPImplementation : CIM_Dependency
+{
+        [Override ("Antecedent"), 
+        Description (
+        "The executable SoftwareElement implementing the SAP.") ]
+    CIM_SoftwareElement REF Antecedent;
+        [Override ("Dependent"), 
+        Description (
+        "The ServiceAccessPoint implemented by the SoftwareElement.") ]
+    CIM_ServiceAccessPoint REF Dependent;
+};
+
+// ================================================================== 
+//    SoftwareFeatureComponent 
+// ================================================================== 
+        [Association, Aggregation, Description ( 
+         "The SoftwareFeatureComponent aggregation models a set of  " 
+         "subordinate or independent Software Features " 
+         "under a Product " 
+         "that are aggregated together to form " 
+         "a higher-level or large grain Software Feature " 
+         "under the same Product.") ] 
+class CIM_SoftwareFeatureComponent : CIM_Component 
+{ 
+        [Override ("GroupComponent"), Aggregate, 
+         Description ("The parent SoftwareFeature.") ] 
+   CIM_SoftwareFeature REF GroupComponent; 
+        [Override ("PartComponent"), 
+         Description ("The component SoftwareFeature.") ] 
+   CIM_SoftwareFeature REF PartComponent; 
+}; 
+
+// =================================================================== 
+//    InstalledProduct 
+// =================================================================== 
+        [Description ( 
+         "The InstalledProduct object allows the grouping of " 
+         "SoftwareFeatures and SoftwareElements that  " 
+         "represent a purchased Product or the result of " 
+         "the installation of a Product. Often, Products are purchased " 
+         "once but may be installed several times in different locations " 
+         "on a system or different systems. All of the SoftwareElements " 
+         "and SoftwareFeatures of a single install should be grouped in " 
+         "instances of InstalledProduct. " 
+         "This is defined using the two associations, Collected" 
+         "SoftwareFeatures and CollectedSoftwareElements." 
+         "These associations define the particular " 
+         "SoftwareFeatures and SoftwareElements that are " 
+         "part of an InstalledProduct. " 
+         "These MemberOf associations allow one to find all of the " 
+         "Product installations in which a SoftwareFeature is represented  " 
+         "or a SoftwareElement is deployed. " 
+         "In general, the InstalledProduct " 
+         "object represents a grouping or 'bag' of 'like' Elements. " 
+         "InstalledProduct is weak to Product. ") ] 
+class CIM_InstalledProduct : CIM_Collection 
+{ 
+        [Propagated ("CIM_Product.IdentifyingNumber"), Key, Maxlen (64), 
+        Description ( 
+        "Product identification such as a serial number on software or a die " 
+        "number on a hardware chip"), 
+        MappingStrings {"DMTF|ComponentID|001.4"} ] 
+    string ProductIdentifyingNumber ; 
+        [Propagated ("CIM_Product.Name"), Key, Maxlen (256), 
+        Description ("Commonly used Product name"), 
+        MappingStrings {"DMTF|ComponentID|001.2"} ] 
+    string ProductName ; 
+        [Propagated ("CIM_Product.Vendor"), Key, Maxlen (256), 
+        Description ( 
+        "The name of the Product's supplier. Corresponds to the Vendor property " 
+        "in the Product object in the DMTF Solution Exchange Standard."), 
+        MappingStrings {"DMTF|ComponentID|001.1"} ] 
+    string ProductVendor ; 
+        [Propagated ("CIM_Product.Version"), Key, Maxlen (64), Description ( 
+        "Product version information.  Corresponds to the Version property in " 
+        "the Product object in the DMTF Solution Exchange Standard."), 
+        MappingStrings {"DMTF|ComponentID|001.3"} ] 
+    string ProductVersion ; 
+       [Key, MaxLen (256), Description ( 
+        "The identifying information of the System (ie, the instance) on " 
+       "which the Product is installed. The property contains the " 
+       "path of an instance, encoded as a string parameter - if the " 
+       "System instance is modeled in the CIM Schema,  if the product " 
+       "is installed on a single system, and if the " 
+       "information is available during installation. If not, " 
+       "the property contains some identifying string that names the " 
+       "System on which the Product is installed.") ] 
+   string SystemID; 
+       [Key, MaxLen (256), Description ( 
+         "The identification of the InstalledProduct object. " 
+         "This key can be used to differentiate between " 
+         "product intstallations - usually installation location.") ] 
+   string CollectionID; 
+       [Description ( 
+        "The Name property defines the label by which the object is known to the " 
+        "world outside the data processing system. This label is a " 
+        "human-readable name that uniquely identifies the element in the context " 
+        "of the element's namespace."), Maxlen (256) ] 
+    string Name ; 
+}; 
+// ================================================================== 
+//    InstalledProductImage 
+// ================================================================== 
+        [Association,  Description ( 
+        " The InstalledProductImage association identifies the  " 
+        "InstalledProduct instance representing the " 
+        "collection of installed features and elements " 
+        "for a particular product's installed instance. ") ] 
+class CIM_InstalledProductImage 
+{ 
+        [Min (1) , Max (1) , Aggregate, 
+        Description("The product that has been " 
+        "installed and created the software features " 
+        "and software elements on the system.")] 
+    CIM_Product REF Product; 
+        [Weak, Description("The collection representing " 
+        "the set of software features and elements that " 
+        "are the result of one product installation. ")] 
+    CIM_InstalledProduct REF Collection; 
+}; 
+
+// ================================================================== 
+//    CollectedSoftwareElements 
+// ================================================================== 
+        [Association, Aggregation, Description ( 
+         "CIM_CollectedSoftwareElements is an association used to " 
+         "establish the SoftwareElements of a product " 
+         "installation represented by the grouping object, " 
+         "InstalledProductCollection. ") ] 
+class CIM_CollectedSoftwareElements : CIM_MemberOfCollection 
+{ 
+        [Aggregate, Description ( 
+         "The collection representing the " 
+         "installed image of a Product ."), Override("Collection") ] 
+   CIM_InstalledProduct REF Collection; 
+        [Description ("The SoftwareElements that are " 
+         "members of the InstalledProduct Collection."), 
+  Override("Member") ] 
+   CIM_SoftwareElement REF Member; 
+}; 
+
+// ================================================================== 
+//    CollectedSoftwareFeatures 
+// ================================================================== 
+        [Association, Aggregation, Description ( 
+         "CIM_CollectedSoftwareFeatures is an association used to " 
+         "establish the SoftwareFeatures of a product " 
+         "installation represented by the grouping object, " 
+         "InstalledProductCollection. ") ] 
+class CIM_CollectedSoftwareFeatures : CIM_MemberOfCollection 
+{ 
+        [Aggregate, Description ( 
+         "The collection representing the " 
+         "installed image of a " 
+         "Product."), Override("Collection") ] 
+   CIM_InstalledProduct REF Collection; 
+        [Description ("The SoftwareFeatures that are " 
+         "members of the InstalledProduct Collection."), 
+  Override("Member") ] 
+   CIM_SoftwareFeature REF Member; 
+}; 
+
+// ==================================================================
+// end of file
+// ==================================================================

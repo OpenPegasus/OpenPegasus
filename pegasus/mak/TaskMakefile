@@ -1,0 +1,1049 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+
+# ============================================================================
+# File Specific coding convention
+# ====================================
+#
+# There are to levels of usage statements supported within this Makefile.
+# They are usage and usage_all. These are both implemented by doing a search
+# across the file for 3 or 2 consecutive # characters.
+#
+# This means all comments not to be displayed as part of these usage statements
+# must be made with a single # character.
+#
+# ============================================================================
+
+### =========================================================================
+###
+### Makefile for managing a Pegasus source task branch
+###
+### Refer to OpenPegasus PEP108 and PEP 248 for more information about
+### OpenPegasus use of task branches and processes within OpenPegasus
+###
+### NOTE:
+###    This is a Preliminary version for testing.
+###    The Module is set to junk rather than pegasus
+###    This has not been tested on Windows
+###
+## Author: Jim Wunderlich (Jim_Wunderlich@prodigy.net)
+##
+### ========================================================================
+###
+### General Guidelines:
+###   Many of the rules will operate from any directory while others require
+###   them to be executed at a specific directory. The commands that require a
+###   a specific location will return an error if they are not executed at the
+###   appropriate directory. Here are specifics:
+###
+###     The following are directory position independent.
+###        branch_create,        branch_delete,           branch_rename
+###        branch_lists,         usage                    usage_all
+###        defaults,             branch_diff_to_root,     branch_diff_to_trunk
+###        branch_diff_unmerged_branch,
+###        branch_diff_unmerged_trunk
+###
+###     The following should be executed from above the $(MODULE) directory.
+###     Note that some of these commands instantiate the working copy of the
+###     branch source tree(They have a * before and after them ).
+###        * branch_checkout  *, branch_status
+###        * branch_merge_in  *, branch_merge_in_commit,  branch_merge_in_finish
+###        * branch_merge_out *, branch_merge_out_commit, branch_merge_out_finish
+###        * branch_migrate   *, branch_migrate_commit,   branch_migrate_finish
+###
+###     The following can be executed from anywhere within a working branch
+###     source tree.
+###        branch_commit,        branch_diff
+###
+###   These rules all depend on the user having already logged into CVS with
+###   appropriate user permissions.
+###
+###   These rules do not set or maintain CVS defaults. All CVS defaults should
+###   come from the user's .cvsrc file. These rules set specific options that
+###   are required for the operation to be performed.
+###
+###  Branch Management Terminology:
+###
+###   branch merge out - The act of merging changes from the trunk, that have occurred
+###                      since the branch was either created or last merged out
+###                      into the branch.
+###   branch merge in  - The act of merging changes from the branch, that have occurred
+###                      since the branch was either created or last merged in,
+###                      into the trunk.
+###   branch migration - The act of migrating all the changes on the branch, that have
+###                      not been merged into the trunk, to another branch rooted at
+###                      the current head of the trunk.
+###
+##  Functions:
+##       usage
+##       usage_all
+##       defaults
+##
+##       branch_list
+##       branch_status
+##       branch_create
+##       branch_rename
+##       branch_delete
+##       branch_checkout
+##       branch_commit
+##       branch_diff_to_root
+##       branch_diff_unmerged_branch
+##       branch_diff_unmerged_trunk
+##       branch_diff_to_trunk
+##       branch_merge_in
+##       branch_merge_out
+##       branch_migrate
+##
+## ==========================================================================
+##
+## Tags created/maintained to manage the task branch by the rules within this Makefile
+##
+## The [BRANCH NAME] is expected to be the combination of a PEP number or
+## BUG number and functionality. For example PEPXXX_ConfigChanges or
+## BUGXXXX_ConfigChanges. The branch name should use Camel Notation and
+## should not contain dash (-) characters.
+## Note that CVS further restricts this to not use any of the following
+## characters enclosed within []: [$ , . : ; @].
+##
+##
+## Branch and branch management tag naming convention
+##
+## TASK-[BRANCH_NAME]-[ACTION]_[DIRECTION]_[LOCATION]
+##
+## Where:
+##   TASK         - is constant to associate all tags to a TASK branch
+##   BRANCH_NAME  - is the name of the branch as described above.
+##   ACTION       - is the action or purpose of the tag. It is one of the following:
+##                  root, branch, merged_in, merged_out, merging_in or merging_out.
+##   DIRECTION    - is the direction of the ACTION relative to the LOCATION, either
+##                  to or from.
+##   LOCATION     - is the associated location of the tag. It is either on the trunk
+##                    or branch.
+##                  Note that the ACTION root does not have a DIRECTION or LOCATION
+##                    as it is always on the trunk. This also means that task branches
+##                    do not support sub branches.
+##                  Note that the ACTION branch does not have a DIRECTION or LOCATION
+##                    as it is the branch.
+##
+##   (1) TASK-[BRANCH NAME]-root    - tag on trunk representing the
+##                                   root of the branch.
+##
+##   (2) TASK-[BRANCH NAME]-branch  - head of the branch
+##
+##
+##   (3) TASK-[BRANCH NAME]-merged_out_from_trunk   - The tag on the trunk which
+##                        marks the place where the last merge out operation occurred.
+##                        It could also be said that changes on the trunk up
+##                        to this label are contained on the branch.
+##
+##   (4) TASK-[BRANCH NAME]-merged_out_to_branch  - The tag on the branch which
+##                        marks the place where the last merge out operation occurred.
+##
+##   (5) TASK-[BRANCH NAME]-merged_in_to_trunk    - The tag on the trunk which
+##                        marks the place where the last merge in operation occurred.
+##
+##   (6) TASK-[BRANCH NAME]-merged_in_from_branch   - The tag on the branch which
+##                        marks the place where the last merge in operation occurred.
+##                        It could also be said that changes on the branch up to
+##                        this label have been merged into the trunk.
+##
+##
+## For Example if the branch name is PEPXX_NewFunc then the following tags
+## will be in use:
+##     TASK-PEPXX_NewFunc-root
+##     TASK-PEPXX_NewFunc-branch
+##     TASK-PEPXX_NewFunc-merged_in_to_trunk
+##     TASK-PEPXX_NewFunc-merged_out_from_trunk
+##     TASK-PEPXX_NewFunc-merged_in_from_branch
+##     TASK-PEPXX_NewFunc-merged_out_to_branch
+##
+##
+## Consider the following diagram:
+##
+## NOTE: The numbers in these diagrams refer to the branch maintenance
+##       symbols above.
+##
+##   After task branch has been created, and changes have been made on both
+##   the trunk and the branch.
+##
+##      ------------------------------------------------------HEAD
+##     /
+##    /
+##   |
+##   |
+##   X--------------------------------------------------------BRANCH (2)
+##
+##   X = 1 = 3 = 4 = 5 = 6
+##
+##
+##   After task branch has been merged out once
+##   and more changes have been made on both the trunk and the branch.
+##
+##
+##      ----Y--------------------------------------------------HEAD
+##     /     \
+##    /       \
+##   |        _\/
+##   |          \
+##   X-----------Z---------------------------------------------BRANCH (2)
+##
+##   X = 1 = 5 = 6
+##   Y = 3
+##   Z = 4
+##
+##
+##   After task branch has been merged out several times, merged in once
+##   and more changes have been made on both the trunk and the branch.
+##
+##      ---------------------Y------------V---------------------HEAD
+##     /     \       \        \         _/
+##    /       \       \        \        /|
+##   |        _\/     _\/      _\/     /
+##   |          \       \        \    /
+##   X----------------------------Z--U--------------------------BRANCH (2)
+##
+##   X = 1
+##   Y = 3
+##   Z = 4
+##   U = 6
+##   V = 5
+##
+##   After branch has been merged out several times, merged in several times
+##   and more changes have been made on both the trunk and the branch.
+##
+##      -------------------------------------Y-----------V-------HEAD
+##     /     \       \        \         _/    \        _/
+##    /       \       \        \        /|     \       /|
+##   |        _\/     _\/      _\/     /       _\/    /
+##   |          \       \        \    /          \   /
+##   X--------------------------------------------Z-U-----------BRANCH (2)
+##
+##   X = 1
+##   Y = 3
+##   Z = 4
+##   U = 6
+##   V = 5
+##
+## ==========================================================================
+
+# ===========================================================================
+# Area to specify include files
+# ===========================================================================
+
+
+
+# ===========================================================================
+# Area to define commands that are platform dependent.
+#
+# If these are already set, by a file previously included, then they will not be
+# set here. In either case it will be verified that the command is on the search
+# path.
+#
+# ===========================================================================
+# pathsearch = $(firstword $(wildcard $(addsuffix /$(1),$subst :, ,$(PATH))))
+
+pathsearch = $(firstword $(wildcard $(addsuffix /$(1),$(subst :, ,$(PATH)))))
+
+MAKE ?= make
+MAKE_FULL_PATH = $(call pathsearch, $(MAKE))
+
+CVS ?= cvs
+CVS_FULL_PATH = $(call pathsearch,$(CVS))
+
+ECHO ?= echo
+ECHO_FULL_PATH = $(call pathsearch,$(ECHO))
+
+PATCH ?= patch
+PATCH_FULL_PATH = $(call pathsearch,$(PATCH))
+
+
+ifeq ($(OS_TYPE),windows)
+## windows
+
+GREP ?= find
+USAGE_SRCH="###"
+USAGE_ALL_SRCH="##"
+
+else
+## not windows, assume Unix
+
+GREP ?= grep
+USAGE_SRCH="\#\#\#"
+USAGE_ALL_SRCH="\#\#"
+endif
+
+GREP_FULL_PATH = $(call pathsearch,$(GREP))
+
+
+
+
+# ===============================================================================
+# Shell internal commands
+# ===============================================================================
+CD ?= cd
+
+
+# ===============================================================================
+# Area to set defaults
+# ===============================================================================
+
+
+ROOT ?= $(subst \,/,$(PEGASUS_ROOT))
+
+FILE_PATH = $(ROOT)/mak
+
+FILE_NAME = TaskMakefile
+
+
+FILE = $(FILE_PATH)/$(FILE_NAME)
+
+###################################
+# BNAME_INVALID_CHAR
+# BNAME and NEW_BNAME invalid characters
+DASH = -
+
+# ===============================================================================
+# The remaining defaults will be set only if they are not already set.
+# ===============================================================================
+
+MODULE_NAME ?= pegasus
+## MODULE_NAME ?= junk      ## good for testing
+
+ifeq ($(MODULE_NAME),pegasus)
+BFILE ?= Makefile
+else
+# must be junk module
+BFILE ?= a.cpp
+endif
+
+#
+# diff and rdiff support different options.
+# diff supports more options than rdiff does.
+#
+
+DIFF_OPTIONS ?=
+
+RDIFF_OPTIONS ?=
+
+VALID_TAGS = $(shell $(CVS) rlog $(MODULE_NAME)/$(BFILE) | $(GREP) TASK)
+
+# ==================================================================================
+# Rule definitions starts here
+# ==================================================================================
+
+.PHONY: FORCE
+
+# =====================
+# This rule must be the first in the file so if no make command is specified then
+# the usage information will be displayed.
+default: usage
+
+# =====================
+# assure that a minimum of commands exist.
+#
+# Without ECHO and CVS essentially nothing can be done.
+exists_minimum: exists_MAKE exists_CVS exists_ECHO exists_GREP
+
+# ======================
+# assure that MAKE exists
+#
+exists_MAKE: FORCE
+ifeq ($(MAKE_FULL_PATH),)
+	$(error ERROR: MAKE command ($(MAKE)) not found in PATH $(PATH))
+endif
+
+
+# ======================
+# assure that CVS exists
+#
+exists_CVS: FORCE
+ifeq ($(CVS_FULL_PATH),)
+	$(error ERROR: CVS command ($(CVS)) not found in PATH $(PATH))
+endif
+
+
+# ======================
+# assure that PATCH exists
+#
+exists_PATCH: FORCE
+ifeq ($(PATCH_FULL_PATH),)
+	$(error ERROR: PATCH command ($(PATCH)) not found in PATH $(PATH))
+endif
+
+# ======================
+# assure that GREP exists
+#
+exists_GREP: FORCE
+ifeq ($(GREP_FULL_PATH),)
+	$(error ERROR: GREP command ($(GREP)) not found in PATH $(PATH))
+endif
+
+# ======================
+# assure that ECHO exists
+#
+exists_ECHO: FORCE
+ifeq ($(ECHO_FULL_PATH),)
+	$(error ERROR: ECHO command ($(ECHO)) not found in PATH $(PATH))
+endif
+
+
+
+# ======================
+# assure that BNAME exists (is not null)
+#
+exists_BNAME: FORCE
+ifeq ($(BNAME),)
+	$(error ERROR: BNAME not set, set it on the command line )
+endif
+
+# ======================
+# assure that BNAME does not contain invalid characters
+#
+valid_BNAME: exists_BNAME
+ifneq ($(BNAME) ,$(subst $(DASH), X ,$(BNAME)))
+	@ $(error ERROR: BNAME contains invalid ($(DASH)) characters)
+endif
+
+
+# ======================
+# assure that BNAME exist in cvs
+#
+exists_cvs_BNAME: exists_BNAME
+ifneq (TASK-$(BNAME)-branch, $(findstring TASK-$(BNAME)-branch, $(VALID_TAGS)))
+	@ $(error ERROR:  BNAME, $(BNAME), does not exists in cvs module $(MODULE_NAME))
+endif
+
+
+# ======================
+# assure that BNAME does not exist in cvs.
+#
+not_exists_cvs_BNAME: exists_BNAME
+ifeq (TASK-$(BNAME)-branch, $(findstring TASK-$(BNAME)-branch, $(VALID_TAGS)))
+	@ $(error ERROR: BNAME, $(BNAME), exists in cvs module $(MODULE_NAME))
+endif
+
+
+# ======================
+# assure that NEW_BNAME exists (is not null)
+#
+exists_NEW_BNAME: FORCE
+ifeq ($(NEW_BNAME),)
+	@ $(error ERROR: NEW_BNAME not set, set is on the command line.)
+endif
+
+
+# ======================
+# assure that NEW_BNAME does not contain invalid characters
+#
+valid_NEW_BNAME: exists_NEW_BNAME
+ifneq ($(NEW_BNAME) ,$(subst $(DASH), X ,$(NEW_BNAME)))
+	@ $(error ERROR: NEW_BNAME contains invalid ($(DASH)) characters)
+endif
+
+
+# ======================
+# assure that NEW_BNAME exist in cvs
+#
+exists_cvs_NEW_BNAME: exists_NEW_BNAME
+ifneq (TASK-$(NEW_BNAME)-branch, $(findstring TASK-$(NEW_BNAME)-branch, $(VALID_TAGS)))
+	@ $(error ERROR: NEW_BNAME, $(NEW_BNAME), does not exists in cvs module $(MODULE_NAME) )
+endif
+
+
+# ======================
+# assure that NEW_BNAME does not exist in cvs.
+#
+not_exists_cvs_NEW_BNAME: exists_NEW_BNAME
+ifeq (TASK-$(NEW_BNAME)-branch, $(findstring TASK-$(NEW_BNAME)-branch, $(VALID_TAGS)))
+	@ $(error ERROR: NEW_BNAME, $(NEW_BNAME), exists in cvs module $(MODULE_NAME) )
+endif
+
+
+## =====================
+##
+### Function: usage - displays usage information
+##  Usage:    usage
+##
+usage: exists_GREP
+	@ $(GREP) "$(USAGE_SRCH)" $(FILE)
+
+## =====================
+##
+### Function: usage_all - displays usage information
+##  Usage:    usage_all
+##
+usage_all: exists_GREP
+	@ $(GREP) "$(USAGE_ALL_SRCH)" $(FILE)
+
+## =====================
+##
+### Function: defaults - displays default settings
+##  Usage:    defaults
+##
+defaults: exists_minimum
+	@ $(ECHO) =======================================================================
+	@ $(ECHO)
+	@ $(ECHO) "CVS defaults should be set within the .cvsrc file."
+	@ $(ECHO)
+	@ $(ECHO) --------------------------
+	@ $(ECHO) "Default External Commands used within this Makefile"
+	@ $(ECHO)
+	@ $(ECHO) "CVS                = $(CVS)"
+	@ $(ECHO) "CVS_FULL_PATH      = $(CVS_FULL_PATH)"
+	@ $(ECHO)
+	@ $(ECHO) "PATCH              = $(PATCH)"
+	@ $(ECHO) "PATCH_FULL_PATH    = $(PATCH_FULL_PATH)"
+	@ $(ECHO)
+	@ $(ECHO) "GREP               = $(GREP)"
+	@ $(ECHO) "GREP_FULL_PATH     = $(GREP_FULL_PATH)"
+	@ $(ECHO)
+	@ $(ECHO) "ECHO               = $(ECHO)"
+	@ $(ECHO) "ECHO_FULL_PATH     = $(ECHO_FULL_PATH)"
+	@ $(ECHO)
+	@ $(ECHO) --------------------------
+	@ $(ECHO) "Defaults used within this Makefile."
+	@ $(ECHO)
+	@ $(ECHO) "FILE_PATH          = $(FILE_PATH)"
+	@ $(ECHO) "FILE_NAME          = $(FILE_NAME)"
+	@ $(ECHO)
+	@ $(ECHO) --------------------------
+	@ $(ECHO) "Defaults used within this Makefile that can be overridden from the"
+	@ $(ECHO) " command line."
+	@ $(ECHO)
+	@ $(ECHO) "MODULE_NAME        = $(MODULE_NAME)"
+	@ $(ECHO) "BFILE              = $(BFILE)"
+	@ $(ECHO)
+	@ $(ECHO) "DIFF_OPTIONS       = $(DIFF_OPTIONS)"
+	@ $(ECHO) "RDIFF_OPTIONS      = $(RDIFF_OPTIONS)"
+	@ $(ECHO)
+	@ $(ECHO) "For example"
+	@ $(ECHO) " $(MAKE) -f $(FILE_NAME) branch_checkout BNAME=PEPX_Func MODULE=module"
+	@ $(ECHO)
+	@ $(ECHO) =======================================================================
+
+## =====================
+##
+### Function: branch_list - List branches and other symbolic links
+##  Usage:    branch_list [BFILE=(FILE NAME)]
+##
+##  Note:     A log is performed on a chosen file, such as the env_var.status
+##            file since it has been in the trunk for a while, having most
+##            symbolic variables assigned to it, and very few revisions.
+##
+branch_list: exists_minimum
+	-$(CVS) rlog $(MODULE_NAME)/$(BFILE) | $(GREP) TASK
+
+
+# =====================
+##
+### Function: branch_status - Show "branch" status
+##  Usage:    branch_status [BFILE=(FILE NAME)]
+##
+##  Note:     Must be executed from the directory above $(MODULE_NAME),
+##            the top of the trunk.
+##
+##  Note:     A log is performed on a chosen file, such as the env_var.status
+##            file since it has been in the trunk for a while, having most
+##            symbolic variables assigned to it, and very few revisions.
+##
+branch_status: exists_minimum
+	$(CD) $(MODULE_NAME)
+	$(CVS) status $(MODULE_NAME)/$(BFILE)
+
+
+
+## =====================
+##
+### Function: branch_create - Creates branch and the tags to manage it.
+##  Usage:    branch_create BNAME=(BRANCH NAME)
+##
+##
+##  Process:
+##       Create "root" tag on main branch
+##       Create "branch" using the "root" tag
+##       Create a "merged_in_to_trunk" tag for later use in the merge in.
+##       Create a "merged_out_from_trunk" tag for later use in the merge out.
+##       Create a "merged_in_from_branch" tag for later use in the merge in.
+##       Create a "merged_out_to_branch" tag for later use in the merge out.
+##
+##
+branch_create: exists_minimum valid_BNAME not_exists_cvs_BNAME
+	$(CVS) rtag -f TASK-$(BNAME)-root $(MODULE_NAME)
+	$(CVS) rtag -b -r TASK-$(BNAME)-root TASK-$(BNAME)-branch $(MODULE_NAME)
+	$(CVS) rtag -r TASK-$(BNAME)-root TASK-$(BNAME)-merged_in_to_trunk $(MODULE_NAME)
+	$(CVS) rtag -r TASK-$(BNAME)-root TASK-$(BNAME)-merged_out_from_trunk $(MODULE_NAME)
+	$(CVS) rtag -r TASK-$(BNAME)-branch TASK-$(BNAME)-merged_in_from_branch $(MODULE_NAME)
+	$(CVS) rtag -r TASK-$(BNAME)-branch TASK-$(BNAME)-merged_out_to_branch $(MODULE_NAME)
+
+
+## =====================
+##
+### Function: branch_rename - Renames existing branch and all the tags to manage it.
+##  Usage:    branch_rename BNAME=(OLD NAME) NEW_BNAME=(NEW NAME)
+##
+##
+##  Process:
+##       Rename TASK-[BNAME]-root to TASK-[NEW_BNAME]-root
+##       Rename TASK-[BNAME]-branch to TASK-[NEW_BNAME]-branch
+##       Rename TASK-[BNAME]-merged_in_to_trunk
+##           to TASK-[NEW_BNAME]-merged_in_to_trunk
+##       Rename TASK-[BNAME]-merged_out_from_trunk
+##           to TASK-[NEW_BNAME]-merged_out_from_trunk
+##       Rename TASK-[BNAME]-merged_in_from_branch
+##           to TASK-[NEW_BNAME]-merged_in_from_branch
+##       Rename TASK-[BNAME]-merged_out_to_branch
+##           to TASK-[NEW_BNAME]-merged_out_to_branch
+##	 Delete Branch TASK-[BNAME]
+##
+branch_rename: exists_minimum exists_cvs_BNAME not_exists_cvs_NEW_BNAME valid_NEW_BNAME
+ifeq ($(BNAME),$(NEW_BNAME))
+	$(error ERROR: BNAME=NEW_BNAME=($(BNAME)), They must be different.)
+endif
+	$(CVS) rtag -r TASK-$(BNAME)-root TASK-$(NEW_BNAME)-root $(MODULE_NAME)
+	$(CVS) rtag -b -r TASK-$(BNAME)-branch TASK-$(NEW_BNAME)-branch $(MODULE_NAME)
+	$(CVS) rtag -r TASK-$(BNAME)-merged_in_to_trunk TASK-$(NEW_BNAME)-merged_in_to_trunk $(MODULE_NAME)
+	$(CVS) rtag -r TASK-$(BNAME)-merged_out_from_trunk TASK-$(NEW_BNAME)-merged_out_from_trunk $(MODULE_NAME)
+	$(CVS) rtag -r TASK-$(BNAME)-merged_in_from_branch TASK-$(NEW_BNAME)-merged_in_from_branch $(MODULE_NAME)
+	$(CVS) rtag -r TASK-$(BNAME)-merged_out_to_branch TASK-$(NEW_BNAME)-merged_out_to_branch $(MODULE_NAME)
+	$(MAKE) -f $(FILE) branch_delete BNAME=$(BNAME)
+
+
+## =====================
+##
+### Function: branch_delete - Delete the named branch and its management tags.
+##  Usage:    branch_delete BNAME=(BRANCH NAME)
+##
+##    Process:
+##       Delete "root" tag
+##       Delete the "merged_in_to_trunk" tag.
+##       Delete the "merged_out_from_trunk" tag.
+##       Delete the "merged_in_from_branch" tag.
+##       Delete the "merged_out_to_branch" tag.
+##       Delete the "merging_in_to_trunk" tag.
+##       Delete the "merging_out_from_trunk" tag.
+##       Delete the "merging_in_from_branch" tag.
+##       Delete the "merging_out_to_branch" tag.
+##       Delete the branch
+##
+##
+branch_delete: exists_minimum exists_cvs_BNAME
+	$(CVS) rtag -d TASK-$(BNAME)-root $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merged_in_to_trunk $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merged_out_from_trunk $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merged_in_from_branch $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merged_out_to_branch $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merging_in_to_trunk $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merging_out_from_trunk $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merging_in_from_branch $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merging_out_to_branch $(MODULE_NAME)
+	$(CVS) rtag -B -d TASK-$(BNAME)-branch $(MODULE_NAME)
+
+## =====================
+##
+### Function: branch_checkout - checks out the head of the branch trunk
+##  Aliases:  branch_co
+##  Usage:    branch_checkout BNAME=(BRANCH NAME)
+##  Note:     Must be executed from the directory where the top pegasus
+##            directory shall be placed.
+##
+branch_co branch_checkout: exists_minimum exists_cvs_BNAME
+	$(CVS) checkout -r TASK-$(BNAME)-branch $(MODULE_NAME)
+
+
+## =====================
+##
+### Function: branch_commit - checks into the head of the branch trunk
+##  Aliases:  branch_ci
+##  Usage:    branch_ci BNAME=(BRANCH NAME)
+##  Note:     Must be executed from within a directory of a working trunk
+##
+branch_ci branch_commit: exists_minimum
+	$(CVS) commit $(MODULE_NAME)
+
+
+## =====================
+##
+### Function: branch_diff - diffs current working tree to the head of the
+###                         branch tree
+##  Usage:    branch_diff [DIFF_OPTIONS=(OPTIONS)]
+##  Note:     Must be executed from within a directory of a working tree
+##
+branch_diff: exists_minimum
+	$(CVS) diff $(DIFF_OPTIONS) $(MODULE_NAME)
+
+## =====================
+##
+### Function: branch_diff_to_root - diffs branch to its root
+##  Usage:    branch_diff_to_root BNAME=(BRANCH NAME) [RDIFF_OPTIONS=(OPTIONS)]
+##
+branch_diff_to_root: exists_minimum exists_cvs_BNAME
+	$(CVS) rdiff $(RDIFF_OPTIONS) -r TASK-$(BNAME)-root -r TASK-$(BNAME)-branch $(MODULE_NAME)
+
+## =====================
+##
+### Function: branch_diff_to_trunk - diffs branch head to the head of the trunk
+##  Usage:    branch_diff_to_trunk BNAME=(BRANCH NAME) [RDIFF_OPTIONS=(OPTIONS)]
+##
+branch_diff_to_trunk: exists_minimum exists_cvs_BNAME
+	$(CVS) rdiff $(RDIFF_OPTIONS) -r TASK-$(BNAME)-branch $(MODULE_NAME)
+
+## =====================
+##
+### Function: branch_diff_unmerged_branch - shows all changes on the
+###                                  branch since the last merge in.
+##  Usage:    branch_diff_unmerged_branch BNAME=(BRANCH NAME) [RDIFF_OPTIONS=(OPTIONS)]
+##
+branch_diff_unmerged_branch: exists_minimum exists_cvs_BNAME
+	$(CVS) rdiff  $(RDIFF_OPTIONS) -r TASK-$(BNAME)-merged_in_from_branch -r TASK-$(BNAME)-branch $(MODULE_NAME)
+
+
+## =====================
+##
+### Function: branch_diff_unmerged_trunk - shows all changes on the
+###                                  trunk since the last merge out
+##  Usage:    branch_diff_unmerged_trunk BNAME=(BRANCH NAME) [RDIFF_OPTIONS=(OPTIONS)]
+##
+branch_diff_unmerged_trunk: exists_minimum exists_cvs_BNAME
+	$(CVS) rdiff  $(RDIFF_OPTIONS) -r TASK-$(BNAME)-merged_out_from_trunk $(MODULE_NAME)
+
+
+## =====================
+##
+### Function: branch_merge_in - starts the two part process to merge
+###                             the changes in the branch into the trunk.
+##  Usage:    branch_merge_in BNAME=(BRANCH NAME)
+##
+##  Note:     Must be executed from the directory where the top pegasus
+##            directory shall be placed when the checkout is performed
+##            to instantiate the working copy of the trunk within which
+##            the merge will be performed.
+##
+##  Note:     You can start this process over prior to the commit by
+##            removing the working copy of the tree and starting over with
+##            the branch_merge_in command.
+##
+##  Process:
+##
+##   branch_merge_in BNAME=(BRANCH NAME)
+##     - Tag main trunk with the merging_in_to_trunk tag.
+##     - Tag branch with the merging_in_from_branch tag.
+##     - Checkout the trunk head into a working copy of the trunk.
+##          NOTE: The merging_in tag is not used because that
+##                would result in a sticky tag that will preclude the
+##                subsequent commit of the merged files. The
+##                merging_in tag is created because if any other commits
+##                occur while the merge is in process they will be detected
+##                and merged on the subsequent merge_in. It is safer to
+##                do this than to risk the chance of missing a commit.
+##     - Use update to merge in the branch changes since last the merge_in.
+##     - Manually resolve any conflicts in the working copy of the trunk.
+##
+##   branch_merge_in_commit BNAME=(BRANCH NAME)
+##     - Check in merged changes from the working copy of the trunk in.
+##     - executes branch_merge_in_finish
+##
+##   If you chose to do a manual checkin then execute branch_merge_in_finish
+##
+##   branch_merge_in_finish BNAME=(BRANCH NAME)
+##     - Move the merged_in_to_trunk tag to the merging_in_to_trunk tag
+##     - Move the merged_in_from_branch tag to
+##           the merging_in_from_branch tag
+##     - Delete the  TASK-$(BNAME)-merging_in_to_trunk tag
+##     - Delete the  TASK-$(BNAME)-merging_in_from_branch tag
+##
+##
+branch_merge_in: exists_minimum exists_cvs_BNAME
+	$(CVS) rtag -F TASK-$(BNAME)-merging_in_to_trunk $(MODULE_NAME)
+	$(CVS) rtag -F -r TASK-$(BNAME)-branch TASK-$(BNAME)-merging_in_from_branch $(MODULE_NAME)
+	$(CVS) checkout -P $(MODULE_NAME)
+	$(CD) $(MODULE_NAME)
+	$(CVS) update -P -d -j TASK-$(BNAME)-merged_in_from_branch -j TASK-$(BNAME)-merging_in_from_branch $(MODULE_NAME)
+	@ $(ECHO)
+	@ $(ECHO) Differences from branch now merged into
+	@ $(ECHO) the local working copy of the trunk.
+	@ $(ECHO)
+	@ $(ECHO) Now manually:
+	@ $(ECHO)   1. Resolve any merge conflicts.
+	@ $(ECHO)   2. Review differences to assure commit integrity.
+	@ $(ECHO)      That is do not check in unintended white space changes,
+	@ $(ECHO)      test or debug code.
+	@ $(ECHO)   3. Check for added files and directories and do a cvs add
+	@ $(ECHO)      command for them.
+	@ $(ECHO)   4  Check for removed files and directories and do a
+	@ $(ECHO)      cvs remove command for them.
+	@ $(ECHO)
+	@ $(ECHO) Then check in the files. Either manually or by using
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_merge_in_ci BNAME=$(BNAME)"
+	@ $(ECHO) within the $(MODULE_NAME) directory.
+	@ $(ECHO)
+	@ $(ECHO) If you chose to do a manual commit then after the commit
+	@ $(ECHO) is complete then do a:
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_merge_in_finish BNAME=$(BNAME)"
+	@ $(ECHO) within the $(MODULE_NAME) directory to reset the appropriate
+	@ $(ECHO) branch management tags.
+	@ $(ECHO)
+	@ $(ECHO) You can start this process over prior to the commit by removing
+	@ $(ECHO) the working copy of the tree and then start over with
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_merge_in BNAME=$(BNAME)"
+	@ $(ECHO)
+	@ $(ECHO)
+
+
+branch_merge_in_ci branch_merge_in_commit: exists_minimum exists_cvs_BNAME
+	$(CD) $(MODULE_NAME)
+	$(CVS) commit
+	@ $(ECHO)
+	@ $(ECHO) Check in of merged files from branch into trunk complete.
+	@ $(ECHO)
+	$(MAKE) -f $(FILE) branch_merge_in_finish BNAME=$(BNAME)
+
+
+branch_merge_in_finish: exists_minimum exists_cvs_BNAME
+	$(CVS) rtag -F -r TASK-$(BNAME)-merging_in_to_trunk TASK-$(BNAME)-merged_in_to_trunk $(MODULE_NAME)
+	$(CVS) rtag -F -r TASK-$(BNAME)-merging_in_from_branch TASK-$(BNAME)-merged_in_from_branch $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merging_in_to_trunk $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merging_in_from_branch $(MODULE_NAME)
+	@ $(ECHO)
+	@ $(ECHO) Branch Management tags have now been updated to reflect the new branch status.
+	@ $(ECHO)
+
+
+
+## =====================
+###
+### Function: branch_merge_out - starts the two part process to merge
+###                             the changes in the trunk into the branch.
+##  Usage:    branch_merge_out BNAME=(BRANCH NAME)
+##
+##  Note:     Must be executed from the directory where the top pegasus
+##            directory shall be placed when the checkout is performed
+##            to instantiate the working copy of the trunk within which
+##            the merge will be performed
+##
+##  Note:     You can start this process over prior to the commit by
+##            removing the working copy of the tree and starting over with
+##            the branch_merge_out command.
+##
+##  Process:
+##
+##   branch_merge_out BNAME=(BRANCH NAME)
+##     - Tag main trunk with the merging_out_from_trunk tag.
+##     - Tag branch with the merging_out_to_branch tag.
+##     - Checkout the trunk head into a working copy of the trunk.
+##          NOTE: The merging_out tag is not used because that
+##                would result in a Sticky tag that will preclude the
+##                subsequent commit of the merged files. The
+##                merging_out tag is created because if any other commits
+##                occur while the merge is in process they will be detected
+##                and merged on the subsequent merge_out. It is safer to
+##                do this than to risk the chance of missing a commit.
+##     - Use update to merge in the trunk changes since last the merge_out.
+##     - Manually resolve any conflicts in the working copy of the branch.
+##
+##   branch_merge_out_commit BNAME=(BRANCH NAME)
+##     - Check in merged changes from the working copy of the branch in.
+##     - executes branch_merge_out_finish
+##
+##   If you chose to do a manual checkin then execute branch_merge_out_finish
+##
+##   branch_merge_out_finish BNAME=(BRANCH NAME)
+##     - Move the merged_out_from_trunk tag to the merging_out_from_trunk tag
+##     - Move the merged_out_to_branch tag to
+##           the merging_out_to_branch tag
+##     - Delete the  TASK-$(BNAME)-merging_out_from_trunk tag
+##     - Delete the  TASK-$(BNAME)-merging_out_to_branch tag
+##
+##
+branch_merge_out: exists_minimum exists_cvs_BNAME
+	$(CVS) rtag -F TASK-$(BNAME)-merging_out_from_trunk $(MODULE_NAME)
+	$(CVS) rtag -F -r TASK-$(BNAME)-branch TASK-$(BNAME)-merging_out_to_branch $(MODULE_NAME)
+	$(CVS) checkout -P -r TASK-$(BNAME)-branch $(MODULE_NAME)
+	$(CD) $(MODULE_NAME)
+	$(CVS) update -P -d -j TASK-$(BNAME)-merged_out_from_trunk -j TASK-$(BNAME)-merging_out_from_trunk
+	@ $(ECHO)
+	@ $(ECHO) Differences from trunk now merged into
+	@ $(ECHO) the local working copy of the branch.
+	@ $(ECHO)
+	@ $(ECHO) Now manually:
+	@ $(ECHO)   1. Resolve any merge conflicts.
+	@ $(ECHO)   2. Check for added files and directories and do a cvs add
+	@ $(ECHO)      command for them.
+	@ $(ECHO)   3  Check for removed files and directories and do a
+	@ $(ECHO)      cvs remove command for them.
+	@ $(ECHO)
+	@ $(ECHO) Then check in the files. Either manually or by using
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_merge_out_ci BNAME=$(BNAME)"
+	@ $(ECHO) within the $(MODULE_NAME) directory.
+	@ $(ECHO)
+	@ $(ECHO) If you chose to do a manual commit then after the commit
+	@ $(ECHO) is complete do a:
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_merge_out_finish BNAME=$(BNAME)"
+	@ $(ECHO) within the $(MODULE_NAME) directory to reset the appropriate
+	@ $(ECHO) branch management tags.
+	@ $(ECHO)
+	@ $(ECHO) You can start this process over prior to the commit by removing
+	@ $(ECHO) the working copy of the tree and then start over with
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_merge_out BNAME=$(BNAME)"
+	@ $(ECHO)
+	@ $(ECHO)
+
+branch_merge_out_ci branch_merge_out_commit: exists_minimum exists_cvs_BNAME
+	$(CD) $(MODULE_NAME)
+	$(CVS) commit
+	@ $(ECHO)
+	@ $(ECHO) Check in of merged files from trunk into branch is complete.
+	@ $(ECHO)
+	$(MAKE) -f $(FILE) branch_merge_out_finish BNAME=$(BNAME)
+
+branch_merge_out_finish: exists_minimum exists_cvs_BNAME
+	$(CVS) rtag -F -r TASK-$(BNAME)-merging_out_from_trunk TASK-$(BNAME)-merged_out_from_trunk $(MODULE_NAME)
+	$(CVS) rtag -F -r TASK-$(BNAME)-merging_out_to_branch TASK-$(BNAME)-merged_out_to_branch $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merging_out_from_trunk $(MODULE_NAME)
+	$(CVS) rtag -d TASK-$(BNAME)-merging_out_to_branch $(MODULE_NAME)
+	@ $(ECHO)
+	@ $(ECHO) Branch Management tags have now been updated to reflect the new branch status.
+	@ $(ECHO)
+
+
+
+
+## =====================
+###
+### Function: branch_migrate - starts the process to migrate the
+###                                    branch to the HEAD of the trunk.
+###
+##  Usage:    branch_migrate BNAME=(BRANCH NAME)
+##
+##  Note:     Must be executed from the directory where the top pegasus
+##            directory shall be placed when the checkout is performed
+##            to instantiate the working copy of the trunk within which
+##            the merge will be performed.
+##
+##  Note:     You can start this process over prior to the commit by
+##            removing the working copy of the tree and doing a
+##            "branch_delete (BNAME)_new" and then starting over with
+##            the branch_migrate command.
+##
+##  Process:
+##
+##   branch_migrate BNAME=(BRANCH NAME)
+##     - get diffs of unmerged_changes_branch into a local patch_diff file.
+##     - create the new branch to migrate to.
+##     - Checkout the new branch
+##     - Apply the patch_diff file to the working trunk
+##     - Manually resolve any merge conflicts in the working trunk.
+##
+##   branch_migrate_commit BNAME=(BRANCH NAME)
+##     - Commit the changes into the new branch
+##
+##  EITHER
+##   branch_migrate_finish BNAME=(BRANCH NAME)
+##     - Remove the old branch.
+##     - Rename all branch tags
+##
+##  OR
+##   branch_rename BNAME=(BRANCH_NAME)_new  NEW_BNAME=(BRANCH NAME)_X
+##
+##
+branch_migrate: exists_minimum exists_cvs_BNAME
+	$(MAKE) -f $(FILE) branch_diff_unmerged_branch BNAME=$(BNAME) 1>branch_migrate_diffs
+	$(MAKE) -f $(FILE) branch_create BNAME=$(BNAME)_new
+	$(CVS) checkout -P -r TASK-$(BNAME)_new-branch $(MODULE_NAME)
+	$(PATCH) -b -p0 --global-reject-file=global-reject-patch-file < branch_migrate_diffs
+	@ $(ECHO)
+	@ $(ECHO)
+	@ $(ECHO) Differences from previous branch are now merged into
+	@ $(ECHO) the local working copy of the new branch.
+	@ $(ECHO)
+	@ $(ECHO) Now manually:
+	@ $(ECHO)   1. Resolve any merge conflicts.
+	@ $(ECHO)      Check the global-patch-reject file in this directory.
+	@ $(ECHO)      If it does not exist then there were no patch errors.
+	@ $(ECHO)   2. Check for added files and directories and do a cvs add
+	@ $(ECHO)      command for them prior to the commit..
+	@ $(ECHO)
+	@ $(ECHO) Then check in the files. Either manually or by using
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_migrate_ci BNAME=$(BNAME)"
+	@ $(ECHO) within the $(MODULE_NAME) directory.
+	@ $(ECHO)
+	@ $(ECHO) After the commit is complete do either one of the following
+	@ $(ECHO) dependent on whether you want the previous branch deleted or saved.
+	@ $(ECHO)
+	@ $(ECHO) This will delete the previous branch and move the branch management.
+	@ $(ECHO)
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_migrate_finish BNAME=$(BNAME)"
+	@ $(ECHO) within the $(MODULE_NAME) directory to reset the appropriate
+	@ $(ECHO) branch management tags.
+	@ $(ECHO)
+	@ $(ECHO) This will rename the branch just migrated to keeping the old branch.
+	@ $(ECHO)
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_rename BNAME=$(BNAME)_new NEW_BNAME=$(BNAME)_(VER)"
+	@ $(ECHO)
+	@ $(ECHO) You can start this process over prior to the commit by removing
+	@ $(ECHO) the working copy of the tree and then deleting the new branch this
+	@ $(ECHO) process created with
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_delete BNAME=$(BNAME)_new"
+	@ $(ECHO) and then start over with
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_migrate BNAME=$(BNAME)"
+	@ $(ECHO)
+	@ $(ECHO)
+
+branch_migrate_ci branch_migrate_commit: exists_minimum exists_cvs_BNAME
+	$(CD) $(MODULE_NAME)
+	$(CVS) commit
+	@ $(ECHO)
+	@ $(ECHO) Check in of merged files from previous branch into
+	@ $(ECHO) new branch is complete.
+	@ $(ECHO)
+	$(CD) ..
+	$(MAKE) -f $(FILE) branch_diff_to_root BNAME=$(BNAME) > diff_to_root_$(BNAME)
+	$(MAKE) -f $(FILE) branch_diff_to_root BNAME=$(BNAME)_new > diff_to_root_$(BNAME)_new
+	@ $(ECHO) Do a
+	@ $(ECHO) "  diff diff_to_root_$(BNAME) diff_to_root_$(BNAME)_new"
+	@ $(ECHO) to verify TASK-$(BNAME)_new has all the changes.
+	@ $(ECHO)
+	@ $(ECHO) Then do a
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_migrate_finish BNAME=$(BNAME)"
+	@ $(ECHO) which will remove TASK-$(BNAME), the old branch, and then rename TASK-$(BNAME)_new to TASK-$(BNAME)
+	@ $(ECHO) Alternatively you can keep the old branch around for a while and just
+	@ $(ECHO) rename the new branch by doing a
+	@ $(ECHO) "  $(MAKE) -f $(FILE_NAME) branch_rename BNAME=$(BNAME)_new NEW_BNAME=($BNAME)_X"
+	@ $(ECHO) where X is something you chose to identify the new branch.
+
+
+branch_migrate_finish: exists_minimum exists_cvs_BNAME
+	$(MAKE) -f $(FILE) branch_delete BNAME=$(BNAME)
+	$(MAKE) -f $(FILE) branch_rename BNAME=$(BNAME)_new NEW_BNAME=$(BNAME)
+	@ $(ECHO)
+	@ $(ECHO) Branch Management tags have now been updated to reflect the new branch status.
+	@ $(ECHO)
+
+
+
+

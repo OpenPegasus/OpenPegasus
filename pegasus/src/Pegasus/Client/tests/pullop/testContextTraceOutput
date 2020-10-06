@@ -1,0 +1,30 @@
+#!/bin/sh
+##
+##  This script counts the number of Create and Remove ContextIds in a trace
+##  and display/compare the results to confirm that all contexts
+##  created were removed.
+##
+##  This is a *nix script to test whether the EnumerationContext
+##  functions actually closed all contexts.  It is used by TestMakefile
+##  to test for Enumeration Context cleanup on pull operations in the
+##  nightly tests.
+
+Creates=$(grep "ContextId=" $PEGASUS_HOME/trace/* | grep Create  | wc -l)
+if [ $? -ne 0 ]; then
+    echo "$0: grep failed or could not find a trace file at $PEGASUS_HOME/trace/*"
+    exit 1
+fi
+
+Removes=$(grep "ContextId=" $PEGASUS_HOME/trace/* | grep Remove  | wc -l)
+if [ $? -ne 0 ]; then
+    echo "$0: grep failed"
+    exit1
+fi
+echo "Found $Creates create traces and $Removes remove traces"
+if [ $Creates != $Removes ]; then
+    echo $0: FAILED: Number of EnumerationContext creates and removes DO NOT match
+    exit 1
+else
+    echo $0: PASSED: Number of EnumerationContext creates and removes match
+    exit 0
+fi

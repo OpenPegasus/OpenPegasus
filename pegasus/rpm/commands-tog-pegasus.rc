@@ -1,0 +1,117 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+prog=cimserver
+
+if [ ! -x $CIMSERVER_BIN ]; then
+    echo -n "tog-pegasus $1: $CIMSERVER_BIN not found or not executable.";
+    exit 1;
+fi;
+
+[ -e /etc/sysconfig/${PEGASUS_FLAVOR}-pegasus ] && . /etc/sysconfig/${PEGASUS_FLAVOR}-pegasus;
+
+if [ -e /lib/lsb/init-functions ]; then 
+. /lib/lsb/init-functions
+else
+    . /etc/init.d/functions
+    log_success_msg() {
+        echo -n $*
+        success "$*"
+        echo
+    }
+    log_failure_msg() {
+        echo -n $*
+        failure "$*"
+        echo
+    }
+fi
+
+RETVAL=0
+
+case "$1" in
+     start)
+	if [ ! -e ${PEGASUS_SSL_CONF_FILE} ] || [ ! -e ${PEGASUS_SSL_CERT_FILE} ] ||
+	   [ ! -e ${PEGASUS_SSL_KEY_FILE} ]  || [ ! -e ${PEGASUS_SSL_TRUSTSTORE} ]; then
+	   if [ -x $PEGASUS_SCRIPT_DIR/genOpenPegasusSSLCerts ]; then
+	       echo -n "${PEGASUS_FLAVOR}-pegasus: Generating cimserver SSL certificates...";
+	       $PEGASUS_SCRIPT_DIR/genOpenPegasusSSLCerts;
+	       if [ $? -eq 0 ]; then
+		   echo "SSL certificates generated";
+	       else
+		   echo "SSL certificates failed";
+	       fi;
+	       echo;
+	   fi;
+	fi;
+ 	echo -n $"Starting up CIM server: "
+	$CIMSERVER_BIN ${CIMSERVER_OPTIONS}
+ 	RETVAL=$?
+	[ "$RETVAL" -eq 0 ] && log_success_msg $"$prog start" || log_failure_msg $"$prog start"
+	echo;
+	;;
+
+     stop)
+	echo -n $"Shutting down CIM server: "
+	killproc $CIMSERVER_BIN
+	RETVAL=$?
+	[ "$RETVAL" -eq 0 ] && log_success_msg $"$prog stop" || log_failure_msg $"$prog stop"
+	echo
+	;;
+     status)
+	pid=`pidofproc $CIMSERVER_BIN`
+	RETVAL=$?
+	if [ "$RETVAL" -eq 0 ]; then
+		echo "CIM server ($pid) is running"
+	else
+		echo "CIM server is not running"
+	fi
+	;;
+     condrestart)
+	pid=`pidofproc $CIMSERVER_BIN`
+	RETVAL=$?
+	if [ "$RETVAL" -eq 0 ]; then
+	    $0 stop && $0 start;
+	    RETVAL=$?;
+	fi;
+        ;;
+     try-restart)
+	$0 stop && $0 start;
+	;;
+     restart|force-reload)
+	$0 stop;
+	$0 start;
+	;;
+     reload)
+	;;
+     *)
+	echo "Usage: $0 {start|stop|status|restart|reload|force-reload|try-restart}"
+	exit 1
+esac
+
+exit $RETVAL
+

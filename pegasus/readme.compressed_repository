@@ -1,0 +1,132 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+    Compressed Repository readme
+    ============================
+
+    Filename:  readme.compressed_repository
+    Authors:   Karl Schopmeyer, Jim Wunderlich,
+    Date:      28 Feb. 2005	
+
+      PEP 214 added the capability added the capability to utilize
+      compression algorithms on the repository. The compressed repository
+      is approximately 70% smaller than a regular xml text based repository.
+      This allows significant disk space savings a also results in shorter
+      file load times.
+
+      The compression logic is installed as a conditionally compiled option.
+      To enable the compressed repository functionality:
+  	1. Install zlib
+  	2. define PEGASUS_ENABLE_COMPRESSED_REPOSITORY=true in the environment
+        3. build Pegasus.
+
+   LIBZ INSTALLATION:
+   ------------------
+
+   libz is used in the compression logic so it must be installed in
+    a standard location prior to enabling the compressed repository
+    functionality.
+
+   LIBZ web pages are:
+
+        http://www.sourceforge.net
+        http://gnuwin32.sourceforge.net/packages/zlib.htm
+        http://www.winimage.com/zLibDll/
+        http://www.gzip.org/zlib/
+
+   LIBZ INSTALLATION ON WINDOWS PLATFORMS:
+   --------------------------------------
+        The standard libz install is:
+              "Program Files"\GnuWin32\include
+  			zlib.h and zconf.h
+              "Program Files"\GnuWin32\lib
+  			libz.a
+              "Program Files"\GnuWin32\bin
+  			zlib1.dll
+
+   These are the locations used by the windows libz package
+   available on www.sourceforge.net specifically at
+   http://gnuwin32.sourceforge.net/packages/zlib.htm.
+
+   The make file specifies these GnuWin32 directories (include and lib)
+   for the compilation of the CIMRepository. The CIMserver.exe will use
+   the zlib1.dll and expects to find it in one of the search path directories.
+
+   The directory containing the zlib1.dll library must be in the search path.
+   You may include the Gnuwin/bin directory in your search path or
+   alternatively you may move zlib1.dll to another directory that is already
+   in your search path.
+
+
+   LIBZ INSTALLATION ON UNIX PLATFORMS:
+   ------------------------------------
+   Install zlib.h & zconf.h in the standard system includes directory.
+   Install libz.a in the standard systems library directory.
+   Install zlib1.dll in the standard executables directory
+
+
+   COMPILATION:
+   ------------
+
+      To enable the compressed repository functionality
+      define PEGASUS_ENABLE_COMPRESSED_REPOSITORY in the environment,
+      prior to building the tree. Then build the whole source tree.
+
+   set PEGASUS_ENABLE_COMPRESSED_REPOSITORY=on
+   export PEGASUS_ENABLE_COMPRESSED_REPOSITORY=on
+   etc.
+
+   USAGE:
+   -----
+
+   With the compression code enabled and compiled:
+      - All repositories built will be in the compressed format by default.
+      - all repository formats can be read.
+      - all repository formats can be written.
+         To build a non compressed repository with compression enabled:
+         set PEGASUS_COMPRESS_REPSOITORY to "build_non_compresed".
+         This is used by the CompareXmlCompressed repository test.
+
+    export PEGASUS_ENABLE_COMPRESSED_REPOSITORY=on
+    export PEGASUS_ENABLE_COMPRESSED_REPOSITORY=build_non_compressed
+    set PEGASUS_ENABLE_COMPRESSED_REPOSITORY=on
+    set PEGASUS_ENABLE_COMPRESSED_REPOSITORY=build_non_compressed
+
+   TESTERS NOTE:
+   ------------
+
+   If PEGASUS_ENABLE_COMPRESSED_REPOSITORY is defined then the CompareXmlCompressed
+   test is run. If it is not defined then the CompareXmlCompressed is not run.
+
+   However if you have the zlibs installed and want to normally test
+   everything with a regular repository but want to run the
+   CompareXmlCompressed test then define PEGASUS_ENABLE_COMPRESSED_REPOSITORY_TEST.
+   This will cause the test to run, it will recompile the CIMRepository for
+   compression, run the test and then recompile CIMRepository for
+   non-compression.
+

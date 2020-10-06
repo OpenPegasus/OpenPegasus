@@ -1,0 +1,1778 @@
+#//%LICENSE////////////////////////////////////////////////////////////////
+#//
+#// Licensed to The Open Group (TOG) under one or more contributor license
+#// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+#// this work for additional information regarding copyright ownership.
+#// Each contributor licenses this file to you under the OpenPegasus Open
+#// Source License; you may not use this file except in compliance with the
+#// License.
+#//
+#// Permission is hereby granted, free of charge, to any person obtaining a
+#// copy of this software and associated documentation files (the "Software"),
+#// to deal in the Software without restriction, including without limitation
+#// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+#// and/or sell copies of the Software, and to permit persons to whom the
+#// Software is furnished to do so, subject to the following conditions:
+#//
+#// The above copyright notice and this permission notice shall be included
+#// in all copies or substantial portions of the Software.
+#//
+#// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+#// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+#// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+#// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#//
+#//////////////////////////////////////////////////////////////////////////
+###############################################################################
+##
+## Test Makefile for Pegasus CIMOM
+##
+## see the usage rule for documentation of rules etc.
+##
+##
+###############################################################################
+
+error:
+	@ $(ECHO) "Specify desired makefile option (i.e., unittests, usage )"
+
+include $(PEGASUS_ROOT)/mak/config.mak
+include $(PEGASUS_ROOT)/mak/test.mak
+include $(PEGASUS_ROOT)/mak/commands.mak
+
+system = localhost
+
+.PHONY: FORCE
+
+FORCE:
+
+usage: FORCE
+	$(USAGE)
+	$(USAGE)"TestMakefile Primary Targets:"
+	$(USAGE)
+	$(USAGE)"The following are all standalone tests. They stop and start the server,"
+	$(USAGE)"and build repositories as needed."
+	$(USAGE)
+	$(USAGE)"alltests           - Execute unittests and servertests"
+	$(USAGE)"unittests          - Execute the unit functional tests - no repository"
+	$(USAGE)"                     or active server is required"
+	$(USAGE)"servertests        - Execute a basic server test suites (No security, No SSL)"
+	$(USAGE)"standardtests      - Execute an extended server test suites "
+	$(USAGE)"                     using multiple options."
+	$(USAGE)"perftests          - Executes a brief server performance test"
+	$(USAGE)
+	$(USAGE)"usage2             - usage on secondary test targets"
+	$(USAGE)"usagetrace         - usage on trace targets"
+	$(USAGE)"stresstests        - Execute the default stress test suite"
+	$(USAGE)
+
+usage2: FORCE
+	$(USAGE)
+	$(USAGE)"TestMakefile Secondary Targets:"
+	$(USAGE)
+	$(USAGE)"The following are run as part of the Primary target test suites and may"
+	$(USAGE)"also be invoked as standalone tests."
+	$(USAGE)
+	$(USAGE)"TestXMLRepository       - Executes poststarttests on XML repository"
+	$(USAGE)"                          built with cimmofl."
+	$(USAGE)"TestXMLRepositoryServer - Executes poststarttests on XML repository"
+	$(USAGE)"                          built with cimmof."
+	$(USAGE)"TestXMLCmpRepository    - Executes poststarttests on XML compressed"
+	$(USAGE)"                          repository built with cimmofl."
+	$(USAGE)"TestBinRepository       - Executes poststarttests on binary repository "
+	$(USAGE)"                          built with cimmofl."
+	$(USAGE)"TestBinRepositoryServer - Executes poststarttests on binary repository"
+	$(USAGE)"                          built with cimmof."
+	$(USAGE)"TestBinCmpRepository    - Executes poststarttests on binary compressed"
+	$(USAGE)"                          repository built with cimmofl."
+	$(USAGE)
+	$(USAGE)"The following require the repository to be pre-built."
+	$(USAGE)
+	$(USAGE)"run_SSL_CBA_TS1         - Executes the Certificate based authentication test suite."
+	$(USAGE)"run_SSL_IPV4_TS1        - Executes the IPv4 SSL connection test suite."
+	$(USAGE)"run_SSL_IPV6_TS1        - Executes the IPv6 SSL connection test suite."
+	$(USAGE)"run_OOP_TS1             - Executes the Out Of Process Provider tests"
+	$(USAGE)"run_G11N_TS1            - Executes the Globalization tests"
+	$(USAGE)
+	$(USAGE)"The following require the repository to be pre-built and the server to be started."
+	$(USAGE)
+	$(USAGE)"serversuite             - the collection of test run by the servertests rule"
+	$(USAGE)"run_STRESS_TS1          - Executes the stresstests"
+	$(USAGE)"slptests                - Executes the slptests"
+	$(USAGE)"run_Cmpi_Sub            - Executes the CMPI subscription tests"
+	$(USAGE)
+	$(USAGE)"The following requires wseventsink to be installed on the server and is not run"
+	$(USAGE)"as part of Primary target tests suites."
+	$(USAGE)"run_WSMAN_TS            - Executes the WSMAN indication deliver test"
+
+
+##########################################################
+#
+# rules that are defined in Makefile
+#
+##########################################################
+
+build: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile build
+
+world: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile world
+
+new: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile new
+
+clean: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile clean
+
+depend: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile depend
+
+###############################################################################
+#   mak/certificate_test.mak implements three key functions for
+#   testing Certificate-Based Authentication (CBA).
+#
+#   setupCBATestCertificates is used to create a set of test certificates
+#       make -f TestMakefile setupCBATestCertificates
+#
+#   runCBATestSuites is used to run a set of CBA tests
+#       make -f TestMakefile runCBATestSuites
+#
+#   cleanupCBATestCertificates can be used to remove the test certificates
+#       make -f TestMakefile cleanupCBATestCertificates
+###############################################################################
+include $(PEGASUS_ROOT)/mak/certificate_test.mak
+
+############################################################
+#
+# rules defined here
+#
+############################################################
+
+##
+## Although the macros CIMSERVER_STOP_SERVICE and CIMSERVER_START_SERVICE
+## are available and could be invoked directly, their direct usage is
+## discouraged in favor of invoking the cimstop and the cimstart rules
+## as this allows one place where additional checks, delays etc may be
+## added in the future to control or further test the servers performance
+## in executing these commands.
+##
+
+#######################
+#
+# doc
+#
+doc:
+	$(MAKE) --directory=$(PEGASUS_ROOT)/doc/ProviderSpec -f Makefile
+	$(MAKE) --directory=$(PEGASUS_ROOT)/doc/DevManual -f Makefile
+
+
+#######################
+#
+# repositoryServer
+#
+repositoryServer: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(SLEEP) 5
+	$(RMREPOSITORY) $(REPOSITORY_ROOT)
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart
+	$(SLEEP) 5
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repositoryServer
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile testrepositoryServer
+
+######################
+#
+# prestarttests is being deprecated since poststarttest is being deprecated
+# in favor of name more related to its intended functionality.
+#
+prestarttests: prestarttests_msg shortsleep unittests
+
+prestarttests_msg: FORCE
+	@$(ECHO) "=============================================================================="
+	@$(ECHO) "TestMakefile: The \"prestarttests\" rule is being deprecated."
+	@$(ECHO) "              Use \"make testusage\" for a description of the usage model."	
+	@$(ECHO) "              The equivalent new rule is \"unittests\"."
+	@$(ECHO) "              Invoking the \"unittests\" rule now."
+	@$(ECHO) "=============================================================================="
+
+####################
+#
+# poststarttests is being deprecated since it multiply defines a
+# recursive make rule leading to ambuguity and confusion.
+#
+poststarttests: poststarttests_msg shortsleep servertests
+
+poststarttests_msg: FORCE
+	@$(ECHO) "==============================================================================="
+	@$(ECHO) "TestMakefile: The \"posstarttests\" rule is being deprecated.."
+	@$(ECHO) "              Use \"make testusage\" for a description of the usage model."	
+	@$(ECHO) "              The equivalent new rule is \"servertests\"."
+	@$(ECHO) "              Invoking the \"servertests\" rule now."
+	@$(ECHO) "==============================================================================="
+
+#####################
+#
+# tests is being deprecated since it multiply defines a
+# recursive make rule leading to ambuguity and confusion.
+#
+tests: tests_msg shortsleep alltests
+
+tests_msg: FORCE
+	@$(ECHO) "==================================================================="
+	@$(ECHO) "TestMakefile: The \"tests\" rule is being deprecated."
+	@$(ECHO) "              Use \"make testusage\" for a description of the usage model."	
+	@$(ECHO) "              The equivalent new rule is \"alltests\"."
+	@$(ECHO) "              Invoking the \"alltests\" rule now."
+	@$(ECHO) "==================================================================="
+
+
+shortsleep: FORCE
+	@$(SLEEP) 5
+
+####################
+#
+# unittests
+#
+unittests: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile tests
+	@ $(ECHO) "+++++ TestMakefile unittests complete"
+
+#####################
+#
+# servertests
+#
+
+servertestsclean: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Pegasus/CQL/tests/Queries -f Makefile clean
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Pegasus/Query/QueryExpression/tests/Queries -f Makefile clean
+	$(MAKE) --directory=$(PEGASUS_ROOT)/test/wetest -f Makefile clean
+
+servertestssetup: FORCE
+ifdef PEGASUS_HAS_SSL
+#
+# The association between user names and certificates is stored in the
+# repository.  If the repository is recreated, we also need to re-initialize
+# the trust store directories. Otherwise, the truststore content will be
+# out-of-sync with the mapping stored in the repository.
+#
+#  NOTE: Tests that require their own test namespaces to run poststarttests
+#  should add their namespace creation make commands to pegasus/Makefile
+#  under the testrepository tag.
+#
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Server -f Makefile removeSSLTrustDirectories
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Server -f Makefile createSSLTrustDirectories
+endif
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repository
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile testrepository
+	@$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile \
+            cleanupCBATestCertificates
+	@$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile \
+            setupCBATestCertificates
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile cimstart
+	$(SLEEP) 5
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile ConfigureUsers
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile Create_SSL_Certificate
+ifeq ($(PEGASUS_TEST_SDK),true)
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/SDK/samples -f Makefile setupSDK
+endif
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile cimstop
+
+# slptests are run under separate target because these testcases require that
+# both the cimserver and SLP are running. There is no need for special options
+# while starting cimserver.
+slptests:
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/slp/tests/slptests -f Makefile slptests
+	@ $(ECHO) "+++++ TestMakefile slp test suite completed"
+
+servertests: servertestsclean servertestssetup serversuite
+	@ $(ECHO) "+++++ TestMakefile servertests suites complete"
+
+serversuite: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Pegasus/Server/tests -f Makefile commandtests
+ifeq ($(PEGASUS_ENABLE_SLP),true)
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/slp/tests/srv_reg/ -f Makefile tests
+endif
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile cimstart
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile poststarttests
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile TestBinRepository
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_Cimsub_InterOp
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_OOP_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_IndInit_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_OOPProvFail_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_OOPProvFail_TS2
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_OOPProvFail_TS3
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_INDSSL_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_SSL_IPV4_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_SSL_IPV6_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_SSL_CBA_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_G11N_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile runCBATestSuites
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_SDK_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ExportClientSSL_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_Cimserver_Availability
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_sslCipherSuiteTests
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_TLSv1_2_tests
+ifeq ($(PEGASUS_ENABLE_CMPI_PROVIDER_MANAGER),true)
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_Cmpi_Sub
+endif
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile cimprovagt32tests
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile chgdhoststests
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_idleConnectionTimeout1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_idleConnectionTimeout2
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_providerLifecycleIndicationTests
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile startcimListenAddress
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_interfaceRestrictionTest
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_providerReregisterTests 
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ENUMCTXT_TS1
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ENUMCTXT_TS2
+
+#####################
+#
+# stresstests
+#
+stresstests:
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_STRESS_TS1
+
+####################
+#
+# perftests - simple performance test until we have better
+#
+# - Turns statistics on (uses TestInterop until we have better)
+# - runs poststarttests suite and TestBenchmark
+# - runs cimperf to displat the statistics
+# - turns statistics off
+#
+perftests: servertestsclean servertestssetup perfsuite
+
+perfsuite: FORCE
+	$(PEGASUS_HOME)/bin/TestInterop on
+	$(TIME_CMD) $(MAKE) --directory=$(PEGASUS_ROOT)/test/wetest -f Makefile poststarttests
+	@ $(ECHO) " "
+	$(TIME_CMD) $(PEGASUS_HOME)/bin/TestClient
+	@ $(ECHO) " "
+	$(TIME_CMD) $(PEGASUS_HOME)/bin/TestBenchmark
+	@ $(ECHO) " "
+	@ $(ECHO) " "
+	$(TIME_CMD) $(PEGASUS_HOME)/bin/cimperf
+	@ $(ECHO) " "
+	$(PEGASUS_HOME)/bin/TestInterop off
+
+
+####################
+#
+# alltests
+#
+alltests: unittests servertests
+ifeq ($(OS_TYPE),windows)
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Server -f Makefile uninstall
+endif
+	@ $(ECHO) "+++++ TestMakefile alltests Complete"
+
+###############################################################################
+##  Test Suite Definitions
+###############################################################################
+
+###############################################################################
+##  OOP Test Suite 1: "Out-of-Process"(OOP) Provider Tests
+##
+##  Configuration Options: forceProviderProcesses=true
+##
+##  If PEGASUS_DEFAULT_ENABLE_OOP is set, then tests are run with OOP disabled
+##  since tests have already been run with OOP enabled.
+##
+##
+###############################################################################
+ifeq ($(PEGASUS_DEFAULT_ENABLE_OOP),true)
+OOP_TS1_CONFIG_OPTIONS = forceProviderProcesses=false
+else
+OOP_TS1_CONFIG_OPTIONS = forceProviderProcesses=true
+endif
+
+ifeq ($(PEGASUS_ENABLE_PRIVILEGE_SEPARATION),true)
+    # When privilege separation is enabled, most providers run out of process
+    # regardless of the forceProviderProcesses setting.  The exception is
+    # providers that register with UserContext = 5 (CIM Server).  The only
+    # case of this in the automated tests is the UserContextTestProvider.
+    OOP_TS1_TEST_CMDS = \
+        $(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Providers/TestProviders/UserContextTestProvider/testclient@@poststarttests
+else
+    OOP_TS1_TEST_CMDS = \
+        $(MAKE)@@--directory=$(PEGASUS_ROOT)@@-f@@Makefile@@poststarttests
+endif
+
+run_OOP_TS1:
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(OOP_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(OOP_TS1_TEST_CMDS)"
+
+###############################################################################
+
+###############################################################################
+##  IndInit Test Suite 1: IndicationService Initialization Tests
+##
+##  Configuration Options: (none)
+##
+###############################################################################
+IndInit_TS1_CONFIG_OPTIONS =
+IndInit_TS1a_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Pegasus/IndicationService/tests/ProcessIndication@@IndInit_TS1a
+IndInit_TS1b_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Pegasus/IndicationService/tests/ProcessIndication@@IndInit_TS1b
+
+run_IndInit_TS1:
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(IndInit_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(IndInit_TS1a_TEST_CMDS)"
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(IndInit_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(IndInit_TS1b_TEST_CMDS)"
+
+###############################################################################
+##  OOPProvFail Test Suite 1: OOP Provider Module Failure Tests
+##
+##  Configuration Options: forceProviderProcesses=true
+##  enableAuthentication=true, enableAuthentication=false
+##
+##  NOTE: Regardless of the setting of PEGASUS_DEFAULT_ENABLE_OOP, this test
+##  suite is always run with OOP enabled.  This test suite causes a provider to
+##  exit.  Running this test suite with OOP disabled would cause the cimserver
+##  to exit and the test suite to fail.
+##
+##  NOTE: The test is run once with authentication enabled, and once without
+##  authentication enabled.
+##
+###############################################################################
+OOPProvFail_TS1a_CONFIG_OPTIONS = forceProviderProcesses=true enableAuthentication=true maxFailedProviderModuleRestarts=0
+OOPProvFail_TS1b_CONFIG_OPTIONS = forceProviderProcesses=true enableAuthentication=false maxFailedProviderModuleRestarts=0
+OOPProvFail_TS1_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Providers/TestProviders/OOPModuleFailureProvider/testclient@@OOPProvFail_TS1
+
+ifndef PEGASUS_DISABLE_PRIVILEGED_TESTS
+run_OOPProvFail_TS1:
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(OOPProvFail_TS1a_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(OOPProvFail_TS1_TEST_CMDS)"
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(OOPProvFail_TS1b_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(OOPProvFail_TS1_TEST_CMDS)"
+else
+run_OOPProvFail_TS1: FORCE
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping run_OOPProvFail_TS1"
+endif
+
+###############################################################################
+##  OOPProvFail Test Suite 2: OOP Provider Module Failure on IndicationService
+##                            Initialization Tests
+##
+##  Configuration Options: forceProviderProcesses=true
+##                         enableAuthentication=true
+##
+##  NOTE: Regardless of the setting of PEGASUS_DEFAULT_ENABLE_OOP, this test
+##  suite is always run with OOP enabled.  This test suite causes a provider to
+##  exit.  Running this test suite with OOP disabled would cause the cimserver
+##  to exit and the test suite to fail.
+##
+###############################################################################
+OOPProvFail_TS2_CONFIG_OPTIONS = forceProviderProcesses=true enableAuthentication=true
+OOPProvFail_TS2a_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Providers/TestProviders/OOPModuleFailureProvider/testclient@@OOPProvFail_TS2a
+OOPProvFail_TS2b_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Providers/TestProviders/OOPModuleFailureProvider/testclient@@OOPProvFail_TS2b
+
+ifndef PEGASUS_DISABLE_PRIVILEGED_TESTS
+run_OOPProvFail_TS2:
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(OOPProvFail_TS2_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(OOPProvFail_TS2a_TEST_CMDS)"
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(OOPProvFail_TS2_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(OOPProvFail_TS2b_TEST_CMDS)"
+else
+run_OOPProvFail_TS2: FORCE
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping run_OOPProvFail_TS2"
+endif
+
+###############################################################################
+##  OOPProvFail Test Suite 3: OOP Provider Module Failure CIM Server restart
+##                            Tests
+##
+##  Configuration Options: forceProviderProcesses=true
+##                         enableAuthentication=true
+##
+##  NOTE: Regardless of the setting of PEGASUS_DEFAULT_ENABLE_OOP, this test
+##  suite is always run with OOP enabled.  This test suite causes a provider to
+##  exit.  Running this test suite with OOP disabled would cause the cimserver
+##  to exit and the test suite to fail.
+##
+###############################################################################
+OOPProvFail_TS3_CONFIG_OPTIONS = forceProviderProcesses=true enableAuthentication=true maxFailedProviderModuleRestarts=0
+OOPProvFail_TS3a_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Providers/TestProviders/OOPModuleFailureProvider/testclient@@OOPProvFail_TS3a
+OOPProvFail_TS3b_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Providers/TestProviders/OOPModuleFailureProvider/testclient@@OOPProvFail_TS3b
+
+ifndef PEGASUS_DISABLE_PRIVILEGED_TESTS
+run_OOPProvFail_TS3:
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(OOPProvFail_TS3_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(OOPProvFail_TS3a_TEST_CMDS)"
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(OOPProvFail_TS3_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(OOPProvFail_TS3b_TEST_CMDS)"
+else
+run_OOPProvFail_TS3: FORCE
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping run_OOPProvFail_TS3"
+endif
+
+###############################################################################
+##  Indication SSL Test Suite 1: Indication Testing over HTTPS
+##
+##  Configuration Options: (none)
+##
+###############################################################################
+INDSSL_TS1a_CONFIG_OPTIONS = enableHttpsConnection=true enableAuthentication=false
+INDSSL_TS1a_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Providers/TestProviders/IndicationStressTestProvider/testclient@@-f@@Makefile@@run_TS1_AuthenticationDisabled
+
+INDSSL_TS1b_CONFIG_OPTIONS = enableHttpsConnection=true enableAuthentication=true sslClientVerificationMode=required
+INDSSL_TS1b_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Providers/TestProviders/IndicationStressTestProvider/testclient@@-f@@Makefile@@run_TS1_AuthenticationEnabled
+
+
+ifdef PEGASUS_HAS_SSL
+ifndef PEGASUS_DISABLE_PRIVILEGED_TESTS
+run_INDSSL_TS1: EnableUsers Create_SSL_Certificate_ignore
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(INDSSL_TS1a_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(INDSSL_TS1a_TEST_CMDS)"
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(INDSSL_TS1b_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(INDSSL_TS1b_TEST_CMDS)"
+else
+run_INDSSL_TS1: FORCE
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping run_INDSSL_TS1"	
+endif
+else
+run_INDSSL_TS1: FORCE
+	@ $(ECHO) "+++++ PEGASUS_HAS_SSL not defined: Skipping run_INDSSL_TS1"
+endif
+
+
+###############################################################################
+##  WSMAN Indication test suite : WSMAN Indication Testing over HTTPS
+##
+##  Configuration Options:  (none for cimserver)
+##     wsevensink should be installed as the wsman listner.
+##
+##  There is no WSMAN listner in OP as of now. Therefore, wseventsink of
+##  openwsman is used. This is available only on Linux. On other OSes, the
+##  destination of the subcription/indication should be changed to a Linux
+##  system where wseventsink is running.
+##  Once we have a wsman listner in OP we include this test in Nigthly tests.
+##  As of now, this has to be run explicitly. 
+##
+###############################################################################
+ifeq ($(OS),linux) 
+ifeq ($(PEGASUS_ENABLE_PROTOCOL_WSMAN),true)
+INDWSMAN_CONFIG_OPTIONS = enableHttpsConnection=true enableAuthentication=false
+INDWSMAN_TS1a_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Providers/TestProviders/IndicationTestProvider/wsmanTestClient@@-f@@Makefile@@runWSMANtests
+
+run_WSMAN_TS: FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(INDWSMAN_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(INDWSMAN_TS1a_TEST_CMDS)"
+endif
+endif
+
+###############################################################################
+
+###############################################################################
+##  SSL IPv4 Test Suite : Tests SSL connections for IPv4
+##
+##  Configuration Options: enableHttpsConnection=true
+##  NOTE : Authentication is not enabled as we are only verifying
+##         if SSL based IPv6 connections are working correctly. The osinfo
+##         client requires a password to be passed for a remote connection
+##         otherwise it will prompt for one. As a work around,
+##         we are providing a dummy password.
+##
+###############################################################################
+SSL_IPV4_TS1_CONFIG_OPTIONS = enableHttpsConnection=true \
+      enableAuthentication=false
+SSL_IPV4_TS1_CMD_1 = \
+        osinfo -s -w notapassword -h 127.0.0.1 -p 5989
+SSL_IPV4_TS1_CMD_2 = \
+        osinfo -s -w notapassword -h localhost -p 5989
+
+ifdef PEGASUS_HAS_SSL
+    run_SSL_IPV4_TS1: FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(SSL_IPV4_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(SSL_IPV4_TS1_CMD_1)"
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(SSL_IPV4_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(SSL_IPV4_TS1_CMD_2)"
+else
+    run_SSL_IPV4_TS1: FORCE
+	@ $(ECHO) "+++++ PEGASUS_HAS_SSL not defined: Skipping run_SSL_IPV4_TS1"
+endif
+
+###############################################################################
+##  SSL IPv6 Test Suite : Tests SSL connections for IPv6
+##
+##  Configuration Options: enableHttpsConnection=true
+##  NOTE : Authentication is not enabled as we are only verifying
+##         if SSL based IPv6 connections are working correctly. The osinfo
+##         client requires a password to be passed for a remote connection
+##         otherwise it will prompt for one. As a work around,
+##         we are providing a dummy password.
+##
+##         The IPv4-mapped IPv6 address test is only enabled for unix
+##         platforms as Windows does not support IPv4-mapped IPv6 addresses
+##         on certain versions.
+##
+###############################################################################
+SSL_IPV6_TS1_CONFIG_OPTIONS = enableHttpsConnection=true \
+      enableAuthentication=false
+SSL_IPV6_TS1_CMD_1 = \
+        osinfo -s -w notapassword -h ::1 -p 5989
+SSL_IPV6_TS1_CMD_2 = \
+        osinfo -s -w notapassword -h ::ffff:127.0.0.1 -p 5989
+
+ifdef PEGASUS_HAS_SSL
+    run_SSL_IPV6_TS1: FORCE
+    ifeq ($(PEGASUS_TEST_IPV6), true)
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(SSL_IPV6_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(SSL_IPV6_TS1_CMD_1)"
+      ifeq ($(OS_TYPE), unix)
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(SSL_IPV6_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(SSL_IPV6_TS1_CMD_2)"
+      endif
+    else
+	@ $(ECHO) "+++++ PEGASUS_TEST_IPV6 not defined: Skipping run_SSL_IPV6_TS1"
+    endif
+else
+    run_SSL_IPV6_TS1: FORCE
+	@ $(ECHO) "+++++ PEGASUS_HAS_SSL not defined: Skipping run_SSL_IPV6_TS1"
+endif
+
+###############################################################################
+##  CBA SSL Test Suite 1: Certificate based authentication Tests
+##
+##  Configuration Options: enableAuthentication=true
+##                         enableHttpsConnection=true
+##                         sslClientVerificationMode=optional
+##                         sslTrustStoreUserName=$(CURRENT_USER)
+##
+###############################################################################
+SSL_CBA_TS1_CONFIG_OPTIONS = enableHttpsConnection=true enableAuthentication=true \
+       sslClientVerificationMode=optional sslTrustStoreUserName=$(CURRENT_USER)
+SSL_CBA_TS1_TEST_CMD_1 = \
+       $(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Clients/cimtrust/tests@@SSLCertificateTest1
+SSL_CBA_TS1_TEST_CMD_2 = \
+       $(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Clients/cimcrl/tests@@SSLCRLTest1
+
+ifdef PEGASUS_HAS_SSL
+ifndef PEGASUS_DISABLE_PRIVILEGED_TESTS
+run_SSL_CBA_TS1: FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(SSL_CBA_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(SSL_CBA_TS1_TEST_CMD_1)"
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(SSL_CBA_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(SSL_CBA_TS1_TEST_CMD_2)"
+else
+run_SSL_CBA_TS1: FORCE
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping run_SSL_CBA_TS1"	
+endif
+else
+run_SSL_CBA_TS1: FORCE
+	@ $(ECHO) "+++++ PEGASUS_HAS_SSL not defined: Skipping run_SSL_CBA_TS1"
+
+endif
+
+############################################################################
+#
+# Create_SSL_Certificate
+#
+# create a certificate that can be used for certification testing.
+# It is currently used by the following tests:
+#            -run_INDSSL_TS1
+#
+Create_SSL_Certificate_ignore: FORCE
+	-$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile Create_SSL_Certificate
+
+Create_SSL_Certificate: FORCE
+ifdef PEGASUS_HAS_SSL
+ifdef PEGASUS_TEST_USER_DEFINED
+	$(ECHO) "Creating SSL certificate for test"
+	cimtrust -a -U $(PEGASUS_TEST_USER_ID) -f $(PEGASUS_HOME)/server.pem -Ts
+endif
+else
+	$(ECHO) "PEGASUS_HAS_SSL not defined - Not Creating SSL certificate for test"
+endif
+
+############################################################################
+##
+##  run_sslCipherSuiteTests
+##
+##  Configuration Options: enableHttpsConnection=true
+##                         sslCipherSuite=HIGH
+##
+############################################################################
+
+SSL_CIPHER_SUITE_TEST_CONFIG_OPTIONS= enableHttpsConnection=true sslCipherSuite=HIGH
+SSL_CIPHER_SUITE_TEST_CMDS= \
+	$(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Pegasus/Client/tests/SSLCipherVerification/ \
+            -f@@Makefile@@sslCipherSuiteTests
+
+ifdef PEGASUS_HAS_SSL
+run_sslCipherSuiteTests:
+	@$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+             CIMSERVER_CONFIG_OPTIONS="$(SSL_CIPHER_SUITE_TEST_CONFIG_OPTIONS)" \
+             TESTSUITE_CMDS="$(SSL_CIPHER_SUITE_TEST_CMDS)"
+else
+run_sslCipherSuiteTests: FORCE
+	@ $(ECHO) "+++++ PEGASUS_HAS_SSL not defined: Skipping run_sslCipherSuiteTests"
+endif
+
+
+###############################################################################
+##  G11N Test Suite 1: Globalization Tests
+##
+##  Configuration Options: forceProviderProcesses=false
+##
+###############################################################################
+G11N_TS1_CONFIG_OPTIONS = forceProviderProcesses=false
+G11N_TS1_TEST_CMDS = \
+        $(MAKE) --directory $(PEGASUS_ROOT)/src/Clients/g11ntest \
+            -f Makefile g11ntest
+
+run_G11N_TS1:
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(G11N_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(G11N_TS1_TEST_CMDS)"
+
+###############################################################################
+##  Stress Test Suite 1:  Default Stress Tests
+##
+##  Configuration Options: (none)
+##
+###############################################################################
+STRESS_TS1_CONFIG_OPTIONS =
+STRESS_TS1_TEST_CMDS = \
+        TestStressTestController
+
+run_STRESS_TS1:
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(STRESS_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(STRESS_TS1_TEST_CMDS)"
+###############################################################################
+
+###############################################################################
+##  SDK Test Suite 1:  SDK Tests
+##
+##  Configuration Options: (none)
+##
+###############################################################################
+SDK_TS1_CONFIG_OPTIONS =
+SDK_TS1_TEST_CMDS = \
+        $(MAKE) --directory $(PEGASUS_ROOT)/src/SDK/samples \
+            -f Makefile testSDK
+
+ifeq ($(PEGASUS_TEST_SDK),true)
+run_SDK_TS1: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT)/mak \
+            -f $(PEGASUS_ROOT)/mak/SDKMakefile stageINCLUDE \
+            PEGASUS_STAGING_DIR=$(PEGASUS_HOME) \
+            PEGASUS_INCLUDE_DIR=/include
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/SDK/samples \
+            -f Makefile clean
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/SDK/samples \
+            -f Makefile PEGASUS_INCLUDE_DIR=$(PEGASUS_HOME)/include
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(SDK_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(SDK_TS1_TEST_CMDS)"
+else
+run_SDK_TS1: FORCE
+	@ $(ECHO) "+++++ PEGASUS_TEST_SDK is not true: Skipping run_SDK_TS1"	
+endif
+###############################################################################
+
+###############################################################################
+##  Export Client SSL Test Suite 1:
+##
+##  Configuration Options: enableHttpsConnection=true
+##
+###############################################################################
+ExportClientSSL_TS1_CONFIG_OPTIONS = enableHttpsConnection=true
+ExportClientSSL_TS1_TEST_CMDS = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Pegasus/ExportClient/tests/ExportClient@@-f@@Makefile@@runExportClientSSL_TS1
+
+ifdef PEGASUS_HAS_SSL
+run_ExportClientSSL_TS1:
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(ExportClientSSL_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(ExportClientSSL_TS1_TEST_CMDS)"
+else
+run_ExportClientSSL_TS1: FORCE
+	@ $(ECHO) "+++++ PEGASUS_HAS_SSL not defined: Skipping run_ExportClientSSL_TS1"
+endif
+
+###############################################################################
+
+
+###############################################################################
+##  TLS v 1.2 support test as per NIST 800-131a
+##
+##  Configuration Options: enableHttpsConnection=true sslCipherSuite = TLSv1.2
+##
+###############################################################################
+TLS_1_2_SUPPORT_CONFIG = enableHttpsConnection=true sslCipherSuite=TLSv1.2
+TLSv1_2_support_tests = \
+	$(MAKE)@@--directory=$(PEGASUS_ROOT)/src/Pegasus/Server/tests/TLSv_1_2_Support@@-f@@Makefile@@test_TLSv1_2
+
+ifdef PEGASUS_HAS_SSL
+run_TLSv1_2_tests:
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(TLS_1_2_SUPPORT_CONFIG)" \
+            TESTSUITE_CMDS="$(TLSv1_2_support_tests)"
+else
+run_TLSv1_2_tests: FORCE
+	@ $(ECHO) "+++++ PEGASUS_HAS_SSL not defined: Skipping TLSv 1.2 support tests"
+endif
+
+###############################################################################
+
+
+###############################################################################
+##  idleConnectionTimeout Test Suite 1:  uses ChunkingStressProvider Tests
+##
+##  Configuration Options: idleConnectionTime=55
+##
+###############################################################################
+IDLE_CONNECTION_TIMEOUT_1_CONFIG_OPTIONS = idleConnectionTimeout=55
+IDLE_CONNECTION_TIMEOUT_1_TEST_CMDS = \
+	$(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Providers/TestProviders/ChunkingStressProvider/testclient \
+            -f@@Makefile@@poststarttests
+
+run_idleConnectionTimeout1: FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(IDLE_CONNECTION_TIMEOUT_1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(IDLE_CONNECTION_TIMEOUT_1_TEST_CMDS)"
+###############################################################################
+
+###############################################################################
+##  idleConnectionTimeout Test Suite 2:  uses IdleConnectionTimeout client test
+##
+##  Configuration Options: idleConnectionTime=6
+##
+###############################################################################
+IDLE_CONNECTION_TIMEOUT_2_CONFIG_OPTIONS = idleConnectionTimeout=6
+IDLE_CONNECTION_TIMEOUT_2_TEST_CMDS = \
+	$(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Pegasus/Client/tests/IdleConnectionTimeout/ \
+            -f@@Makefile@@timeoutTest@@IDLETIME=10
+run_idleConnectionTimeout2: FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(IDLE_CONNECTION_TIMEOUT_2_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(IDLE_CONNECTION_TIMEOUT_2_TEST_CMDS)"
+###############################################################################
+
+###############################################################################
+##  cimserver thread limit test:
+##
+##  Configuration Options: none
+##
+###############################################################################
+CIMSERVER_THREAD_LIMIT_TEST_CONFIG_OPTIONS = forceProviderProcesses=true
+CIMSERVER_THREAD_LIMIT_TEST_CMDS = \
+       $(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Providers/TestProviders/FaultyInstanceProvider/testclient \
+            -f@@Makefile@@runAvailabilityTest
+run_Cimserver_Availability: FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(CIMSERVER_THREAD_LIMIT_TEST_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(CIMSERVER_THREAD_LIMIT_TEST_CMDS)"
+###############################################################################
+
+###############################################################################
+##  cimsub CLI Test Suite 1:  PG_InterOp Tests
+##
+##  Configuration Options: (none)
+##
+###############################################################################
+CIMSUB_INTEROP_CONFIG_OPTIONS =
+CIMSUB_INTEROP_TEST_CMDS = \
+	$(MAKE) --directory \
+            $(PEGASUS_ROOT)/src/Clients/cimsub/tests/testscriptInterOp \
+            -f Makefile cimsubTest_InterOp
+run_Cimsub_InterOp: FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(CIMSUB_INTEROP_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(CIMSUB_INTEROP_TEST_CMDS)"
+###############################################################################
+
+###############################################################################
+## CMPI subscription activation Test Suite 1:
+##
+## Configuration Options: (none)
+##
+###############################################################################
+CMPI_SUB_TEST_CONFIG_OPTIONS=
+CMPI_SUBa_TEST_CMDS = \
+	TestIndicationStressTest TestCMPI_IndicationStressTestClass test/TestProvider setup WQL
+CMPI_SUBb_TEST_CMDS = \
+	TestIndicationStressTest TestCMPI_IndicationStressTestClass test/TestProvider getSubscriptionCount
+CMPI_SUBc_TEST_CMDS =  \
+	TestIndicationStressTest TestCMPI_IndicationStressTestClass test/TestProvider cleanup
+run_Cmpi_Sub: FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(CMPI_SUB_TEST_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(CMPI_SUBa_TEST_CMDS)"
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(CMPI_SUB_TEST_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(CMPI_SUBb_TEST_CMDS)"
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(CMPI_SUB_TEST_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(CMPI_SUBc_TEST_CMDS)"
+
+##############################################################################
+
+###############################################################################
+##  EnumerationContext Black Box test 1
+##
+##  Configuration Options: Run with trace on and at least EnumContext compent
+##                         set.  Trace output used to diagnose results
+##                         Run with forceProviderProcesses=true
+##  Runs a test of pull operations and tests the trace output to determine if
+##  it includes an equal number of create and remove trace entries indicating
+##  that all enumerations contexts completed. Note that today the code that
+##  tests the trace results is a sh script and grep so this runs only on
+##  systems that have these tools
+##  This test was added in OpenPegasus 2.14 when the pull operations were 
+##  added
+##
+###############################################################################
+ENUMCTXT_TS1_CONFIG_OPTIONS = traceComponents=EnumContext traceLevel=4 forceProviderProcesses=true
+
+ENUMCTXT_TS1A_TEST_CMDS = \
+	$(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Pegasus/Client/tests/pullop -f@@Makefile poststarttests
+
+ENUMCTXT_TS1B_TEST_CMDS = \
+	$(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Pegasus/Client/tests/PullErrors -f@@Makefile poststarttests
+
+ENUMCTXT_POSTTEST_CMD = $(PEGASUS_ROOT)/src/Pegasus/Client/tests/pullop/testContextTraceOutput
+
+run_ENUMCTXT_TS1:
+ifeq ($(findstring LINUX_, $(PEGASUS_PLATFORM)), LINUX_)
+	$(RM) $(PEGASUS_HOME)/trace/*
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(ENUMCTXT_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(ENUMCTXT_TS1A_TEST_CMDS)"
+	$(ENUMCTXT_POSTTEST_CMDS)
+
+	$(RM) $(PEGASUS_HOME)/trace/*
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(ENUMCTXT_TS1_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(ENUMCTXT_TS1B_TEST_CMDS)"
+	$(ENUMCTXT_POSTTEST_CMD)
+else
+	@ $(ECHO) "+++++ run_ENUMCTXT_TS1 runs only in certain environments"
+endif
+###############################################################################
+
+###############################################################################
+##  EnumerationContext Black Box test 2
+##  Parallel to ENUMCTXT_TS1 except with forceProviderProcesses=false
+##
+###############################################################################
+ENUMCTXT_TS2_CONFIG_OPTIONS = traceComponents=EnumContext traceLevel=4 forceProviderProcesses=false
+
+## uses the test commands from run_ENUMCTXT_TS1
+
+run_ENUMCTXT_TS2:
+ifeq ($(findstring LINUX_, $(PEGASUS_PLATFORM)), LINUX_)
+	$(RM) $(PEGASUS_HOME)/trace/*
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(ENUMCTXT_TS2_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(ENUMCTXT_TS1A_TEST_CMDS)"
+	$(ENUMCTXT_POSTTEST_CMDS)
+
+	$(RM) $(PEGASUS_HOME)/trace/*
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(ENUMCTXT_TS2_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(ENUMCTXT_TS1B_TEST_CMDS)"
+	$(ENUMCTXT_POSTTEST_CMD)
+else
+	@ $(ECHO) "+++++ run_ENUMCTXT_TS1 runs only in certain environments"
+endif
+###############################################################################
+
+#############################################################################
+##
+## 32-bit provider tests on 64-bit CIMServer
+##
+#############################################################################
+
+TEST_32BIT_CONFIG_OPTIONS = providerDir=lib32:lib
+TEST_32BIT_CMDS = \
+       $(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Providers/TestProviders -f@@Makefile.cimprovagt32tests@@cimprovagt32tests
+cimprovagt32tests: FORCE
+ifdef PEGASUS_PLATFORM_FOR_32BIT_PROVIDER_SUPPORT
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS="$(TEST_32BIT_CONFIG_OPTIONS)" \
+            TESTSUITE_CMDS="$(TEST_32BIT_CMDS)"
+else
+	@$(ECHO) "PEGASUS_PLATFORM_FOR_32BIT_PROVIDER_SUPPORT not defined, skipping 32-bit tests..."
+endif
+
+#############################################################################
+##
+## CIMServer with overridden hostnames testing
+##
+#############################################################################
+
+TEST_CHGD_HOSTS_OPTIONS = "hostname=hugo fullyQualifiedHostName=hugo.bert"
+TEST_CHGD_HOSTS_CMDS = \
+       $(MAKE)@@--directory \
+            $(PEGASUS_ROOT)/src/Pegasus/Config/tests/ChgdHosts@@chgdhoststest
+chgdhoststests: FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+            CIMSERVER_CONFIG_OPTIONS=$(TEST_CHGD_HOSTS_OPTIONS) \
+            TESTSUITE_CMDS="$(TEST_CHGD_HOSTS_CMDS)"
+
+
+#############################################################################
+##
+## provider lifecycle indications tests
+##
+#############################################################################
+run_providerLifecycleIndicationTests: FORCE
+	$(MAKE) --directory $(PEGASUS_ROOT)/src/Providers/TestProviders/TestProviderLifecycleIndications/testclient -f Makefile setupLogFile
+	-$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="forceProviderProcesses=true maxFailedProviderModuleRestarts=1"
+	$(MAKE) --directory $(PEGASUS_ROOT)/src/Providers/TestProviders/TestProviderLifecycleIndications/testclient -f Makefile createPLISubscription
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="forceProviderProcesses=true maxFailedProviderModuleRestarts=1"
+	$(MAKE) --directory $(PEGASUS_ROOT)/src/Providers/TestProviders/TestProviderLifecycleIndications/testclient -f Makefile testPLI
+	$(MAKE) --directory $(PEGASUS_ROOT)/src/Providers/TestProviders/TestProviderLifecycleIndications/testclient -f Makefile deletePLISubscription
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory $(PEGASUS_ROOT)/src/Providers/TestProviders/TestProviderLifecycleIndications/testclient -f Makefile testLogFile
+
+
+#############################################################################
+#
+# Provider reregistration tests.
+#
+##############################################################################
+run_providerReregisterTests:FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart
+	$(MAKE) --directory $(PEGASUS_ROOT)/src/Providers/TestProviders/IndicationStressTestProvider/testclient -f Makefile createSubscriptions
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart
+	$(MAKE) --directory $(PEGASUS_ROOT)/src/Providers/TestProviders/IndicationStressTestProvider/testclient -f Makefile reregister_providerTests
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	
+
+#############################################################################
+##
+## Network Interface restriction tests
+##
+##  Configuration Options: enableHttpsConnection=true
+##                         enableHttpConnection=true
+##                         listenAddress=x.y.x.z
+##
+#############################################################################
+startcimListenAddress: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="enableHttpConnection=true enableHttpsConnection=true listenAddress=::1,127.0.0.1"
+	$(SLEEP) 5
+
+
+
+#Hardcoding the addess 127.0.0.1,
+RESTRICT_INTRFC_TEST_CONFIG_OPTIONS= enableHttpConnection=true enableHttpsConnection=true listenAddress=127.0.0.1
+RESTRICT_INTRFC_TEST_CMDS=$(MAKE)@@--directory $(PEGASUS_ROOT)/src/Pegasus/Server/tests/InterfaceRestriction@@-f@@Makefile@@RestrictionTest
+
+run_interfaceRestrictionTest:FORCE
+	$(MAKE) -f $(PEGASUS_ROOT)/TestMakefile runTestSuite \
+	    CIMSERVER_CONFIG_OPTIONS="$(RESTRICT_INTRFC_TEST_CONFIG_OPTIONS)" \
+	    TESTSUITE_CMDS="$(RESTRICT_INTRFC_TEST_CMDS)"
+
+
+##############################################################################
+##
+## TestXMLRepository rule is used to run the poststarttests suite on
+## the XML Repository built using cimmofl
+##
+## TestXMLRepositoryServer rule is used to run the poststarttests suite on
+## the XML Repository built using cimmof
+##
+## TestXMLCmpRepository rule is used to run the poststarttest suite on
+## the XML Compressed Repository built using cimmofl
+##
+
+############################
+##
+## TestXMLRepository
+##
+
+TestXMLRepository: TestXMLClean TestXMLBuildRepo  TestXMLRepo
+	@ $(ECHO) TestXMLRepository +++++ passed all test
+
+############################
+##
+## TestXMLRepositoryServer
+##
+TestXMLRepositoryServer: TestXMLClean  TestXMLBuildRepoServ TestXMLRepo
+	@ $(ECHO) TestXMLRepositoryServer +++++ passed all test
+
+############################
+##
+## TestXMLCmpRepository -  run poststarttest on Compressed BIN Repository
+##
+ifdef PEGASUS_ENABLE_COMPRESSED_REPOSITORY
+TestXMLCmpRepository: FORCE
+	@ $(ECHO) TestXMLCmpRepository +++++ Repository compressed by default - nothing more to test.
+	@ $(ECHO) TestXMLCmpRepository +++++ passed all test
+else
+
+ifdef PEGASUS_ENABLE_COMPRESSED_REPOSITORY_TEST
+
+TestXMLCmpRepository: TestXMLClean  TestCmpBuild TestXMLBuildRepo TestXMLRepo TestRegBuild
+	@ $(ECHO) TestXMLCmpRepository +++++ passed all test
+else
+TestXMLCmpRepository: FORCE
+	@ $(ECHO) TestXMLCmpRepository +++++ Not tested
+	@ $(ECHO) TestXMLCmpRepository +++++ refer to readme.compressed_repository
+	@ $(ECHO) TestXMLCmpRepository +++++ to enable: set PEGASUS_ENABLE_COMPRESSED_REPOSITORY_TEST=true
+endif
+endif
+
+###########################
+##
+## TestXMLClean
+##
+TestXMLClean: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repositoryclean REPOSITORY_NAME=repository_xml
+
+
+###########################
+##
+## TestXMLStartServer
+##
+TestXMLStartServer: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Server -f Makefile install_run
+	- $(MKDIRHIER) $(PEGASUS_HOME)/repository_xml
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="repositoryDir=$(PEGASUS_HOME)/repository_xml"
+	$(SLEEP) 5
+
+####
+#### The following caused the cimserver to fail on startup
+####
+####	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="enableBinRepository=false repositoryDir=$(PEGASUS_HOME)/repository_xml"
+
+###########################
+##
+## TestXMLBuildRepo
+##
+TestXMLBuildRepo: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repository REPOSITORY_NAME=repository_xml REPOSITORY_MODE=XML
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile testrepository REPOSITORY_NAME=repository_xml REPOSITORY_MODE=XML
+
+
+###########################
+##
+## TestXMLBuildRepoServ
+##
+TestXMLBuildRepoServ: TestXMLStartServer
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repositoryServer REPOSITORY_NAME=repository_xml REPOSITORY_MODE=XML
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile testrepositoryServer REPOSITORY_NAME=repository_xml REPOSITORY_MODE=XML
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+
+
+###########################
+##
+## TestXMLRepo
+##
+TestXMLRepo: servertestsclean
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile TestXMLStartServer
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile poststarttests REPOSITORY_NAME=repository_xml REPOSITORY_MODE=XML
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+
+
+
+
+
+
+##############################################################################
+##
+## TestBinRepository rule is used to run the poststarttests suite on
+## the Binary Repository built using cimmofl
+##
+## TestBinRepositoryServer rule is used to run the poststarttests suite on
+## the Binary Repository built using cimmof
+##
+## TestBinCmpRepository rule is used to run the poststarttest suite on
+## the Binry Compressed Repository built using cimmofl
+##
+
+############################
+##
+## TestBinRepository
+##
+### bug 3011 disabled Binary Repository testing on LINUX_IA64 to allow
+### the nightly tests to run
+
+TestBinRepository: TestBinClean TestBinBuildRepo  TestBinRepo
+	@ $(ECHO) TestBinRepository +++++ passed all test
+
+
+############################
+##
+## TestBinRepositoryServer
+##
+TestBinRepositoryServer: TestBinClean  TestBinBuildRepoServ TestBinRepo
+	@ $(ECHO) TestBinRepositoryServer +++++ passed all test
+
+############################
+##
+## TestBinCmpRepository -  run poststarttest on Compressed BIN Repository
+##
+ifdef PEGASUS_ENABLE_COMPRESSED_REPOSITORY
+TestBinCmpRepository: FORCE
+	@ $(ECHO) TestBinCmpRepository +++++ Repository compressed by default - nothing more to test.
+	@ $(ECHO) TestBinCmpRepository +++++ passed all test
+else
+
+ifdef PEGASUS_ENABLE_COMPRESSED_REPOSITORY_TEST
+
+TestBinCmpRepository: TestBinClean  TestCmpBuild TestBinBuildRepo TestBinRepo TestRegBuild
+	@ $(ECHO) TestBinCmpRepository +++++ passed all test
+else
+TestBinCmpRepository: FORCE
+	@ $(ECHO) TestBinCmpRepository +++++ Not tested
+	@ $(ECHO) TestBinCmpRepository +++++ refer to readme.compressed_repository
+	@ $(ECHO) TestBinCmpRepository +++++ to enable: set PEGASUS_ENABLE_COMPRESSED_REPOSITORY_TEST=true
+endif
+endif
+
+
+###########################
+##
+## TestBinClean
+##
+TestBinClean: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repositoryclean REPOSITORY_NAME=repository_bin
+
+
+###########################
+##
+## TestBinStartServer
+##
+TestBinStartServer: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Server -f Makefile install_run
+	- $(MKDIRHIER) $(PEGASUS_HOME)/repository_bin
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="enableBinaryRepository=true repositoryDir=$(PEGASUS_HOME)/repository_bin"
+	$(SLEEP) 5
+
+###########################
+##
+## TestBinBuildRepo
+##
+TestBinBuildRepo: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repository REPOSITORY_NAME=repository_bin REPOSITORY_MODE=BIN
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile testrepository REPOSITORY_NAME=repository_bin REPOSITORY_MODE=BIN
+
+
+###########################
+##
+## TestBinBuildRepoServ
+##
+TestBinBuildRepoServ: TestBinStartServer
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repositoryServer REPOSITORY_NAME=repository_bin REPOSITORY_MODE=BIN
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile testrepositoryServer REPOSITORY_NAME=repository_bin REPOSITORY_MODE=BIN
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+
+
+###########################
+##
+## TestBinRepo
+##
+TestBinRepo: servertestsclean
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile TestBinStartServer
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile poststarttests REPOSITORY_NAME=repository_bin REPOSITORY_MODE=BIN
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+
+
+
+
+############################
+##
+## TestCmpBuild - used to compile the repository for compression
+##
+TestCmpBuild: FORCE
+	@ $(MAKE) "-SC" $(ROOT)/src/Pegasus/Repository clean
+	@ $(MAKE) "-SC" $(ROOT)/src/Pegasus/Repository depend PEGASUS_ENABLE_COMPRESSED_REPOSITORY=1
+	@ $(MAKE) "-SC" $(ROOT)/src/Pegasus/Repository PEGASUS_ENABLE_COMPRESSED_REPOSITORY=1
+
+
+############################
+##
+## TestRegBuild - used to compile the repository for no compression
+##
+TestRegBuild: FORCE
+	@ $(MAKE) "-SC" $(ROOT)/src/Pegasus/Repository clean
+	@ $(MAKE) "-SC" $(ROOT)/src/Pegasus/Repository depend
+	@ $(MAKE) "-SC" $(ROOT)/src/Pegasus/Repository
+
+###############################################################################
+##
+## Trace Configuration
+##
+## Options: see usagetrace rule
+##
+###############################################################################
+
+usagetrace: FORCE
+	$(USAGE)
+	$(USAGE)"TestMakefile Trace Commands: "
+	$(USAGE)"  The cimserver must be running when using W=c which is the default for W"
+	$(USAGE)
+	$(USAGE)" traceon  W=[current/planned(c,p):   Enables all tracing."
+	$(USAGE)" traceoff W=[current/planned(c,p):   Disables all tracing."
+	$(USAGE)" tracesettings:                      Displays all trace settings."
+	$(USAGE)" tracecomp:                          Displays a trace componenets list."
+	$(USAGE)" traceon-CL C=[comp] L=[level(1,2,3,4)] W=[current/planned(c,p): "
+	$(USAGE)"                           Enables tracing on component C at trace level L."
+	$(USAGE)
+	$(USAGE)" W defaults to c in the above commands where W can be specified"
+	$(USAGE)
+	$(USAGE)"  Usage examples:"
+	$(USAGE)"   traceon       turns on trace in current server config"
+	$(USAGE)"   traceon W=c   turns on trace in current server config"
+	$(USAGE)"   traceon W=p   turns on trace in planned server config"
+	$(USAGE)"   traceoff      turns on trace in current server config"
+	$(USAGE)"   traceoff W=c  turns on trace in current server config"
+	$(USAGE)"   traceoff W=p  turns on trace in planned server config"
+	$(USAGE)
+	$(USAGE)"   traceon-CL C=DiscardedData L=3 W=c"
+	$(USAGE)"     Turns on trace for DiscardedData at level 3 in current server config"
+	$(USAGE)"   traceon-CL C=DiscardedData L=3 W=p"
+	$(USAGE)"     Turns on trace for DiscardedData at level 3 in planned server config"
+	$(USAGE)
+	$(USAGE)
+
+traceon: FORCE
+	@ cimconfig -s traceComponents=ALL -$W
+	@ cimconfig -s traceLevel=3 -$W
+	$(MAKE) -f $(ROOT)/TestMakefile tracesettings
+
+
+traceoff: FORCE
+	@ cimconfig -s traceComponents=  -$W
+	$(MAKE) -f $(ROOT)/TestMakefile tracesettings
+
+
+tracesettings: FORCE
+	@ $(ECHO) " "
+	cimconfig -g traceComponents -c -p
+	@ $(ECHO) " "
+	cimconfig -g traceLevel -c -p
+	@ $(ECHO) " "
+	cimconfig -g traceFilePath -c -p
+	@ $(ECHO) " "
+
+traceon-CL: FORCE
+	@ cimconfig -s traceComponents=$C -$W
+	@ cimconfig -s traceLevel=$L -$W
+	$(MAKE) -f $(ROOT)/TestMakefile tracesettings
+
+tracecomp: FORCE
+	$(USAGE)
+	$(USAGE)"Trace component list:"
+	$(USAGE)
+	$(USAGE)"Channel"
+	$(USAGE)"XmlParser"
+	$(USAGE)"XmlWriter"
+	$(USAGE)"XmlReader"
+	$(USAGE)"XmlIO"
+	$(USAGE)"Http"
+	$(USAGE)"CimData"
+	$(USAGE)"ProvManager"
+	$(USAGE)"Repository"
+	$(USAGE)"Dispatcher"
+	$(USAGE)"OsAbstraction"
+	$(USAGE)"Config"
+	$(USAGE)"IndDelivery"
+	$(USAGE)"IndHandler"
+	$(USAGE)"Authentication"
+	$(USAGE)"Authorization"
+	$(USAGE)"UserManager"
+	$(USAGE)"SubscriptionService"
+	$(USAGE)"Registration"
+	$(USAGE)"Shutdown"
+	$(USAGE)"Server"
+	$(USAGE)"IndicationService"
+	$(USAGE)"IndicationServiceInternal"
+	$(USAGE)"ConfigurationManager"
+	$(USAGE)"MessageQueueService"
+	$(USAGE)"ProviderManager"
+	$(USAGE)"ObjectResolution"
+	$(USAGE)"WQL"
+	$(USAGE)"CQL"
+	$(USAGE)"Thread"
+	$(USAGE)"MetaDispatcher"
+	$(USAGE)"IPC"
+	$(USAGE)"IndicationHandlerService"
+	$(USAGE)"CIMExportRequestDispatcher"
+	$(USAGE)"Memory"
+	$(USAGE)"SSL"
+	$(USAGE)"ControlProvider"
+	$(USAGE)"AsyncOpNode"
+	$(USAGE)"CIMOMHandle"
+	$(USAGE)"L10N"
+	$(USAGE)"ExportClient"
+	$(USAGE)"Listener"
+	$(USAGE)"DiscardedData"
+	$(USAGE)"ProviderAgent"
+	$(USAGE)"EnumContext"
+	$(USAGE)
+
+###############################################################################
+##
+## Trace Configuration - Old rules being deprecated
+##
+## Options:
+##      XMLTraceOn: Enables XML request and response tracing.
+##      ProviderLoadTraceOn: Enables Provider load tracing.
+##      XML+ProviderLoadTraceOn: Enables both XML request/response and Provider
+##                                 load tracing.
+##      AllTraceOn: Enables all tracing.
+##      AllTraceOff: Disables all tracing.
+##      list: Lists trace settings.
+##
+###############################################################################
+
+XMLTraceOn:
+	cimconfig -s traceComponents=XmlIO -c
+	cimconfig -s traceLevel=3 -c
+	cimconfig -g traceComponents
+	cimconfig -g traceLevel
+
+ProviderLoadTraceOn:
+	cimconfig -s traceComponents=ProvManager,OsAbstraction
+	cimconfig -s traceLevel=3 -c
+	cimconfig -g traceComponents
+	cimconfig -g traceLevel
+
+XML+ProviderLoadTraceOn:
+	cimconfig -s traceComponents=XmlIO,ProvManager,OsAbstraction
+	cimconfig -s traceLevel=3 -c
+	cimconfig -g traceComponents
+	cimconfig -g traceLevel
+
+AllTraceOn: traceon
+
+AllTraceOff: traceoff
+
+list: tracesettings
+
+#########################################################################
+# standardtests
+#
+# More testing options...
+#
+# The standard test seem to contain additional test that may not be able
+# to run on all platforms so they have been grouped here for now rather than
+# being included in the serversuite rule.
+#
+# The test are:
+#      TestCimmof
+#      TestNoSecurity
+#      TestLocalSecurity
+#      TestRemoteSecurity
+#      TestAuthorization
+#
+# NOTE: The TestsNoSecurity test is comprised of DisableSecurity and
+#       TestNoSecurity.
+#
+# NOTE: The TestNoSecurity step runs the servertests which builds the
+#       the repository that is then left in place for the remaining tests.
+#       The cimof test must be before the TestNosecurity step as it removes
+#       the repository builds a new one with cimmofl and another one with
+#       cimmof and then compares them.
+#
+# NOTE: The Authentication test is comprised of EnableAuthentication,
+#       TestLocalSecurity and TestRemoteSecurity.
+#
+# NOTE: The Authorization test is comprised of EnableAuthorization and
+#       TestAuthorization.
+#
+# NOTE: The EnableAuthentication and EnableAuthorization steps require
+#       root access. Pegasus doesn't currently have the infrastructure
+#       in place to run the server as root and run the test as non-root.
+#       Rather than run everything, server, tests, providers, clients etc.
+#       as root many testers prefer to run the tests as non-root. Setting
+#       PEGASUS_DISABLE_PRIVILEGED_TESTS in the environment helps to
+#       facilitate that.
+#
+
+standardtests: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i DisableSecurity
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile TestCimmof
+#	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile TestNoSecurity
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repository testrepository
+ifndef PEGASUS_DISABLE_PRIVILEGED_TESTS
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile EnableAuthentication
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile TestLocalSecurity
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile TestRemoteSecurity
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile EnableAuthorization
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile TestAuthorization
+else
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping EnableAuthentication, TestLocalSecurity, and TestRemoteSecurity "
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping EnableAuthorization and TestAuthorization "	
+endif
+        # Reset the security options to the defaults
+	cimconfig -u enableNamespaceAuthorization -p
+	cimconfig -u enableAuthentication -p
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	@ $(ECHO) "+++++ TestMakefile standardtests complete"
+
+TestNoSecurity:
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile servertests
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile startcimWithoutSSL
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile RunTestClientLocal
+
+TestLocalSecurity:
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile RunTestClientLocal
+	$(MAKE) --directory=$(PEGASUS_ROOT)/test/wetest -f Makefile poststarttests HOSTNAME= PORT= USER= PASSWORD= SECURITY_ENABLED=true
+
+TestRemoteSecurity:
+	TestClient -user $(PEGASUS_TEST_USER_ID) -password $(PEGASUS_TEST_USER_PASS) $(system):5988
+	$(MAKE) --directory=$(PEGASUS_ROOT)/test/wetest/static -f Makefile poststarttests HOSTNAME=-h$(system) USER=-u$(PEGASUS_TEST_USER_ID) PASSWORD=-w$(PEGASUS_TEST_USER_PASS) SECURITY_ENABLED=true
+
+TestAuthorization:
+	TestPegClientDeleteNamespace -a -user $(PEGASUS_TEST_USER_ID) -password $(PEGASUS_TEST_USER_PASS)
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile RunTestClientLocal
+	TestClient -user $(PEGASUS_TEST_USER_ID) -password $(PEGASUS_TEST_USER_PASS) $(system):5988
+	$(MAKE) --directory=$(PEGASUS_ROOT)/test/wetest/static -f Makefile poststarttests HOSTNAME=-h$(system) USER=-u$(PEGASUS_TEST_USER_ID) PASSWORD=-w$(PEGASUS_TEST_USER_PASS) SECURITY_ENABLED=true
+
+TestSubscriptions:
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile DisableSecurity
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repository
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile testrepository
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile startcimWithoutSSL
+	$(MAKE) --directory=$(PEGASUS_ROOT)/test/wetest/cimv2/Subscription -f Makefile poststarttests
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile cimstop
+
+TestCimmof:
+        # Build the repository with cimmofl and cimmof and compare them.
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	-@$(MOVE) $(REPOSITORY_DIR)/repository $(REPOSITORY_DIR)/repository-save
+	@$(RMREPOSITORY) $(REPOSITORY_DIR)/repository-cimmofl
+	@$(RMREPOSITORY) $(REPOSITORY_DIR)/repository-cimmof
+	@$(ECHO) $(CIM_SCHEMA_DIR)
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repository
+	@$(MOVE) $(REPOSITORY_DIR)/repository $(REPOSITORY_DIR)/repository-cimmofl
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile cimstart
+	@$(ECHO) $(CIM_SCHEMA_DIR)
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f Makefile repositoryServer
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile cimstop
+	@$(MOVE) $(REPOSITORY_DIR)/repository $(REPOSITORY_DIR)/repository-cimmof
+	-@$(MOVE) $(REPOSITORY_DIR)/repository-save $(REPOSITORY_DIR)/repository
+	TestCompareRepositories $(REPOSITORY_DIR)/repository-cimmofl $(REPOSITORY_DIR)/repository-cimmof
+	@$(RMREPOSITORY) $(REPOSITORY_DIR)/repository-cimmofl
+	@$(RMREPOSITORY) $(REPOSITORY_DIR)/repository-cimmof
+
+RunTestClientLocal:
+	TestClient -local
+
+DisableSecurity:
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	cimconfig -s enableAuthentication=false -p
+	cimconfig -s enableNamespaceAuthorization=false -p
+
+EnableUsers:
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile startcimWithoutSSL
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile ConfigureUsers
+
+EnableAuthentication:
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	cimconfig -s enableAuthentication=true -p
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile startcimWithoutSSL
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile ConfigureUsers
+
+EnableAuthorization:
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	cimconfig -s enableNamespaceAuthorization=true -p
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile startcimWithoutSSL
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i ConfigureAuthorizations
+
+EnableSSL:
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile startcimWithSSL
+
+#
+# ConfigureUsers
+#
+# The server must be running prior to invoking this rule
+#
+ConfigureUsers:
+ifndef PEGASUS_PAM_AUTHENTICATION
+	-cimuser -l
+	-cimuser -a -u $(PEGASUS_TEST_USER_ID) -w $(PEGASUS_TEST_USER_PASS)
+endif
+
+#
+# ConfigureAuthorizations rule
+#
+# The server must be running prior to invoking this rule
+#
+ConfigureAuthorizations:
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test/cimv2 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n root/cimv2 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n root/PG_Internal -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n $(PEGASUS_INTEROP_NAMESPACE) -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n root/benchmark -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n root/sampleprovider -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test/static -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n root/SampleProvider -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n root -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n root/MCCAtest/A -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n root/MCCAtest/B -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test/TestProvider -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test1 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test2 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test3 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test4 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test5 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test6 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test1/test2 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test1/test2/test3 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test1/test2/test3/test4 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test1/test2/test3/test4/test5 -R -W
+	cimauth -a -u $(PEGASUS_TEST_USER_ID) -n test1/test2/test3/test4/test5/test6 -R -W
+ifeq ($(PEGASUS_ENABLE_PRIVILEGE_SEPARATION),true)
+	cimauth -a -u $(PEGASUS_CIMSERVERMAIN_USER) -n root/cimv2 -R -W
+endif
+
+startcimWithoutSSL: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart
+	$(SLEEP) 5
+
+startcimWithSSL: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart CIMSERVER_CONFIG_OPTIONS="enableHttpConnection=false enableHttpsConnection=true"
+	$(SLEEP) 5
+
+###############################################################################
+##
+## check_for_cores - used to search for core files in the build environment.
+##
+## This option will search (1) each source directory, (2) the PEGASUS_CORE_DIR
+## if it is defined and (3) the PEGASUS_TMP directory.
+##
+###############################################################################
+CORE_FILE_LIST = $(PEGASUS_HOME)/CoreFileList
+
+check_core_search_results:
+ifneq ($(wildcard $(CORE_FILE_LIST)), )
+	@$(ECHO) "*** One or more core files found. ***"
+	@$(CAT) $(CORE_FILE_LIST)
+	@exit 1
+endif
+
+ifdef PEGASUS_CORE_DIR
+   CORE_FILES_IN_CORE_DIR = \
+       $(wildcard $(PEGASUS_CORE_DIR)/$(PLATFORM_CORE_PATTERN))
+endif
+ifdef PEGASUS_TMP
+   CORE_FILES_IN_TMP_DIR = \
+       $(wildcard $(PEGASUS_TMP)/$(PLATFORM_CORE_PATTERN))
+endif
+
+generate_core_file_list:
+	@$(RM) $(CORE_FILE_LIST)
+	@$(MAKE) -s directory=$(PEGASUS_ROOT) general OPTION=CORE_SEARCH \
+            CORE_FILE_LIST=$(CORE_FILE_LIST)
+ifdef PEGASUS_CORE_DIR
+   ifneq ($(CORE_FILES_IN_CORE_DIR), )
+	@$(ECHO) $(CORE_FILES_IN_CORE_DIR) >> $(CORE_FILE_LIST)
+   endif
+endif
+ifdef PEGASUS_TMP
+   ifneq ($(CORE_FILES_IN_TMP_DIR), )
+	@$(ECHO) $(CORE_FILES_IN_TMP_DIR) >> $(CORE_FILE_LIST)
+   endif
+endif
+
+check_for_cores:
+	@$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile \
+            generate_core_file_list
+	@$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile \
+            check_core_search_results
+
+###############################################################################
+##
+## option_summary - used to generate a concise list of build options for use in
+## a nightly build status report.  This is not intended to be a complete list,
+## so it is likely that some options are omitted.  New options may be added
+## here as needs dictate.
+##
+###############################################################################
+
+OPTION_SUMMARY =
+ifeq ($(PEGASUS_ENABLE_CMPI_PROVIDER_MANAGER),true)
+    OPTION_SUMMARY += "+CMPI"
+endif
+ifeq ($(PEGASUS_ENABLE_CQL),true)
+    OPTION_SUMMARY += "+CQL"
+endif
+ifeq ($(PEGASUS_HAS_ICU),true)
+    OPTION_SUMMARY += "+ICU"
+endif
+ifeq ($(PEGASUS_ENABLE_IPV6),true)
+    OPTION_SUMMARY += "+IPv6"
+endif
+ifeq ($(PEGASUS_ENABLE_JMPI_PROVIDER_MANAGER),true)
+    OPTION_SUMMARY += "+JMPI"
+endif
+ifeq ($(PEGASUS_ENABLE_PRIVILEGE_SEPARATION),true)
+    OPTION_SUMMARY += "+PrivSep"
+endif
+ifdef PEGASUS_ENABLE_EXECQUERY
+    OPTION_SUMMARY += "+Query"
+endif
+ifdef PEGASUS_ENABLE_REMOTE_CMPI
+    OPTION_SUMMARY += "+RCMPI"
+endif
+ifeq ($(PEGASUS_ENABLE_SLP),true)
+    OPTION_SUMMARY += "+SLP"
+endif
+ifeq ($(PEGASUS_USE_SQLITE_REPOSITORY),true)
+    OPTION_SUMMARY += "+SQLite"
+endif
+ifdef PEGASUS_HAS_SSL
+    OPTION_SUMMARY += "+SSL"
+endif
+ifeq ($(PEGASUS_ENABLE_PROTOCOL_WSMAN),true)
+    OPTION_SUMMARY += "+WSMan"
+endif
+
+option_summary:
+	@$(ECHO) "$(OPTION_SUMMARY)"

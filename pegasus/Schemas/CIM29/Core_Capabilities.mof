@@ -1,0 +1,251 @@
+// ===================================================================
+// Title: Core_Capabilities
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Core_Capabilities.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Core Model defines basic management concepts.
+//              This file defines the management concepts related
+//              to the Capabilities of a ManagedElement.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.9 Final
+// CR1549 - Finalize diagnostics model (Localization)
+// 
+// Change Log for v2.8 Final
+// CR1210 - Removal of experimental qualifiers for core.
+// 
+// Change Log for v2.8 Preliminary
+//  CR937  - Add LocalizationCapabilities
+//  CR1019 - CIM Versioning for 2.8 Preliminary
+// 
+// Change Log for v2.7
+// CR968 - Remove the Experimental qualifier
+// CR994 - Updates to InstanceID description.
+// 
+// Change Log for v2.7
+// CR 730 - Introduce Capabilites and ElementCapabilities
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// Capabilities
+// ==================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "Capabilities is an abstract class whose subclasses describe "
+       "abilities and/or potential for use. For example, one may "
+       "describe the maximum number of VLANs that can be supported on "
+       "a system using a subclass of Capabilities. Capabilities are "
+       "tied to the elements which they describe using the "
+       "ElementCapabilities association. Note that the cardinality of "
+       "the ManagedElement reference is Min(1), Max(1). This "
+       "cardinality mandates the instantiation of the "
+       "ElementCapabilities association for the referenced instance of "
+       "Capabilities. ElementCapabilities describes the existence "
+       "requirements and context for the referenced instance of "
+       "ManagedElement. Specifically, the ManagedElement MUST exist "
+       "and provides the context for the Capabilities. Note that "
+       "Capabilities do not indicate what IS configured or "
+       "operational, but what CAN or CANNOT exist, be defined or be "
+       "used. Note that it is possible to describe both supported and "
+       "excluded abilities and functions (both capabilities and "
+       "limitations) using this class.")]
+class CIM_Capabilities : CIM_ManagedElement {
+
+      [Key, Description (
+          "Within the scope of the instantiating Namespace, InstanceID "
+          "opaquely and uniquely identifies an instance of this class. "
+          "In order to ensure uniqueness within the NameSpace, the "
+          "value of InstanceID SHOULD be constructed using the "
+          "following 'preferred' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon ':', "
+          "and where <OrgID> MUST include a copyrighted, trademarked "
+          "or otherwise unique name that is owned by the business "
+          "entity creating/defining the InstanceID, or is a registered "
+          "ID that is assigned to the business entity by a recognized "
+          "global authority (This is similar to the <Schema "
+          "Name>_<Class Name> structure of Schema class names.) In "
+          "addition, to ensure uniqueness <OrgID> MUST NOT contain a "
+          "colon (':'). When using this algorithm, the first colon to "
+          "appear in InstanceID MUST appear between <OrgID> and "
+          "<LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD not "
+          "be re-used to identify different underlying (real-world) "
+          "elements. If the above 'preferred' algorithm is not used, "
+          "the defining entity MUST assure that the resultant "
+          "InstanceID is not re-used across any InstanceIDs produced "
+          "by this or other providers for this instance's NameSpace. \n"
+          "For DMTF defined instances, the 'preferred' algorithm MUST "
+          "be used with the <OrgID> set to 'CIM'.")]
+   string InstanceID;
+
+      [Required, Override ( "ElementName" ), Description (
+          "The user friendly name for this instance of Capabilities. "
+          "In addition, the user friendly name can be used as a index "
+          "property for a search of query. (Note: Name does not have "
+          "to be unique within a namespace.)")]
+   string ElementName;
+};
+
+
+// ===================================================================
+// ElementCapabilities
+// ===================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "ElementCapabilities represents the association between "
+       "ManagedElements and their Capabilities. Note that the "
+       "cardinality of the ManagedElement reference is Min(1), Max(1). "
+       "This cardinality mandates the instantiation of the "
+       "ElementCapabilities association for the referenced instance of "
+       "Capabilities. ElementCapabilities describes the existence "
+       "requirements and context for the referenced instance of "
+       "ManagedElement. Specifically, the ManagedElement MUST exist "
+       "and provides the context for the Capabilities.")]
+class CIM_ElementCapabilities {
+
+      [Key, Min ( 1 ), Max ( 1 ), Description (
+          "The managed element.")]
+   CIM_ManagedElement REF ManagedElement;
+
+      [Key, Description (
+          "The Capabilities object associated with the element.")]
+   CIM_Capabilities REF Capabilities;
+};
+
+// ==================================================================
+// LocalizationCapabilities
+// ==================================================================
+   [Version ( "2.9.0" ), Description (
+       "Describes the input and output localization capabilities of "
+       "the entity associated via ElementCapabilities.")]
+class CIM_LocalizationCapabilities : CIM_Capabilities {
+
+
+      [Description (
+          "This property, along with locale properties in (for "
+          "example) a SettingData class, specifies the locale for data "
+          "consumed by a ManagedElement. \n"
+          "A locale indicates a particular geographical, political, or "
+          "cultural region. The SupportedInputLocales property is an "
+          "array of strings whose entries specify one or more "
+          "languages that can be used in the formulation of "
+          "information input by a client. It may be defined by the "
+          "ManagedElement or client as an input parameter to a method, "
+          "as a Setting or SettingData property, or via other "
+          "mechanisms. \n"
+          "\n"
+          "The SupportedInputLocales property publishes an element's "
+          "support of various locales for input data. The first array "
+          "entry MUST define the default locale (the natural language "
+          "associated with the ManagedElement). If the "
+          "SupportedInputLocales property is empty, it is assumed that "
+          "the default locale is en_US (English). \n"
+          "Each array entry consists of three sub-strings, separated "
+          "by underscores: \n"
+          "- The first sub-string is the language code, as specified "
+          "in ISO639. \n"
+          "- The second sub-string is the country code, as specified "
+          "in ISO3166. \n"
+          "- The third sub-string is a variant, which is vendor "
+          "specific. \n"
+          "For example, US English appears as: \"en_US_WIN\", where "
+          "the \"WIN\" variant would specify a Windows "
+          "browser-specific collation (if one exists). Since the "
+          "variant is not standardized, it is not commonly used and is "
+          "generally limited to easily recognizable values (\"WIN\", "
+          "\"UNIX\", \"EURO\", etc.) used in standard environments. \n"
+          "The language and country codes are required; the variant "
+          "may be empty.")]
+   string SupportedInputLocales[];
+
+      [Description (
+          "This property, along with locale properties in (for "
+          "example) a SettingData class, specifies the locale for data "
+          "produced by a ManagedElement. \n"
+          "A locale indicates a particular geographical, political, or "
+          "cultural region. The SupportedOutputLocales property is an "
+          "array of strings whose entries specify one or more "
+          "languages that can be used in the formulation of "
+          "information requested by and delivered to a client. It may "
+          "be defined by the ManagedElement or client as an input "
+          "parameter to a method, as a Setting or SettingData "
+          "property, or via other mechanisms. Note that more than one "
+          "locale may be specified in this array and later selected "
+          "for output. If multiple locales are selected, information "
+          "MUST be returned in each language specified, and indicated "
+          "as supported by this Capabilities instance. \n"
+          "\n"
+          "The SupportedOutputLocales property publishes an element's "
+          "support of various locales for output data. The first array "
+          "entry MUST define the default locale (the natural language "
+          "associated with the ManagedElement). If the "
+          "SupportedOutputLocales property is empty, it is assumed "
+          "that the default locale is en_US (English). \n"
+          "Each array entry consists of three sub-strings, separated "
+          "by underscores: \n"
+          "- The first sub-string is the language code, as specified "
+          "in ISO639. \n"
+          "- The second sub-string is the country code, as specified "
+          "in ISO3166. \n"
+          "- The third sub-string is a variant, which is vendor "
+          "specific. \n"
+          "For example, US English appears as: \"en_US_WIN\", where "
+          "the \"WIN\" variant would specify a Windows "
+          "browser-specific collation (if one exists). Since the "
+          "variant is not standardized, it is not commonly used and is "
+          "generally limited to easily recognizable values (\"WIN\", "
+          "\"UNIX\", \"EURO\", etc.) used in standard environments. \n"
+          "The language and country codes are required; the variant "
+          "may be empty.")]
+   string SupportedOutputLocales[];
+
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

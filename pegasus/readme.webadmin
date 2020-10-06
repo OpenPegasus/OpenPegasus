@@ -1,0 +1,84 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+
+Wed Oct 23 2013
+
+What is webadmin?
+=================
+Pegasus webadmin interface provides a limited edition of administering the
+cimserver through web. Currently, modification of cimserver config options
+viewing the Providers registered and subscriptions view are supported. In
+future, management of subscriptions and provider management will be added.
+In OpenPegasus 2.14, Webadmin is still in a experimental vesrion and will
+be improved in the future.
+
+How to build pegasus for using webadmin?
+========================================
+Building source files for webadmin will need to build for both CIM-RS and
+webadmin. CIM-RS is built as an integral part of server(not controlled by
+by build macros) and webadmin i controlled by PEGASUS_ENABLE_PROTOCOL_WEB,
+which is 'true by default'.
+To disable it set PEGASUS_ENABLE_PROTOCOL_WEB=false.
+
+What is relation between Webadmin and CIM-RS?
+=============================================
+webadmin interface's backbone is CIM-RS details at [1] and webserver facility
+built on pegasus. CIM-RS accepts/yields payloads represented as JSON[2]. The 
+response in JSON can be consumed by webserver easily, for example through 
+javascripti, for displaying as a webpage.
+
+How do I bring up the webadmin?
+===============================
+Enter the your local host name along with port number in the address bar of a
+browser. For example, if your hostname is localhost.localdomain. Just type in
+localhost.localdomain:5988. 
+
+Which ports do CIM-RS aand webadmin use?
+==================
+Webadmin and CIM-RS currently uses the DMTF's CIMOM ports i.e 5988(http) and
+5989(https). This port will be updated with dedicated port for CIM-RS when
+available.
+
+Is there any security concerns for webadmin?
+=================================================
+In order to avoid modifying the server config options by any users, pegasus 
+should be started with 'enableAuthentication=true' which forces users to login
+for the webadmin.
+and in order to restrict to particular groups, 'authorizedUserGroups' should be
+set to the groups, whose members should be allowed to modify the config
+options.
+EnableAuthentication and authorizedUserGroups details can be found in manpage 
+of cimconfig(8)
+
+
+References:
+===========
+1 http://www.dmtf.org/sites/default/files/standards/documents/DSP0210_1.0.0.pdf
+2 http://www.dmtf.org/sites/default/files/standards/documents/DSP0211_1.0.0.pdf

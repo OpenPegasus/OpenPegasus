@@ -1,0 +1,128 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_Account
+// ==================================================================
+   [UMLPackagePath ( "CIM::User::Account" ), Version ( "2.8.0" ), 
+    Description (
+       "CIM_Account is the information held by a SecurityService to "
+       "track identity and privileges managed by that service. Common "
+       "examples of an Account are the entries in a UNIX /etc/passwd "
+       "file. Several kinds of security services use various "
+       "information from those entries - the /bin/login program uses "
+       "the account name ('root') and hashed password to authenticate "
+       "users, and the file service, for instance, uses the UserID "
+       "field ('0') and GroupID field ('0') to record ownership and "
+       "determine access control privileges on files in the file "
+       "system. This class is defined so as to incorporate "
+       "commonly-used LDAP attributes to permit implementations to "
+       "easily derive this information from LDAP-accessible "
+       "directories. \n"
+       "\n"
+       "The semantics of Account overlap with that of the class, "
+       "CIM_Identity. However, aspects of Account - such as its "
+       "specific tie to a System - are valuable and have been widely "
+       "implemented. For this reason, the Account and Identity classes "
+       "are associated using a subclass of LogicalIdentity "
+       "(AccountIdentity), instead of deprecating the Account class in "
+       "the CIM Schema. When an Account has been authenticated, the "
+       "corresponding Identity's TrustEstablished Boolean would be set "
+       "to TRUE. Then, the Identity class can be used as defined for "
+       "authorization purposes.")]
+class CIM_Account : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_System.CreationClassName" ), 
+       Description (
+          "The scoping System's CCN."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_System.Name" ), Description (
+          "The scoping System's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "The Name property defines the label by which the object is "
+          "known. The value of this property may be set to be the same "
+          "as that of the UserID property or, in the case of an "
+          "LDAP-derived instance, the Name property value may be set "
+          "to the distinguishedName of the LDAP-accessed object "
+          "instance."), 
+       MaxLen ( 1024 )]
+   string Name;
+
+      [Description (
+          "UserID is the value used by the SecurityService to "
+          "represent identity. For an authentication service, the "
+          "UserID may be the name of the user, or for an authorization "
+          "service the value which serves as a handle to a mapping of "
+          "the identity."), 
+       MaxLen ( 256 )]
+   string UserID;
+
+      [Description (
+          "In the case of an LDAP-derived instance, the ObjectClass "
+          "property value(s) may be set to the objectClass attribute "
+          "values.")]
+   string ObjectClass[];
+
+      [Description (
+          "The Descriptions property values may contain human-readable "
+          "descriptions of the object. In the case of an LDAP-derived "
+          "instance, the description attribute may have multiple "
+          "values that, therefore, cannot be placed in the inherited "
+          "Description property."), 
+       MaxLen ( 1024 )]
+   string Descriptions[];
+
+      [Description (
+          "Based on RFC1274, the host name of the system(s) for which "
+          "the account applies. The host name may be a fully-qualified "
+          "DNS name or it may be an unqualified host name.")]
+   string Host[];
+
+      [Description (
+          "This property contains the name of a locality, such as a "
+          "city, county or other geographic region.")]
+   string LocalityName[];
+
+      [Required, Description (
+          "The name of the organization related to the account.")]
+   string OrganizationName[];
+
+      [Description (
+          "The name of an organizational unit related to the account.")]
+   string OU[];
+
+      [Description (
+          "In the case of an LDAP-derived instance, the SeeAlso "
+          "property specifies distinguished name of other Directory "
+          "objects which may be other aspects (in some sense) of the "
+          "same real world object.")]
+   string SeeAlso[];
+
+      [Description (
+          "Based on inetOrgPerson and for directory compatibility, the "
+          "UserCertificate property may be used to specify a public "
+          "key certificate for the person."), 
+       OctetString]
+   string UserCertificate[];
+
+      [Description (
+          "In the case of an LDAP-derived instance, the UserPassword "
+          "property may contain an encrypted password used to access "
+          "the person's resources in a directory."), 
+       OctetString]
+   string UserPassword[];
+};

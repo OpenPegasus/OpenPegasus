@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# This script run the TimingClient program and CLI test client program together
+# in order to test the simultaneous execution of provider methods.
+# This script also introduces the sleep() in between these 2 clients in order
+# to load/unload provider.
+# TODO: Not sure how many seconds are required in order to trigger the unload
+# of providers.
+
+
+TimingClient
+sleep(5)
+
+# Enumerate Instances/ Instances Name of the classes implemented by the provider
+
+CLI ei -n root/SampleProvider TimeOne
+CLI ni -n root/SampleProvider TimeTwo
+TimingClient
+sleep(2)
+
+CLI ei -n root/SampleProvider TimeTwo
+CLI ni -n root/SampleProvider TimeOne
+sleep(20)
+
+TimingClient
+
+# Enumerate Base Class and other subclasses
+CLI ec -n root/SampleProvider TimingSampleClass
+sleep(1)
+CLI ec -n root/SampleProvider TimeOne
+sleep(1)
+CLI ec -n root/SampleProvider TimeTwo

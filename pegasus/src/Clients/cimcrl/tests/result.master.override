@@ -1,0 +1,416 @@
+Missing required options.
+cimcrl: argument "abcd" was unexpected
+Use '--help' to obtain command syntax.
+
+Duplicate add option.
+cimcrl: duplicate "-a" option
+Use '--help' to obtain command syntax.
+
+Combine remove and add options.
+cimcrl: option "-a" was unexpected
+Use '--help' to obtain command syntax.
+
+Combine add and remove options.
+cimcrl: option "-r" was unexpected
+Use '--help' to obtain command syntax.
+
+Combine add and list options.
+cimcrl: option "-l" was unexpected
+Use '--help' to obtain command syntax.
+
+Duplicate remove option.
+cimcrl: duplicate "-r" option
+Use '--help' to obtain command syntax.
+
+Duplicate list option.
+cimcrl: duplicate "-l" option
+Use '--help' to obtain command syntax.
+
+Duplicate issuer with list option.
+cimcrl: duplicate "-i" option
+Use '--help' to obtain command syntax.
+
+Missing issuer with list option.
+cimcrl: Missing required value for flag i
+Use '--help' to obtain command syntax.
+
+Missing issuer with remove option.
+cimcrl: the "-i" option is required
+Use '--help' to obtain command syntax.
+
+Missing issuer value with remove option.
+cimcrl: Missing required value for flag i
+Use '--help' to obtain command syntax.
+
+Add option without a crl file. Should error out.
+cimcrl: Missing required value for flag f
+Use '--help' to obtain command syntax.
+
+Add option with a non-existent crl file. Should error out.
+no such file: ./nosuchcrl.pem
+
+Add option without a crl file option. Should error out.
+cimcrl: the "-f" option is required
+Use '--help' to obtain command syntax.
+
+Unexpected option with add operation. Should error out.
+cimcrl: Unknown flag -z
+Use '--help' to obtain command syntax.
+
+Unexpected option with list operation. Should error out.
+cimcrl: Unknown flag -z
+Use '--help' to obtain command syntax.
+
+Unexpected option with remove operation. Should error out.
+cimcrl: Unknown flag -z
+Use '--help' to obtain command syntax.
+
+Duplicate crlfiles specified.
+cimcrl: duplicate "-f" option
+Use '--help' to obtain command syntax.
+
+No command line options specified.
+cimcrl: Required arguments missing.
+Use '--help' to obtain command syntax.
+
+Invalid command line options specified.
+cimcrl: Unknown flag -n
+Use '--help' to obtain command syntax.
+
+Display help.
+Usage: cimcrl -a -f crlfile
+       cimcrl -r -i issuername
+       cimcrl -l [ -i issuername ]
+       cimcrl --version
+       cimcrl --help
+Options : 
+    -a              - Adds the specified crl to the CRL store
+    -r              - Removes the specified crl from the CRL store
+    -l              - Displays the crls in the CRL store
+    -f crlfile      - Specifies the PEM format file containing an X509 CRL
+    -i issuername   - Specifies the CRL issuer name
+    --help          - Displays this help message
+    --version       - Displays CIM Server version number
+
+Usage note: The cimcrl command requires that the CIM Server is running.
+
+
+List the CRLs, no CRLs displayed.
+
+Help and version together. Should error out.
+cimcrl: option "-version" was unexpected
+Use '--help' to obtain command syntax.
+
+Version and help together. Should error out.
+cimcrl: option "-help" was unexpected
+Use '--help' to obtain command syntax.
+
+Add an invalid CRL to the truststore. Should error out
+CIM_ERR_FAILED: Could not read x509 PEM format.
+
+Add the CA certificate to the truststore
+Certificate added successfully.
+
+Try to connect with the 1st certificate issued by the CA, this should succeed
+TestCertClient::Connecting to 127.0.0.1:5989
+Result: CIM_ComputerSystem
++++++ TestCertClient Terminated Normally
+
+Try to connect with the 2nd certificate issued by the CA, this should succeed
+TestCertClient::Connecting to 127.0.0.1:5989
+Result: CIM_ComputerSystem
++++++ TestCertClient Terminated Normally
+
+Try to connect with the 3rd certificate issued by the CA, this should succeed
+TestCertClient::Connecting to 127.0.0.1:5989
+Result: CIM_ComputerSystem
++++++ TestCertClient Terminated Normally
+
+Add the CA CRL to the truststore
+CRL added successfully.
+
+List the CRL.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Aug 24, 2006  13:31:45 (+0000)
+Next update: Aug 20, 2021  13:31:45 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Aug 24, 2006  13:31:45 (+0000)
+
+---------------------------------------------
+
+Try to connect with the 1st certificate, this should fail
+TestCertClient::Connecting to 127.0.0.1:5989
+Exception: Cannot connect to 127.0.0.1:5989. Connection failed.
+
+Try to connect with the 2nd certificate, this should succeed
+TestCertClient::Connecting to 127.0.0.1:5989
+Result: CIM_ComputerSystem
++++++ TestCertClient Terminated Normally
+
+Try to connect with the 3rd certificate issued by the CA, this should succeed
+TestCertClient::Connecting to 127.0.0.1:5989
+Result: CIM_ComputerSystem
++++++ TestCertClient Terminated Normally
+
+Add the updated CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Aug 24, 2006  13:31:45 (+0000)
+Next update: Aug 20, 2021  13:31:45 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Aug 24, 2006  13:31:45 (+0000)
+
+    Serial Number: 3
+        Revocation Date: Aug 24, 2006  13:31:45 (+0000)
+
+---------------------------------------------
+
+List the by non-existant issuer.
+Specified CRL does not exist.
+
+
+Try to connect with the 1st certificate, this should fail
+TestCertClient::Connecting to 127.0.0.1:5989
+Exception: Cannot connect to 127.0.0.1:5989. Connection failed.
+
+Try to connect with the 2nd certificate, this should succeed
+TestCertClient::Connecting to 127.0.0.1:5989
+Result: CIM_ComputerSystem
++++++ TestCertClient Terminated Normally
+
+Try to connect with the 3rd certificate, this should fail
+TestCertClient::Connecting to 127.0.0.1:5989
+Exception: Cannot connect to 127.0.0.1:5989. Connection failed.
+
+Remove the CA CRL certificate
+CRL removed successfully.
+
+Try to connect with the 1st certificate, this should succeed
+TestCertClient::Connecting to 127.0.0.1:5989
+Result: CIM_ComputerSystem
++++++ TestCertClient Terminated Normally
+
+Try to connect with the 2nd certificate, this should succeed
+TestCertClient::Connecting to 127.0.0.1:5989
+Result: CIM_ComputerSystem
++++++ TestCertClient Terminated Normally
+
+Try to connect with the 3rd certificate, this should succeed
+TestCertClient::Connecting to 127.0.0.1:5989
+Result: CIM_ComputerSystem
++++++ TestCertClient Terminated Normally
+
+Remove the CA CRL that we just removed, this should get a DNE error
+Specified CRL does not exist.
+
+Remove the CA certificate from the truststore to clean everything up, this should succeed
+Certificate removed successfully.
+
+Try to connect with the 1st certificate issued by the CA, this should fail
+TestCertClient::Connecting to 127.0.0.1:5989
+Exception: HTTP Error (401 Unauthorized).
+
+Try to connect with the 2nd certificate issued by the CA, this should fail
+TestCertClient::Connecting to 127.0.0.1:5989
+Exception: HTTP Error (401 Unauthorized).
+
+Try to connect with the 3rd certificate issued by the CA, this should fail
+TestCertClient::Connecting to 127.0.0.1:5989
+Exception: HTTP Error (401 Unauthorized).
+
+Add Jan month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Jan 1, 2005  20:20:00 (+0000)
+Next update: Dec 29, 2019  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Jan 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add Feb month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Feb 1, 2005  20:20:00 (+0000)
+Next update: Jan 29, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Feb 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add Mar month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Mar 1, 2005  20:20:00 (+0000)
+Next update: Feb 26, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Mar 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add Apr month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Apr 1, 2005  20:20:00 (+0000)
+Next update: Mar 28, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Apr 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add May month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: May 1, 2005  20:20:00 (+0000)
+Next update: Apr 27, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: May 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add June month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Jun 1, 2005  20:20:00 (+0000)
+Next update: May 28, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Jun 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add July month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Jul 1, 2005  20:20:00 (+0000)
+Next update: Jun 27, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Jul 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add Aug month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Aug 1, 2005  20:20:00 (+0000)
+Next update: Jul 28, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Aug 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add Sept month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Sep 1, 2005  20:20:00 (+0000)
+Next update: Aug 28, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Sep 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add Oct month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Oct 1, 2005  20:20:00 (+0000)
+Next update: Sep 27, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Oct 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add Nov month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Nov 1, 2005  20:20:00 (+0000)
+Next update: Oct 28, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        Revocation Date: Nov 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+
+Add Dec month CA CRL to the truststore, this should succeed
+CRL added successfully.
+
+List the updated CRL by issuer.
+Issuer:  /C=US/ST=WASHINGTON/L=Seattle/O=OpenGroup/OU=OpenPegasus/CN=TestCA
+Last update: Dec 1, 2005  20:20:00 (+0000)
+Next update: Nov 27, 2020  20:20:00 (+0000)
+Revoked Certificates:
+    Serial Number: 1
+        revocation Date: Dec 1, 2005  20:20:00 (+0000)
+
+---------------------------------------------
+
+Remove CRL by issuer.
+CRL removed successfully.
+

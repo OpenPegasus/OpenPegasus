@@ -1,0 +1,85 @@
+%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+Timing Related Testing
+----------------------
+
+This directory contains the sample provider for timing related test cases.
+Its an attempt to find out any inconsistencies in the provider load/unload
+(if any) logic.The ideal test case requires that a provider unloads when
+another client is invoking enumerate instances for a provider class and
+vice versa. It is quite difficult to create this kind of situation with this
+set of test programs. By running these tests for long hours we might hit some
+problem.
+
+The files included in this test are:
+
+1. TimingProvider.cpp - Provider classes implementation
+2. TimingProvider.h - Header for the classes.
+3. TimingProviderMain.cpp - Entry point to the provider
+4. TimingProvider.mof - Class registration
+5. TimingProviderR.mof - Timing provider registration
+
+The provider implements the base class TimingSampleClass with 3 derived classes
+TimeOne, TimeTwo, TimeThree.
+
+The instances of the TimeOne and TimeTwo classes are created inside the
+TimingProvider:initialize method in the provider.
+
+build
+-----
+Run this script to build the provider, compile the MOFs, register the provider,
+compile the client program and finally restarting the cimserver.
+
+Client
+------
+Makefile.Client - Makefile for compiling TimingClient
+TimingClient.cpp
+
+This program tests the TimingProvider implemented by running multiple threads
+performing different CIM operations.
+main() forks and child calls EnumerateInstances for one class. The parent make
+calls to EnumerateInstances and EnumerateClass.
+Long sleeps are inserted between the calls to enumerateinstances and
+enumerateClasses.
+
+testscript
+----------
+This script contains the combination of TimingClient and CLI client programs
+with random sleeps inserted between them.
+CLI is used to enumerate instances/ instancenames and enumerate classes for the
+root/SampleProvider namespace created by the test provider.
+
+Note: Please note, this test program is tested on intel x86 machines running
+RedHat Linux 8.0 and AIX, and might not work on other platforms because of the
+platform specific implementation of the system calls like fork(), sleep();
+
+TODOS
+-----
+Currently the test case is tested on Linux and AIX and it needs to be ported
+to the windows and other Non-unix platforms.

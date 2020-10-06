@@ -1,0 +1,345 @@
+// ===================================================================
+// Title: Physical_PhysicalMedia
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Physical_PhysicalMedia.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Physical Model defines modeling concepts related
+//              to actual boxes and packaging. This file defines
+//              the concepts related to PhysicalMedia, tapes, etc.
+//              (subclasses of PhysicalComponent).
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 - None
+// Change Log for v2.7 - None
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ==================================================================
+// PhysicalMedia
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The PhysicalMedia class represents any type of documentation "
+       "or storage medium, such as tapes, CDROMs, etc. This class is "
+       "typically used to locate and manage Removable Media (versus "
+       "Media sealed with the MediaAccessDevice, as a single Package, "
+       "as is the case with hard disks). However, 'sealed' Media can "
+       "also be modeled using this class, where the Media would then "
+       "be associated with the PhysicalPackage using the "
+       "PackagedComponent relationship.")]
+class CIM_PhysicalMedia : CIM_PhysicalComponent {
+
+      [Description (
+          "The number of bytes that can be read from or written to a "
+          "Media. This property is not applicable to \"Hard Copy\" "
+          "(documentation) or cleaner Media. Data compression should "
+          "not be assumed, as it would increase the value in this "
+          "property. For tapes, it should be assumed that no filemarks "
+          "or blank space areas are recorded on the Media."), 
+       Units ( "Bytes" )]
+   uint64 Capacity;
+
+      [Description (
+          "Specifies the type of the PhysicalMedia, as an enumerated "
+          "integer. The MediaDescription property is used to provide "
+          "more explicit definition of the Media type, whether it is "
+          "pre-formatted, compatability features, etc."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+          "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+          "30", "31", "32", "33", "34", "35", "36", "37", "38", "39",
+          "40", "41", "42", "43", "44", "45", "46", "47", "48", "49",
+          "50", "51", "52", "53", "54", "55", "56", "57", "58", "59",
+          "60", "61", "62", "63", "64", "65", "66" }, 
+       Values { "Unknown", "Other", "Tape Cartridge", "QIC Cartridge",
+          "AIT Cartridge", "DTF Cartridge", "DAT Cartridge",
+          "8mm Tape Cartridge", "19mm Tape Cartridge", "DLT Cartridge", 
+          // 10                
+          "Half-Inch Magnetic Tape Cartridge", "Cartridge Disk",
+          "JAZ Disk", "ZIP Disk", "SyQuest Disk",
+          "Winchester Removable Disk", "CD-ROM", "CD-ROM/XA", "CD-I",
+          "CD Recordable", 
+          // 20               
+          "WORM", "Magneto-Optical", "DVD", "DVD-RW+", "DVD-RAM",
+          "DVD-ROM", "DVD-Video", "Divx", "Floppy/Diskette",
+          "Hard Disk", 
+          // 30                
+          "Memory Card", "Hard Copy", "Clik Disk", "CD-RW", "CD-DA",
+          "CD+", "DVD Recordable", "DVD-RW", "DVD-Audio", "DVD-5", 
+          // 40               
+          "DVD-9", "DVD-10", "DVD-18", "Magneto-Optical Rewriteable",
+          "Magneto-Optical Write Once",
+          "Magneto-Optical Rewriteable (LIMDOW)",
+          "Phase Change Write Once", "Phase Change Rewriteable",
+          "Phase Change Dual Rewriteable", "Ablative Write Once", 
+          // 50               
+          "Near Field Recording", "MiniQic", "Travan",
+          "8mm Metal Particle", "8mm Advanced Metal Evaporate", "NCTP",
+          "LTO Ultrium", "LTO Accelis", "9 Track Tape",
+          "18 Track Tape", 
+          // 60                
+          "36 Track Tape", "Magstar 3590", "Magstar MP", "D2 Tape",
+          "Tape - DST Small", "Tape - DST Medium", "Tape - DST Large" }, 
+       ModelCorrespondence { "CIM_PhysicalMedia.MediaDescription" }]
+   uint16 MediaType;
+
+      [Description (
+          "Additional detail related to the MediaType enumeration. For "
+          "example, if value 3 (\"QIC Cartridge\") is specified, this "
+          "property could indicate whether the tape is wide or 1/4 "
+          "inch, whether it is pre-formatted, whether it is Travan "
+          "compatible, etc."), 
+       ModelCorrespondence { "CIM_PhysicalMedia.MediaType" }]
+   string MediaDescription;
+
+      [Description (
+          "Boolean specifying whether the Media is currently write "
+          "protected by some kind of physical mechanism, such as a "
+          "protect tab on a floppy diskette.")]
+   boolean WriteProtectOn;
+
+      [Description (
+          "Boolean indicating that the PhysicalMedia is used for "
+          "cleaning purposes and not data storage.")]
+   boolean CleanerMedia;
+
+      [Description (
+          "Size of the Media in inches. For example, '3.5' would be "
+          "entered for a 3.5 inch disk, or '12' would be entered for a "
+          "12 inch optical disk. On the other hand, '0.5' would be "
+          "defined for a 1/2 inch tape."), 
+       Units ( "Inches" )]
+   real32 MediaSize;
+
+      [Description (
+          "For removable Media, the maximum number of times that the "
+          "Media can be mounted before it should be retired. For "
+          "cleaner Media, this is the maximum number of Drive cleans "
+          "that can be performed. For nonremovable Media, such as hard "
+          "disks, this property is not applicable and should be set to "
+          "0.")]
+   uint64 MaxMounts;
+
+      [Description (
+          "For removable or cleaner Media, the number of times that "
+          "the Media has been mounted for data transfer or to clean a "
+          "Drive. For nonremovable Media, such as hard disks, this "
+          "property is not applicable and should be set to 0."), 
+       Counter, 
+       ModelCorrespondence { "CIM_PhysicalMedia.MaxMounts" }]
+   uint64 MountCount;
+
+      [Description (
+          "Boolean indicating that the Media has two recording sides "
+          "(TRUE) or only a single side (FALSE). Examples of dual "
+          "sided Media include DVD-ROM and some optical disks. "
+          "Examples of single sided Media are tapes and CD-ROM.")]
+   boolean DualSided;
+
+      [Description (
+          "One or more strings on 'labels' on the PhysicalMedia. The "
+          "format of the labels and their state (readable, unreadable, "
+          "upside-down) are indicated in the LabelFormats and "
+          "LabelStates array properties."), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PhysicalMedia.LabelStates",
+          "CIM_PhysicalMedia.LabelFormats" }]
+   string PhysicalLabels[];
+
+      [Description (
+          "An array of enumerated integers describing the states of "
+          "each of the labels on a PhysicalMedia. The Labels "
+          "themselves are listed in the PhysicalLabels property. Note, "
+          "each entry of this array is related to the entry in "
+          "PhysicalLabels that is located at the same index."), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "OK/Readable", "Unreadable", "Upside Down" },
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PhysicalMedia.PhysicalLabels" }]
+   uint16 LabelStates[];
+
+      [Description (
+          "An array of enumerated integers describing the formats of "
+          "each of the labels on a PhysicalMedia. The Labels "
+          "themselves are listed in the PhysicalLabels property. Note, "
+          "each entry of this array is related to the entry in "
+          "PhysicalLabels that is located at the same index."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Barcode", "Radio Frequency Identification",
+          "OCR (Optical Character Recognition)",
+          "MICR (Magnetic Ink Character Recognition)",
+          "7 Character Barcode", "9 Character Barcode" },
+          ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_PhysicalMedia.PhysicalLabels" }]
+   uint16 LabelFormats[];
+
+      [Description (
+          "For removable or cleaner Media, the date and time that the "
+          "Media was last mounted. For nonremovable Media, such as "
+          "hard disks, this property has no meaning and is not "
+          "applicable.")]
+   datetime TimeOfLastMount;
+
+      [Description (
+          "For removable or cleaner Media, the total time (in seconds) "
+          "that the Media has been mounted for data transfer or to "
+          "clean a Drive. For nonremovable Media, such as hard disks, "
+          "this property is not applicable and should be set to 0."), 
+       Units ( "Seconds" )]
+   uint64 TotalMountTime;
+};
+
+
+// ==================================================================
+// MemoryWithMedia
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "MemoryWithMedia indicates that Memory is associated with a "
+       "PhysicalMedia and its cartridge. The Memory provides media "
+       "identification and also stores user-specific data.")]
+class CIM_MemoryWithMedia : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The Memory associated with PhysicalMedia.")]
+   CIM_PhysicalMemory REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PhysicalMedia.")]
+   CIM_PhysicalMedia REF Dependent;
+};
+
+
+// ===================================================================
+// PhysicalMediaInLocation
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Within a StorageLibrary, all Media should be accounted for, "
+       "and be present in some Storage Location. This relationship is "
+       "made explicit by the PhysicalMediaInLocation association. In "
+       "addition, one can determine if a Location is empty or full "
+       "based on whether this association exists for the "
+       "StorageMediaLocation.")]
+class CIM_PhysicalMediaInLocation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The StorageMediaLocation which holds the PhysicalMedia.")]
+   CIM_StorageMediaLocation REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Media in the Location.")]
+   CIM_PhysicalMedia REF Dependent;
+
+      [Description (
+          "An enumeration expressing which 'Side' of the Media is "
+          "facing up. Since sides can be named by various schemes (0/1 "
+          "or A/B), both schemes are expressed in the Values array of "
+          "this property. Also, the value 5 (\"Not Applicable\" "
+          "describes that orientation is not pertinent for this Media."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Side 0", "Side 1", "Side A", "Side B",
+          "Not Applicable" }]
+   uint16 Orientation;
+
+      [Description (
+          "The date and time that the Media was last placed into the "
+          "referenced Location.")]
+   datetime TimeOfLastPlacement;
+};
+
+
+// ==================================================================
+// PhysicalTape
+// ==================================================================
+   [Version ( "2.6.0" ), Description (
+       "The PhysicalTape class represents additional data for a Tape "
+       "Media. Information on the tape length and whether it must be "
+       "unloaded from BOT are properties of this class.")]
+class CIM_PhysicalTape : CIM_PhysicalMedia {
+
+      [Description (
+          "The physical length of the Tape in feet."), 
+       Units ( "Feet" )]
+   real32 TapeLength;
+
+      [Description (
+          "Boolean set to TRUE if the Tape can be unloaded at any "
+          "position on the Media. It is set to FALSE if the tape must "
+          "be at a certain position for unload - such as at the "
+          "beginning of tape (BOT) area, or at mid-tape point for "
+          "TapeDrives with mid-tape load.")]
+   boolean UnloadAnywhere;
+};
+
+
+// ===================================================================
+// HomeForMedia
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "In a StorageLibrary or repository for PhysicalMedia, it is "
+       "reasonable that a specific Media always be placed in a "
+       "specific Location (rather than anywhere in the repository/ "
+       "Library). The default location for a PhysicalMedia is called "
+       "its 'home'. This information is expressed by the HomeForMedia "
+       "dependency association. (Note that a PhysicalMedia can have at "
+       "most one 'home', and a StorageMediaLocation can be 'home' to "
+       "at most one Media.)")]
+class CIM_HomeForMedia : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Max ( 1 ), Description (
+          "The Location that is 'home' to a piece of PhysicalMedia.")]
+   CIM_StorageMediaLocation REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The PhysicalMedia whose 'home' or default Location is "
+          "defined.")]
+   CIM_PhysicalMedia REF Dependent;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

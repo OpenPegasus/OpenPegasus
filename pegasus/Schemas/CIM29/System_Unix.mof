@@ -1,0 +1,626 @@
+// ===================================================================
+// Title: System_Unix
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: System_Unix.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The System Model defines system related management
+//              concepts. This file defines the specific subclasses
+//              needed to manage Unix Systems.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1233 - Sysdev omnibus CR - Minor MOF fixes
+// 
+// Change Log for v2.7 - None
+// ===================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// UnixLocalFileSystem
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "A class derived from LocalFileSystem that represents the Unix "
+       "environment view of a file store controlled by a "
+       "ComputerSystem through local means (e.g., direct device driver "
+       "access). In this case, the file store is managed directly by "
+       "the ComputerSystem without the need for another computer to "
+       "act as a file server. This definition does not breakdown in "
+       "the case of a Clustered File System. In this scenario, the "
+       "FileSystem is a LocalFileSystem, weak to the Cluster.")]
+class CIM_UnixLocalFileSystem : CIM_LocalFileSystem {
+
+      [Description (
+          "The number of free inodes present in the file system. This "
+          "value is only valid if TotalSlots is non-zero."), 
+       MappingStrings { "MIF.DMTF|Host File System|001.12" }, 
+       ModelCorrespondence { "CIM_UnixLocalFileSystem.TotalInodes" }]
+   uint64 FreeInodes;
+
+      [Description (
+          "The total number of inodes available in the file system. A "
+          "value of zero for TotalInodes indicates that this file "
+          "system does not have a preset limit."), 
+       MappingStrings { "MIF.DMTF|Host File System|001.11" }]
+   uint64 TotalInodes;
+
+      [Description (
+          "The reserve data capacity of the file system in bytes."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Host File System|001.15" }]
+   uint64 FSReservedCapacity;
+};
+
+
+// ===================================================================
+// UnixProcess
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Each instance of the CIM_UnixProcess class represents a single "
+       "instance of a running program. A user of the Operating System "
+       "will typically see a Process as an application or task. Within "
+       "an OperatingSystem, a Process is defined by a workspace of "
+       "memory resources and environmental settings that are allocated "
+       "to it. On a multitasking System, this workspace prevents "
+       "intrusion of resources by other Processes. Additionally, a "
+       "Process can execute as multiple Threads, all which run within "
+       "the same workspace.")]
+class CIM_UnixProcess : CIM_Process {
+
+      [Required, Description (
+          "The parent process ID of this executing process."), 
+       MappingStrings { "MIF.DMTF|Process Information|001.2" }]
+   string ParentProcessID;
+
+      [Required, Description (
+          "The Real User ID of this currently executing process."), 
+       MappingStrings { "MIF.DMTF|Process Information|001.4" }]
+   uint64 RealUserID;
+
+      [Required, Description (
+          "The Group ID of this currently executing process."), 
+       MappingStrings { "MIF.DMTF|Process Information|001.2" }]
+   uint64 ProcessGroupID;
+
+      [Description (
+          "If part of a group of processes are under the control of a "
+          "session leader, this property holds the session ID for the "
+          "group.")]
+   uint64 ProcessSessionID;
+
+      [Description (
+          "The TTY currently associated with this process."), 
+       MappingStrings { "MIF.DMTF|Process Information|001.5" }]
+   string ProcessTTY;
+
+      [Description (
+          "The executing process's command path."), 
+       MappingStrings { "MIF.DMTF|Process Information|001.7" }]
+   string ModulePath;
+
+      [Description (
+          "The operating system parameters provided to the executing "
+          "process. These are the argv[] values."), 
+       MappingStrings { "MIF.DMTF|Process Information|001.8" }]
+   string Parameters[];
+
+      [Description (
+          "The process's 'nice' value. Used to compute its priority."), 
+       MappingStrings { "MIF.DMTF|Process Information|001.11" }]
+   uint32 ProcessNiceValue;
+
+      [Description (
+          "A description of the event this process is currently "
+          "sleeping for. The precise nature of this string is "
+          "implementation defined, but is typically the address of a "
+          "system data structure that will be modified when the event "
+          "occurs. This string only has meaning when the "
+          "ExecutionState is \"Blocked\" or \"SuspendedBlocked\"."), 
+       ModelCorrespondence { "CIM_Process.ExecutionState" }]
+   string ProcessWaitingForEvent;
+};
+
+
+// ===================================================================
+// UnixProcessStatisticalInformation
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The statistics associated with a Unix process.")]
+class CIM_UnixProcessStatisticalInformation : CIM_StatisticalInformation {
+
+      [Key, Propagated ( "CIM_Process.CSCreationClassName" ), 
+       Description (
+          "The scoping Process's ComputerSystem CreationClassName."), 
+       MaxLen ( 256 )]
+   string CSCreationClassName;
+
+      [Key, Propagated ( "CIM_Process.CSName" ), Description (
+          "The scoping Process's ComputerSystem Name."), 
+       MaxLen ( 256 )]
+   string CSName;
+
+      [Key, Propagated ( "CIM_Process.OSCreationClassName" ), 
+       Description (
+          "The scoping Process's OperatingSystem CreationClassName."), 
+       MaxLen ( 256 )]
+   string OSCreationClassName;
+
+      [Key, Propagated ( "CIM_Process.OSName" ), Description (
+          "The scoping Process's OperatingSystem Name."), 
+       MaxLen ( 256 )]
+   string OSName;
+
+      [Key, Propagated ( "CIM_Process.Handle" ), Description (
+          "The scoping Process's Handle."), 
+       MaxLen ( 256 )]
+   string Handle;
+
+      [Key, Propagated ( "CIM_Process.CreationClassName" ), 
+       Description (
+          "The scoping Process's CreationClassName."), 
+       MaxLen ( 256 )]
+   string ProcessCreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "A string used to identify the related statistics of a "
+          "Process."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "A string used to identify the related statistics of a "
+          "Process. This key allows multiple instances of statistics "
+          "to correspond to a single process. The multiple instances "
+          "could be used in applications such as time-sliced "
+          "statistics."), 
+       Units ( "Percent" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.12" }]
+   uint32 CPUTime;
+
+      [Description (
+          "The number of KiloBytes of real text space used by the "
+          "process."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.15" }]
+   uint64 RealText;
+
+      [Description (
+          "The number of KiloBytes of real data space used by the "
+          "process."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.16" }]
+   uint64 RealData;
+
+      [Description (
+          "The number of KiloBytes of real stack space used by the "
+          "process."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.17" }]
+   uint64 RealStack;
+
+      [Description (
+          "The number of KiloBytes of virtual text space used by the "
+          "process."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.18" }]
+   uint64 VirtualText;
+
+      [Description (
+          "The number of KiloBytes of virtual data space used by the "
+          "process."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.19" }]
+   uint64 VirtualData;
+
+      [Description (
+          "The number of KiloBytes of virtual stack space used by the "
+          "process."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.20" }]
+   uint64 VirtualStack;
+
+      [Description (
+          "The number of KiloBytes of virtual space used for memory "
+          "mapped files by the process."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.22" }]
+   uint64 VirtualMemoryMappedFileSize;
+
+      [Description (
+          "The number of KiloBytes of shared memory used by the "
+          "process."), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { "MIF.DMTF|Process Information|001.21" }]
+   uint64 VirtualSharedMemory;
+
+      [Description (
+          "CPU time of terminated child processes in clock ticks."), 
+       Units ( "Clock Ticks" ), Counter]
+   uint64 CpuTimeDeadChildren;
+
+      [Description (
+          "System time of terminated child processes in clock ticks."), 
+       Units ( "Clock Ticks" ), Counter]
+   uint64 SystemTimeDeadChildren;
+};
+
+
+// ==================================================================
+// UnixProcessStatistics
+// ==================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_UnixProcessStatistics is an association that relates a "
+       "CIM_UnixProcess to its StatisticalInformation.")]
+class CIM_UnixProcessStatistics : CIM_Statistics {
+
+      [Override ( "Element" ), Min ( 1 ), Max ( 1 ), Description (
+          "The Process for which statistical or metric data is "
+          "defined.")]
+   CIM_UnixProcess REF Element;
+
+      [Override ( "Stats" ), Weak, Description (
+          "The UNIX Process statistical information/object.")]
+   CIM_UnixProcessStatisticalInformation REF Stats;
+};
+
+
+// ===================================================================
+// UnixThread
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Threads represent the ability to execute units of a Process or "
+       "task in parallel. A UnixThread inherits from the superclass, "
+       "CIM_Thread, which is weak to the Process. The values used are "
+       "defined in sched.h and psched.h.")]
+class CIM_UnixThread : CIM_Thread {
+
+      [Description (
+          "Indicates the thread's scheduling policy. Set to \"Other\" "
+          "when using OtherSchedPolicy to specifiy additional values. "
+          "\"Other\" represents SCHED_OTHER as defined in sched.h."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "SCHED_FIFO", "SCHED_RR" }, 
+       ModelCorrespondence { "CIM_UnixThread.OtherSchedPolicy" }]
+   uint16 SchedPolicy;
+
+      [Description (
+          "Indicates the thread's scheduling policy when SchedPolicy "
+          "is set to \"Other\"."), 
+       ModelCorrespondence { "CIM_UnixThread.SchedPolicy" }]
+   string OtherSchedPolicy;
+
+      [Description (
+          "Indicates the size of the guard area for a created thread's "
+          "stack.")]
+   string GuardSize;
+
+      [Description (
+          "Indicates the creation state of the thread."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "PTHREAD_CREATE_DETACHED",
+          "PTHREAD_CREATE_JOINABLE" }]
+   uint16 DetachState;
+
+      [Description (
+          "Indicates how the scheduling attributes are to be set."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "PTHREAD_INHERIT_SCHED",
+          "PTHREAD_EXPLICIT_SCHED" }]
+   uint16 InheritSched;
+
+      [Description (
+          "Indicates the contention scope of the thread."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "PTHREAD_SCOPE_SYSTEM",
+          "PTHREAD_SCOPE_PROCESS" }]
+   uint16 ContentionScope;
+
+      [Description (
+          "Indicates the size of storage to be used for the thread's "
+          "stack.")]
+   string StackSize;
+
+      [Description (
+          "Indicates the thread's concurrency level.")]
+   uint64 ConcurrencyLevel;
+
+      [Description (
+          "Indicates the thread's cancelability state."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "PTHREAD_CANCEL_ENABLE",
+          "PTHREAD_CANCEL_DISABLE" }]
+   uint16 CancelState;
+
+      [Description (
+          "Indicates the thread's cancelability type."), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "PTHREAD_CANCEL_DEFERRED",
+          "PTHREAD_CANCEL_ASYNCHRONOUS" }]
+   uint16 CancelType;
+};
+
+
+// ===================================================================
+// UnixFile
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "The UnixFile class holds properties that are valid for various "
+       "subclasses of LogicalFile, in a Unix environment. This is "
+       "defined as a separate and unique class since it is applicable "
+       "to Unix files, directories, etc. It is associated via a "
+       "FileIdentity relationship to these subclasses of LogicalFile. "
+       "Unless this approach of creating and associating a separate "
+       "class is used, it is necessary to subclass each of the "
+       "inheritance hierarchies under LogicalFile, duplicating the "
+       "properties in this class. The referenced _PC* and _POSIX* "
+       "constants are defined in unistd.h. Some properties indicate "
+       "whether the UNIX implementation support a feature such as "
+       "asynchronous I/O or priority I/O. If supported, sysconf "
+       "returns the value as defined in the appropriate header file "
+       "such as unistd.h. If a feature is not supported, then pathconf "
+       "returns a -1. In this case, the corresponding property should "
+       "be returned without any value.")]
+class CIM_UnixFile : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_LogicalFile.CSCreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string CSCreationClassName;
+
+      [Key, Propagated ( "CIM_LogicalFile.CSName" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string CSName;
+
+      [Key, Propagated ( "CIM_LogicalFile.FSCreationClassName" ), 
+       Description (
+          "The scoping FileSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string FSCreationClassName;
+
+      [Key, Propagated ( "CIM_LogicalFile.FSName" ), Description (
+          "The scoping FileSystem's Name."), 
+       MaxLen ( 256 )]
+   string FSName;
+
+      [Key, Propagated ( "CIM_LogicalFile.CreationClassName" ), 
+       Description (
+          "The scoping LogicalFile's CreationClassName."), 
+       MaxLen ( 256 )]
+   string LFCreationClassName;
+
+      [Key, Propagated ( "CIM_LogicalFile.Name" ), Description (
+          "The scoping LogicalFile's Name."), 
+       MaxLen ( 1024 )]
+   string LFName;
+
+      [Required, Description (
+          "An Identifer that uniquely describes the owner of this "
+          "file.")]
+   string UserID;
+
+      [Required, Description (
+          "An identifier that describes the group that owns this file.")]
+   string GroupID;
+
+      [Description (
+          "Indicates restricted deletion for directories, or possible "
+          "implementation defined properties for executable files. For "
+          "directories this is known as the sticky bit.")]
+   boolean SaveText;
+
+      [Description (
+          "Count of the number of names for this file."), 
+       Counter]
+   uint64 LinkCount;
+
+      [Description (
+          "File Inode number, as printed by \"ls -i\"."), 
+       MappingStrings { "UNIX.TOG|ls -i" }]
+   string FileInodeNumber;
+
+      [Description (
+          "Indicates whether the associated file has setuid "
+          "permissions.")]
+   boolean SetUid;
+
+      [Description (
+          "Indicates whether the associated file has setgid "
+          "permissions.")]
+   boolean SetGid;
+
+      [Description (
+          "The time that the Inode was last modified. This includes "
+          "the Inode creation time, state modification, and etc.")]
+   datetime  LastModifiedInode;
+
+      [Description (
+          "Maximum number of links to a single file."), 
+       MinValue ( 8 ), 
+       MappingStrings { "POSIX.TOG|pathconf|_PC_LINK_MAX" }]
+   uint64 LinkMax;
+
+      [Description (
+          "Maximum number of bytes in a filename, not including "
+          "terminating null."), 
+       Units ( "Bytes" ), MinValue ( 14 ), 
+       MappingStrings { "POSIX.TOG|pathconf|_POSIX_NAME_MAX" }]
+   uint64 NameMax;
+
+      [Description (
+          "Maximum number of bytes in a pathname, including the "
+          "terminating null character."), 
+       Units ( "Bytes" ), MinValue ( 255 ), 
+       MappingStrings { "POSIX.TOG|pathconf|_POSIX_PATH_MAX" }]
+   uint64 PathMax;
+
+      [Description (
+          "The use of chown() is restricted to a process with "
+          "appropriate privileges. chown() is used to change the group "
+          "ID of a file. The group ID can be changed to the effective "
+          "group ID or one of its supplementary group IDs."), 
+       MappingStrings { "POSIX.TOG|pathconf|_PC_CHOWN_RESTRICTED" }]
+   uint64 PosixChownRestricted;
+
+      [Description (
+          "Indicates whether pathname components longer than NameMax "
+          "generate an error."), 
+       MappingStrings { "POSIX.TOG|pathconf|_PC_NO_TRUNC" }, 
+       ModelCorrespondence { "CIM_UnixFile.NameMax" }]
+   uint64 PosixNoTrunc;
+
+      [Description (
+          "Indicates whether asynchronous input or output operations "
+          "may be performed for the associated file."), 
+       MappingStrings { "POSIX.TOG|pathconf|_PC_ASYNC_IO" }]
+   uint64 PosixAsyncIo;
+
+      [Description (
+          "Indicates whether prioritized input or output operations "
+          "may be performed for the associated file."), 
+       MappingStrings { "POSIX.TOG|pathconf|_PC_PRIO_IO" }]
+   uint64 PosixPrioIo;
+
+      [Description (
+          "Indicates whether synchronised input or output operations "
+          "may be performed for the associated file."), 
+       MappingStrings { "POSIX.TOG|pathconf|_PC_SYNC_IO" }]
+   uint64 PosixSyncIo;
+};
+
+
+// ===================================================================
+// FileIdentity
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "CIM_FileIdentity indicates that a UnixFile describes Unix- "
+       "specific aspects of the various subclasses of LogicalFile. The "
+       "association exists since it forces UnixFile to be weak to "
+       "(scoped by) the LogicalFile. This is not true in the "
+       "association's superclass, LogicalIdentity.")]
+class CIM_FileIdentity : CIM_LogicalIdentity {
+
+      [Override ( "SystemElement" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The Logical File.")]
+   CIM_LogicalFile ref SystemElement;
+
+      [Override ( "SameElement" ), Weak, Max ( 1 ), Description (
+          "SameElement represents the additional aspects of the "
+          "Unix/Linux Logical file.")]
+   CIM_UnixFile ref SameElement;
+};
+
+
+// ===================================================================
+// UnixDirectory
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "UnixDirectory is a type of File that logically groups "
+       "UnixFiles 'contained' in it.")]
+class CIM_UnixDirectory : CIM_Directory {
+
+      [Description (
+          "Minimum number of bits needed to represent the maximum size "
+          "of a Unix file allowed in the specified directory, as a "
+          "signed integer value. Thus, a value of 32 indicates a "
+          "maximum size of 2**31 bytes."), 
+       Units ( "Bits" ), MinValue ( 32 ), 
+       MappingStrings { "POSIX.TOG|pathconf|_PC_FILESIZEBITS" }]
+   uint64 FileSizeBits;
+};
+
+
+// ===================================================================
+// UnixDeviceFile
+// ===================================================================
+   [Version ( "2.8.0" ), Description (
+       "DeviceFile is a special type of LogicalFile that represents a "
+       "Device. This class is a specialization of DeviceFile for a "
+       "Unix environment.")]
+class CIM_UnixDeviceFile : CIM_DeviceFile {
+
+      [Description (
+          "The type of device file."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "Block", "Character" }, 
+       ModelCorrespondence { "CIM_UnixDeviceFile.OtherTypeDescription" 
+          }]
+   uint16 DeviceFileType;
+
+      [Description (
+          "Additional information when the DeviceFileType property is "
+          "set to \"Other\"."), 
+       ModelCorrespondence { "CIM_UnixDeviceFile.DeviceFileType" }]
+   string OtherTypeDescription;
+
+      [Required, Description (
+          "The device Identifier: this is the st_rdev field in the "
+          "stat structure.")]
+   string DeviceId;
+
+      [Description (
+          "Additional information provided by the driver. This "
+          "property may be null if no information is available, or a "
+          "general description of the device when available, e.g. "
+          "\"Non-rewind tape streamer\".")]
+   string DeviceDescription;
+
+      [Required, Description (
+          "The Device's Major Id.")]
+   string DeviceMajor;
+
+      [Required, Description (
+          "The Device's Minor Id.")]
+   string DeviceMinor;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

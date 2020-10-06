@@ -1,0 +1,149 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+
+README - Using the PEGASUS CIMSERVER STATISTICS
+
+Author: Karl Schopmeyer <k.schopmeyer@opengroup.org>
+
+Date: 14 March 2006
+
+The OpenPegasus CIMServer provides for gathering statistics on the CIM
+operations executed by the server based on the CIM_CIMOMStatisticalData class
+defined in the DMTF CIM_Interop model.
+
+Statistics are gathered on all CIM Operations executed by the server when the
+statistics are enabled.
+
+When the statistics are enabled, the server gathers times and request and
+response counts on each operation executed and maintains these counts and times
+from the time the statistics were started.  For each operation executed the
+following are gathered.
+
+    * request size
+    * response size
+    * time spent in the server
+    * time spent in the providers
+
+For each operation type defined (ex getclass, etc.) an instance of the
+CIM_CIMOMStatisticalData class provides the following properties:
+
+    * OperationType Enum (Value/Valuemap) defining the CIM operation
+    type.
+
+    * NumberOfOperations - Number of operations executed for this
+    OperationType since the server was started or the statistics were
+    turned on whichever occurred later.
+
+    * CimomElapsedTime - Total time spent in the CIMServer for this
+    operation in microseconds. This does not include time spent in the
+    providers. That is defined by the ProviderResponseTime. This includes
+    http processing, authentication, xml parsing and validation, routing,
+    etc time that is common to all requests.
+
+    * ProviderElapsedTime - Total time spent in the targeted providers for
+    this operation. Note that for class and qualifier operations (ex.
+    getclass) this is the time spent in the Pegasus Class repository.
+    Further, if repository requests (ex getclass) are required in the
+    server infrastructure to process an operation, that time is included as
+    part of the server time, not provider time. The goal of providing this
+    number is to measure times in the providers that are the support for
+    the class(s) that represent the target of this operation.
+
+    * RequestSize - Total size of the requests for this operation type in
+    bytes.
+
+    * ResponseSize - Total size of the responses for this operation type in
+    bytes.
+
+At any time, the statistics gathered by an OpenPegasus CIMServer can be
+requested by a CIM client by enumerating the instances of the
+CIM_CIMOMStatisticalData class from a client to the Pegasus server in the
+PG/Interop namespace.  Note that there is no reset of statistics. They are
+continuously gathered and accumulated and, the counts wrap when they exceed the
+size of the property.
+
+The client tool (cimperf) reports on averages for the times and byte sizes from
+the totals provided by the CIM_CIMOMStatisticalData instances.
+
+ENABLING AND DISABLING STATISTICS GATHERING
+
+The statistics are normally disabled when the server environment is compiled.
+The enabled/disabled status of statistics gathering is controlled through a
+property in the CIM_ObjectManager instance (GatherStatisticalData)  maintained
+by the server and persisted through the life of the instance repository.
+
+The test client CLI includes a special set of operations (son and soff) that
+directly set the GatherStatisticalData property true or false effectively
+enabling/disabling statistics gathering.
+
+ex. CLI son      - turns the statistics gathering on. CLI soff
+                 - turns the statistics gathering off.
+
+Once statistics gathering is enabled or disabled this state is maintained
+through cimserver or system restarts until either changed again or if the
+repository is removed or the instance of the CIM_ObjectManager class is reset
+or removed.
+
+The cimserver does not maintain gathered statistics information if the erver is
+stopped. Each startup of the server restarts all statistics counts from zero.
+
+Disabling the statistics gathering also causes all of the statistics counts to
+be reset to zero in the server.
+
+CLIENT OPERATIONS STATISTICS REPORTING
+
+In addition to the statistics reported through the CIM_CIMOMStatisticalData the
+OpenPegasus server is capable of reporting operation execution time to the
+client as part of each operation executed.  This function also is only active
+when the statistics gathering capability has been enabled. The passage of this
+information is defined in the DMTF CIMOperations specification (Version 1.2,
+3.3.16. WBEMServerResponseTime).  Within the OpenPegasus Client API there is a
+specific operation to request this information as part of each CIM operation.
+This reports the total time spent in the CIMServer (server plus providers) for
+the last operation executed. As an example, this is implemented in CLI.
+
+LIMITATIONS
+
+Currently no statistics are maintained on indications processed.  Provision is
+made in the DMTF CIM_CIMOMStatisticalData class for gathering of indication
+statistics but the exact form of the information is in question because this
+differs from operations so this has not been implemented to date.
+
+The client statistics test tool cimperf only prints out the current statistics
+each time it is executed.  There are no client tools in the current pegasus
+environment to maintain statistics history, show trends, etc.
+
+If statistics are disabled, the statistics instances will still be output by
+the cimserver  but will show zero for all values.
+
+There are no automated tests today for the numbers accumulated by the
+statistics gathering components.  The validity of the numbers produced in the
+CIM_CIMOMStatisticalData instances has been verified by manual inspection
+However, Currently there are no automated test to programatically verify the
+statistics are correct.

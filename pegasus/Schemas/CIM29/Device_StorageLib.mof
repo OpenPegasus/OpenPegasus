@@ -1,0 +1,729 @@
+// ===================================================================
+// Title: Device_StorageLib
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Device_StorageLib.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Device Model extends the management concepts that
+//              are related to LogicalDevices. This file defines the
+//              classes that model a storage library.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.8 Final
+// CR1223 - SysDev Omnibus CR - Minor MOF corrections.
+// 
+// Change Log for v2.7 Final
+// CR970 - Removal of the Experimental qualifier
+// 
+// Change Log for v2.7
+// CR721 - Add LabelReaderStatData and PickerStatData that are part
+//         of the new statistics hierarcy
+// CR822 - Change the subclassing of LibraryPackage from
+//         Dependency to SystemPackaging
+// ==================================================================
+
+#pragma locale ("en_US")
+
+
+// ===================================================================
+// StorageLibrary
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A StorageLibrary is a collection of ManagedSystemElements that "
+       "operate together to provide cartridge library capabilities. "
+       "This object serves as an aggregation point to group the "
+       "following elements: MediaTransferDevices, a Label Reader, a "
+       "library Door, MediaAccessDevices, and other Library "
+       "components.")]
+class CIM_StorageLibrary : CIM_System {
+
+      [Description (
+          "Capabilities of the StorageLibrary. For example, it can be "
+          "indicated that the Library can perform automatic cleaning "
+          "of the MediaAccessDevices contained in it (value=1) or that "
+          "the Library provides physical door access for an operator "
+          "(value=2)."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Automatic Cleaning",
+          "Manual Operation", "Front Panel Lockable" }]
+   uint16 Capabilities[];
+
+      [Description (
+          "Boolean set to TRUE if there are more PhysicalMedia in a "
+          "Library than there are StorageMediaLocations to contain "
+          "them. For instance, if all MediaAccessDevices have a Media "
+          "loaded in them, and all StorageMediaLocations are loaded by "
+          "an operator, then an Overfilled condition exists.")]
+   boolean Overfilled;
+
+      [Description (
+          "Boolean set to TRUE if the Library can not currently report "
+          "the correct state of each PhysicalMedia within its proper "
+          "StorageMediaLocation.")]
+   boolean AuditNeeded;
+
+      [Description (
+          "Boolean set to TRUE if an audit of the location of some or "
+          "all of the Library's PhysicalMedia is currently being "
+          "performed. That an individual Changer is currently doing an "
+          "audit is indicated by a similar AuditInProgress boolean "
+          "property on the Changer object.")]
+   boolean AuditInProgress;
+
+      [Description (
+          "Maximum time in seconds that it takes for the Storage "
+          "Library to perform a complete audit of each StorageMedia "
+          "Location, to determine the absence or presence of a "
+          "Physical Media. If automated support is not provided, then "
+          "this property's value is undefined."), 
+       Units ( "Seconds" )]
+   uint64 MaxAuditTime;
+
+      [Description (
+          "Boolean set to TRUE if the Library includes a robotics "
+          "mechanism that can be controlled by a ComputerSystem, to "
+          "automatically load and unload PhysicalMedia to/from "
+          "MediaAccessDevices and StorageMediaLocations. The property "
+          "is set to FALSE if the Library represents a repository of "
+          "Media that are inaccessible to a MediaAccess Device without "
+          "human intervention. An example of a non- automated Library "
+          "is a 'shelf' or 'vault' where Physical Media are kept for "
+          "extended periods of time.")]
+   boolean Automated;
+
+      [Description (
+          "Boolean indicating whether the Library's robotics are "
+          "currently active/enabled. If TRUE, then the Library may not "
+          "be safe for a human to enter.")]
+   boolean RoboticsEnabled;
+
+      [Description (
+          "Requests that the Library robotics be enabled for automated "
+          "operation (input parameter, Enabled, set to TRUE), or "
+          "disabled for manual operation (input parameter set to "
+          "FALSE). The return value should be 0 if the request was "
+          "successfully executed, 1 if the request is not supported "
+          "and some other value if an error occurred. In a subclass, "
+          "the set of possible return codes could be specified, using "
+          "a ValueMap qualifier on the method. The strings to which "
+          "the ValueMap contents are 'translated' may also be "
+          "specified in the subclass as a Values array qualifier.")]
+   uint32 EnableRobotics( 
+         [IN, Description (
+             "Set TRUE to enable.")]
+      boolean Enable); 
+};
+
+
+// ==================================================================
+// LibraryPackage
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "Similar to the way that LogicalDevices are 'Realized' by "
+       "PhysicalElements, a StorageLibrary can be realized in one or "
+       "more PhysicalPackages. The LibraryPackage association "
+       "explicitly defines this relationship.")]
+class CIM_LibraryPackage : CIM_SystemPackaging {
+
+      [Override ( "Antecedent" ), Description (
+          "The PhysicalPackage(s) that realize a StorageLibrary.")]
+   CIM_PhysicalPackage REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The StorageLibrary.")]
+   CIM_StorageLibrary REF Dependent;
+};
+
+
+// ===================================================================
+// MediaTransferDevice
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "A MediaTransferDevice represents hardware that moves Physical "
+       "Media. It is a superclass for Devices like PickerElement, "
+       "ChangerDevice and InterLibraryPort.")]
+class CIM_MediaTransferDevice : CIM_LogicalDevice {
+};
+
+
+// ===================================================================
+// DeviceServicesLocation
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "Within an automated StorageLibrary, Media should be accessible "
+       "to the various robotics and MediaTransferDevices (Pickers, "
+       "Changers, InterLibraryPorts, etc.). The Library may be "
+       "serviced by different TransferDevices, each responsible for a "
+       "subset of the Library's StorageMediaLocations. The Device "
+       "ServicesLocation association indicates that the Transfer "
+       "Device handles Media stored in the referenced Location. For "
+       "example, LibraryPort 'A' may only service Media from Slots "
+       "1-10, while LibraryPort 'B' covers Slots 11-33. This detail is "
+       "conveyed by this association.")]
+class CIM_DeviceServicesLocation : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The MediaTransferDevice that handles Media from the "
+          "StorageMediaLocation.")]
+   CIM_MediaTransferDevice REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The MediaLocation that is serviced.")]
+   CIM_StorageMediaLocation REF Dependent;
+
+      [Description (
+          "Boolean indicating that the referenced StorageMediaLocation "
+          "is not currently accessible to the MediaTransferDevice. For "
+          "example, the Location could be the realization of an "
+          "InterLibraryPort that is currently servicing another "
+          "Library. The DeviceServicesLocation association describes "
+          "that the TransferDevice COULD service the MediaLocation. "
+          "This boolean indicates that that this is temporarily not "
+          "possible.")]
+   boolean Inaccessible;
+};
+
+
+// ===================================================================
+// PickerElement
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "PickerElements represent hardware used to pick or place "
+       "PhysicalMedia from/into StorageMediaLocations.")]
+class CIM_PickerElement : CIM_MediaTransferDevice {
+
+      [Description (
+          "The maximum time in seconds for a PickerElement to grab a "
+          "PhysicalMedia from a StorageMediaLocation, once the Picker "
+          "has arrived at that Location. The maximum time interval for "
+          "moving a Media from one point to another is the sum of the "
+          "PickerElement's MaxPickTime, the Changer Device's "
+          "MaxTransitTime and the PickerElement's MaxPutTime."), 
+       Units ( "Seconds" )]
+   uint32 MaxPickTime;
+
+      [Description (
+          "The maximum time in seconds for a PickerElement to place a "
+          "PhysicalMedia into a StorageMediaLocation, once the Picker "
+          "has arrived at that Location. The maximum time interval for "
+          "moving a Media from one point to another is the sum of the "
+          "PickerElement's MaxPickTime, the Changer Device's "
+          "MaxTransitTime and the PickerElement's MaxPutTime."), 
+       Units ( "Seconds" )]
+   uint32 MaxPutTime;
+
+      [Description (
+          "String describing the location in the StorageLibrary where "
+          "the Picker is currently positioned.")]
+   string CellLocation;
+};
+
+
+// ===================================================================
+// ChangerDevice
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "ChangerDevices represent hardware that moves PhysicalMedia "
+       "within a System, such as a StorageLibrary.")]
+class CIM_ChangerDevice : CIM_MediaTransferDevice {
+
+      [Description (
+          "The maximum time in seconds between a PickerElement pick "
+          "and place. It should be reported as the transit time "
+          "between the two most physically distant StorageMedia "
+          "Locations in a System. The maximum time interval for moving "
+          "a Media from one point to another is the sum of the "
+          "PickerElement's MaxPickTime, the ChangerDevice's Max "
+          "TransitTime and the PickerElement's MaxPutTime."), 
+       Units ( "Seconds" )]
+   uint32 MaxTransitTime;
+
+      [Description (
+          "Boolean set to TRUE if the Changer supports media flipping. "
+          "Media needs to be flipped when multi-sided PhysicalMedia "
+          "are placed into a MediaAccessDevice that does NOT support "
+          "dual sided access.")]
+   boolean MediaFlipSupported;
+
+      [Description (
+          "Boolean set to TRUE if an audit is currently being "
+          "performed by the Changer.")]
+   boolean AuditInProgress;
+
+      [Description (
+          "A count of the number of audits performed by the Changer."), 
+       Counter]
+   uint64 AuditsPerformed;
+};
+
+
+// ===================================================================
+// PickerForChanger
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "PickerForChanger indicates the PickerElement(s) that access "
+       "StorageMediaLocations and deliver PhysicalMedia to the "
+       "Changer, for movement through the System. A Changer may have "
+       "several Pickers for faster exchange of Media.")]
+class CIM_PickerForChanger : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The PickerElement that accesses StorageMediaLocations to "
+          "deliver Media to the Changer.")]
+   CIM_PickerElement REF Antecedent;
+
+      [Override ( "Dependent" ), Max ( 1 ), Description (
+          "The ChangerDevice.")]
+   CIM_ChangerDevice REF Dependent;
+};
+
+
+// ===================================================================
+// LimitedAccessPort
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "LimitedAccessPorts represent hardware that transports Physical "
+       "Media into or out of a System, such as a StorageLibrary. They "
+       "are identified as 'limited' since these Ports do not provide "
+       "access to ALL the PhysicalMedia or StorageMediaLocations in a "
+       "Library, but only to a subset.")]
+class CIM_LimitedAccessPort : CIM_MediaTransferDevice {
+
+      [Description (
+          "Boolean indicating that the Port is 'locked' (TRUE) or "
+          "'unlocked' (FALSE). When the Port is locked, access its "
+          "Media Locations is prevented without the use of a physical "
+          "key, front panel activity or the issuance of a software "
+          "unlock command.")]
+   boolean Locked;
+
+      [Description (
+          "When a Port is 'Extended' or 'open' (value=TRUE), its "
+          "Storage MediaLocations are accessible to a human operator. "
+          "If not extended (value=FALSE), the Locations are accessible "
+          "to a PickerElement.")]
+   boolean Extended;
+
+      [Description (
+          "When a LimitedAccessPort is 'Extended', all related media- "
+          "transfer componentry may be stopped. The ExtendTimeout "
+          "property provides a mechanism to event on a Port left open "
+          "for a period of time (in seconds) exceeding the property's "
+          "value."), 
+       Units ( "Seconds" )]
+   uint32 ExtendTimeout;
+
+      [Description (
+          "Date and time that the Port was last extended.")]
+   datetime LastExtended;
+
+      [Description (
+          "The number of times that the LimitedAccessPort was used to "
+          "move a PhysicalMedia into the System/StorageLibrary."), 
+       Counter]
+   uint64 ImportCount;
+
+      [Description (
+          "The number of times that the LimitedAccessPort was used to "
+          "move a PhysicalMedia out of the System/StorageLibrary."), 
+       Counter]
+   uint64 ExportCount;
+
+      [Description (
+          "An enumeration expressing whether the Port is used for "
+          "import into the Library/System which scopes and names it "
+          "(value=1), export from the Library/System (value=2), or "
+          "both (value=3)."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Import", "Export",
+       "Both Import and Export" }]
+   uint16 Direction;
+};
+
+
+// ===================================================================
+// InterLibraryPort
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "InterLibraryPorts represent hardware that transports Physical "
+       "Media between connected StorageLibraries. The LibraryExchange "
+       "association identifies the connected Libraries, by identifying "
+       "the connected InterLibraryPorts.")]
+class CIM_InterLibraryPort : CIM_MediaTransferDevice {
+
+      [Description (
+          "Date and time that the Port was last accessed by its "
+          "System/StorageLibrary. This value may be different than "
+          "that specified for the Port(s) to which this Inter "
+          "LibraryPort is connected. Connected Ports are identified "
+          "using the LibraryExchange association.")]
+   datetime LastAccessed;
+
+      [Description (
+          "The number of times that the InterLibraryPort was used to "
+          "move a PhysicalMedia into the System/StorageLibrary."), 
+       Counter]
+   uint64 ImportCount;
+
+      [Description (
+          "The number of times that the InterLibraryPort was used to "
+          "move a PhysicalMedia out of the System/StorageLibrary."), 
+       Counter]
+   uint64 ExportCount;
+
+      [Description (
+          "An enumeration expressing whether the Port is used for "
+          "import into the Library/System which scopes and names it "
+          "(value=1), export from the Library/System (value=2), or "
+          "both (value=3)."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Import", "Export",
+       "Both Import and Export" }]
+   uint16 Direction;
+};
+
+
+// ===================================================================
+// LibraryExchange
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "LibraryExchange indicates that two StorageLibraries are "
+       "connected through their InterLibraryPorts.")]
+class CIM_LibraryExchange : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The InterLibraryPort of one StorageLibrary.")]
+   CIM_InterLibraryPort REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The InterLibraryPort of the connected Library.")]
+   CIM_InterLibraryPort REF Dependent;
+
+      [Description (
+          "Enumeration indicating whether the Antecedent (value=1), "
+          "Dependent (value=2), or neither Library (value=3) currently "
+          "has access to the Port."), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Antecedent", "Dependent", "Neither" }]
+   uint16 CurrentlyAccessingPort;
+};
+
+
+// ===================================================================
+// LabelReader
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "LabelReaders represent hardware capable of scanning or reading "
+       "a physical label or the NonVolatileMemory on a PhysicalMedia. "
+       "Examples of labels include barcode and OCR tags.")]
+class CIM_LabelReader : CIM_LogicalDevice {
+
+      [Description (
+          "An array of enumerated integers describing the formats of "
+          "the labels that can be read or scanned by the LabelReader. "
+          "The values specified for this property correspond to those "
+          "defined for CIM_PhysicalMedia.LabelFormats."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Barcode", "Radio Frequency Identification",
+          "OCR (Optical Character Recognition)",
+          "MICR (Magnetic Ink Character Recognition)",
+          "7 Character Barcode", "9 Character Barcode" }, 
+       ModelCorrespondence { "CIM_PhysicalMedia.LabelFormats" }]
+   uint16 SupportedFormats[];
+
+      [Description (
+          "The technology used by the LabelReader. One entry of the "
+          "Values array requires some explanation - \"Memory Reader\". "
+          "The latter describes the ability to access memory in a "
+          "PhysicalMedia's packaging (for example, memory on an AIT "
+          "tape). The existence of this Memory is indicated by the "
+          "MemoryWithMedia association on the physical side, or by "
+          "AssociatedMemory on the logical side."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Other", "Laser", "Infrared", "RF",
+          "Camera", "Memory Reader" }]
+   uint16 Technology;
+};
+
+
+// ===================================================================
+// AssociatedLabelReader
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "A LogicalDevice may use or require one or more LabelReaders, "
+       "to scan barcodes or otherwise identify entities. This "
+       "relationship is described by the AssociatedLabelReader "
+       "dependency.")]
+class CIM_AssociatedLabelReader : CIM_Dependency {
+
+      [Override ( "Antecedent" ), Description (
+          "The LabelReader.")]
+   CIM_LabelReader REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The Device that is dependent on the Reader Device.")]
+   CIM_LogicalDevice REF Dependent;
+};
+
+
+// ===================================================================
+// PickerLabelReader
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "PickerLabelReader is used to indicate that one or more Label "
+       "Readers works in conjunction with PickerElements, to identify "
+       "PhysicalMedia as they are being picked/placed.")]
+class CIM_PickerLabelReader : CIM_AssociatedLabelReader {
+
+      [Override ( "Antecedent" ), Description (
+          "The LabelReader.")]
+   CIM_LabelReader REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The PickerElement that is dependent on the Reader Device.")]
+   CIM_PickerElement REF Dependent;
+};
+
+
+// ===================================================================
+// AccessLabelReader
+// ===================================================================
+   [Association, Version ( "2.6.0" ), Description (
+       "AccessLabelReader is used to indicate that one or more Label "
+       "Readers works in conjunction with MediaAccessDevices, to "
+       "identify PhysicalMedia before read/write.")]
+class CIM_AccessLabelReader : CIM_AssociatedLabelReader {
+
+      [Override ( "Antecedent" ), Description (
+          "The LabelReader.")]
+   CIM_LabelReader REF Antecedent;
+
+      [Override ( "Dependent" ), Description (
+          "The MediaAccessDevice that is dependent on the Reader "
+          "Device.")]
+   CIM_MediaAccessDevice REF Dependent;
+};
+
+
+// ===================================================================
+// LabelReaderStatInfo
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Statistics for a LabelReader, related to read successes, "
+       "failures and retries.")]
+class CIM_LabelReaderStatInfo : CIM_DeviceStatisticalInformation {
+
+      [Description (
+          "The number of successful physical label scans."), 
+       Counter]
+   uint64 ScanSuccesses;
+
+      [Description (
+          "The number of failed physical label scans."), 
+       Counter]
+   uint64 ScanFailures;
+
+      [Description (
+          "The number of retried physical label scans."), 
+       Counter]
+   uint64 ScanRetries;
+
+      [Description (
+          "Method to reset the statistical counters. The method takes "
+          "one parameter as input - an integer indicating which "
+          "counter to reset. For this input parameter, 0 indicates "
+          "all, 1 resets the \"Scan Successes\" counter, 2 resets the "
+          "\"Scan Failures\" counter, and 3 resets the \"Scan "
+          "Retries\" counter. The method returns 0 if successful, 1 if "
+          "not supported, and any other value if an error occurred. A "
+          "method is specified so that the Device's instrumentation "
+          "can also reset its internal processing and counters. \n"
+          "In a subclass, the set of possible return codes should be "
+          "specified in a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' can "
+          "be specified as a Values array qualifier.")]
+   uint32 ResetCounter ( 
+         [IN, Description (
+             "The counter to reset."), 
+          ValueMap { "0", "1", "2", "3" }, 
+          Values { "All", "Scan Successes", "Scan Failures",
+             "Scan Retries" }]
+      uint16 SelectedCounter); 
+};
+
+// ===================================================================
+// PickerStatInfo
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "Statistics for a PickerElement, related to pick/put successes, "
+       "retries and failures.")]
+class CIM_PickerStatInfo : CIM_DeviceStatisticalInformation {
+
+      [Description (
+          "The number of successful picks."), 
+       Counter]
+   uint64 PickSuccesses;
+
+      [Description (
+          "The number of failed picks."), 
+       Counter]
+   uint64 PickFailures;
+
+      [Description (
+          "The number of retried picks."), 
+       Counter]
+   uint64 PickRetries;
+
+      [Description (
+          "The number of successful puts."), 
+       Counter]
+   uint64 PutSuccesses;
+
+      [Description (
+          "The number of failed puts."), 
+       Counter]
+   uint64 PutFailures;
+
+      [Description (
+          "The number of retried puts."), 
+       Counter]
+   uint64 PutRetries;
+
+      [Description (
+          "Method to reset the statistical counters. The method takes "
+          "one parameter as input - an integer indicating which "
+          "counter to reset. For this input parameter, 0 indicates "
+          "all, 1-3 reset the 'pick'-related counters, and 4-6 reset "
+          "the 'put'- related counters. The method returns 0 if "
+          "successful, 1 if not supported, and any other value if an "
+          "error occurred. A method is specified so that the Device's "
+          "instrumentation can also reset its internal pocessing and "
+          "counters. \n"
+          "In a subclass, the set of possible return codes should be "
+          "specified in a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are 'translated' can "
+          "be specified as a Values array qualifier.")]
+   uint32 ResetCounter ( 
+         [IN, Description (
+             "This parameter indicates the counter to reset."), 
+          ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+          Values { "All", "Pick Successes", "Pick Failures",
+             "Pick Retries", "Put Successes", "Put Failures",
+             "Put Retries" }]
+      uint16 SelectedCounter); 
+};
+
+// ===================================================================
+// LabelReaderStatData
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Statistics for a LabelReader, related to read successes, "
+       "failures and retries. The element whose statistics are "
+       "described is associated using the relationship, "
+       "ElementStatisticalData.")]
+class CIM_LabelReaderStatData : CIM_StatisticalData {
+
+      [Description (
+          "The number of successful physical label scans."), 
+       Counter]
+   uint64 ScanSuccesses;
+
+      [Description (
+          "The number of failed physical label scans."), 
+       Counter]
+   uint64 ScanFailures;
+
+      [Description (
+          "The number of retried physical label scans."), 
+       Counter]
+   uint64 ScanRetries;
+};
+
+
+// ===================================================================
+// PickerStatData
+// ===================================================================
+   [Version ( "2.7.0" ), Description (
+       "Statistics for a PickerElement, related to pick/put successes, "
+       "retries and failures. The element whose statistics are "
+       "described is associated using the relationship, "
+       "ElementStatisticalData.")]
+class CIM_PickerStatData : CIM_StatisticalData {
+
+      [Description (
+          "The number of successful picks."), 
+       Counter]
+   uint64 PickSuccesses;
+
+      [Description (
+          "The number of failed picks."), 
+       Counter]
+   uint64 PickFailures;
+
+      [Description (
+          "The number of retried picks."), 
+       Counter]
+   uint64 PickRetries;
+
+      [Description (
+          "The number of successful puts."), 
+       Counter]
+   uint64 PutSuccesses;
+
+      [Description (
+          "The number of failed puts."), 
+       Counter]
+   uint64 PutFailures;
+
+      [Description (
+          "The number of retried puts."), 
+       Counter]
+   uint64 PutRetries;
+};
+
+
+// ===================================================================
+// end of file
+// ===================================================================

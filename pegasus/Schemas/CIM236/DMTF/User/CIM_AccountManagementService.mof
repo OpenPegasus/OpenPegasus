@@ -1,0 +1,152 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Version ( "2.35.0" ), 
+    UMLPackagePath ( "CIM::User::Account" ), 
+    Description ( 
+       "CIM_AccountManagementService creates, manages, and if "
+       "necessary destroys Accounts on behalf of other "
+       "SecuritySerices." )]
+class CIM_AccountManagementService : CIM_SecurityService {
+
+
+      [Description ( 
+          "CreateAccount creates an Account on the specified "
+          "ComputerSystem. Upon successful completion of the "
+          "method, there shall be a newly created instance of "
+          "CIM_Account associated through the CIM_AccountOnSystem "
+          "association with the instance of ComputerSystem "
+          "identified by the System parameter such that each "
+          "property of the CIM_Account instance has the value of "
+          "the corresponding property of the template instance "
+          "specified by the AccountTemplate parameter and the "
+          "CIM_Account instance is associated with this instance of "
+          "CIM_AccountManagementService through the "
+          "CIM_ServiceAffectsElement association.\n"
+          "Instances of CIM_Identity may be created by the method "
+          "and associated with the instance of CIM_Account through "
+          "CIM_AssignedIdentity. If one or more instances of "
+          "CIM_Identity are created, a reference to each shall be "
+          "returned in the Identities parameter, otherwise the "
+          "Identities parameter shall be NULL upon method "
+          "completion." ), 
+       ValueMap { "0", "1", "2", "..", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Method Reserved", "Vendor Specific" }]
+   uint32 CreateAccount(
+         [Required, Description ( 
+             "The scoping ComputerSystem in which to create the Account."
+              )]
+      CIM_ComputerSystem REF System, 
+         [Required, Description ( 
+             "AccountTemplate is a template for the desired "
+             "Account to be created." ), 
+          EmbeddedInstance ( "CIM_Account" )]
+      string AccountTemplate, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the instance of CIM_Account created "
+             "when the method returns a value of 0." )]
+      CIM_Account REF Account, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the instances of CIM_Identity created "
+             "when the method returns a value of 0. NULL if no "
+             "such instances are created." )]
+      CIM_Identity REF Identities[]);
+
+      [Description ( 
+          "CreateUserContact creates a UserContact for the "
+          "specified system. Upon successful completion of the "
+          "method, there shall be a newly created instance of "
+          "CIM_UserContact associated to an instance of "
+          "CIM_Identity through CIM_AssignedIdentity. A "
+          "CIM_Identity instance may be created by the method or "
+          "may be one that already existed that represented this "
+          "user." ), 
+       ValueMap { "0", "1", "2", ".." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Method Reserved" }]
+   uint32 CreateUserContact(
+         [Required, Description ( 
+             "The scoping ComputerSystem in which to create the Account."
+              )]
+      CIM_ComputerSystem REF System, 
+         [Required, Description ( 
+             "UserContactTemplate is a template for the desired "
+             "UserContact to be created" ), 
+          EmbeddedInstance ( "CIM_UserContact" )]
+      string UserContactTemplate, 
+         [In ( false ), Out, Description ( 
+             "Reference to the instance of CIM_UserContact "
+             "created when the method returns a value of 0" )]
+      CIM_UserContact REF UserContact, 
+         [In ( false ), Out, Description ( 
+             "Reference to the instances of CIM_Identity when "
+             "the method returns a value of 0. These instances "
+             "may not be created as a part of the execution of "
+             "this method. These instances may already exist "
+             "prior to the invocation of this method." )]
+      CIM_Identity REF Identities[]);
+
+      [Description ( 
+          "CreateUserContactByIdentity creates a UserContact for "
+          "the specificed system using the specified Identity. Upon "
+          "successful completion of the method, there shall be a "
+          "newly created instance of CIM_UserContact associated to "
+          "the instance of CIM_Identity specified through "
+          "CIM_AssignedIdentity." ), 
+       ValueMap { "0", "1", "2", ".." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Method Reserved" }]
+   uint32 CreateUserContactByIdentity(
+         [Required, Description ( 
+             "The scoping ComputerSystem in which to create the Account."
+              )]
+      CIM_ComputerSystem REF System, 
+         [Required, Description ( 
+             "UserContactTemplate is a template for the desired "
+             "UserContact to be created." ), 
+          EmbeddedInstance ( "CIM_UserContact" )]
+      string UserContactTemplate, 
+         [Required, Description ( 
+             "A Reference to a existing CIM_Identity instance to "
+             "be associated to the newly created CIM_UserContact "
+             "instance." )]
+      CIM_Identity REF Identity, 
+         [In ( false ), Out, Description ( 
+             "Reference to the instance of CIM_UserContact "
+             "created when the method returns a value of 0. This "
+             "value shall be NULL if the method returns a value "
+             "other than 0." )]
+      CIM_UserContact REF UserContact);
+
+      [Description ( 
+          "GetAccounts will retrieve the CIM_Account reference that "
+          "match the supplied UserID." ), 
+       ValueMap { "0", "1", "2", ".." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Method Reserved" }]
+   uint32 GetAccounts(
+         [Description ( 
+             "The UserID for the CIM_Account instances to be retrieved."
+              )]
+      string UserID, 
+         [In ( false ), Out, Description ( 
+             "An array of references to the instances of "
+             "CIM_Account that have the supplied UserID." )]
+      CIM_Account REF Accounts[]);
+
+      [Description ( 
+          "GetUserContacts will retrieve the CIM_UserContact "
+          "references that match the supplied UserID." ), 
+       ValueMap { "0", "1", "2", ".." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Method Reserved" }]
+   uint32 GetUserContacts(
+         [Description ( 
+             "The UserID for the CIM_UserContact instances to be retrieved."
+              )]
+      string UserID, 
+         [In ( false ), Out, Description ( 
+             "An array of references to the UserContact "
+             "instances that have the supplied UserID." )]
+      CIM_UserContact REF UserContacts[]);
+
+};

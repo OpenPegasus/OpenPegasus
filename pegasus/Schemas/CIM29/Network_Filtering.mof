@@ -1,0 +1,1068 @@
+// ===================================================================
+// Title: Network_Filtering
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Network_Filtering.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description: The Network Model extends the management concepts to
+//              represent protocol interfaces and network/protocol
+//              services.  This file defines filtering - filter lists
+//              and filter entries.
+// 
+//              The object classes below are listed in an order that
+//              avoids forward references. Required objects, defined
+//              by other working groups, are omitted.
+// ==================================================================
+// Change Log for v2.7
+// CR793 - Add the Abstract qualifier to FilterEntryBase and update
+//         the description
+//       - Update the description for EntriesInFilterList.EntrySequence
+//       - Deprecate FilterEntriesInSystem and FilterListInSystem
+//       - Add HostedFilterEntryBase and HostedFilterList
+//       - Add 8021Filter and PreambleFilter
+//       - FilterEntry.TrafficType needs an Other value in its
+//         enumerated list, and an OtherTrafficType property should be
+//         defined
+// CR800 - Remove FilterEntry.TrafficClass' ModelCorrespondence
+// CR849 - 8021Filter property names must be changed from 8021HdrXXX to
+//         HdrXXX8021 to comply with the CIM Spec
+// CR867 - Add Override qualifier to FilterEntryBase and
+//         FilterList.Name
+// CR982 - Removal of Experimental for preliminary to final
+// CR983 - Deprecations for v2.7 made final
+// New Log for V2.8
+// CR1026 - Add class definitions for IPSec
+// CR1089 - Clarify IsNegated in FilterEntryBase
+// CR1128 - Change subclassing from CIM_Dependency to
+//          CIM_HostedDependency for identified classes. This is
+//          needed as a result of the introduction of HostedDependency
+//          in SysDev
+// CR1194 - Classes in the _Filters MOF to be promoted to FINAL status
+//          and their Version qualifiers set to "2.8.0":
+//          X509CredentialFilterEntry
+//          IPSOFilterEntry
+//          PeerIDPayloadFilterEntry
+// 
+// CR1226 - Change all references to CIM_8021Filter to
+// CIM_Hdr8021Filter.
+// CR1238 - Fix model correspondece reference problems in final version
+// ===================================================================
+
+#pragma Locale ("en_US")
+
+
+// ===================================================================
+// FilterEntryBase
+// ===================================================================
+   [Abstract, Version ( "2.7.0" ), Description (
+       "A FilterList aggregates instances of (subclasses of) "
+       "FilterEntryBase via the aggregation EntriesInFilterList. The "
+       "filter entries are always ANDed together when grouped by the "
+       "FilterList. Note that it is possible to aggregate different "
+       "types of filters into a single FilterList - for example, "
+       "packet header filters (represented by the IpHeadersFilter "
+       "class) and IPsec security filters. \n"
+       "\n"
+       "A FilterList is weak to the network device (e.g., the "
+       "ComputerSystem) that contains it. Hence, the ComputerSystem "
+       "keys are propagated to this class.")]
+class CIM_FilterEntryBase : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_ComputerSystem.CreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_ComputerSystem.Name" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "CreationClassName indicates the name of the class or the "
+          "subclass used in the creation of an instance. When used "
+          "with the other key properties of this class, this property "
+          "allows all instances of this class and its subclasses to be "
+          "uniquely identified."), 
+       MaxLen ( 256 )]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "The Name property defines the label by which the Filter "
+          "Entry is known and uniquely identified."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "Boolean indicating that the match condition described in "
+          "the properties of the FilterEntryBase subclass should be "
+          "negated. This property is defined for ease of use when "
+          "filtering on simple negations - for example, to select all "
+          "source ports except 162. It is not recommended that this "
+          "Boolean be set to True when filtering on multiple criteria, "
+          "such as defining an IPHeadersFilter based on "
+          "source/destination addresses, ports, and DiffServ Code "
+          "Points.")]
+   boolean IsNegated;
+};
+
+
+// ==================================================================
+// FilterEntry
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A FilterEntry is used by network devices to identify traffic "
+       "and either forward it (with possibly further processing) to "
+       "its destination, or to deny its forwarding. It is one of the "
+       "building block of FilterLists. \n"
+       "\n"
+       "This class is oriented towards packet filtering. Other "
+       "subclasses of FilterEntryBase can be defined to do other types "
+       "of filtering. \n"
+       "\n"
+       "A FilterEntry is weak to the network device (i.e., the "
+       "ComputerSystem) that contains it. Hence, the ComputerSystem "
+       "keys are propagated to this class.")]
+class CIM_FilterEntry : CIM_FilterEntryBase {
+
+      [Description (
+          "This defines the type of traffic that is being filtered. "
+          "This will affect the filtering rules in the MatchCondition "
+          "property of this class."), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "IPv4", "IPX", "IPv6", "Any", "Other" }, 
+       ModelCorrespondence { "CIM_FilterEntry.OtherTrafficType" }]
+   uint16 TrafficType;
+
+      [Description (
+          "If the value of the TrafficType property in this class is 5 "
+          "(i.e., \"Other\"), then the specific type of traffic is "
+          "specified in this property."), 
+       ModelCorrespondence { "CIM_FilterEntry.TrafficType" }]
+   string OtherTrafficType;
+
+      [Description (
+          "This specifies one of a set of ways to identify traffic. If "
+          "the value is 1 (i.e., \"Other\"), then the specific type of "
+          "filtering is specified in the OtherMatchConditionType "
+          "property of this class."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "13" }, 
+       Values { "Other", "Source Address and Mask",
+          "Destination Address and Mask", "Source Port",
+          "Source Port Range", "Destination Port",
+          "Destination Port Range", "Protocol Type",
+          "Protocol Type and Option", "DSCP", "ToS Value",
+          "802.1P Priority Value", "Any" }, 
+       ModelCorrespondence { "CIM_FilterEntry.OtherMatchConditionType" 
+          }]
+   uint16 MatchConditionType;
+
+      [Description (
+          "If the value of the MatchConditionType property in this "
+          "class is 1 (i.e., \"Other\"), then the specific type of "
+          "filtering is specified in this property."), 
+       ModelCorrespondence { "CIM_FilterEntry.MatchConditionType" }]
+   string OtherMatchConditionType;
+
+      [Description (
+          "This is the value of the condition that filters the "
+          "traffic. It corresponds to the condition specified in the "
+          "MatchConditionType property. If, however, the value of the "
+          "MatchConditionProperty is 1, then it corresponds to the "
+          "condition specified in the OtherMatchConditionType "
+          "property.")]
+   string MatchConditionValue;
+
+      [Description (
+          "This defines whether the action should be to forward or "
+          "deny traffic meeting the match condition specified in this "
+          "filter."), 
+       ValueMap { "1", "2" }, 
+       Values { "Permit", "Deny" }]
+   uint16 Action;
+
+      [Description (
+          "This defines whether this FilterEntry is the default entry "
+          "to use by its FilterList.")]
+   boolean DefaultFilter;
+
+      [Description (
+          "This defines the traffic class that is being matched by "
+          "this FilterEntry. Note that FilterEntries are aggregated "
+          "into FilterLists by the EntriesInFilterList relationship. "
+          "If the EntrySequence property of the aggregation is set to "
+          "0, this means that all the Filter Entries should be ANDed "
+          "together. Consequently, the TrafficClass property of each "
+          "of the aggregated Entries should be set to the same value.")]
+   string TrafficClass;
+};
+
+
+// ===================================================================
+// IPHeadersFilter
+// ===================================================================
+   [Version ( "2.6.0" ), Description (
+       "IPHeadersFilter contains the most commonly required properties "
+       "for performing filtering on IP, TCP or UDP headers. Properties "
+       "not present in an instance of the IPHeadersFilter are treated "
+       "as 'all values'.")]
+class CIM_IPHeadersFilter : CIM_FilterEntryBase {
+
+      [Description (
+          "HdrIPVersion identifies the version of the IP addresses for "
+          "IP header filters. It is also used to determine the sizes "
+          "of the OctetStrings in the six properties HdrSrcAddress, "
+          "HdrSrcAddressEndOfRange, HdrSrcMask, HdrDestAddress, "
+          "HdrDestAddressEndOfRange and HdrDestMask, as follows: \n"
+          "ipv4(4): OctetString(SIZE (4)) \n"
+          "ipv6(6): OctetString(SIZE (16|20)), \n"
+          "depending on whether a scope identifier is present. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider IP version in selecting matching "
+          "packets, i.e., IP version matches for all values. In this "
+          "case, the HdrSrcAddress, HdrSrcAddressEndOfRange, "
+          "HdrSrcMask, HdrDestAddress, HdrDestAddressEndOfRange and "
+          "HdrDestMask must also be not present."), 
+       ValueMap { "4", "6" }, 
+       Values { "IPv4", "IPv6" }, 
+       ModelCorrespondence { "CIM_IPHeadersFilter.HdrSrcAddress",
+          "CIM_IPHeadersFilter.HdrSrcAddressEndOfRange",
+          "CIM_IPHeadersFilter.HdrSrcMask",
+          "CIM_IPHeadersFilter.HdrDestAddress",
+          "CIM_IPHeadersFilter.HdrDestAddressEndOfRange",
+          "CIM_IPHeadersFilter.HdrDestMask" }]
+   uint8 HdrIPVersion;
+
+      [Description (
+          "HdrSrcAddress is an OctetString, of a size determined by "
+          "the value of the HdrIPVersion property, representing a "
+          "source IP address. When there is no HdrSrcAddressEndOfRange "
+          "value, this value is compared to the source address in the "
+          "IP header, subject to the mask represented in the "
+          "HdrSrcMask property. (Note that the mask is ANDed with the "
+          "address.) When there is a HdrSrcAddressEndOfRange value, "
+          "this value is the start of the specified range (i.e., the "
+          "HdrSrcAddress is lower than the HdrSrcAddressEndOfRange) "
+          "that is compared to the source address in the IP header and "
+          "matches on any value in the range. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrSrcAddress in selecting "
+          "matching packets, i.e., HdrSrcAddress matches for all "
+          "values."), 
+       OctetString, 
+       ModelCorrespondence { "CIM_IPHeadersFilter.HdrIPVersion" }]
+   uint8 HdrSrcAddress[];
+
+      [Description (
+          "HdrSrcAddressEndOfRange is an OctetString, of a size "
+          "determined by the value of the HdrIPVersion property, "
+          "representing the end of a range of source IP addresses "
+          "(inclusive), where the start of the range is the "
+          "HdrSrcAddress property value. \n"
+          "\n"
+          "If a value for HdrSrcAddress is not provided, then this "
+          "property also MUST NOT be provided. If a value for this "
+          "property is provided, then HdrSrcMask MUST NOT be provided."), 
+       OctetString, 
+       ModelCorrespondence { "CIM_IPHeadersFilter.HdrIPVersion" }]
+   uint8 HdrSrcAddressEndOfRange[];
+
+      [Description (
+          "HdrSrcMask is an OctetString, of a size determined by the "
+          "value of the HdrIPVersion property, representing a mask to "
+          "be used in comparing the source address in the IP header "
+          "with the value represented in the HdrSrcAddress property. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrSrcMask in selecting matching "
+          "packets, i.e., the value of the HdrSrcAddress or the source "
+          "address range must match the source address in the packet "
+          "exactly. If a value for this property is provided, then "
+          "HdrSrcAddressEndOfRange MUST NOT be provided."), 
+       OctetString, 
+       ModelCorrespondence { "CIM_IPHeadersFilter.HdrIPVersion" }]
+   uint8 HdrSrcMask[];
+
+      [Description (
+          "HdrDestAddress is an OctetString, of a size determined by "
+          "the value of the HdrIPVersion property, representing a "
+          "destination IP address. When there is no "
+          "HdrDestAddressEndOfRange value, this value is compared to "
+          "the destination address in the IP header, subject to the "
+          "mask represented in the HdrDestMask property. (Note that "
+          "the mask is ANDed with the address.) When there is a "
+          "HdrDestAddressEndOfRange value, this value is the start of "
+          "the specified range (i.e., the HdrDestAddress is lower than "
+          "the HdrDestAddressEndOfRange) that is compared to the "
+          "source address in the IP header and matches on any value in "
+          "the range. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrDestAddress in selecting "
+          "matching packets, i.e., HdrDestAddress matches for all "
+          "values."), 
+       OctetString, 
+       ModelCorrespondence { "CIM_IPHeadersFilter.HdrIPVersion" }]
+   uint8 HdrDestAddress[];
+
+      [Description (
+          "HdrDestAddressEndOfRange is an OctetString, of a size "
+          "determined by the value of the HdrIPVersion property, "
+          "representing the end of a range of destination IP addresses "
+          "(inclusive), where the start of the range is the "
+          "HdrDestAddress property value. \n"
+          "\n"
+          "If a value for HdrDestAddress is not provided, then this "
+          "property also MUST NOT be provided. If a value for this "
+          "property is provided, then HdrDestMask MUST NOT be "
+          "provided."), 
+       OctetString, 
+       ModelCorrespondence { "CIM_IPHeadersFilter.HdrIPVersion" }]
+   uint8 HdrDestAddressEndOfRange[];
+
+      [Description (
+          "HdrDestMask is an OctetString, of a size determined by the "
+          "value of the HdrIPVersion property, representing a mask to "
+          "be used in comparing the destination address in the IP "
+          "header with the value represented in the HdrDestAddress "
+          "property. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrDestMask in selecting matching "
+          "packets, i.e., the value of the HdrDestAddress or the "
+          "destination address range must match the destination "
+          "address in the packet exactly. If a value for this property "
+          "is provided, then HdrDestAddressEndOfRange MUST NOT be "
+          "provided."), 
+       OctetString, 
+       ModelCorrespondence { "CIM_IPHeadersFilter.HdrIPVersion" }]
+   uint8 HdrDestMask[];
+
+      [Description (
+          "HdrProtocolID is an 8-bit unsigned integer, representing an "
+          "IP protocol type. This value is compared to the Protocol "
+          "field in the IP header. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrProtocolID in selecting "
+          "matching packets, i.e., HdrProtocolID matches for all "
+          "values.")]
+   uint8 HdrProtocolID;
+
+      [Description (
+          "HdrSrcPortStart represents the lower end of a range of UDP "
+          "or TCP source ports. The upper end of the range is "
+          "represented by the HdrSrcPortEnd property. The value of "
+          "HdrSrcPortStart MUST be no greater than the value of "
+          "HdrSrcPortEnd. \n"
+          "\n"
+          "A source port filter is evaluated by testing whether the "
+          "source port identified in the IP header falls within the "
+          "range of values between HdrSrcPortStart and HdrSrcPortEnd, "
+          "INCLUDING these two end points. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrSrcPortStart in selecting "
+          "matching packets, i.e., there is no lower bound in matching "
+          "source port values.")]
+   uint16 HdrSrcPortStart;
+
+      [Description (
+          "HdrSrcPortEnd represents the upper end of a range of UDP or "
+          "TCP source ports. The lower end of the range is represented "
+          "by the HdrSrcPortStart property. The value of HdrSrcPortEnd "
+          "MUST be no less than the value of HdrSrcPortStart. A single "
+          "port is indicated by equal values for HdrSrcPortStart and "
+          "HdrSrcPortEnd. \n"
+          "\n"
+          "A source port filter is evaluated by testing whether the "
+          "source port identified in the IP header falls within the "
+          "range of values between HdrSrcPortStart and HdrSrcPortEnd, "
+          "INCLUDING these two end points. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrSrcPortEnd in selecting "
+          "matching packets, i.e., there is no upper bound in matching "
+          "source port values.")]
+   uint16 HdrSrcPortEnd;
+
+      [Description (
+          "HdrDestPortStart represents the lower end of a range of UDP "
+          "or TCP destination ports. The upper end of the range is "
+          "represented by the HdrDestPortEnd property. The value of "
+          "HdrDestPortStart MUST be no greater than the value of "
+          "HdrDestPortEnd. A single port is indicated by equal values "
+          "for HdrDestPortStart and HdrDestPortEnd. \n"
+          "\n"
+          "A destination port filter is evaluated by testing whether "
+          "the destination port identified in the IP header falls "
+          "within the range of values between HdrDestPortStart and "
+          "HdrDestPortEnd, INCLUDING these two end points. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrDestPortStart in selecting "
+          "matching packets, i.e., there is no lower bound in matching "
+          "destination port values.")]
+   uint16 HdrDestPortStart;
+
+      [Description (
+          "HdrDestPortEnd represents the upper end of a range of UDP "
+          "or TCP destination ports. The lower end of the range is "
+          "represented by the HdrDestPortStart property. The value of "
+          "HdrDestPortEnd MUST be no less than the value of "
+          "HdrDestPortStart. A single port is indicated by equal "
+          "values for HdrDestPortStart and HdrDestPortEnd. \n"
+          "\n"
+          "A destination port filter is evaluated by testing whether "
+          "the destination port identified in the IP header falls "
+          "within the range of values between HdrDestPortStart and "
+          "HdrDestPortEnd, INCLUDING these two end points. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrDestPortEnd in selecting "
+          "matching packets, i.e., there is no upper bound in matching "
+          "destination port values.")]
+   uint16 HdrDestPortEnd;
+
+      [Description (
+          "HdrDSCP is defined as a set of discrete DiffServ code "
+          "points, with no inherent structure. There is no "
+          "semantically significant relationship between different "
+          "HdrDSCPs. Consequently, there is no provision for "
+          "specifying a range of HdrDSCPs. \n"
+          "\n"
+          "Since, in IPv4, the HdrDSCP field may contain bits to be "
+          "interpreted as the TOS IP Precedence, this property is also "
+          "used to filter on IP Precedence. Similarly, the IPv6 "
+          "Traffic Class field is also filtered using the value(s) in "
+          "this property. \n"
+          "\n"
+          "HdrDSCP is defined as an array, to provide the ability to "
+          "specify several discrete DSCPs in a single instance of "
+          "IPHeadersFilter, that would be OR'ed together to define the "
+          "filter criteria. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrDSCP in selecting matching "
+          "packets, i.e., HdrDSCP matches for all values."), 
+       MaxValue ( 63 )]
+   uint8 HdrDSCP[];
+
+      [Description (
+          "The 20-bit Flow Label field in the IPv6 header may be used "
+          "by a source to label sequences of packets for which it "
+          "requests special handling by the IPv6 devices, such as "
+          "non-default quality of service or 'real-time' service. In "
+          "the filter, this 20-bit string is encoded in a 24-bit "
+          "octetstring by right-adjusting the value and padding on the "
+          "left with b'0000'. \n"
+          "\n"
+          "If a value for this property is not provided, then the "
+          "filter does not consider HdrFlowLabel in selecting matching "
+          "packets, i.e., HdrFlowLabel matches for all values."), 
+       OctetString]
+   uint8 HdrFlowLabel[];
+};
+
+
+// ==================================================================
+// Hdr8021Filter
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "8021Filter allows 802.1.source and destination MAC addresses, "
+       "as well as the 802.1 protocol ID, priority, and VLAN "
+       "identifier fields, to be expressed in a single object to "
+       "classify and identify traffic.")]
+class CIM_Hdr8021Filter : CIM_FilterEntryBase {
+
+      [Description (
+          "This property is an OctetString of size 6, representing a "
+          "48-bit source MAC address in canonical format. This value "
+          "is compared to the SourceAddress field in the MAC header, "
+          "subject to the mask represented in the 8021HdrSrcMACMask "
+          "property. If a value for this property is not provided, "
+          "then the filter does not consider 8021HdrSrcMACAddr in "
+          "selecting matching packets, i.e., 8021HdrSrcMACAddr matches "
+          "for all values."), 
+       OctetString]
+   uint8 HdrSrcMACAddr8021[6];
+
+      [Description (
+          "This property is an OctetString of size 6, representing a "
+          "48-bit mask to be used in comparing the SourceAddress field "
+          "in the MAC header with the value represented in the "
+          "8021HdrSrcMACAddr property. If a value for this property is "
+          "not provided, then the filter does not consider "
+          "8021HdrSrcMACMask in selecting matching packets, i.e., the "
+          "value of 8021HdrSrcMACAddr must match the source MAC "
+          "address in the packet exactly."), 
+       OctetString]
+   uint8 HdrSrcMACMask8021[6];
+
+      [Description (
+          "This property is an OctetString of size 6, representing a "
+          "48-bit destination MAC address in canonical format. This "
+          "value is compared to the DestinationAddress field in the "
+          "MAC header, subject to the mask represented in the "
+          "8021HdrDestMACMask property. If a value for this property "
+          "is not provided, then the filter does not consider "
+          "8021HdrDestMACAddr in selecting matching packets, i.e., "
+          "8021HdrDestMACAddr matches for all values."), 
+       OctetString]
+   uint8 HdrDestMACAddr8021[6];
+
+      [Description (
+          "This property is an OctetString of size 6, representing a "
+          "48-bit mask to be used in comparing the DestinationAddress "
+          "field in the MAC header with the value represented in the "
+          "8021HdrDestMACAddr property. If a value for this property "
+          "is not provided, then the filter does not consider "
+          "8021HdrDestMACMask in selecting matching packets, i.e., the "
+          "value of 8021HdrDestMACAddr must match the destination MAC "
+          "address in the packet exactly."), 
+       OctetString]
+   uint8 HdrDestMACMask8021[6];
+
+      [Description (
+          "This property is a 16-bit unsigned integer, representing an "
+          "Ethernet protocol type. This value is compared to the "
+          "Ethernet Type field in the 802.3 MAC header. If a value for "
+          "this property is not provided, then the filter does not "
+          "consider 8021HdrProtocolID in selecting matching packets, "
+          "i.e., 8021HdrProtocolID matches for all values.")]
+   uint16 HdrProtocolID8021;
+
+      [Description (
+          "This property is an 8-bit unsigned integer, representing an "
+          "802.1Q priority. This value is compared to the Priority "
+          "field in the 802.1Q header. Since the 802.1Q Priority field "
+          "consists of 3 bits, the values for this property are "
+          "limited to the range 0..7. If a value for this property is "
+          "not provided, then the filter does not consider "
+          "8021HdrPriorityValue in selecting matching packets, i.e., "
+          "8021HdrPriorityValue matches for all values."), 
+       MinValue ( 0 ), MaxValue ( 7 )]
+   uint8 HdrPriorityValue8021;
+
+      [Description (
+          "This property is an 32-bit unsigned integer, representing "
+          "an 802.1Q VLAN Identifier. This value is compared to the "
+          "VLAN ID field in the 802.1Q header. Since the 802.1Q VLAN "
+          "ID field consists of 12 bits, the values for this property "
+          "are limited to the range 0..4095. If a value for this "
+          "property is not provided, then the filter does not consider "
+          "8021HdrVLANID in selecting matching packets, i.e., "
+          "8021HdrVLANID matches for all values."), 
+       MinValue ( 0 ), MaxValue ( 4095 )]
+   uint32 HdrVLANID8021;
+};
+
+
+// ==================================================================
+// PreambleFilter
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "PreambleFilter allows the classification of packets using "
+       "traffic-conditioning results (where the results are determined "
+       "by a PreambleMarkerService and stored in a 'packet preamble'). "
+       "This permits information about the treatment that a packet "
+       "receives on an ingress interface to be communicated along with "
+       "the packet to the egress interface. An instance of "
+       "PreambleFilter selects packets based on a two-part string "
+       "(type and value pair) identifying a specific entry in the "
+       "preamble. The logic for this match is 'at least one.' That is, "
+       "a packet with multiple entries/results in its preamble matches "
+       "a filter if at least one of these matches the filter.")]
+class CIM_PreambleFilter : CIM_FilterEntryBase {
+
+      [Description (
+          "To foster interoperability, the basic format of the "
+          "information captured by a PreambleMarker is specified. That "
+          "information is contained in the FilterItemList property (an "
+          "ordered, string array). Each entry in the array takes the "
+          "form 'type,value'. When entries are added, they are "
+          "appended to the end of the list. \n"
+          "\n"
+          "A limited set of standardized 'type's exist. They are: \n"
+          "- ConformingFromMeter, NonConformingFromMeter and "
+          "PartConformingFromMeter to convey metering results (where "
+          "the 'value' is the name of the meter) \n"
+          "- VlanId to describe the traffic's VLAN information (where "
+          "the 'value' is the VLAN ID). \n"
+          "An implementation is free to define and use other preamble "
+          "'types'. \n"
+          "\n"
+          "Note that a wildcard value of \"any\" is allowed to "
+          "indicate that the preamble entry matches for any 'value' of "
+          "the specified 'type'. For example, using the wildcard, an "
+          "administrator can define a filter to select all packets "
+          "that were found to be conforming ('type' = "
+          "\"ConformingFromMeter\") without having to name each meter "
+          "individually."), 
+       ArrayType ( "Ordered" )]
+   string FilterItemList[];
+};
+
+
+// ==================================================================
+// FilterList
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "A FilterList is used by network devices to identify routes by "
+       "aggregating a set of FilterEntries into a unit, called a "
+       "FilterList. FilterLists can also be used to accept or deny "
+       "routing updates. \n"
+       "\n"
+       "A FilterList is weak to the network device (i.e., the "
+       "ComputerSystem) that contains it. Hence, the ComputerSystem "
+       "keys are propagated to this class.")]
+class CIM_FilterList : CIM_LogicalElement {
+
+      [Key, Propagated ( "CIM_ComputerSystem.CreationClassName" ), 
+       Description (
+          "The scoping ComputerSystem's CreationClassName."), 
+       MaxLen ( 256 )]
+   string SystemCreationClassName;
+
+      [Key, Propagated ( "CIM_ComputerSystem.Name" ), Description (
+          "The scoping ComputerSystem's Name."), 
+       MaxLen ( 256 )]
+   string SystemName;
+
+      [Key, Description (
+          "The type of class that this instance is.")]
+   string CreationClassName;
+
+      [Key, Override ( "Name" ), Description (
+          "This is the name of the FilterList."), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description (
+          "This defines whether the FilterList is used for input, "
+          "output, or both input and output filtering. All values are "
+          "used with respect to the interface for which the FilterList "
+          "applies. \n"
+          "\n"
+          "\"Not Applicable\" (0) is used when there is no direction "
+          "applicable to the FilterList. \"Input\" (1) is used when "
+          "the FilterList applies to packets that are inbound on the "
+          "related interface. \"Output\" (2) is used when the "
+          "FilterList applies to packets that are outbound on the "
+          "related interface. \"Both\" (3) is used to indicate that "
+          "the direction is immaterial, e.g., to filter on a source "
+          "subnet regardless of whether the flow is inbound or "
+          "outbound. \"Mirrored\" (4) is also applicable to both "
+          "inbound and outbound flow processing, but indicates that "
+          "the filter criteria are applied asymmetrically to traffic "
+          "in both directions and, thus, specifies the reversal of "
+          "source and destination criteria (as opposed to the equality "
+          "of these criteria as indicated by \"Both\"). The match "
+          "conditions in the aggregated FilterEntryBase subclass "
+          "instances are defined from the perspective of outbound "
+          "flows and applied to inbound flows as well by reversing the "
+          "source and destination criteria. So, for example, consider "
+          "a FilterList with 3 FilterEntries indicating destination "
+          "port = 80, and source and destination addresses of a and b, "
+          "respectively. Then, for the outbound direction, the filter "
+          "entries match as specified and the 'mirror' (for the "
+          "inbound direction) matches on source port = 80 and source "
+          "and destination addresses of b and a, respectively."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Not Applicable", "Input", "Output", "Both",
+       "Mirrored" }]
+   uint16 Direction;
+};
+
+
+// ==================================================================
+// FilterEntryInSystem
+// ==================================================================
+   [Association, Deprecated { "CIM_HostedFilterEntryBase" },
+    Aggregation, Version ( "2.7.0" ), Description (
+       "All filter entries (FilterEntryBase and its subclasses) are "
+       "defined in the context of a ComputerSystem/network device, "
+       "where they are used to identify and act on network traffic. "
+       "Note that this class is deprecated since its subclassing is "
+       "not correct. It subclasses from System Component, but a "
+       "FilterEntryBase is NOT a Component of a System. Instead, it is "
+       "hosted/scoped by the System. In versions up to CIM 2.6, "
+       "FilterEntryInSystem was a mandatory, Weak relationship. This "
+       "is no longer true, beginning with CIM V2.7.")]
+class CIM_FilterEntryInSystem : CIM_SystemComponent {
+
+      [Deprecated { "CIM_HostedFilterEntryBase.Antecedent" }, Aggregate,
+       Override ( "GroupComponent" ), Max ( 1 ), Description (
+          "The ComputerSystem/network device that scopes the "
+          "FilterEntryBase.")]
+   CIM_ComputerSystem REF GroupComponent;
+
+      [Deprecated { "CIM_HostedFilterEntryBase.Dependent" },
+          Override ( "PartComponent" ), Description (
+          "The FilterEntryBase on the System.")]
+   CIM_FilterEntryBase REF PartComponent;
+};
+
+
+// ==================================================================
+// FilterListInSystem
+// ==================================================================
+   [Association, Deprecated { "CIM_HostedFilterList" }, Aggregation,
+    Version ( "2.7.0" ), Description (
+       "FilterLists are defined in the context of a ComputerSystem "
+       "(e.g., a router, firewall or host). Note that this class is "
+       "deprecated since its subclassing is not correct. It subclasses "
+       "from SystemComponent, but a FilterList is NOT a Component of a "
+       "System. Instead, it is hosted/scoped by the System. In "
+       "versions up to CIM 2.6, FilterListInSystem was a mandatory, "
+       "Weak relationship. This is no longer true, beginning with CIM "
+       "V2.7.")]
+class CIM_FilterListInSystem : CIM_SystemComponent {
+
+      [Deprecated { "CIM_HostedFilterList.Antecedent" }, Aggregate,
+       Override ( "GroupComponent" ), Max ( 1 ), Description (
+          "The ComputerSystem/network device that scopes the "
+          "FilterList and administers it.")]
+   CIM_ComputerSystem REF GroupComponent;
+
+      [Deprecated { "CIM_HostedFilterList.Dependent" },
+          Override ( "PartComponent" ), Description (
+          "The FilterList on the System.")]
+   CIM_FilterList REF PartComponent;
+};
+
+
+// ==================================================================
+// HostedFilterEntryBase
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "All filter entries (FilterEntryBase and its subclasses) are "
+       "defined in the context of a ComputerSystem/network device, "
+       "where the filter entries are used and administered.")]
+class CIM_HostedFilterEntryBase : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The ComputerSystem/network device that scopes the "
+          "FilterEntryBase.")]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The FilterEntryBase on the System.")]
+   CIM_FilterEntryBase REF Dependent;
+};
+
+
+// ==================================================================
+// HostedFilterList
+// ==================================================================
+   [Association, Version ( "2.7.0" ), Description (
+       "FilterLists are defined in the context of a ComputerSystem/ "
+       "network device, where the list is used and administered.")]
+class CIM_HostedFilterList : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), Min ( 1 ), Max ( 1 ), Description (
+          "The ComputerSystem/network device that scopes the "
+          "FilterList.")]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Override ( "Dependent" ), Weak, Description (
+          "The FilterList on the System.")]
+   CIM_FilterList REF Dependent;
+};
+
+
+// ==================================================================
+// EntriesInFilterList
+// ==================================================================
+   [Association, Aggregation, Version ( "2.7.0" ), Description (
+       "This is a specialization of the CIM_Component aggregation "
+       "which is used to define a set of filter entries (subclasses of "
+       "FilterEntryBase) that are aggregated by a particular "
+       "FilterList.")]
+class CIM_EntriesInFilterList : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Max ( 1 ), 
+       Description (
+          "The FilterList, which aggregates the set of FilterEntries.")]
+   CIM_FilterList REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "Any subclass of FilterEntryBase which is a part of the "
+          "FilterList.")]
+   CIM_FilterEntryBase REF PartComponent;
+
+      [Description (
+          "The order of the Entry relative to all others in the "
+          "FilterList. The only permissible value is zero - indicating "
+          "that all the Entries are ANDed together."), 
+       ValueMap { "0" }]
+   uint16 EntrySequence = 0;
+};
+
+// ==================================================================
+// X509CredentialFilterEntry
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "An X509CredentialFilterEntry allows filtering on the "
+       "attributes of an X.509 certificate. Each instance includes a "
+       "value for MatchFieldName that specifies the particular X.509 "
+       "attribute that is being matched."), 
+    MappingStrings { "IPSP Policy Model.IETF|CredentialFilterEntry" }]
+class CIM_X509CredentialFilterEntry : CIM_FilterEntryBase {
+
+      [Required, Description (
+          "MatchFieldName specifies the X.509 attribute to match "
+          "against MatchFieldValue. Note that this enumeration is "
+          "modified from the IETF's IPSP Policy Model to explicitly "
+          "list the 'standard' X.509 attributes."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "..", "x8000.." }, 
+       Values { "Other", "Version", "Serial Number",
+          "Signature Algorithm Identifier", "Issuer Name",
+          "Validity Period", "Subject Name", "Subject Public Key Info",
+          "Key Usage", "Alternate Name", "DMTF Reserved",
+          "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "CredentialFilterEntry.MatchFieldName" }, 
+       ModelCorrespondence { 
+          "CIM_X509CredentialFilterEntry.MatchFieldValue" }]
+   string MatchFieldName;
+
+      [Required, Description (
+          "MatchFieldValue specifies the value to compare with the "
+          "credential attribute (defined in MatchFieldName), to "
+          "determine if the credential matches this filter entry. An "
+          "implementation must convert this string to a DER- encoded "
+          "string before matching against the values extracted from "
+          "credentials at runtime. \n"
+          "\n"
+          "Note that a wildcard mechanism may be used when "
+          "MatchFieldName specifies a general character string (for "
+          "example, if MatchFieldName=7, 'Subject Name'). "
+          "MatchFieldValue may contain a wildcard character, '*', in "
+          "the pattern match specification. For example, for 'Subject "
+          "Name', a MatchFieldValue of "
+          "'cn=*,ou=engineering,o=foo,c=be' will successfully match a "
+          "certificate whose subject attribute is "
+          "'cn=JaneDoe,ou=engineering,o=foo,c=be'. A wildcard can be "
+          "used to represent 0 or more characters as would be "
+          "displayed to the user (i.e., a wildcard pattern match "
+          "operates on displayable character boundaries)."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "CredentialFilterEntry.MatchFieldName" }, 
+       ModelCorrespondence { 
+          "CIM_X509CredentialFilterEntry.MatchFieldName" }]
+   string MatchFieldValue;
+};
+
+// (Note that the IPSOFilterEntry is changed from the IPSP Model
+// definition -
+// since the IPSP class allows matching on either classification level
+// or
+// protection authority, but not both - and is confusing wrt the
+// enumerated
+// "values" (combining both classification level and protection
+// authority into
+// a single enum). Also, the enumerations start at 1 which is reserved
+// for 'Other',
+// and should be an array for ProtectionAuthority. These problems are
+// corrected
+// in the class below
+
+// ==================================================================
+// IPSOFilterEntry
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "An IPSOFilterEntry is used to match traffic based on the IP "
+       "Security Options header values (ClassificationLevel and "
+       "ProtectionAuthority) as defined in RFC1108. This type of "
+       "FilterEntry is used to adjust the IPsec encryption level "
+       "according to the IPSO classification of the traffic (e.g., "
+       "secret, confidential, restricted, etc.)."), 
+    MappingStrings { "IPSP Policy Model.IETF|IPSOFilterEntry" }]
+class CIM_IPSOFilterEntry : CIM_FilterEntryBase {
+
+      [Required, Description (
+          "MatchConditionType specifies whether to match based on "
+          "traffic classification level, protection authority or both. "
+          "Note that this enumeration is modified from its definition "
+          "in the IETF's IPSP Policy Model to allow for both "
+          "classification level and protection authority checking, and "
+          "to allow the enumerated value, \"Other\", to be added in "
+          "the future."), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Classification Level", "Protection Authority",
+          "Both Classification Level and Protection Authority" }, 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "IPSOFilterEntry.MatchConditionType" }, 
+       ModelCorrespondence { "CIM_IPSOFilterEntry.ClassificationLevel",
+          "CIM_IPSOFilterEntry.ProtectionAuthorities" }]
+   uint16 MatchConditionType;
+
+      [Required, Description (
+          "This is the value to be matched when MatchConditionType is "
+          "1 or 3 - meaning that \"Classification Level\" should be "
+          "filtered. In RFC1108, the following semantics are "
+          "specified: TopSecret, Secret, Confidential, and "
+          "Unclassified. Note that this enumeration's values are "
+          "different than the RFC list and the IETF's IPSP Policy "
+          "Model since those lists are simply bit maps, and do not "
+          "include specific values for \"Other\" or \"No Filtering\"."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Other", "No Filtering on Classification Level",
+          "Top Secret", "Secret", "Confidential", "Unclassified",
+          "DMTF Reserved", "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "IPSOFilterEntry.MatchConditionValue",
+          "RFC1108.IETF|Section 2.3" }, 
+       ModelCorrespondence { "CIM_IPSOFilterEntry.MatchConditionType",
+          "CIM_IPSOFilterEntry.OtherClassificationLevel" }]
+   uint16 ClassificationLevel;
+
+      [Description (
+          "Description of the level when the value 1 (\"Other\") is "
+          "specified for the property, ClassificationLevel."), 
+       ModelCorrespondence { "CIM_IPSOFilterEntry.ClassificationLevel" 
+          }]
+   string OtherClassificationLevel;
+
+      [Required, Description (
+          "These are the values to be matched when MatchConditionType "
+          "is 2 or 3 - meaning that \"Protection Authority\" should be "
+          "filtered. In RFC1108, the following authorities are "
+          "specified: GENSER, SIOP-ESI, SCI, NSA and DOE. Note that "
+          "multiple authorities may be specified. \n"
+          "\n"
+          "This enumeration is modified from its definition in the RFC "
+          "and IETF's IPSP Policy Model. Those lists are simply bit "
+          "maps, and do not include specific values for \"Other\" or "
+          "\"No Filtering\"."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Other", "No Filtering on Protection Authority",
+          "GENSER", "SIOP-ESI", "SCI", "NSA", "DOE", "DMTF Reserved",
+          "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "IPSOFilterEntry.MatchConditionValue",
+          "RFC1108.IETF|Section 2.4" }, 
+       ModelCorrespondence { "CIM_IPSOFilterEntry.MatchConditionType",
+          "CIM_IPSOFilterEntry.OtherProtectionAuthorities" }]
+   uint16 ProtectionAuthorities[];
+
+      [Description (
+          "Description of the authority when the value 1 (\"Other\") "
+          "is specified for the property, ProtectionAuthorities."), 
+       ModelCorrespondence { 
+          "CIM_IPSOFilterEntry.ProtectionAuthorities" }]
+   string OtherProtectionAuthorities[];
+};
+
+
+// Note that the PeerIDPayloadFilterEntry is changed from the IPSP Model
+// definition - since the 'Type' enumeration starts at 1 in the IPSP
+// draft,
+// which is reserved for 'Other'
+
+
+// ==================================================================
+// PeerIDPayloadFilterEntry
+// ==================================================================
+   [Version ( "2.8.0" ), Description (
+       "PeerIDPayloadFilterEntry defines filters used to match the "
+       "Identification Type field in the ID Payload of the IKE "
+       "protocol exchange. It permits the specification of ID values "
+       "such as \"*@example.com\" or \"192.0.2.0/24\"."), 
+    MappingStrings { "IPSP Policy Model.IETF|PeerIDPayloadFilterEntry" 
+       }]
+class CIM_PeerIDPayloadFilterEntry : CIM_FilterEntryBase {
+
+      [Required, Description (
+          "MatchIdentityType specifies the Identification Type "
+          "provided by the peer in the payload. The list of identities "
+          "was generated from Section 4.6.2.1 of RFC2407. Note that "
+          "the enumeration is different than the RFC list, since the "
+          "value 'Other' is taken into account."), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+          "11", "12", "..", "0x8000.." }, 
+       Values { "Other", "IPV4 Address", "FQDN", "User FQDN",
+          "IPV4 Subnet Address", "IPV6 Address", "IPV6 Subnet Address",
+          "IPV4 Address Range", "IPV6 Address Range", "DER ASN1 DN",
+          "DER ASN1 GN", "KEY ID", "DMTF Reserved", "Vendor Reserved" }, 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "PeerIDPayloadFilterEntry.MatchIdentityType",
+          "RFC2407.IETF|Section 4.6.2.1" }, 
+       ModelCorrespondence { 
+          "CIM_PeerIDPayloadFilterEntry.MatchIdentityValue" }]
+   uint16 MatchIdentityType;
+
+      [Required, Description (
+          "MatchIdentityValue is the filter value for comparison with "
+          "the ID payload, e,g, \"*@company.com\". The syntax may need "
+          "to be converted for comparison. For example, if the type of "
+          "identity is a DER-encoded distinguished name, (for example, "
+          "MatchIdentityType = 10, \"DER_ASN1_DN\"), the "
+          "MatchIdentityValue MUST be converted into a DER-encoded "
+          "string. This allows it to be matched against the values "
+          "extracted from the ID payload at runtime. \n"
+          "\n"
+          "Note that a wildcard mechanism may be used when "
+          "MatchIdentityType specifies a general character string (for "
+          "example, if MatchIdentityType=3, 'FQDN'). MatchFieldValue "
+          "may contain a wildcard character, '*', in the pattern match "
+          "specification. For example, for 'FQDN', a MatchFieldValue "
+          "of '*@example.com' will successfully match an ID payload of "
+          "'janedoe@example.com'. A wildcard can be used to represent "
+          "0 or more characters as is appropriate for the type "
+          "specified in MatchIdentityType."), 
+       MappingStrings { "IPSP Policy Model.IETF|" 
+          "PeerIDPayloadFilterEntry.MatchIdentityValue" }, 
+       ModelCorrespondence { 
+          "CIM_PeerIDPayloadFilterEntry.MatchIdentityType" }]
+   string MatchIdentityValue;
+};
+
+// ===================================================================
+// end of file
+// ===================================================================

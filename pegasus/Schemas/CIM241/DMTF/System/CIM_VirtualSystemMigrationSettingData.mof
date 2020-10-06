@@ -1,0 +1,112 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Version ( "2.33.0" ), 
+    UMLPackagePath ( "CIM::System::Virtualization" ), 
+    Description ( 
+       "CIM_MigrationSettingData defines the parameters to control a "
+       "virtual system migration implementation, as managed by a "
+       "CIM_VirtualSystemMigrationService. It is expected that a "
+       "migration implementation will subclass this class to add "
+       "implementation-specific migration options." )]
+class CIM_VirtualSystemMigrationSettingData : CIM_SettingData {
+
+      [Description ( 
+          "MigrationType describes a type of migration operation to "
+          "be performed.\n"
+          "A value of 2 - Virtual System is to be migrated in a "
+          "\'live\' manner such that the running of the Virtual "
+          "System is minimally impacted during the move.\n"
+          "A value of 3 - Virtual System will be temporarily paused "
+          "prior to migration and then resume running after it is moved.\n"
+          "A value of 4 - The Virtual System will be quiesced to a "
+          "stopped state prior to migration and then restarted "
+          "after it is moved." ), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Live", "Resume", "Restart" }]
+   uint16 MigrationType;
+
+      [Description ( 
+          "Priority specifies a relative migration importance which "
+          "the virtual system migration implementation may use to "
+          "order or otherwise give preference among multiple "
+          "pending migration requests. The lower the value, the "
+          "higher the priority. A value of 0 indicates:\n"
+          "- in migration requests the default priority\n"
+          "- otherwise that priorities are not supported" )]
+   uint16 Priority;
+
+      [Description ( 
+          "Bandwidth indicates the bandwidth assigned to or "
+          "requested for a virtual system migration operation. The "
+          "special value 0 indicates:\n"
+          "- in migration requests the default bandwidth\n"
+          "- otherwise that bandwidths are not supported.\n"
+          "Bandwidth and Priority may be used in conjunction. "
+          "Migration processes that have the highest equal priority "
+          "value share the available bandwidth based on their "
+          "requested bandwidth. If not all bandwidth is consumed by "
+          "this set of processes, migration processes with the next "
+          "lower equal priority share the remaining bandwidth. If "
+          "still more bandwidth remains, migration processes with "
+          "the next lower equal priority are considered, and so forth.\n"
+          "The unit applicable for the Bandwidth property is "
+          "conveyed by the value of the BandwidthUnit property. If "
+          "the value of the BandwidthUnit property matches "
+          "\"percent\", the following restrictions apply: \n"
+          "The value of the Bandwidth property shall be between 0 "
+          "and 100, with higher values indicating a higher "
+          "bandwidth. A value of 100 indicates the total available "
+          "bandwidth for performing virtual system migration "
+          "operations. Values between 1 and 100 should linearly "
+          "correlate with the available bandwidth range. For "
+          "exampe, a value of 50 should request half of the "
+          "available bandwidth, a value of 33 should request one "
+          "third of the bandwidth, etc. ." ), 
+       Gauge, ModelCorrespondence { 
+          "CIM_VirtualSystemMigrationSettingData.BandwidthUnit" }]
+   uint16 Bandwidth;
+
+      [Description ( 
+          "This property specifies the unit used by the Bandwidth "
+          "property. The value of this property shall be a legal "
+          "value of the Programmatic Units qualifier as defined in "
+          "Appendix C.1 of DSP0004 V2.4 or later.\n"
+          "NOTE: Profiles like DMTF DSP1081 define means by that "
+          "clients are enabled to discover the set of units "
+          "supported by an implementation, along with ranges and "
+          "increments for admissable values of the Bandwidth "
+          "property." ), 
+       ModelCorrespondence { 
+          "CIM_VirtualSystemMigrationSettingData.Bandwidth" }, 
+       IsPUnit]
+   string BandwidthUnit;
+
+      [Description ( 
+          "OtherTransportType indicates the type of transport to be "
+          "applied if the value of TransportType is 1 (Other)." ), 
+       ModelCorrespondence { 
+          "CIM_VirtualSystemMigrationSettingData.TransportType" }]
+   string OtherTransportType;
+
+      [Description ( 
+          "TransportType indicates the type of transport to be "
+          "applied for a virtual system migration operation.\n"
+          "- 0(Unknown) indicates that the transport type is not "
+          "exposed.- 1(Other) indicates that the transport type is "
+          "specified as a textual value of the OtherTransportType property.\n"
+          "- 2(SSH) indicates the secure shell transport type.\n"
+          "- 3(TLS) indicats the transport layer security transport type.\n"
+          "- 4(TLS strict) indicats the transport layer security "
+          "transport type with mutual authentication.\n"
+          "- 5(TCP) indicates the TCP transport type.\n"
+          "- 6(IPC) indicates the inter-process communication "
+          "socket transport type. This transport type includes Unix "
+          "domain sockets." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "32768.." }, 
+       Values { "Unknown", "Other", "SSH", "TLS", "TLS Strict", 
+          "TCP", "IPC", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_VirtualSystemMigrationSettingData.OtherTransportType" }]
+   uint16 TransportType;
+
+
+};

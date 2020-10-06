@@ -1,0 +1,130 @@
+# Misc testcases
+# Run this test using test option 1 and NO className
+
+#
+# Case in-sensitivity of names and keywords
+#
+
+# Keywords, chain identifiers, and FROM class
+# Result: the CQL_TestPropertyTypes instance with id=2 should evaluate to true.
+sELeCT * from CQL_TESTPropertyTypes where inSTanCEId = 2
+Select * From cQL_TEstProperTYTypes whERe Cql_TestPropertyTypeS.instanceId = 2
+
+# Alias
+# Result: the CQL_TestPropertyTypes instance with id=2 should evaluate to true.
+sELeCT * from cQL_TEstProperTYTypes as ALIAS where alias.InStanCEiD = 2
+
+# Scoping class
+# Result: the CQL_TestPropertyTypes instance with id=2 should evaluate to true.
+Select * from CQL_TESTPropertyTypes where Cql_TestPropertyTypeS::instanceId = 2
+Select * from CQL_TESTPropertyTypes where cql_testpropertytypes.Cql_TEStPropertyTypeS::instanceId = 2
+Select * from CQL_TESTPropertyTypes aS ALIAS where cql_testpropertytypes.alias::instanceId = 2
+
+#
+# Misc. tests of the class scoping rules
+#
+
+select * from CIM_ComputerSystem where CIM_ComputerSystem.CIM_ComputerSystem::Description = 'Computer System'
+select * from CIM_ComputerSystem where 'Computer System' = CIM_ComputerSystem.CIM_ComputerSystem::Description
+select * from CIM_ComputerSystem where CIM_ComputerSystem::Description = 'Computer System'
+
+# Fails evaluate, CIMComputerSystem does not exist causing null contagion
+select * from CIM_ComputerSystem where 'Computer System' = CIMComputerSystem::Description
+
+select * from CIM_ComputerSystem where Description = 'Computer System'
+select * from CIM_ComputerSystem where 'Computer System' = Description
+select * from CIM_System where CIM_ComputerSystem::Description = 'Computer System'
+
+# Fails evaluate, the property CIM_ComputerSystem does not exist on class CIM_System
+select * from CIM_System where CIM_ComputerSystem.CIM_ComputerSystem::Description = 'Computer System'
+select * from CIM_System where CIM_System::Description = 'Computer System'
+select * from CIM_System where CIM_System.CIM_ComputerSystem::Description = 'Computer System'
+
+# Fails evaluate, The identifier Description of
+# CIM_System.CIM_EnabledLogicalElement::CIM_System.Description must use the scope operator.
+select * from CIM_System where CIM_EnabledLogicalElement::CIM_System.Description = 'Computer System'
+
+#
+# Test the relationship between the FROM class vs.the instance type being evaluated
+#
+
+# Result: all instances evaluate to false.
+# None of the instances are CIM_Process or subclass of CIM_Process.
+select * from CIM_Process
+
+# Result: only the instances of CQL_TestPropertyTypes evaluate to true
+# None of the other instances are CQL_TestPropertyTypes
+# or are a subclass of CQL_TestPropertyTypes.
+select * from CQL_TestPropertyTypes
+
+# Result: instances of CQL_TestElement and CQL_TestPropertyTypes evaluate to true
+# Only these instances are the FROM class or subclass of FROM class.
+select * from CQL_TestElement
+
+#
+# Case insensitivity of the symbolic constant names
+#
+
+# Result: true for the instance of CIM_ComputerSystem.
+select * from CIM_ComputerSystem where 2 = CIM_ComputerSystem.EnabledState#'ENAbled'
+
+#
+# Case sensitivity of string and char16 values
+#
+
+# Result: all instances evaluate to false
+SELECT * from CQL_TestPropertyTypes where Propertystring = 'bert RULES'
+# Result: the instance with id=2 evaluates to true, the rest eval. to false
+SELECT * from CQL_TestPropertyTypes where Propertystring = 'Bert Rules'
+# Result: all instances evaluate to false
+SELECT * from CQL_TestPropertyTypes where PropertyChar16 = 'a'
+# Result: the instances with id=1 or id=2 evaluate to true
+SELECT * from CQL_TestPropertyTypes where PropertyChar16 = 'A'
+
+#
+# From List variations
+# These are all error cases.
+#
+
+# More than 1 FROM class not allowed
+SELECT * FROM CQL_TestPropertyTypes, CQL_TestElement
+SELECT * FROM CQL_TestPropertyTypes alias1 , CQL_TestElement alias2
+
+# The next 3 are not allowed due to >1 FROM class, but are also wrong
+# due to alias conflicts
+SELECT * FROM CQL_TestPropertyTypes alias, alias
+SELECT * FROM CQL_TestPropertyTypes, alias CQL_TestPropertyTypes
+SELECT * FROM CQL_TestPropertyTypes alias, CQL_TestElement alias
+
+# The next 3 ares not allowed due to >1 FROM class, but could be allowed
+# because of repeating FROM class
+SELECT * FROM CQL_TestPropertyTypes, CQL_TestPropertyTypes
+SELECT * FROM CQL_TestPropertyTypes alias, CQL_TestPropertyTypes
+SELECT * FROM CQL_TestPropertyTypes, CQL_TestPropertyTypes alias
+SELECT * FROM CQL_TestPropertyTypes, alias1, CQL_TestPropertyTypes alias2
+
+# Escape characters in literals
+#    Fail
+select * FROM CQL_TestPropertyTypes where PropertyString = '\CIM_ComputerSystem.CreationClassName="CIM_RunningOS",Name="sysName"'
+#    Pass
+select * FROM CQL_TestPropertyTypes where PropertyString = '\\CIM_ComputerSystem'
+#    Pass
+select * FROM CQL_TestPropertyTypes where PropertyString = 'CIM_ComputerSystem.CreationClassName=\'CIM_RunningOS",Name="sysName"'
+#    Pass
+select * FROM CQL_TestPropertyTypes where PropertyString = 'CIM_ComputerSystem\\\\'
+#    Fail
+select * FROM CQL_TestPropertyTypes where PropertyString = 'CIM_\\\ComputerSystem'
+#    Pass
+select * FROM CQL_TestPropertyTypes where PropertyString = '\\'CIM_ComputerSystem'
+# leading zeros
+select * from class where class.prop = 002
+#concat operations
+select * from class where 'a' || 'b' || 'c' = 'abc'
+select * from class where class.prop || 'b' || 'c' = 'abc'
+select * from class where 'a' || class.prop || 'b' || 'c' = 'abc'
+select * from CQL_TestPropertyTypes where PropertyString || 'b' || 'c' = 'abc'
+select * from CQL_TestPropertyTypes where PropertyString || 'b' || 'c' = 'BertRulesbc'
+select * from CQL_TestPropertyTypes where 'BertRules' || 'b' || 'c' = 'BertRulesbc'
+# Bad UTF-8
+select * from CQL_TestPropertyTypes where PropertyString = 'ÿÿºæ°—ã‚µã‚¤ãƒˆ'
+

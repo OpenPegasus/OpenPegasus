@@ -1,0 +1,120 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_USBDevice 
+// ==================================================================
+   [Version ( "2.6.0" ), 
+    UMLPackagePath ( "CIM::Device::USB" ), 
+    Description ( "The management characterisitics of a USB Device." )]
+class CIM_USBDevice : CIM_LogicalDevice {
+
+      [Description ( 
+          "Indicates the latest USB Version supported by the USB "
+          "Device. The property is expressed as a Binary-Coded "
+          "Decimal (BCD) where a decimal point is implied between "
+          "the 2nd and 3rd digits. For example, a value of 0x201 "
+          "indicates that version 2.01 is supported." )]
+   uint16 USBVersion;
+
+      [Description ( "Indicates the USB class code." )]
+   uint8 ClassCode;
+
+      [Description ( "Indicates the USB subclass code." )]
+   uint8 SubclassCode;
+
+      [Description ( "Indicates the USB protocol code." )]
+   uint8 ProtocolCode;
+
+      [Description ( 
+          "Number of device configurations that are defined for the Device."
+           )]
+   uint8 NumberOfConfigs;
+
+      [Description ( 
+          "Indicates the configuration currently selected for the "
+          "Device. If this value is zero, the Device is "
+          "unconfigured." ), 
+       ModelCorrespondence { "CIM_USBDevice.CurrentAlternateSettings" }]
+   uint8 CurrentConfigValue;
+
+      [Description ( 
+          "An array of USB \'alternate settings\' for each "
+          "interface in the currently selected configuration "
+          "(indicated by the CurrentConfigValue property). This "
+          "array has one entry for each interface in the "
+          "configuration. If the property, CurrentConfigValue, is "
+          "zero (indicating the Device is not configured), the "
+          "array is undefined. To understand how to parse this "
+          "octet string, refer to the USB Specification." ), 
+       ModelCorrespondence { "CIM_USBDevice.CurrentConfigValue" }]
+   uint8 CurrentAlternateSettings[];
+
+
+      [Description ( 
+          "This method returns the USBDevice Descriptor as "
+          "specified by the input parameters. Each parameter is "
+          "briefly described here with more detail in its Qualifier "
+          "list. RequestType is an input parameter that defines "
+          "whether the request is for standard, class or "
+          "vendor-specific information, as well as specifying the "
+          "recipient. RequestValue is also an input parameter and "
+          "defines the USB Descriptor Type and Index. RequestIndex "
+          "is an input parameter which describes the language used "
+          "to return a string Descriptor. RequestLength is both an "
+          "input and output parameter. It specifies the length of "
+          "the Descriptor that should be returned (on input) and "
+          "what is actually returned in the Buffer parameter (on "
+          "output). Buffer is an output parameter, containing the "
+          "Descriptor data. The GetDescriptor method returns an "
+          "integer value of 0 if the USB Descriptor is successfully "
+          "returned, 1 if the request is not supported and any "
+          "other number to indicate an error. \n"
+          "In a subclass, the set of possible return codes could be "
+          "specified, using a ValueMap qualifier on the method. The "
+          "strings to which the ValueMap contents are \'translated\' "
+          "may also be specified in the subclass as a Values array "
+          "qualifier." )]
+   uint32 GetDescriptor(
+         [IN, Description ( 
+             "RequestType is bit-mapped and identifies the type "
+             "of Descriptor request and the recipient. The type "
+             "of request may be \'standard\', \'class\' or "
+             "\'vendor-specific\'. The recipient may be "
+             "\'device\', \'interface\', \'endpoint\' or "
+             "\'other\'. Refer to the USB Specification for the "
+             "appropriate values for each bit." )]
+      uint8 RequestType, 
+         [IN, Description ( 
+             "RequestValue contains the Descriptor Type in the "
+             "high byte and the Descriptor Index (for example, "
+             "index or offset into the Descriptor array) in the "
+             "low byte. Refer to the USB Specification for more "
+             "information." )]
+      uint16 RequestValue, 
+         [IN, Description ( 
+             "RequestIndex defines the 2 byte Language ID code "
+             "used by the USBDevice when returning string "
+             "Descriptor data. The parameter is typically 0 for "
+             "non-string Descriptors. Refer to the USB "
+             "Specification for more information." )]
+      uint16 RequestIndex, 
+         [IN, OUT, Description ( 
+             "On input, RequestLength is the length (in octets) "
+             "of the Descriptor that should be returned. If this "
+             "value is less than the actual length of the "
+             "Descriptor, only the requested length will be "
+             "returned. If it is more than the actual length, "
+             "the actual length is returned. On output, this "
+             "parameter is the length, in octets, of the Buffer "
+             "being returned. If the requested Descriptor does "
+             "not exist, the contents of this parameter are "
+             "undefined." )]
+      uint16 RequestLength, 
+         [IN ( false ), OUT, Description ( 
+             "Buffer returns the requested Descriptor "
+             "information. If the Descriptor does not exist, the "
+             "contents of the Buffer are undefined." )]
+      uint8 Buffer[]);
+
+};

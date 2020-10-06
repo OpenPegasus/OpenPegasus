@@ -1,0 +1,166 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_StorageExtent
+// ==================================================================
+   [UMLPackagePath ( "CIM::Core::StorageExtent" ), Version ( "2.8.0" ), 
+    Description (
+       "StorageExtent describes the capabilities and management of the "
+       "various media that exist to store data and allow data "
+       "retrieval. This superclass could be used to represent the "
+       "various components of RAID (Hardware or Software) or as a raw "
+       "logical extent on top of physical media.")]
+class CIM_StorageExtent : CIM_LogicalDevice {
+
+      [Description (
+          "Type of data organization used."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Other", "Unknown", "Fixed Block", "Variable Block",
+          "Count Key Data" }]
+   uint16 DataOrganization;
+
+      [Description (
+          "A free form string describing the media and/or its use."), 
+       MappingStrings { "MIB.IETF|HOST-RESOURCES-MIB.hrStorageDescr" }]
+   string Purpose;
+
+      [Description (
+          "Access describes whether the media is readable (value=1), "
+          "writeable (value=2), or both (value=3). \"Unknown\" (0) and "
+          "\"Write Once\" (4) can also be defined."), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Readable", "Writeable",
+          "Read/Write Supported", "Write Once" }]
+   uint16 Access;
+
+      [Description (
+          "ErrorMethodology is a free-form string describing the type "
+          "of error detection and correction supported by this "
+          "StorageExtent.")]
+   string ErrorMethodology;
+
+      [Description (
+          "Size in bytes of the blocks which form this StorageExtent. "
+          "If variable block size, then the maximum block size in "
+          "bytes should be specified. If the block size is unknown or "
+          "if a block concept is not valid (for example, for "
+          "AggregateExtents, Memory or LogicalDisks), enter a 1."), 
+       Units ( "Bytes" ), 
+       MappingStrings { "MIF.DMTF|Host Storage|001.4",
+          "MIB.IETF|HOST-RESOURCES-MIB.hrStorageAllocationUnits",
+          "MIF.DMTF|Storage Devices|001.5" }]
+   uint64 BlockSize;
+
+      [Description (
+          "Total number of logically contiguous blocks, of size Block "
+          "Size, which form this Extent. The total size of the Extent "
+          "can be calculated by multiplying BlockSize by "
+          "NumberOfBlocks. If the BlockSize is 1, this property is the "
+          "total size of the Extent."), 
+       MappingStrings { "MIF.DMTF|Host Storage|001.5",
+          "MIB.IETF|HOST-RESOURCES-MIB.hrStorageSize" }]
+   uint64 NumberOfBlocks;
+
+      [Description (
+          "The maximum number of blocks, of size BlockSize, which are "
+          "available for consumption when layering StorageExtents "
+          "using the BasedOn association. This property only has "
+          "meaning when this StorageExtent is an Antecedent reference "
+          "in a BasedOn relationship. For example, a StorageExtent "
+          "could be composed of 120 blocks. However, the Extent itself "
+          "may use 20 blocks for redundancy data. If another "
+          "StorageExtent is BasedOn this Extent, only 100 blocks would "
+          "be available to it. This information ('100 blocks is "
+          "available for consumption') is indicated in the "
+          "ConsumableBlocks property.")]
+   uint64 ConsumableBlocks;
+
+      [Description (
+          "True indicates that the underlying StorageExtent(s) "
+          "participate in a StorageRedundancyGroup.")]
+   boolean IsBasedOnUnderlyingRedundancy;
+
+      [Description (
+          "Boolean set to TRUE if the Storage is sequentially accessed "
+          "by a MediaAccessDevice. A TapePartition is an example of a "
+          "sequentially accessed StorageExtent. StorageVolumes, Disk "
+          "Partitions and LogicalDisks represent randomly accessed "
+          "Extents.")]
+   boolean SequentialAccess;
+
+      [Description (
+          "StorageExtents have additional status information beyond "
+          "that captured in the OperationalStatus and other "
+          "properties, inherited from ManagedSystemElement. This "
+          "additional information (for example, \"Protection "
+          "Disabled\", value=9) is captured in the VolumeStatus "
+          "property."), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+          "10", "11", "12", "13", "14", "15..32767", "32768..65535" }, 
+       Values { "Other", "Unknown", "None/Not Applicable", "Broken",
+          "Data Lost", "Dynamic Reconfig", "Exposed",
+          "Fractionally Exposed", "Partially Exposed",
+          "Protection Disabled", "Readying", "Rebuild", "Recalculate",
+          "Spare in Use", "Verify In Progress", "DMTF Reserved",
+          "Vendor Reserved" }]
+   uint16 ExtentStatus[];
+
+      [Description (
+          "Indicates whether or not there exists no single point of "
+          "failure."), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.NoSinglePointOfFailure" }]
+   boolean NoSinglePointOfFailure;
+
+      [Description (
+          "Number of complete copies of data currently maintained."), 
+       ModelCorrespondence { "CIM_StorageSetting.DataRedundancyGoal",
+          "CIM_StorageSetting.DataRedundancyMax",
+          "CIM_StorageSetting.DataRedundancyMin" }]
+   uint16 DataRedundancy;
+
+      [Description (
+          "How many physical packages can currently fail without data "
+          "loss. For example, in the storage domain, this might be "
+          "disk spindles."), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.PackageRedundancyGoal",
+          "CIM_StorageSetting.PackageRedundancyMax",
+          "CIM_StorageSetting.PackageRedundancyMin" }]
+   uint16 PackageRedundancy;
+
+      [Description (
+          "Current value for Delta reservation. This is a percentage "
+          "that specifies the amount of space that should be reserved "
+          "in a replica for caching changes."), 
+       Units ( "Percentage" ), MinValue ( 1 ), MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DeltaReservationGoal",
+          "CIM_StorageSetting.DeltaReservationMax",
+          "CIM_StorageSetting.DeltaReservationMin" }]
+   uint8 DeltaReservation;
+
+      [Description (
+          "If true, \"Primordial\" indicates that the containing "
+          "System does not have the ability to create or delete this "
+          "operational element. This is important because "
+          "StorageExtents are assembled into higher-level abstractions "
+          "using the BasedOn association. Although the higher-level "
+          "abstractions can be created and deleted, the most basic, "
+          "(i.e. primordial), hardware-based storage entities cannot. "
+          "They are physically realized as part of the System, or are "
+          "actually managed by some other System and imported as if "
+          "they were physically realized. In other words, a Primordial "
+          "StorageExtent exists in, but is not created by its System "
+          "and conversely a non-Primordial StorageExtent is created in "
+          "the context of its System. For StorageVolumes, this "
+          "property will generally be false. One use of this property "
+          "is to enable algorithms that aggregate "
+          "StorageExtent.ConsumableSpace across all, StorageExtents "
+          "but that also want to distinquish the space that underlies "
+          "Primordial StoragePools. Since implementations are not "
+          "required to surface all Component StorageExtents of a "
+          "StoragePool, this information is not accessible in any "
+          "other way.")]
+   boolean Primordial = false;
+};

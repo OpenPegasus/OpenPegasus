@@ -1,0 +1,133 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//
+//%/////////////////////////////////////////////////////////////////////////////
+
+    [Version("1.0.0"), Description (" Common Class for testing "
+        "Response message stress on system with large numbers of possibly "
+        " large instances in the response. Size and number of instances are "
+        " modifiable via methods on the class. This is a class common to "
+        " classed defined for particular provider APIs  ")]
+class TST_ResponseStress
+{
+    [key]
+    string Id;
+
+    [ Description ("Monotonically increasing sequence number for instances "
+        "in the response. Can be used to confirm ordering correctness "
+        "at the client. ")]
+    Uint64 SequenceNumber;
+
+    [ Description ("Requested count of instances to be delivered from "
+        "the set method invoke or default. ")]
+    Uint64 ResponseCount;
+
+    [ Description ("Requested size for instances from the set invoke method "
+         "or default. ")]
+    Uint64 RequestedInstanceSize;
+
+    String Pattern;
+
+    [ Description ("Interval from previus instance created by the "
+         "provider. This gives some indication about how delivery "
+         "gets backed up in the provider.") ]
+    Uint64 interval;
+
+    [ Description ("Delay in seconds to be inserted by provider every 150 "
+	 "instances. This allows creating some large delay in response to "
+	 "test ability to recover/ clean up from delays.") ]
+    Uint32 delay;
+
+    // The following strings are used to pad instance size.
+    // Making the strings that are inserted here large
+    // allows the provider to create very large instances
+
+    string S1;
+    string S2;
+    string S3;
+    string S4;
+    string S5;
+
+    [ Description ("Method sets the parameters for ResponseCount, "
+         "approximate size of the returned instances, count of objects before "
+	 "failure exception, exception code to issue. This persists "
+         "until the provider is reloaded or another set received. "
+	 "CountToFail - if not zero, issue this many objects and then "
+	 "the CIMException defined by FailureStatusCode."),
+    static] Uint32 set(
+        [IN, Description("Number of objects to send in response.")]
+	    uint64 ResponseCount,
+        [IN, Description("Approximate size of response object for Instances. "
+	" Does not apply to path responses.")]
+	    uint64 Size,
+	[IN, Description("Number of object to return before executing "
+	"CIMException defined by FailureStatusCode. If zero, ignore.")]
+	    uint64 CountToFail,
+	[IN, Description("CIMException code to return when CountToFail "
+	" parameter is non-zero.")]
+	    uint32 FailureStatusCode,
+	[IN, Description("Delay in seconds to be introduced by provider each "
+	" 150 instances returned. Allows testing delays in provider response.")]
+	    uint32 Delay
+	    );
+
+    [ Description ("Method returns the current control parameters. "),
+    static] Uint32 get(
+        [IN ( false ), OUT] uint64 ResponseCount,
+        [IN ( false ), OUT] uint64 Size,
+	[IN ( false ), OUT] uint64 CountToFail,
+	[IN ( false ), OUT] uint32 FailureStatusCode,
+	[IN ( false ), OUT] uint32 Delay);
+
+    [ Description ("Reset method parameters to provider default. "),
+    static] Uint32 reset();
+
+    [ Description ("Method stops the provider from generating instances. "
+        "Reset by the next operation or method request. This is an  "
+        "attempt to allow the client to stop generation in process."),
+    static] Uint32 stop();
+};
+
+// Stress test subclass for  C++ Provider.
+class TST_ResponseStressTestCxx : TST_ResponseStress
+{
+};
+// Stress test subclass for  C++ Provider.
+// Second class to allow multiple parallel tests.
+class TST_ResponseStressTestCxx2 : TST_ResponseStress
+{
+};
+
+// Corresponding CMPI subclass for CMPI provider
+class TST_ResponseStressTestCMPI : TST_ResponseStress
+{
+};
+

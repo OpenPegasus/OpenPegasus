@@ -1,0 +1,29 @@
+######################################
+# Scope testing queries.             #
+######################################
+select * from CIM_ComputerSystem where CIM_ComputerSystem.CIM_ComputerSystem::Description = 'Computer System'
+select * from CIM_ComputerSystem where 'Computer System' = CIM_ComputerSystem.CIM_ComputerSystem::Description
+select * from CIM_ComputerSystem where CIM_ComputerSystem::Description = 'Computer System'
+select * from CIM_ComputerSystem where 'Computer System' = CIMComputerSystem::Description
+select * from CIM_ComputerSystem where Description = 'Computer System'
+select * from CIM_ComputerSystem where 'Computer System' = Description
+
+select * from CIM_System where CIM_ComputerSystem::Description = 'Computer System'
+
+#Causes an interesting BUG: changes chain to CIM_System.CIM_ComputerSystem.CIMComputerSystem::Description
+select * from CIM_System where CIM_ComputerSystem.CIM_ComputerSystem::Description = 'Computer System'
+
+select * from CIM_System where CIM_System::Description = 'Computer System'
+select * from CIM_System where CIM_System.CIM_ComputerSystem::Description = 'Computer System'
+
+#Causes an interesting BUG: changes chain to CIM_System.CIM_ComputerSystem.CIMComputerSystem::Description
+select * from CIM_System where CIM_EnabledLogicalElement::CIM_System.Description = 'Computer System'
+
+#Validate should be catching this invalid query.
+select * from CIM_ComputerSystem where CIM_ComputerSystem.CIM_OperatingSystem::Description = 'Computer System'
+
+#Validate should be catching this invalid query.
+select * from CIM_ComputerSystem where CIM_ComputerSystem.CIM_OperatingSystem::OSType = 4
+
+select * from CIM_ComputerSystem where CIM_System::Description = 'Computer System'
+

@@ -1,0 +1,28 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="DBCR00027" type ="change">CPubs edits to the database
+// storage classes.</change>
+
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_DatabaseFile
+// ==================================================================
+   [Association, UMLPackagePath ( "CIM::Database::Storage" ),
+    Aggregation, Version ( "2.8.0" ), Description (
+       "DatabaseFile captures the relationship between a database and "
+       "the supporting files that make up the database as well as the "
+       "purpose served by the files within the context of the "
+       "database.")]
+class CIM_DatabaseFile : CIM_Component {
+
+      [Aggregate, Override ( "GroupComponent" ), Min ( 1 ), Max ( 1 ), 
+       Description (
+          "The single CommonDatabase instance that uses the referenced "
+          "LogicalFile.")]
+   CIM_CommonDatabase REF GroupComponent;
+
+      [Override ( "PartComponent" ), Description (
+          "One of any number of LogicalFile instances that are "
+          "utilized by the referenced CommonDatabase.")]
+   CIM_LogicalFile REF PartComponent;
+};

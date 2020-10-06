@@ -1,0 +1,463 @@
+
+
+Internet Engineering Task Force                         Erik Guttman
+INTERNET DRAFT
+Category: Informational
+August 13, 2002
+Expires in six months
+
+             The serviceid: URI Scheme for Service Location
+                 draft-guttman-svrloc-serviceid-02.txt
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Comments on this document should be sent to the SLP discussion list,
+   srvloc-discuss@lists.sourceforge.net.
+
+   Internet-Drafts are draft documents of the Internet Engineering Task
+   valid for a maximum of six months and may be updated, replaced, or
+   obsoleted by other documents at any time.  It is inappropriate to use
+   Internet-Drafts as reference material or to cite them other than as
+   "work in progress."  See http://www.ietf.org/ietf/1id-abstracts.txt.
+   Find shadow directories at http://www.ietf.org/shadow.html.
+
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+Abstract
+
+   The Service Location Protocol (SLP) allows clients to discover
+   services with little or no prior configuration.  SLP can be used to
+   advertise services of any kind through the use of URLs.  However, SLP
+   uses URLs for two purposes: as a LOCATOR (indicating the location of
+   the service) and as an IDENTIFIER (used for subsequent operations on
+   a service, such as registration, deregistration and looking up
+   attributes.)  Confounding these two functions in one object leads to
+   certain problems.  The serviceid: scheme separates identification
+   from location, eliminating these problems.
+
+1. Introduction
+
+   The Service Location Protocol, Version 2 [RFC2608] [RFC2608bis]
+   allows services to advertise themselves, by associating four objects
+   together in a service advertisement:
+
+    - Scope list
+      A comma delimited list of strings that denote an administrative
+      grouping of services.
+
+    - Service Type
+      A string representing the type of service.  The service type can
+      be abstract (such as "directory-service") or concrete (such as
+
+
+
+Guttman, E.             Expires: 3 February 2003                [Page 1]
+
+Internet Draft            SLP Serviceid scheme               August 2002
+
+
+      "ldapv3").
+
+    - Service URL
+      A URL that serves two purposes:  [1] IDENTIFICATION:  The URL is
+      used to reregister, deregister or query the attributes of a
+      service advertisement. [2] LOCATION:  The URL may include the
+      location of the service being registered, in the form of the IP or
+      other network address or the host name.
+
+    - Attributes
+      A list of attribute tag/typed value list pairs. The value list may
+      be empty.
+
+   Confounding the identification and location functions into a single
+   object, namely the service URL, leads to the following problems:
+
+     1. Identifying a logically single service available at multiple
+        locations.
+
+        Currently, separate SLP service advertisements must be made for
+        each location of a service. As a result, it is impossible to
+        establish the identity of a logically single service that is
+        available through multiple locations. Specifically, a multihomed
+        host offering the same service on multiple interfaces, or a host
+        offering the same service at different ports cannot be
+        distinguished from a case when separate services are offered at
+        different locations. For example, are "http://a.example.com",
+        "http://b.example.com" and "http://b.example.com:2346" distinct
+        services or rather distinct access points for the same service?
+        Since the URL is used for both location and identification,
+        there is no way to determine the identity of several services
+        from URLs which encode different locations.
+
+     2. Identifying a service that is accessable through multiple
+        protocols.
+
+        Some services support multiple protocols.  For example, a single
+        multiprotocol printer may support IPP, LPR, and raw tcp network
+        printing job delivery.  Currently, the printer must advertise
+        URLs for each protocol and each URL has only one scheme
+        indicating the protocol to use to contact the printer.  Are the
+        URLs "service:printer:lpr://example.com" and
+        "service:printer:ipp://example.com" a single printer service
+        which speaks two protocols or two distinct services?  It is not
+        possible to determine, from a set of distinct URLs, whether they
+        refer to different services or the same service instance
+        accessable through different protocols.
+
+     3. The service URL contains no way to indicate which transport
+        protocol to use to access a service.
+
+
+
+Guttman, E.             Expires: 3 February 2003                [Page 2]
+
+Internet Draft            SLP Serviceid scheme               August 2002
+
+
+        Some protocols can be accessed via either UDP or TCP.
+        Additional transports, such as RTP, or SCTP may be used to
+        access servers.  The current SLP service URL provides no way to
+        determine whether a particular service is accessable through a
+        particular transport protocol.  Even if the transport protocol
+        were encoded in the URL, it would still not be possible to
+        determine if the service supported more than one transport
+        protocol, and if so, which one.  This information may be useful
+        for a client capable of utilizing more than one transport
+        protocol, so the client can determine which protocol to use to
+        contact a particular service.
+
+     4. Discovering the current location of particular service
+
+        A client may need some way to specify that the location of a
+        particular service should be discovered again, even if the
+        service location was changed.  SLP should be able to discover
+        the same printer on successive occasions, even if the printer's
+        network location changes.  Currently, in SLP, there is no way to
+        specify a unique identifier for the service so that a client can
+        rediscover the same service.
+
+   These problems have been difficult to overcome using the mechanisms
+   SLP currently provides.
+
+   One solution to these problems is to use a URI that is a pure
+   identifier and has no locator semantics.  The service associated with
+   this identifier then has a set of attributes that includes all the
+   information needed to solve the five problems listed above.  This
+   solution is used in the SLP service type template for IPP [IPP], but
+   it is limited by the current semantics of SLP service URLs.  Having
+   an identifier URL would simplify and standardize support for services
+   that require separation between location and identification.
+
+   In order to make use of the service URL scheme, a service must
+   generate a unique identifier.  The service SHOULD store this
+   persistently, so that the the service is always advertised the same
+   id.  An example of how to generate a universally unique identifier
+   (UUID) is described in [ISO-11578]; however, any method that is
+   sufficiently random can be used [RFC1750].
+
+2. URI syntax
+
+   The URI syntax is as follows:
+
+      service-id-uri = "service:serviceid:" 1*(HEXDIGIT / "-")
+
+   The URI simply encodes the unique ID associated with a service.  Each
+   byte of the ID is encoded as two HEXDIGIT values.  Arbitrary dashes
+   ("-") may be introduced to increase human readability.  This
+   identifier is not, however, intended for human readability, nor does
+
+
+Guttman, E.             Expires: 3 February 2003                [Page 3]
+
+Internet Draft            SLP Serviceid scheme               August 2002
+
+
+   it encode the location of a service.  The location and description of
+   the service is instead present in the attributes registered with the
+   service advertisement.
+
+3. Service Templates for Advertising Services via service:serviceid:
+   URIs
+
+   The attributes described below SHOULD be registered with any service
+   that uses the 'service:serviceid:' scheme.  [RFC2609] describes the
+   service template syntax and how to use it.  Note that the template
+   fragment shown below is not a complete template, but rather text to
+   include in any template that uses the service:serviceid: scheme.
+
+---------------------Template fragment starts here----------------------
+
+service-hi-name=string
+# This is a human readable name of the service for purpose of
+# displaying in a human interface.
+
+service-hi-description=string O
+# This is a human readable description of the service for the purpose of
+# displaying in a human interface.
+
+service-id=string
+# This is a text rendering of unique identifier.  It contains the
+# same value that appears in the "service:serviceid:"  URI registered
+# with the service.
+
+service-location-tcp=string M
+# This attribute contains a list of strings. The strings are
+# the URLs giving the location where the service can be
+# accessed via the TCP transport protocol. For example:
+#
+#   (service-location=nfs://a.example.com,nfs://b.example.com,
+#    http://b.example.com:3421,http://b.example.com:32423)
+#
+
+service-location-udp = string M
+# This attribute contains a list of strings. The strings
+# are the URLs giving the location where the service can
+# be accessed via the UDP transport protocol.
+
+service-location-sctp = string M
+# This attribute contains a list of strings. The strings
+# are the URLs giving the location where the service can
+# be accessed via the SCTP transport protocol.
+
+service-location-xxx = string M
+# Should other transport protocols come into common
+# use, attributes can be added that contain the URLs
+# giving the location where the service can be
+
+
+Guttman, E.             Expires: 3 February 2003                [Page 4]
+
+Internet Draft            SLP Serviceid scheme               August 2002
+
+
+# accessed via these transports.
+----------------------Template fragment ends here-----------------------
+
+4. How to solve common problems using 'service:serviceid' URLs
+
+   This section describes how the service:serviceid: URI and the service
+   attributes introduced in the preceding two sections solve the
+   problems described in Section 1. A UA discovers a service using a
+   SrvRqst, which returns the service:serviceid: URI. Either the SrvRqst
+   is followed by an AttrRqst for all attributes of the service
+   discovered, using that service:serviceid: URI as the locator in the
+   AttrRqst, or the original SrvRqst is sent with an Attrlist Extension
+   [RFC3059].
+
+4.1. Discovering services with multiple locations
+
+   The UA obtains an attribute list for each service discovered.  The
+   transport specific service location attributes in this attribute list
+   indicate the multiple locations of services associated with the
+   service instance.
+
+4.2. Discovering multiple protocols associated with a service
+
+   The attribute list provides a list of all protocols supported by the
+   service instance.
+
+4.3. Discovering the transport protocols which a service supports
+
+   The attribute list contains transport specific service location
+   attributes containing the location through which the service is
+   accessable via a specific transport.
+
+4.4. Discovering the current location of a particular service
+
+   The UA can construct a search filter to discover a service instance
+   which has been discovered previously.  The search filter used in the
+   SrvRqst contains the following term:
+
+      "(service-id=" UUID ")"
+
+   The UUID above is replaced by the unique id of the service previously
+   discovered.  For example, a UA discovers a service:
+
+   service type
+      "smtp"
+
+   scope
+      default
+
+   service url
+      "service:serviceid:98432A98-B879E8FF-80342A89-43280B89C"
+
+
+Guttman, E.             Expires: 3 February 2003                [Page 5]
+
+Internet Draft            SLP Serviceid scheme               August 2002
+
+
+   attribute list
+      (service-hi-name=west), (service-hi-description=west coast campus
+      smpt server), (service-id=98432A98-B879E8FF-80342A89-43280B89C),
+      (service-location-tcp=smtp://west.example.com)
+
+   The UA discovers the location of the service subsequently by issuing
+   an SrvRqst with an Attrlist extension:
+
+   service type
+      smtp
+
+   scope
+      default
+
+   search filter
+      (service-id=98432A98-B879E8FF-80342A89-43280B89C)
+
+   Or, an AttrRqst for
+
+   service url
+      service-id:98432A98-B879E8FF-80342A89-43280B89C
+
+   scope
+      default
+
+   If the attributes are successfully retrieved, the current attribute
+   list includes the location of the service,
+    which may have changed since the last time it was discovered.
+
+4.5 Ease of use
+
+   The service-hi-name and service-hi-description attribute values
+   simplify producing human interfaces for service browsing.   The user
+   need never see the unique identifer attribute, as there is a human
+   readable name provided for display.  Since attributes can be
+   registered in multiple languages, the name and description can be
+   internationalized, as appropriate.
+
+5. Relating Attributes to Specific Service Locations
+
+   The attributes advertised along with a service:serviceid URI express
+   the attributes of the service irrespective of the access protocol
+   used.  For most purposes this is appropriate.  The location, capacity
+   and so forth of a server doesn't depend on the access protocol.
+
+   In cases where the attributes vary depending on the service access
+   protocol used, the following convention is used.  The URI is
+   associated with an attribute list.  The attribute name is formed with
+   by concatenating the URI to an attribute prefix 'service-info-".
+   This attribute list must first be escaped using the rules in RFC
+   2608.  For example the attribute list
+
+
+Guttman, E.             Expires: 3 February 2003                [Page 6]
+
+Internet Draft            SLP Serviceid scheme               August 2002
+
+
+      "(read-only=true),anonymous"
+
+   would become the string
+
+      "\28read-only\3Dtrue\29\2Canonymous"
+
+   For example, if there are three ways to access file service, one
+   could add attributes specific to each.  (This example is for
+   illustrative purposes only.  The service type 'fileserver' has not
+   been registered at the time of this writing.)
+
+   Service advertisement:
+
+     Service type = fileserver
+     Service URI  =
+        service:serviceid:92348911-2990652A-BB234C93-FF113322
+     Scope        = default
+     Attributes   =
+       (service-hi-name=Fileserver),
+       (service-hi-description=Remote access to files),
+       (service-id=92348911-2990652A-BB234C93-FF113322),
+       (service-location-tcp=nfs://a.example.com, http://a.example.com,
+        ftp://a.example.com),
+       (service-info-http://a.example.com=
+         \28read-only\3Dtrue\29\2Canonymous),
+       (service-info-nfs://a.example.com=anonymous)
+
+   In the example above, file access via the nfs URL is 'anonymous.'
+   File access using the http URL is 'anonymous' and 'read-only=true.'
+
+   Care must be taken to unescape the attribute list values associated
+   with service-info attributes before further processing.
+
+Acknowledgments
+
+   James Kempf and Jim Mayer contributed significantly to this
+   specification.
+
+References
+
+
+[IPP] Flemming, P., et. al., "Internet Printing Protocol (IPP):
+         LDAP Schema for Printer Services", draft-ietf-ipp-ldap-printer-
+        schema-05.txt, a work in progress.
+
+[ISO-11578] ISO (International Organization for Standardization).
+        ISO/IEC 11578:1996. "Information technology - Open Systems
+        Interconnection - Remote Procedure Call (RPC)"
+
+[RFC1750] Eastlake, D., et. al, "Randomness Recommendations for
+        Security", RFC 1750, September 1994.
+
+
+Guttman, E.             Expires: 3 February 2003                [Page 7]
+
+Internet Draft            SLP Serviceid scheme               August 2002
+
+
+[RFC2234] Crocker, D., Overell, P., "Augmented BNF for Syntax
+        Specifications: ABNF", RFC 2234, November 1997.
+
+[RFC 2608] Guttman, E., et. al, "Service Location Protocol version 2",
+        RFC 2608, June 1999.
+
+        See also: Guttman, E., Kempf, J., "Service Location Protocol,
+        Version 2", draft-guttman-svrloc-rfc2608bis-03.txt, August 2002,
+        A work in progress.
+
+[RFC2608bis] Guttman, E, Kempf, J., "Service Location Protocol, Version
+        2", draft-guttman-svrloc-rfc2608bis-01.txt, December 2001, a
+        work in progress.
+
+[RFC 2609] Guttman, E., Perkins, C. and J. Kempf, "Service Templates and
+        service: Schemes", RFC 2609, June 1999.
+
+[RFC3059] Guttman, E., "Attribute List Extension for the Service
+        Location Protocol", RFC 3059, February 2001.
+
+Author's Contact Information
+
+   Erik Guttman
+   Sun Microsystems
+   Eichhoelzelstr. 7
+   74915 Waibstadt Germany
+
+   erik.guttman@sun.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Guttman, E.             Expires: 3 February 2003                [Page 8]

@@ -1,0 +1,215 @@
+.\"-----------------------------------------------------------------
+.\" Registers to store heading levels as variables
+.\"-----------------------------------------------------------------
+.nr head1 0 1
+.nr head2 0 1
+.nr head3 0 1
+.nr head4 0 1
+.nr head5 0 1
+.nr head6 0 1
+
+.\"-----------------------------------------------------------------
+.\" Return to header level 1, 2, etc.
+.\" resets the level registers and indent
+.\"-----------------------------------------------------------------
+.de RETURN_HDR_1
+.nr head2 0 1
+.nr head3 0 1
+.nr head4 0 1
+.nr head5 0 1
+.nr head6 0 1
+.in 0
+\.HDR_1 \\$1
+..
+
+.de RETURN_HDR_2
+.nr head3 0 1
+.nr head4 0 1
+.nr head5 0 1
+.nr head6 0 1
+.in 0
+\.HDR_2 \\$1
+..
+
+.de RETURN_HDR_3
+.nr head4 0 1
+.nr head5 0 1
+.nr head6 0 1
+.in 0
+\.HDR_3 \\$1
+..
+
+.de RETURN_HDR_4
+.nr head5 0 1
+.nr head6 0 1
+.in 0
+\.HDR_4 \\$1
+..
+
+.de RETURN_HDR_5
+.nr head6 0 1
+.in 0
+\.HDR_5 \\$1
+..
+
+.\"-----------------------------------------------------------------
+.\" Create a level 1, 2, etc,.  heading
+.\" resets indent, creates a TOC entry
+.\" Parameter is the title of the heading
+.\"-----------------------------------------------------------------
+.de HDR_1
+.sp 1
+.in 0
+\\n+[head1]\\  \\$1
+.XS
+\\n[head1]\\  \\$1
+.XE
+.in 3
+..
+
+
+.de HDR_2
+.sp 1
+.in 0
+\\n[head1]\\.\\n+[head2]\\ \\$1
+.XS
+\\n[head1]\\.\\n[head2]\\ \\$1
+.XE
+.in 3
+..
+
+.de HDR_3
+.sp 1
+.in 0
+\\n[head1]\\.\\n[head2]\\.\\n+[head3]\\ \\$1
+.XS
+\\n[head1]\\.\\n[head2]\\.\\n[head3]\\ \\$1
+.XE
+.in 3
+..
+
+.de HDR_4
+.sp 1
+.in 0
+\\n[head1]\\.\\n[head2]\\.\\n[head3]\\.\\n+[head4]\\ \\$1
+.XS
+\\n[head1]\\.\\n[head2]\\.\\n[head3]\\.\\n[head4]\\ \\$1
+.XE
+.in 3
+..
+
+.de HDR_5
+.sp 1
+.in 0
+\\n[head1]\\.\\n[head2]\\.\\n[head3]\\.\\n[head4]\\.\\n+[head5]\\ \\$1
+.XS
+\\n[head1]\\.\\n[head2]\\.\\n[head3]\\.\\n[head4]\\.\\n[head5]\\ \\$1
+.XE
+.in 3
+..
+
+.de HDR_6
+.sp 1
+.in 0
+\\n[head1]\\.\\n[head2]\\.\\n[head3]\\.\\n[head4]\\.\\n[head5]\\.\\n+[head6]\\ \\$1
+.XS
+\\n[head1]\\.\\n[head2]\\.\\n[head3]\\.\\n[head4]\\.\\n[head5]\\.\\n[head6]\\ \\$1
+.in 3
+.XE
+..
+
+.\"-----------------------------------------------------------------
+.\" END MACRO DEFINITIONS
+.\"-----------------------------------------------------------------
+
+.pl 58
+.po 0
+.ll 72
+.lt 72
+.ds LF Day
+.ds RF FORMFEED[Page %]^
+.ds CF
+.ds LH INTERNET DRAFT
+.ds CH SLP Signature Extension
+.ds RH Exp. July 2003
+.hy 0
+.ad l
+.in 0
+
+
+Internet Engineering Task Force                            Michael Day
+INTERNET DRAFT                                                     IBM
+23 February 2003			         Expires in six months
+
+.ce 1000
+Signature Extension for Service Location Protocol v2
+draft-day-svrloc-svrloc-signature-01.txt
+.ce 0
+.sp 5
+
+.in 0
+Status of This Memo
+.in 3
+This document is an Internet-Draft and is subject to
+all provisions of Section 10 of RFC2026.
+
+Internet-Drafts are working documents of the Internet Engineering
+Task Force (IETF), its areas, and its working groups.  Note that
+other groups may also distribute working documents as
+Internet-Drafts.
+
+Internet-Drafts are draft documents valid for a maximum of six
+months and may be updated, replaced, or obsoleted by other
+documents at any time.  It is inappropriate to use Internet-
+Drafts as reference material or to cite them other than as
+"work in progress."
+
+The list of current Internet-Drafts can be accessed at
+http://www.ietf.org/1id-abstracts.html
+
+The list of Internet-Draft Shadow Directories can be accessed at
+http://www.ietf.org/shadow.html
+
+This document is an individual contribution to the Internet
+Engineering Task Force (IETF). Comments should be submitted to the
+srvloc@srvloc.org mailing list.
+
+Distribution of this memo is unlimited.
+	
+.bp .HDR_1 Introduction
+
+The Service Location Protocol, Version 2 [rfc2608bis] provides a
+flexible and scalable framework for provisioning network nodes with
+information on the existence, location, and configuration of networked
+services.
+
+[rfc2608bis] recommends using [IPSEC] to provide authentication and
+privacy to SLP messages, transported either upon UDP or TCP. [IPSEC]
+SHOULD be used with SLP.
+
+This document outlines optional protocol extensions that MAY be used
+for authenticating SLP messages when [IPSEC] is not available in the
+environment.
+
+As with all SLP protocol extensions, support for the signature
+extension is OPTIONAL and cannot be assumed present in the
+computing environment.
+
+.HDR_2 Need\ for\ Authentication\ of\ SLP\ Messages
+
+[rfc2608] outlines the need for authentication of SLP messages in
+section 15.
+
+.KS
+.HDR_1 References
+
+.IP [rfc2608bis] 3
+Guttman, E., Kempf, J., "Service Location Protocol,
+Version 2", draft-guttman-svrloc-rfc2608bis-03.txt
+http://srvloc.sourceforge.net/new_drafts/draft-guttman-svrloc-rfc2608bis-03.txt
+
+.IP [IPSEC] 3
+Kent, S., and Atkinson, R., "Security Architecture for the
+Internet Protocol," RFC 2401, November, 1998.
+
+.KE

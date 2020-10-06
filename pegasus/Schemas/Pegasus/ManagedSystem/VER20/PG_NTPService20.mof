@@ -1,0 +1,223 @@
+//%LICENSE////////////////////////////////////////////////////////////////
+//
+// Licensed to The Open Group (TOG) under one or more contributor license
+// agreements.  Refer to the OpenPegasusNOTICE.txt file distributed with
+// this work for additional information regarding copyright ownership.
+// Each contributor licenses this file to you under the OpenPegasus Open
+// Source License; you may not use this file except in compliance with the
+// License.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+//////////////////////////////////////////////////////////////////////////
+// =============================================================================
+// Title:              PG_NTPService MOF
+// Filename:           PG_NTPService20.mof
+// Description:        This MOF file defines the PG_NTPService class.
+//                     It is a subclass of CIM_Service class which describes
+//                     a Network Time Protocol (NTP).
+// =============================================================================
+
+// Make sure MOF includes all necessary CIM superclasses
+
+// =============================================================================
+// Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// =============================================================================
+
+// ==================================================================
+// ManagedElement
+// ================================================================== 
+   [Abstract, Version("2.6.0"), Description (
+     "ManagedElement is an abstract class that provides a common "  
+     "superclass (or top of the inheritance tree) for the "
+     "non-association classes in the CIM Schema.")]
+class CIM_ManagedElement {  
+      [MaxLen (64), Description (  
+        "The Caption property is a short textual description (one-"    
+        "line string) of the object.") ]   
+   string Caption;  
+      [Description (  
+        "The Description property provides a textual description of "
+        "the object.") ]   
+   string Description;    
+};
+     
+// ================================================================== 
+//    ManagedSystemElement
+// ==================================================================
+   [Abstract, Version("2.6.0"), Description (
+     "CIM_ManagedSystemElement is the base class for the System "
+     "Element hierarchy. Membership Criteria: Any distinguishable "
+     "component of a System is a candidate for inclusion in this "
+     "class. Examples: software components, such as files; and "
+     "devices, such as disk drives and controllers, and physical "
+     "components such as chips and cards.") ] 
+class CIM_ManagedSystemElement : CIM_ManagedElement {
+      [Description (
+        "A datetime value indicating when the object was installed. "
+        "A lack of a value does not indicate that the object is not "
+        "installed."), 
+       MappingStrings {"MIF.DMTF|ComponentID|001.5"} ] 
+   datetime InstallDate;
+      [MaxLen (256), Description (
+        "The Name property defines the label by which the object is "
+        "known. When subclassed, the Name property can be overridden "
+        "to be a Key property.") ] 
+   string Name;
+      [MaxLen (10), Description ( 
+        "  A string indicating the current status of the object. " 
+        "Various operational and non-operational statuses are " 
+        "defined. Operational statuses are \"OK\", \"Degraded\", " 
+        "\"Stressed\" and \"Pred Fail\". \"Stressed\" indicates that " 
+        "the Element is functioning, but needs attention. Examples " 
+        "of \"Stressed\" states are overload, overheated, etc. The " 
+        "condition \"Pred Fail\" (failure predicted) indicates that " 
+        "an Element is functioning properly but predicting a failure " 
+        "in the near future. An example is a SMART-enabled hard " 
+        "drive. \n" 
+        "  Non-operational statuses can also be specified. These " 
+        "are \"Error\", \"NonRecover\", \"Starting\", \"Stopping\", " 
+        " \"Stopped\", " 
+        "\"Service\", \"No Contact\" and \"Lost Comm\". \"NonRecover\" " 
+        "indicates that a non-recoverable error has occurred. " 
+        "\"Service\" describes an Element being configured, maintained, " 
+        "cleaned, or otherwise administered. This status could apply " 
+        "during mirror-resilvering of a disk, reload of a user " 
+        "permissions list, or other administrative task. Not all such " 
+        "work is on-line, yet the Element is neither \"OK\" nor in " 
+        "one of the other states. \"No Contact\" indicates that the " 
+        "current instance of the monitoring system has knowledge of " 
+        "this Element but has never been able to establish " 
+        "communications with it. \"Lost Comm\" indicates that " 
+        "the ManagedSystemElement is known to exist and has been " 
+        "contacted successfully in the past, but is currently unreachable." 
+        "\"Stopped\" indicates that the ManagedSystemElement is known " 
+        "to exist, it is not operational (i.e. it is unable to " 
+        "provide service to users), but it has not failed. It has purposely " 
+        "been made non-operational. The Element " 
+        "may have never been \"OK\", the Element may have initiated its " 
+        "own stop, or a management system may have initiated the stop."), 
+       ValueMap {"OK", "Error", "Degraded", "Unknown", "Pred Fail", 
+                 "Starting", "Stopping", "Service", "Stressed", 
+                 "NonRecover", "No Contact", "Lost Comm", "Stopped"} ] 
+   string Status; 
+};
+
+// ==================================================================
+//    LogicalElement
+// ==================================================================
+   [Abstract, Version("2.6.0"), Description (
+     "CIM_LogicalElement is a base class for all the components of "
+     "a System that represent abstract system components, such "
+     "as Files, Processes, or system capabilities in the form "
+     "of Logical Devices.") ] 
+class CIM_LogicalElement : CIM_ManagedSystemElement {
+};
+
+// ==================================================================
+//    Service
+// ==================================================================  
+   [Abstract, Version ("2.6.0"), Description (
+     "A CIM_Service is a Logical Element that contains the "
+     "information necessary to represent and manage the "
+     "functionality provided by a Device and/or SoftwareFeature. "
+     "A Service is a general-purpose object to configure and "
+     "manage the implementation of functionality.  It is not the "
+     "functionality itself.") ] 
+class CIM_Service : CIM_LogicalElement {
+      [Propagated ("CIM_System.CreationClassName"), Key, 
+       MaxLen (256), Description (
+        "The scoping System's CreationClassName.") ] 
+   string SystemCreationClassName;
+      [Propagated ("CIM_System.Name"), Key, MaxLen (256),
+       Description ("The scoping System's Name.") ] 
+   string SystemName;
+      [Key, MaxLen (256), Description (
+        "CreationClassName indicates the name of the class or the "
+        "subclass used in the creation of an instance. When used "
+        "with the other key properties of this class, this property "
+        "allows all instances of this class and its subclasses to "
+        "be uniquely identified.") ]
+   string CreationClassName;
+      [Override ("Name"), Key, MaxLen (256), Description (
+        "The Name property uniquely identifies the Service and "
+        "provides an indication of the functionality that is "
+        "managed. This functionality is described in more detail in "
+        "the object's Description property.") ] 
+   string Name;
+      [MaxLen (10), Description (
+        "StartMode is a string value indicating whether the Service "
+        "is automatically started by a System, Operating System, etc. "
+        "or only started upon request."), 
+       ValueMap {"Automatic", "Manual"} ] 
+   string StartMode;
+      [Description (
+        "Started is a boolean indicating whether the Service "
+        "has been started (TRUE), or stopped (FALSE).") ] 
+   boolean Started;
+      [Description (
+        "The StartService method places the Service in the started "
+        "state. It returns an integer value of 0 if the Service was "
+        "successfully started, 1 if the request is not supported and "
+        "any other number to indicate an error. In a subclass, the "
+        "set of possible return codes could be specified, using a "
+        "ValueMap qualifier on the method. The strings to which the "
+        "ValueMap contents are 'translated' may also be specified in "
+        "the subclass as a Values array qualifier.") ] 
+   uint32 StartService();
+      [Description (
+        "The StopService method places the Service in the stopped "
+        "state. It returns an integer value of 0 if the Service was "
+        "successfully stopped, 1 if the request is not supported and "
+        "any other number to indicate an error. In a subclass, the "
+        "set of possible return codes could be specified, using a "
+        "ValueMap qualifier on the method. The strings to which the "
+        "ValueMap contents are 'translated' may also be specified in "
+        "the subclass as a Values array qualifier.") ] 
+   uint32 StopService();
+};
+
+// ==========================================================================
+// End of Copyright 1998-2003 Distributed Management Task Force, Inc. (DMTF).
+// ==========================================================================
+
+
+// ==================================================================
+//    PG_NTPService
+// ==================================================================
+   [Version("1.0.0"), Description (
+     "An extension of the Service class which describes a "
+     "Network Time Protocol (NTP). This class specifies the IP "
+     "address(es) of the server(s) that are responsible for "
+     "providing time to the client host.") ]
+class PG_NTPService : CIM_Service {
+      [MaxLen (256), Description (
+	    "The IP address or addresses in dot notation format of "
+		"the NTP server(s) to which the client host might "
+		"synchronize.")]
+   string ServerAddress[];
+};

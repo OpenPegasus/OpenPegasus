@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# Script to update Pegasus Licenses on all required modules in the pegasus CVS module
+# Depends on license definition in
+# right now cimmof.l and cimmof.lex.cpp have to be treated special.  These must be hand redone
+# because the .l files do not handle the // comments at the beginning well and require them to
+# be surounded by a /* */ sequence that we cannot do mechnaically.  Note that this also applies
+# to the resulting cimmof_lex.cpp file.
+# NOTE: The original updater was based on following the recursive Makefiles and using the
+# filelists.  However, there are so many ifdefs in that and other issues that it was missing
+# a significant number of files.  We elected to create a mechanism to scan all subdirectories
+# of pegasus and make the changes with this script.
+
+# Issues as of 2 Feb 06
+# 1. pegasus/Schemas/Pegasus/CIM_Qualifiers25.mof - Should not be licensed by us
+# 2. Not covering all .mof files in pegasus/src.
+# 3. We are updating some of the Yacc output files and this is incorrect but
+#    benign. However, we should not be doing this.
+# There are still some issues that must be resolved manually so that after application of
+# this script, the files that a) do not have licenses and b) have old licenses must be
+# manually inspected and possibly some of these files manually fixed.
+
+# move to start from Pegasus Root
+cd $PEGASUS_ROOT
+rm -f src/PEGASUS/Compiler/cimmof.l
+
+LOGFILE=$PEGASUS_ROOT/licensechange.log
+echo "License Change Started" > $LOGFILE
+
+if [ ! -e '$PEGASUS_ROOT/doc/license.mak.txt' ]
+then
+     make -f $PEGASUS_ROOT/mak/license.mak create-make-license >> $LOGFILE
+     make -f $PEGASUS_ROOT/mak/license.mak create-lex-license >> $LOGFILE
+fi
+
+# change all .h, .cpp, .c .java  and yacc files
+# Absolute. Puts new licenses on if they do not exist
+find \( -name *.h -o -name *.cpp -o -name *.c -o -name *.java -o -name *.y \) | grep -v InterfaceArchive | grep -v cimmof_lex.cpp | grep -v slp_client | while read filename ; do
+     make -f $PEGASUS_ROOT/mak/license.mak fix-code-license FILENAME=${filename}  >> $LOGFILE
+done
+echo "Completed code files"  >> $LOGFILE
+
+# do all lex files **.l) with the lex license. This license is special because it
+# must use /* */ around the license for lex files.
+find -name "*.l" | grep -v InterfaceArchive | grep -v slp_client | while read filename ; do
+     make -f $PEGASUS_ROOT/mak/license.mak fix-lex-license FILENAME=${filename}  >> $LOGFILE
+done
+echo "Completed lex files"  >> $LOGFILE
+
+# change all Make files and spec files, etc. with the make license (comment is # rather than //
+find \( -name "*Makefile" -o -name *.mak -o -name "Makefile.*" -o -name "*.rc" -o -name "*.spec" -o -name "*.pl" \) | grep -v InterfaceArchive | while read filename ; do
+     make -f $PEGASUS_ROOT/mak/license.mak fix-make-license FILENAME=${filename} >> licensechange.log
+done
+echo "Completed make files"  >> $LOGFILE
+
+cd src
+# Change mof files in the src directories. They are our files. For now change only thise
+# that already have a license.
+find -name *.mof | grep -v InterfaceArchive | while read filename ; do
+     if grep '\/%2006\/' ${filename} 1> /dev/null
+     then
+        make -f $PEGASUS_ROOT/mak/license.mak fix-code-license FILENAME=${filename} >> licensechange.log
+     fi
+done
+cd $PEGASUS_ROOT
+echo "Completed Pegasus mof files"  >> $LOGFILE
+
+# Change any files in the Schema Directories that have PG_ in the names.
+cd $PEGASUS_ROOT/Schemas/Pegasus
+find -name *.mof | grep -v InterfaceArchive | while read filename ; do
+     make -f $PEGASUS_ROOT/mak/license.mak fix-code-license FILENAME=${filename} >> licensechange.log
+done
+echo "Completed Schemas/Pegasus mof files"  >> $LOGFILE
+cd $PEGASUS_ROOT
+
+cd $PEGASUS_ROOT/Schemas
+# Also change any CIM_Schema files that have a Pegasus license on them. They are
+# also our files. Note that this is conditional and only puts licenses on
+# files that already have them.
+find -name *.mof | grep -v InterfaceArchive | while read filename ; do
+     if grep '\/%2006\/' ${filename} 1> /dev/null
+     then
+         make -f $PEGASUS_ROOT/mak/license.mak fix-code-license FILENAME=${filename} >> $LOGFILE
+     fi
+done
+cd $PEGASUS_ROOT
+echo "Completed Schemas mof files"  >> licensechange.log
+
+# modify the various forms of readme files.
+cd $PEGASUS_ROOT
+find -name "README*.*" -o name "readme*.*" -o name "README*" | grep -v InterfaceArchive | while read filename ; do
+      make -f $PEGASUS_ROOT/mak/license.mak fix-code-license FILENAME=${filename} >> licensechange.log
+done
+
+# Test for any remaining files that have the previous year license
+cd $PEGASUS_ROOT
+grep -r \/%2006\/ . >> $LOGFILE
+echo "Completed"  >> $LOGFILE
+

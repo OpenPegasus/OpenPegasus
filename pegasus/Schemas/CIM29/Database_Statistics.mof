@@ -1,0 +1,250 @@
+// ===================================================================
+// Title: Database_Statistics
+// $State: Exp $
+// $Date: 2005/02/17 00:09:56 $
+// $RCSfile: Database_Statistics.mof,v $
+// $Revision: 1.1 $
+// ===================================================================
+//#pragma inLine ("Includes/copyright.inc")
+// Copyright 1998-2005 Distributed Management Task Force, Inc. (DMTF).
+// All rights reserved.
+// DMTF is a not-for-profit association of industry members dedicated
+// to promoting enterprise and systems management and interoperability.
+// DMTF specifications and documents may be reproduced for uses
+// consistent with this purpose by members and non-members,
+// provided that correct attribution is given.
+// As DMTF specifications may be revised from time to time,
+// the particular version and release date should always be noted.
+// 
+// Implementation of certain elements of this standard or proposed
+// standard may be subject to third party patent rights, including
+// provisional patent rights (herein "patent rights"). DMTF makes
+// no representations to users of the standard as to the existence
+// of such rights, and is not responsible to recognize, disclose, or
+// identify any or all such third party patent right, owners or
+// claimants, nor for any incomplete or inaccurate identification or
+// disclosure of such rights, owners or claimants. DMTF shall have no
+// liability to any party, in any manner or circumstance, under any
+// legal theory whatsoever, for failure to recognize, disclose, or
+// identify any such third party patent rights, or for such party's
+// reliance on the standard or incorporation thereof in its product,
+// protocols or testing procedures. DMTF shall have no liability to
+// any party implementing such standard, whether such implementation
+// is foreseeable or not, nor to any patent owner or claimant, and shall
+// have no liability or responsibility for costs or losses incurred if
+// a standard is withdrawn or modified after publication, and shall be
+// indemnified and held harmless by any party implementing the
+// standard from any and all claims of infringement by a patent owner
+// for such implementations.
+// 
+// For information about patents held by third-parties which have
+// notified the DMTF that, in their opinion, such patent may relate to
+// or impact implementations of DMTF standards, visit
+// http://www.dmtf.org/about/policies/disclosures.php.
+//#pragma inLine
+// ===================================================================
+// Description:
+//       This file contains the classes and associations that define
+//       the statistics used to manage a database.
+// ===================================================================
+// Change Log for V2.8 - None
+// ==================================================================
+
+// ==================================================================
+// DatabaseServiceStatistics
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "The CIM_DatabaseServiceStatistics class contains the current "
+       "statistics for a database service. These are counters that are "
+       "relative to the start of the service or from the time when a "
+       "reset was issued.")]
+class CIM_DatabaseServiceStatistics : CIM_StatisticalData {
+
+      [Description (
+          "The date and time when the most recent inbound activity was "
+          "observed for the database service. A value of all zeros "
+          "indicates that no inbound activity has taken place since "
+          "the service was started."), 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoLastInboundActivity" }]
+   datetime LastActivity;
+
+      [Description (
+          "The number of active inbound connections that are currently "
+          "using the service."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoapplInboundAssociation" }]
+   uint64 ActiveConnections;
+
+      [Description (
+          "The total number of inbound connections to the service "
+          "since it was started."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoapplAccumulated" 
+          "InboundAssociations" }]
+   uint64 CumulativeConnections;
+
+      [Description (
+          "The total number of inbound connections that were rejected "
+          "by the service since it was started."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoapplRejected" 
+          "InboundAssociations" }]
+   uint64 RejectedConnections;
+
+      [Description (
+          "The total number of transactions that have been completed "
+          "by a commit or abort. Some database operations, such as "
+          "read-only queries, may not create a transaction."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoFinishedTransactions" }]
+   uint64 CompletedTransactions;
+
+      [Description (
+          "The total number of database file reads that were issued by "
+          "the service since it was started."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoDiskReads" }]
+   uint64 DiskReads;
+
+      [Description (
+          "The total number of database file writes that were issued "
+          "by the service since it was started."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoDiskWrites" }]
+   uint64 DiskWrites;
+
+      [Description (
+          "The total number of logical database file reads that were "
+          "issued by the service since it was started."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoLogicalReads" }]
+   uint64 LogicalReads;
+
+      [Description (
+          "The total number of logical database file writes that were "
+          "issued by the service since it was started. A logical write "
+          "is a count of the number of times that parts of database "
+          "files have been marked dirty to indicate that they need to "
+          "be written to disk."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoLogicalWrites" 
+          }]
+   uint64 LogicalWrites;
+
+      [Description (
+          "The total number of database pages that have been read by "
+          "the service since it was started."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoPageReads" }]
+   uint64 PageReads;
+
+      [Description (
+          "The total number of database pages that have been written "
+          "by the service since it was started."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoPageWrites" }]
+   uint64 PageWrites;
+
+      [Description (
+          "The total number of times the database requested disk space "
+          "and it was not available since the service was started."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoDiskOutOfSpaces" }]
+   uint64 DiskSpaceUnavailable;
+
+      [Description (
+          "The total number of requests that have been received by the "
+          "service since it was started."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoHandledRequests" }]
+   uint64 RequestsHandled;
+
+      [Description (
+          "The total number of receive operations made by the service "
+          "during request processing since it was started."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoRequestRecvs" }]
+   uint64 RequestsReceived;
+
+      [Description (
+          "The total number of send operations made by the service "
+          "during request processing since it was started."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoRequestsSent" }]
+   uint64 RequestsSent;
+
+      [Description (
+          "The maximum number of active inbound connections that have "
+          "been concurrently using the service since it was started."), 
+       Counter, 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsSrvInfoHighwater" 
+          "InboundAssociations" }]
+   uint64 HighwaterConnections;
+};
+
+
+// ==================================================================
+// CommonDatabaseStatistics
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "The CIM_CommonDatabaseStatistics class contains the current "
+       "statistics for a database.")]
+class CIM_CommonDatabaseStatistics : CIM_StatisticalData {
+
+      [Description (
+          "The estimated amount of disk space (in units) that is "
+          "currently used by the database."), 
+       MappingStrings { "MIB.IETF|RDBMS-MIB.rdbmsDbInfoSizeUsed" }]
+   uint32 SizeUsed;
+};
+
+
+// ==================================================================
+// DatabaseResourceStatistics
+// ==================================================================
+   [Version ( "2.7.0" ), Description (
+       "The CIM_DatabaseServiceStatistics class contains the current "
+       "statistics for a database resource. This class maps to the "
+       "database and server limited resource tables in the SNMP RDBMS "
+       "MIB as defined in RFC 1697.")]
+class CIM_DatabaseResourceStatistics : CIM_StatisticalData {
+
+      [Description (
+          "The current value of a limited database resource."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsDbLimitedResourceCurrent" }]
+   uint64 Current;
+
+      [Description (
+          "The maximum value that the database resource can attain."), 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsDbLimitedResourceLimit" }]
+   uint64 Limit;
+
+      [Description (
+          "The number of database resources used measured from the "
+          "time when the first service was started for the database. "
+          "Other external factors, such as an explicit reset of the "
+          "statistics may cause this measurement to begin at a later "
+          "point in time."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsDbLimitedResourceHighwater" }]
+   uint64 Highwater;
+
+      [Description (
+          "The number of times that the system wanted to exceed the "
+          "database resource limit measured from the time when the "
+          "first service was started for the database."), 
+       Counter, 
+       MappingStrings { 
+          "MIB.IETF|RDBMS-MIB.rdbmsDbLimitedResourceFailures" }]
+   uint32 Failures;
+};
