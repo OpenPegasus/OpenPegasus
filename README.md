@@ -1,9 +1,11 @@
 # OpenPegasus
 
-Work in progress
+This repository is the OpenPegasus source code starting with OpenPegasus 14.1.
 
-1. Create History compressed files
+NOTE: This repository is a development repository to enable port of
+OpenPegasus from cvs to github in a manner that can be supported with
+future versions of OpenPegasus and to support creating new versions of
+OpenPegasus.
 
-2. Create the  repository of c++ code by expanding and uploading pwgasus 2.14.1
-
-3
+The intial release of OpenPegasus in github is expected to be OpenPegasus
+version 14.2
