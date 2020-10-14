@@ -263,10 +263,10 @@ prn3:
 peManagedElement: peManagedElementcimv2
 
 peManagedElementcimv2:
-	$(PROGRAM) e -c CIM_ManagedElement -M 100 -N 100 -v 5 -n $(NAMESPACE_INTEROP) $(HOSTID)
+	$(PROGRAM) e -c CIM_ManagedElement -M 100 -N 100 -v 5 -n root/cimv2 $(HOSTID)
 
 peManagedElementInterop:
-	$(PROGRAM) e -c CIM_ManagedElement -M 9 -N 1 -C -n -n $(NAMESPACE_INTEROP) $(HOSTID)
+	$(PROGRAM) e -c CIM_ManagedElement -M 9 -N 1 -C -n root/PG_InterOp $(HOSTID)
 
 #########################################################
 penManagedElement: penManagedElementcimv2
@@ -275,7 +275,7 @@ penManagedElementcimv2:
 	$(PROGRAM) en -c CIM_ManagedElement -M 10 -N 10 -C $(HOSTID)
 
 penManagedElementInterop:
-	$(PROGRAM) en -c CIM_ManagedElement -M 9 -N 1 -C -n -n $(NAMESPACE_INTEROP) $(HOSTID)
+	$(PROGRAM) en -c CIM_ManagedElement -M 9 -N 1 -C -n root/PG_InterOp $(HOSTID)
 
 ######################################################################
 ## Test Empty response, returns nothing.
@@ -520,7 +520,7 @@ allOperationsCIMV2:
 	$(PROGRAM) all -n root/cimv2 -C -T $(DSP) $(HOSTID)
 
 allOperationsInterop:
-	$(PROGRAM) all -n -n $(NAMESPACE_INTEROP) -C -T $(DSP) $(HOSTID)
+	$(PROGRAM) all -n root/PG_InterOp -C -T $(DSP) $(HOSTID)
 
 clirep:
 	cimcli pei Test_Person -n test/TestProvider $(CIMCLIHOSTID)
