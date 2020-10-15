@@ -263,10 +263,10 @@ prn3:
 peManagedElement: peManagedElementcimv2
 
 peManagedElementcimv2:
-	$(PROGRAM) e -c CIM_ManagedElement -M 100 -N 100 -v 5 -n root/cimv2 $(HOSTID)
+	$(PROGRAM) e -c CIM_ManagedElement -M 100 -N 100 -v 5 -n $(NAMESPACE_INTEROP) $(HOSTID)
 
 peManagedElementInterop:
-	$(PROGRAM) e -c CIM_ManagedElement -M 9 -N 1 -C -n root/PG_InterOp $(HOSTID)
+	$(PROGRAM) e -c CIM_ManagedElement -M 9 -N 1 -C -n -n $(NAMESPACE_INTEROP) $(HOSTID)
 
 #########################################################
 penManagedElement: penManagedElementcimv2
@@ -275,7 +275,7 @@ penManagedElementcimv2:
 	$(PROGRAM) en -c CIM_ManagedElement -M 10 -N 10 -C $(HOSTID)
 
 penManagedElementInterop:
-	$(PROGRAM) en -c CIM_ManagedElement -M 9 -N 1 -C -n root/PG_InterOp $(HOSTID)
+	$(PROGRAM) en -c CIM_ManagedElement -M 9 -N 1 -C -n -n $(NAMESPACE_INTEROP) $(HOSTID)
 
 ######################################################################
 ## Test Empty response, returns nothing.
@@ -307,7 +307,7 @@ stresstests:
 ##      KS_FUTURE Test 3 disabled because there are
 ##      client limits on size of responses in some test environments.  There
 ##      is a manual test (target testSizeLimits) that tests up to a million
-##      objects in the response. Please run that test to determine your system 
+##      objects in the response. Please run that test to determine your system
 ##      limits on operation response size.
 ##	make stressEnum3
 ##	make stressEnumName3
@@ -520,7 +520,7 @@ allOperationsCIMV2:
 	$(PROGRAM) all -n root/cimv2 -C -T $(DSP) $(HOSTID)
 
 allOperationsInterop:
-	$(PROGRAM) all -n root/PG_InterOp -C -T $(DSP) $(HOSTID)
+	$(PROGRAM) all -n -n $(NAMESPACE_INTEROP) -C -T $(DSP) $(HOSTID)
 
 clirep:
 	cimcli pei Test_Person -n test/TestProvider $(CIMCLIHOSTID)
@@ -710,7 +710,7 @@ testNoDelay:
 ## zero length responses are sent
 testSmallDelayedResponse:
 	$(ECHO) This test should take about 5 seconds total
-	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=500 Delay=5 $(CIMCLIHOSTID) 
+	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=500 Delay=5 $(CIMCLIHOSTID)
 	cimcli pei $(STRESSCXX_CLASS_ID) --sum -v -count 500 --t $(CIMCLIHOSTID)
         ## reset to restore zero delay
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
@@ -793,9 +793,8 @@ clicmpir2:
 ## Manual test to assure that the reset works as it should
 testSetReset:
 
-	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)	
+	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)
 	cimcli im $(STRESSCXX_CLASS_ID) set Size=100 ResponseCount=1000 $(CIMCLIHOSTID)
-	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)	
+	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
-	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)	
-
+	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)
