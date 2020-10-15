@@ -156,7 +156,7 @@ void MyIndicationConsumer::consumeIndication(
           << receivedIndicationCount.get()
           << " of " << indicationSendCountTotal << endl;
     }
- 
+
     //
     // Get the date and time from the indication
     // Compare it to the current date
@@ -939,7 +939,7 @@ ThreadReturnType PEGASUS_THREAD_CDECL _executeTests(void *parm)
         elapsedTime.stop();
         _testEnd(uniqueID, elapsedTime.getElapsed());
     }
-    catch(Exception e)
+    catch(Exception& e)
     {
         cout << e.getMessage() << endl;
     }
@@ -1055,15 +1055,15 @@ int _beginTest(CIMClient& workClient, const char* opt,
         if (monitorClientResidentListener)
         {
             // Add our consumer
-            // CIMListener will be not started yet 
-            // It will be started after sending indication 
+            // CIMListener will be not started yet
+            // It will be started after sending indication
             // so that a temporary indication delivery failure
-            // will occur and after then CIMListener 
-            // will be started so that for reliable indication 
-            // enable, indication will be delivered after few retry 
-            // and for reliable indication disable,indication will  be 
-            // not delivered.    
-            
+            // will occur and after then CIMListener
+            // will be started so that for reliable indication
+            // enable, indication will be delivered after few retry
+            // and for reliable indication disable,indication will  be
+            // not delivered.
+
             listener.addConsumer(consumer1);
         }
 
@@ -1185,11 +1185,11 @@ int _beginTest(CIMClient& workClient, const char* opt,
                 throw;
             }
         }
- 
+
         while (noChangeIterations <= MAX_NO_CHANGE_ITERATIONS)
         {
             totalIterations++;
- 
+
            System::sleep (SLEEP_SEC);
 
             if (monitorClientResidentListener)
@@ -1291,12 +1291,12 @@ int _beginTest(CIMClient& workClient, const char* opt,
             }
             else
             {
-                 cout << " Indications Sent and  Received Not Matched " << endl 
+                 cout << " Indications Sent and  Received Not Matched " << endl
                       << endl;
 
             }
 
-            
+
         }
 
 

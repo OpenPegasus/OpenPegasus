@@ -982,7 +982,7 @@ SocketWriteError::~SocketWriteError()
 //     PEGASUS_MAXELEMENTS_NUM HTTP header fields in a single HTTP message
 //==============================================================================
 TooManyHTTPHeadersException::TooManyHTTPHeadersException()
-    : Exception("more than "PEGASUS_MAXELEMENTS
+    : Exception("more than " PEGASUS_MAXELEMENTS
                     " header fields detected in HTTP message")
 {
 }

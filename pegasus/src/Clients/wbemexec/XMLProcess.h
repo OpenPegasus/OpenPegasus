@@ -96,9 +96,7 @@ public:
         Boolean useMPost,
         Boolean useHTTP11,
         Buffer& content,
-        Buffer& httpHeaders)
-        throw (XmlValidationError, XmlSemanticError, WbemExecException,
-               XmlException, Exception);
+        Buffer& httpHeaders);
 };
 
 PEGASUS_NAMESPACE_END

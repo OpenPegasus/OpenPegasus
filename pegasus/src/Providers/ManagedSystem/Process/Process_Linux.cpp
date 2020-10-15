@@ -1114,7 +1114,7 @@ Boolean get_proc(peg_proc_t* P, int &pIndex , Boolean find_by_pid)
 {
   static struct dirent *dir;
   static struct stat stat_buff;
-  static char path[32];
+  static char path[512];
   static char buffer[512];
   DIR* procDir;
   int count;
@@ -1233,6 +1233,3 @@ void doPercentCPU(char *inputFileString, peg_proc_t *P)
    }
    else P->pst_pctcpu = 0;
 }
-
-
-

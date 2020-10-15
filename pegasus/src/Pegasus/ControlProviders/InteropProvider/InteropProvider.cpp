@@ -804,6 +804,7 @@ bool InteropProvider::validAssocClassForObject(
               expectedTargetRole = PROPERTY_ANTECEDENT;
               expectedOriginRole = PROPERTY_DEPENDENT;
           }
+          break;
       case PG_HOSTEDOBJECTMANAGER:
           if(originClassEnum == PG_COMPUTERSYSTEM)
           {

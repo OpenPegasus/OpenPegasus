@@ -83,7 +83,7 @@ int main()
     {
         cout << "\n+++++ passed all tests" << endl;
     }
-    catch(Exception)
+    catch(Exception&)
     {
         cout << "\n----- Test Static Client Failed" << endl;
     }

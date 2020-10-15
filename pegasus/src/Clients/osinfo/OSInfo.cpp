@@ -841,7 +841,7 @@ void OSInfoCommand::gatherProperties(CIMInstance &inst, Boolean cimFormat)
       else if (propertyName.equal (CIMName ("SystemUpTime")))
       {
          Uint64 total;
-         char   uptime[80];
+         char   uptime[160];
          inst.getProperty(j).getValue().get(total);
 
          if (!cimFormat)
@@ -872,7 +872,7 @@ void OSInfoCommand::gatherProperties(CIMInstance &inst, Boolean cimFormat)
             }
             else
             {
-                sprintf(dayString, (days == 1 ? 
+                sprintf(dayString, (days == 1 ?
                     "%" PEGASUS_64BIT_CONVERSION_WIDTH "u day," :
                     "%" PEGASUS_64BIT_CONVERSION_WIDTH "u days," ), days);
 

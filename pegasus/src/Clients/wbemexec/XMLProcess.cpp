@@ -85,8 +85,6 @@ Buffer XMLProcess::encapsulate( XmlParser& parser,
                                        Buffer& content,
                                        Buffer& httpHeaders
                                        )
-throw (XmlValidationError, XmlSemanticError, WbemExecException,
-               XmlException, Exception)
 {
     XmlEntry                     entry;
     Buffer                    message;
