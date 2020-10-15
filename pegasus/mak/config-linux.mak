@@ -28,11 +28,11 @@
 #//////////////////////////////////////////////////////////////////////////
 # Configuration options for Pegasus on all architectures running Linux
 # These options are also used by clang( which was designed as dropin
-# replacement for gcc). So some of the names are misleading like 
+# replacement for gcc). So some of the names are misleading like
 # PEGASUS_PLATFORM_LINUX_GENERIC_GNU due to GNU appended, Better will
-# be PEGASUS_PLATFORM_LINUX_GENERIC and GNU and CLANG can add it. 
-# Changing this now(for 9236) will involve lot of work, Will take up 
-# this work later. 
+# be PEGASUS_PLATFORM_LINUX_GENERIC and GNU and CLANG can add it.
+# Changing this now(for 9236) will involve lot of work, Will take up
+# this work later.
 
 
 include $(ROOT)/mak/config-unix.mak
@@ -107,6 +107,13 @@ else
     FLAGS += -Werror=unused-variable
     FLAGS += -Werror=switch
    endif
+  # See github issue #3.  The following is a temporary fix since the
+  # existing code is running and we do not know when deprecations
+  # like this might actually be removed.
+  ifeq ($(shell expr $(GCC_VERSION) '>=' 8.0), 1)
+    FLAGS += -Wno-class-memaccess
+    FLAGS += -Wno-deprecated-copy
+  endif
     FLAGS += -D_GNU_SOURCE -DTHREAD_SAFE -D_REENTRANT
 endif
 
@@ -132,7 +139,7 @@ else
      PEGASUS_EXTRA_CXX_FLAGS += -fno-enforce-eh-specs -fno-strict-aliasing
    endif
   endif
-      
+
   ifdef PEGASUS_OPTIMIZE_FOR_SIZE
     ifeq ($(COMPILER), gnu)
       FLAGS += -Os
@@ -168,7 +175,7 @@ ifeq ($(COMPILER), gnu)
     FLAGS += -fvisibility=hidden
  endif
 else
-    FLAGS +=-fvisibility=hidden	
+    FLAGS +=-fvisibility=hidden
 endif
 
 ifndef PEGASUS_ARCH_LIB
