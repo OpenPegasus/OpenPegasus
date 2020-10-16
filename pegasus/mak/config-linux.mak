@@ -113,6 +113,8 @@ else
   ifeq ($(shell expr $(GCC_VERSION) '>=' 8.0), 1)
     FLAGS += -Wno-class-memaccess
     FLAGS += -Wno-deprecated-copy
+    # See github issue #7. Specifically bypasses depracated readdir_r
+    FLAGS += -Wno-deprecated-declarations
   endif
     FLAGS += -D_GNU_SOURCE -DTHREAD_SAFE -D_REENTRANT
 endif
