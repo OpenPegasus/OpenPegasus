@@ -287,7 +287,7 @@ Boolean FQLOperand::getIndexedValue(const FQLOperand& fromOp, Uint32 index)
                 break;
             }
         }
-        catch (IndexOutOfBoundsException)
+        catch (const IndexOutOfBoundsException&)
         {
             return false;
         }

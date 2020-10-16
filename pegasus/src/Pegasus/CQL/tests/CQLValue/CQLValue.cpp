@@ -651,11 +651,10 @@ int main( int argc, char *argv[] ){
     cout << argv[0] << " " << argv[1] << " +++++ passed all tests" << endl;
 
     }
-    catch(Exception e)
+    catch(const Exception& e)
     {
         cout << e.getMessage() << endl;
         PEGASUS_TEST_ASSERT(0);
     }
     return 0;
 }
-

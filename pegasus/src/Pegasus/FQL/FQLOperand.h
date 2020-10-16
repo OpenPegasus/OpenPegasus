@@ -258,7 +258,7 @@ public:
         {
             _dateTimeValue.set(x);
         }
-        catch (InvalidDateTimeFormatException)
+        catch (const InvalidDateTimeFormatException&)
         {
             throw TypeMismatchException();
         }
@@ -284,7 +284,7 @@ public:
                 _arrayDateTimeValue.append(y);
             }
         }
-        catch (InvalidDateTimeFormatException)
+        catch (const InvalidDateTimeFormatException&)
         {
             throw TypeMismatchException();
         }
@@ -309,7 +309,7 @@ public:
         {
             _referenceValue = CIMObjectPath(x);
         }
-        catch (MalformedObjectNameException)
+        catch (const MalformedObjectNameException&)
         {
             throw TypeMismatchException();
         }
@@ -344,7 +344,7 @@ public:
                 _arrayReferenceValue.append(y);
             }
         }
-        catch (MalformedObjectNameException)
+        catch (const MalformedObjectNameException&)
         {
             throw TypeMismatchException();
         }
@@ -582,7 +582,7 @@ public:
             {
                return CIMDateTime(_stringValue);
             }
-            catch (InvalidDateTimeFormatException)
+            catch (const InvalidDateTimeFormatException&)
             {
                 throw TypeMismatchException();
             }
@@ -603,7 +603,7 @@ public:
             {
                return CIMObjectPath(String(_stringValue));
             }
-            catch (...)
+            catch (const Exception&)
             {
                 throw TypeMismatchException();
             }
@@ -633,7 +633,7 @@ public:
                     rtn.append(CIMDateTime(_arrayStringValue[i]));
                 }
             }
-            catch (InvalidDateTimeFormatException)
+            catch (const InvalidDateTimeFormatException&)
             {
                 throw TypeMismatchException();
             }
@@ -667,7 +667,7 @@ public:
                     rtn.append(CIMObjectPath(_arrayStringValue[i]));
                 }
             }
-            catch (MalformedObjectNameException)
+            catch (const MalformedObjectNameException&)
             {
                 throw TypeMismatchException();
             }
@@ -940,4 +940,3 @@ private:
 PEGASUS_NAMESPACE_END
 
 #endif /* Pegasus_FQLOperand_h */
-

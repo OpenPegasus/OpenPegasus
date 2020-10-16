@@ -1131,6 +1131,7 @@ void ObjectBuilder::scanInputList(CIMClient& client,
                 //#P 33
                 //#T PARSE_FAIL_ERR
                 //#S Parse Failed. Input Parameter \"{0}\".
+                break;  // added to avoid compiler warning message
             }
 
         case UNKNOWN:

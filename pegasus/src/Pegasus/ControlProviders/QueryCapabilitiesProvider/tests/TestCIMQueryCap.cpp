@@ -195,7 +195,7 @@ void testCreateInstance(CIMClient& client, const char* ns)
   {
     path = client.createInstance(ns, instances[0]);
   }
-  catch(Exception)
+  catch(const Exception&)
   {
     // Do nothing. This is expected since createInstance is NOT
     // supported.
@@ -216,7 +216,7 @@ void testDeleteInstance(CIMClient& client, const char* ns)
   {
     client.deleteInstance(ns, instances[0].getPath());
   }
-  catch(Exception)
+  catch(const Exception&)
   {
     // Do nothing. This is expected since deleteInstance is NOT
     // supported.
@@ -246,7 +246,7 @@ void testModifyInstance(CIMClient& client, const char* ns)
   {
     client.modifyInstance(ns, instances[0]);
   }
-  catch(Exception)
+  catch(const Exception&)
   {
     // Do nothing. This is expected since modifyInstance is NOT
     // supported.
@@ -268,7 +268,7 @@ int main(int, char** argv)
    {
      client.connectLocal();
    }
-   catch (Exception& e)
+   catch (const Exception& e)
    {
       cerr << "Error: " << e.getMessage() <<  endl;
       cerr << "Exception occured while trying to connect to the server."
@@ -304,7 +304,7 @@ int main(int, char** argv)
      testModifyInstance(client, NAMESPACE_CIMV2);
      testModifyInstance(client, NAMESPACE_SAMPLEPROVIDER);
    }
-   catch(Exception& e)
+   catch(const Exception& e)
    {
       cerr << argv[0] << ": Exception Occcured. " << e.getMessage() << endl;
       cerr << argv[0] << ": " << testCaseName << " Failed. " << endl;
@@ -314,5 +314,3 @@ int main(int, char** argv)
    cout << argv[0] << " +++++ passed all tests" << endl;
    return 0;
 }
-
-
