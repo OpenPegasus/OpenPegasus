@@ -83,16 +83,19 @@ Boolean isValid_U8(const Uint8 *src, int size)
     const Uint8 *srcptr = src+size;
     switch (size)
     {
+    // TODO/KS: review. Executes same code for case 4 and 3
     case 4:
         if ((U8_char = (*--srcptr)) < 0x80 || U8_char > 0xBF)
         {
         return false;
         }
+        /* FALLTHROUGH */
     case 3:
         if ((U8_char = (*--srcptr)) < 0x80 || U8_char > 0xBF)
         {
         return false;
         }
+        /* FALLTHROUGH */
     case 2:
         if ((U8_char = (*--srcptr)) > 0xBF)
         {
@@ -124,6 +127,7 @@ Boolean isValid_U8(const Uint8 *src, int size)
             return false;
             }
         }
+        /* FALLTHROUGH */
     case 1:
         if (*src >= 0x80 && *src < 0xC2)
         {
@@ -226,12 +230,15 @@ int UTF16toUTF8(const Uint16** srcHead,
         case 4:
         *--tgt = (Uint8)((tempchar | 0x80) & 0xBF);
         tempchar >>= 6;
+        /* FALLTHROUGH */
         case 3:
         *--tgt = (Uint8)((tempchar | 0x80) & 0xBF);
         tempchar >>= 6;
+        /* FALLTHROUGH */
         case 2:
         *--tgt = (Uint8)((tempchar | 0x80) & 0xBF);
         tempchar >>= 6;
+        /* FALLTHROUGH */
         case 1:
         *--tgt =  (Uint8)(tempchar | firstByteMark[numberOfBytes]);
     }
@@ -264,12 +271,15 @@ int UTF8toUTF16 (const Uint8** srcHead,
         case 3:
         tempchar += *src++;
         tempchar <<= 6;
+        /* FALLTHROUGH */
         case 2:
         tempchar += *src++;
         tempchar <<= 6;
+        /* FALLTHROUGH */
         case 1:
         tempchar += *src++;
         tempchar <<= 6;
+        /* FALLTHROUGH */
         case 0:
         tempchar += *src++;
     }

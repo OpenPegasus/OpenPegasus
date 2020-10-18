@@ -925,10 +925,10 @@ private:
 
     /// Type value for this operand
     Type _type;
+    bool _resolved;
+    bool _isArray;
     // Set when property types are resolved
     CIMType _cimType;
-    bool _isArray;
-    bool _resolved;
     propertyType propertyType;
     // Define existence of Property Operand with index
     // and the value of the index if _isIndexedProperty = true

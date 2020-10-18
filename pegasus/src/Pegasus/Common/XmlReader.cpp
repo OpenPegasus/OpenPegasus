@@ -949,7 +949,7 @@ CIMValue XmlReader::stringToValue(
                 default: break;
             }
         }
-
+        /* FALLTHROUGH */
         case CIMTYPE_SINT8:
         case CIMTYPE_SINT16:
         case CIMTYPE_SINT32:
@@ -964,7 +964,7 @@ CIMValue XmlReader::stringToValue(
                     "Invalid signed integer value");
                 throw XmlSemanticError(lineNumber, mlParms);
             }
-
+            /* FALLTHROUGH */
             switch (type)
             {
                 case CIMTYPE_SINT8:
@@ -1004,7 +1004,7 @@ CIMValue XmlReader::stringToValue(
                 default: break;
             }
         }
-
+        /* FALLTHROUGH */
         case CIMTYPE_DATETIME:
         {
             CIMDateTime tmp;
