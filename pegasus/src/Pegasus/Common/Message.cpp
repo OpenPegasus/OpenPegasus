@@ -431,7 +431,7 @@ CIMOperationType Message::convertMessageTypetoCIMOpType(MessageType type)
  */
 Boolean Message::valid() const
 {
-    PEGASUS_DEBUG_ASSERT(_magic);
+    PEGASUS_DEBUG_ASSERT(magic);
     return (_type < NUMBER_OF_MESSAGES);
 }
 
