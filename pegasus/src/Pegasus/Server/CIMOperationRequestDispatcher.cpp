@@ -1008,7 +1008,7 @@ Boolean CIMOperationRequestDispatcher::_enqueueResponse(
             }
             else  // valid enumeration context
             {
-                # Secondary validity test in debug mode
+                // Secondary validity test in debug mode
                 PEGASUS_DEBUG_ASSERT(en == _enumerationContextTable->find(
                     poA->_contextId));
             }
