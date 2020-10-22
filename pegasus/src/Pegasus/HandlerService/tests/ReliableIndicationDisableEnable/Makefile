@@ -50,7 +50,7 @@ endif
 
 LOCAL_DEFINES += -DPEGASUS_INTERNALONLY
 
-PROGRAM = ReliableIndicationDisableEnableTest
+PROGRAM = TestReliableIndicationDisableEnable
 PROGRAM2 = $(PROGRAM) IndicationStressTestClass test/TestProvider
 
 SOURCES = ReliableIndicationDisableEnableTest.cpp
@@ -62,25 +62,25 @@ include $(ROOT)/mak/test.mak
 
 testreliablehttp:
 	$(PROGRAM2) setupCL WQL HTTP
-	$(PROGRAM2) run 1 1 
+	$(PROGRAM2) run 1 1
 	@$(ECHO) "Disabling the reliable indiaction ...."
-	@cimconfig -s maxIndicationDeliveryRetryAttempts=0 
+	@cimconfig -s maxIndicationDeliveryRetryAttempts=0
 	$(PROGRAM2) run 1 1
 	$(PROGRAM2) cleanup
 	@$(ECHO) "Set the Defult value  maxIndicationDeliveryRetryAttempts=3 ...."
-	@cimconfig -s maxIndicationDeliveryRetryAttempts=3	
+	@cimconfig -s maxIndicationDeliveryRetryAttempts=3
 
 testreliablehttps:
 ifdef PEGASUS_HAS_SSL
 	$(PROGRAM2) setupCL WQL HTTPS
 	$(PROGRAM2) run 1 1
 	@$(ECHO) "Disabling the reliable indiaction ...."
-	@cimconfig -s maxIndicationDeliveryRetryAttempts=0                                 
+	@cimconfig -s maxIndicationDeliveryRetryAttempts=0
 	$(PROGRAM2) run 1 1
 	$(PROGRAM2) cleanup
 	@$(ECHO) "Set the Defult value  maxIndicationDeliveryRetryAttempts=3 ...."
 	@cimconfig -s maxIndicationDeliveryRetryAttempts=3
-	
+
 endif
 
 tests:

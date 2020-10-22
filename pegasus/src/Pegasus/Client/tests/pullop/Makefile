@@ -52,7 +52,7 @@ LIBRARIES += peggetoopt
 
 EXTRA_INCLUDES = $(SYS_INCLUDES)
 
-PROGRAM = pullop
+PROGRAM = TestPullop
 CLI = cimcli
 
 SOURCES = pullop.cpp
@@ -87,7 +87,7 @@ DSP=-v 2
 ## Unit test. This is not a compelete test since this is a test program
 ## Simply assures that we do not crash when help executed.
 tests:
-	pullop -h
+	$(PROGRAM) -h
 	$(PROGRAM) --help
 
 ##################################################################
