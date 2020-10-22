@@ -30,7 +30,7 @@ ROOT = ../../../../..
 include $(ROOT)/mak/config.mak
 include $(ROOT)/src/Pegasus/Client/tests/libraries.mak
 
-PROGRAM = testExecQuery
+PROGRAM = TestExecQuery
 
 SOURCES = TestExecQuery.cpp
 

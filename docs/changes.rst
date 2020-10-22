@@ -57,4 +57,4 @@ cleanup
 
 1. Update version to 2.14.2 and status development.
 
-2.
+2. Change executable names on several test executables. (See issue # 27)
