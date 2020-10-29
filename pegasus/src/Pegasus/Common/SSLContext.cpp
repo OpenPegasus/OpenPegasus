@@ -61,6 +61,10 @@ PEGASUS_USING_STD;
 
 PEGASUS_NAMESPACE_BEGIN
 
+// #if !defined(PEGASUS_OPENSSL_API_110)
+// #define X509_REVOKED_get0_serialNumber(r)  (((r) != NULL) ? ((r)->serialNumber) : (ASN1_INTEGER *)NULL)
+// #endif /* !defined(XMLSEC_OPENSSL_API_110) */
+
 const int SSLCallbackInfo::SSL_CALLBACK_INDEX = 0;
 
 class SSLCertificateInfoRep
@@ -225,27 +229,34 @@ int SSLCallback::verificationCRLCallback(
     PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4, buf);
 
     //initialize the CRL store
-    X509_STORE_CTX crlStoreCtx;
-    X509_STORE_CTX_init(&crlStoreCtx, sslCRLStore, NULL, NULL);
+    X509_STORE_CTX* crlStoreCtx;
+    X509_STORE_CTX_init(crlStoreCtx, sslCRLStore, NULL, NULL);
 
     PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4,
         "---> SSL: Initialized CRL store");
 
     //attempt to get a CRL issued by the certificate's issuer
-    X509_OBJECT obj;
+    // X509_OBJECT* obj;
+    X509_OBJECT *obj = X509_OBJECT_new();
     if (X509_STORE_get_by_subject(
-            &crlStoreCtx, X509_LU_CRL, issuerName, &obj) <= 0)
+            crlStoreCtx, X509_LU_CRL, issuerName, obj) <= 0)
     {
-        X509_STORE_CTX_cleanup(&crlStoreCtx);
+        X509_STORE_CTX_cleanup(crlStoreCtx);
         PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL3,
             "---> SSL: No CRL by that issuer");
+        // free obj
+        OPENSSL_free(obj);
         PEG_METHOD_EXIT();
         return 0;
     }
-    X509_STORE_CTX_cleanup(&crlStoreCtx);
+    X509_STORE_CTX_cleanup(crlStoreCtx);
 
     //get CRL
-    X509_CRL* crl = obj.data.crl;
+    // move to X509_local_crl_file
+    /// X509_OBJECT_get0_X509_CRL
+    // X509_CRL* crl = obj->data.crl;
+    X509_CRL* crl = X509_OBJECT_get0_X509_CRL(obj);
+    
     if (crl == NULL)
     {
         PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4, "---> SSL: CRL is null");
@@ -261,18 +272,33 @@ int SSLCallback::verificationCRLCallback(
     //get revoked certificates
     STACK_OF(X509_REVOKED)* revokedCerts = NULL;
     revokedCerts = X509_CRL_get_REVOKED(crl);
+    // TODO: This would be removed also.
     int numRevoked= sk_X509_REVOKED_num(revokedCerts);
     PEG_TRACE((TRC_SSL, Tracer::LEVEL4,
         "---> SSL: Number of certificates revoked by the issuer %d\n",
         numRevoked));
 
     //check whether the subject's certificate is revoked
+    
+    // Alternative implementation for 1.1.0
     X509_REVOKED* revokedCert = NULL;
+    //if (X509_CRL_get0_by_cert(crl, X509_REVOKED, obj) == 1)
+    //{
+			//PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL2,
+				//"---> SSL: Certificate is revoked");
+            //X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_REVOKED);
+            //X509_CRL_free(crl);
+            //PEG_METHOD_EXIT();
+            //return 1;
+    //}
     for (int i = 0; i < numRevoked; i++)
     {
         revokedCert = sk_X509_REVOKED_value(X509_CRL_get_REVOKED(crl), i);
-        //a matching serial number indicates revocation
-        if (ASN1_INTEGER_cmp(revokedCert->serialNumber, serialNumber) == 0)
+        // A matching serial number indicates revocation
+        // Cannot access serial number in 1.1.0 directly. 
+        // NOTE: Why not use X509_CRL_get0_by_serial() or
+        //                 or X509_CRL_get0_by_cert(crl, **ret, *x509)       
+        if (ASN1_INTEGER_cmp(X509_REVOKED_get0_serialNumber(revokedCert), serialNumber) == 0)
         {
             PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL2,
                 "---> SSL: Certificate is revoked");
