@@ -65,6 +65,27 @@ PEGASUS_NAMESPACE_BEGIN
 // #define X509_REVOKED_get0_serialNumber(r)  (((r) != NULL) ? ((r)->serialNumber) : (ASN1_INTEGER *)NULL)
 // #endif /* !defined(XMLSEC_OPENSSL_API_110) */
 
+
+// Simple function that returns char * of the detailed errors from
+// some OpenSSL methods that just return an integer as pass/fail.  This
+// May generate multiple lines of error/status messages that will help
+// diagnose the reason for the error.  In effect the internal error messages
+// are kept in a queue of log entries and this gets that log and creates
+// a copy in a new buffer. It is the users responsibility to free this
+// memory.
+char *ossl_err_as_string(void)
+{
+    BIO *bio = BIO_new (BIO_s_mem ());
+    ERR_print_errors (bio);
+    char *buf = NULL;
+    size_t len = BIO_get_mem_data(bio, &buf);
+    char *ret = (char *) calloc (1, 1 + len);
+    if (ret)
+        memcpy (ret, buf, len);
+    BIO_free (bio);
+    return ret;
+}
+
 const int SSLCallbackInfo::SSL_CALLBACK_INDEX = 0;
 
 class SSLCertificateInfoRep
@@ -256,7 +277,7 @@ int SSLCallback::verificationCRLCallback(
     /// X509_OBJECT_get0_X509_CRL
     // X509_CRL* crl = obj->data.crl;
     X509_CRL* crl = X509_OBJECT_get0_X509_CRL(obj);
-    
+
     if (crl == NULL)
     {
         PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4, "---> SSL: CRL is null");
@@ -279,13 +300,13 @@ int SSLCallback::verificationCRLCallback(
         numRevoked));
 
     //check whether the subject's certificate is revoked
-    
+
     // Alternative implementation for 1.1.0
     X509_REVOKED* revokedCert = NULL;
     //if (X509_CRL_get0_by_cert(crl, X509_REVOKED, obj) == 1)
     //{
-			//PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL2,
-				//"---> SSL: Certificate is revoked");
+            //PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL2,
+                //"---> SSL: Certificate is revoked");
             //X509_STORE_CTX_set_error(ctx, X509_V_ERR_CERT_REVOKED);
             //X509_CRL_free(crl);
             //PEG_METHOD_EXIT();
@@ -295,9 +316,9 @@ int SSLCallback::verificationCRLCallback(
     {
         revokedCert = sk_X509_REVOKED_value(X509_CRL_get_REVOKED(crl), i);
         // A matching serial number indicates revocation
-        // Cannot access serial number in 1.1.0 directly. 
+        // Cannot access serial number in 1.1.0 directly.
         // NOTE: Why not use X509_CRL_get0_by_serial() or
-        //                 or X509_CRL_get0_by_cert(crl, **ret, *x509)       
+        //                 or X509_CRL_get0_by_cert(crl, **ret, *x509)
         if (ASN1_INTEGER_cmp(X509_REVOKED_get0_serialNumber(revokedCert), serialNumber) == 0)
         {
             PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL2,
@@ -749,7 +770,7 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
     int options = SSL_OP_ALL;
 
 
-   
+
     SSL_CTX_set_options(sslContext, options);
     if ( _sslCompatibility == false )
     {
@@ -812,24 +833,24 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
     //
     // set overall SSL Context flags
     //
-    // For OpenSSLversion >1.0.0 use SSL_OP_NO_COMPRESSION to disable the 
-    // compression For TLS 1.2 version, compression does not suffer from 
-    // CRIME attack so don.t disable compression For other OpenSSL versions 
+    // For OpenSSLversion >1.0.0 use SSL_OP_NO_COMPRESSION to disable the
+    // compression For TLS 1.2 version, compression does not suffer from
+    // CRIME attack so don.t disable compression For other OpenSSL versions
     // zero out the compression methods.
-#ifdef SSL_OP_NO_COMPRESSION 
+#ifdef SSL_OP_NO_COMPRESSION
 #ifndef TLS1_2_VERSION
-    SSL_CTX_set_options(sslContext, SSL_OP_NO_COMPRESSION); 
+    SSL_CTX_set_options(sslContext, SSL_OP_NO_COMPRESSION);
 #endif
 #elif OPENSSL_VERSION_NUMBER >= 0x00908000L
     sk_SSL_COMP_zero(SSL_COMP_get_compression_methods());
-#endif    
+#endif
     SSL_CTX_set_quiet_shutdown(sslContext, 1);
     SSL_CTX_set_mode(sslContext, SSL_MODE_AUTO_RETRY);
     SSL_CTX_set_mode(sslContext, SSL_MODE_ENABLE_PARTIAL_WRITE);
     SSL_CTX_set_session_cache_mode(sslContext, SSL_SESS_CACHE_OFF);
 
 #ifdef SSL_MODE_RELEASE_BUFFERS
-    // Keep memory usage as low as possible 
+    // Keep memory usage as low as possible
     SSL_CTX_set_mode (sslContext, SSL_MODE_RELEASE_BUFFERS);
 #endif
 
@@ -1048,9 +1069,22 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
         if (SSL_CTX_use_certificate_file(sslContext,
             _certPath.getCString(), SSL_FILETYPE_PEM) <=0)
         {
+            // Add detailed output info since many different errors accumulate
+            // here
+            char *err_str = ossl_err_as_string();
+
             PEG_TRACE((TRC_SSL, Tracer::LEVEL1,
-                "---> SSL: No server certificate found in %s",
-                (const char*)_certPath.getCString()));
+                "---> SSL: No server certificate found in %s. Details: %s",
+                (const char*)_certPath.getCString(), err_str));
+
+            free(err_str);
+
+            PEG_TRACE((TRC_SSL, Tracer::LEVEL1,
+                "---> SSL: ERRORS SSL_CTX_use_certificate_file %s",
+                err_str));
+            // Useful if clients call fails.
+            //PEGASUS_STD(cout) << "SSL Error " << err_str << PEGASUS_STD(endl);
+
             MessageLoaderParms parms(
                 "Common.SSLContext.COULD_NOT_ACCESS_SERVER_CERTIFICATE",
                 "Could not access server certificate in $0.",
@@ -1792,4 +1826,3 @@ SSLCallbackInfo::~SSLCallbackInfo()
 }
 
 PEGASUS_NAMESPACE_END
-
