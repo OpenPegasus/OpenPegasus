@@ -251,6 +251,7 @@ int SSLCallback::verificationCRLCallback(
 
     //initialize the CRL store
     X509_STORE_CTX* crlStoreCtx;
+
     X509_STORE_CTX_init(crlStoreCtx, sslCRLStore, NULL, NULL);
 
     PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4,
@@ -258,15 +259,15 @@ int SSLCallback::verificationCRLCallback(
 
     //attempt to get a CRL issued by the certificate's issuer
     // X509_OBJECT* obj;
-    X509_OBJECT *obj = X509_OBJECT_new();
+    X509_OBJECT *x509_obj = X509_OBJECT_new();
     if (X509_STORE_get_by_subject(
-            crlStoreCtx, X509_LU_CRL, issuerName, obj) <= 0)
+            crlStoreCtx, X509_LU_CRL, issuerName, x509_obj) <= 0)
     {
         X509_STORE_CTX_cleanup(crlStoreCtx);
         PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL3,
             "---> SSL: No CRL by that issuer");
-        // free obj
-        OPENSSL_free(obj);
+        // free x509_obj
+        OPENSSL_free(x509_obj);
         PEG_METHOD_EXIT();
         return 0;
     }
@@ -275,8 +276,8 @@ int SSLCallback::verificationCRLCallback(
     //get CRL
     // move to X509_local_crl_file
     /// X509_OBJECT_get0_X509_CRL
-    // X509_CRL* crl = obj->data.crl;
-    X509_CRL* crl = X509_OBJECT_get0_X509_CRL(obj);
+    // X509_CRL* crl = x509_obj->data.crl;
+    X509_CRL* crl = X509_OBJECT_get0_X509_CRL(x509_obj);
 
     if (crl == NULL)
     {

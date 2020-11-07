@@ -540,7 +540,7 @@ endif
 
 	@$(ECHO)  +++++++++ Functional tests - Delete operation testing +++++++++ >> $(RESULTFILE)
 	@$(ECHO) "Delete the self-signed certificate from the truststore." >> $(RESULTFILE)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1 -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1 -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Try to connect, this should fail." >> $(RESULTFILE)
