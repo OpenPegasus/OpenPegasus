@@ -5,8 +5,10 @@
 #@$(OPENSSL_COMMAND) req -config $(OPENSSL_CNF) -new -key $(PEGASUS_HOME)/testmonth1.key -out $(PEGASUS_HOME)/testdn1.csr < testmonth.txt
 #@$(OPENSSL_COMMAND) x509 -in $(PEGASUS_HOME)/testdn1.csr -out $(PEGASUS_HOME)/testdn1.cert -req -signkey $(PEGASUS_HOME)/testdn1.key $(SETSERIAL_0) -days 356
 #@$(RM) $(PEGASUS_HOME)/testdn1.csr
-key_file="${cert_name}.key"
+
+months =
 cert_name="$1"
+key_file="${cert_name}.key"
 echo "INPUT cert_name" $cert_name
 key_file="${cert_name}.key"
 cert_file="${cert_name}.cert"

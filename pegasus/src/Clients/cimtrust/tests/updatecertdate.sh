@@ -32,13 +32,15 @@ fi
 echo "ORIGINAL END DATE"
 openssl x509 -noout -enddate -in $cert_file
 
+# Generate new key. May be required because of changing minimum key size
+# requirements.
 key_file="${cert_name}.key"
 openssl genrsa -out $key_file
 csr_file="${cert_name}.csr"
 
 # openssl rst -in $key_file -pubout public_key.pem
 
-# Extract a certificate sign request from certificate file
+# Extract a certificate signing request from certificate file
 openssl x509 -x509toreq -in $cert_file -out $csr_file -signkey $key_file
 
 # Create new certificate with provided options as arguments
