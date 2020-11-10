@@ -117,9 +117,17 @@ else
 	$(LINK_WRAPPER) $(CXX) $(FLAGS) $(EXTRA_LINK_FLAGS) $(EXE_OUTPUT) $(OBJECTS) $(FULL_LIBRARIES) $(SYS_LIBS) $(EXTRA_LIBRARIES)
 endif
 	$(TOUCH) $(FULL_PROGRAM)
+# Issue #36
+# Setup for running with valgrind.  This creates a bash shell file for PROGRAM
+# in the VALGRIND_SCRIPT_BIN directory. Note that the executable for PROGRAM
+# is built into another directory and references by this script which is
+# in VALGRIND_BIN_DIR
+# -e exits script if error.
+# The expression that is supposed to produce $@ to add all input parameters
+# to cimserver 0x24@ does not work as of 2020
 ifdef PEGASUS_TEST_VALGRIND_LOG_DIR
 	echo "#!/bin/bash" > $(VALGRIND_SCRIPT_BIN_DIR)/$(PROGRAM)$(EXE)
-	echo -e "valgrind --log-file=$(PEGASUS_TEST_VALGRIND_LOG_DIR)/$(PROGRAM) --num-callers=25 --tool=memcheck --leak-check=full --error-limit=no $(FULL_PROGRAM) \"\x24@\"" >> $(VALGRIND_SCRIPT_BIN_DIR)/$(PROGRAM)$(EXE)
+	echo -e "valgrind --log-file=$(PEGASUS_TEST_VALGRIND_LOG_DIR)/$(PROGRAM) --num-callers=25 --tool=memcheck --leak-check=full --error-limit=no $(FULL_PROGRAM) \"0x24@\"" >> $(VALGRIND_SCRIPT_BIN_DIR)/$(PROGRAM)$(EXE)
 	chmod 755 $(VALGRIND_SCRIPT_BIN_DIR)/$(PROGRAM)$(EXE)
 endif
 	@ $(ECHO)

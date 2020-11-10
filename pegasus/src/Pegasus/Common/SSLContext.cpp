@@ -250,7 +250,8 @@ int SSLCallback::verificationCRLCallback(
     PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4, buf);
 
     //initialize the CRL store
-    X509_STORE_CTX* crlStoreCtx;
+    // TODO: is this a 1.1.0 change to set with new
+    X509_STORE_CTX* crlStoreCtx = X509_STORE_CTX_new();
 
     X509_STORE_CTX_init(crlStoreCtx, sslCRLStore, NULL, NULL);
 

@@ -762,7 +762,7 @@ createSelfSignedCBATestCertificate:
 	@$(ECHO-E) "$($(TEST_NAME_SYM)_SERIAL_NO_HEX)" \
              >> $(PEGASUS_CBA_TEST_CA_SERIAL_FILE)
 	$(OPENSSL_COMMAND) genrsa -out \
-            $(PEGASUS_TEST_CERT_DIR)/$($(TEST_NAME_SYM)).key 1024
+            $(PEGASUS_TEST_CERT_DIR)/$($(TEST_NAME_SYM)).key 2048
 	$(OPENSSL_COMMAND) req -new \
             -config $(PEGASUS_CBA_TEST_CA_SSL_CNF_FILE) \
             -subj "$($(TEST_NAME_SYM)_SUBJECT)" \
@@ -793,7 +793,7 @@ createCASignedCBATestCertificate:
 	@$(ECHO-E) "$($(TEST_NAME_SYM)_SERIAL_NO_HEX)" \
              >> $(PEGASUS_CBA_TEST_CA_SERIAL_FILE)
 	$(OPENSSL_COMMAND) genrsa -out \
-            $(PEGASUS_TEST_CERT_DIR)/$($(TEST_NAME_SYM)).key 1024
+            $(PEGASUS_TEST_CERT_DIR)/$($(TEST_NAME_SYM)).key 2048
 	$(OPENSSL_COMMAND) req -new \
             -config $(PEGASUS_CBA_TEST_CA_SSL_CNF_FILE) \
             -subj "$($(TEST_NAME_SYM)_SUBJECT)" \

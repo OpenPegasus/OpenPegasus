@@ -27,7 +27,8 @@
 #//
 #//////////////////////////////////////////////////////////////////////////
 # commands.mak is a helper Makefile that is intended to be
-# included in an upper level Makefile.
+# included in an upper level Makefile and TestMakefile.  It provides
+# OS variable variables and target definitions for a number of
 
 # Ensure that config.mak is included (so that the ROOT
 # variable is set correctly)
@@ -98,7 +99,7 @@ ifeq ($(OS),HPUX)
     ifeq ($(PEGASUS_PLATFORM), HPUX_PARISC_ACC)
         LIB_LINK_SUFFIX = .sl
     endif
-    
+
     ifeq ($(PEGASUS_PLATFORM), HPUX_PARISC_GNU)
         LIB_LINK_SUFFIX = .sl
     endif
@@ -299,7 +300,7 @@ ifeq ($(OS),zos)
 
 
     SYMBOLIC_LINK_CMD = ln -f -s
-    CAT = cat	
+    CAT = cat
 
 endif
 
@@ -387,19 +388,19 @@ ifeq ($(OS),darwin)
     ECHO-E = mu echo-e
     COPY = cp
     TOUCH = touch
-    CAT = cat 	
+    CAT = cat
 
     CHMOD = chmod
     CHOWN = chown
     CHGRP = chgrp
 
-    CHMODDIRHIER = chmod -R 	
+    CHMODDIRHIER = chmod -R
     CHOWNDIRHIER = chown -R
     CHGRPDIRHIER = chgrp -R
 
     SYMBOLIC_LINK_CMD = ln -f -s
 
-    CURRENT_USER=`whoami`		
+    CURRENT_USER=`whoami`
 endif
 
 ifdef PEGASUS_ENABLE_REMOTE_CMPI
@@ -528,7 +529,7 @@ mkdirhier_IgnoreError: CMDSFORCE
 ##
 runTestSuite: CMDSFORCE
 	-$(CIMSERVER_STOP_SERVICE)
-	-$(CMPIR_STOP_DAEMON)		
+	-$(CMPIR_STOP_DAEMON)
 	$(CIMSERVER_START_SERVICE)
 	$(CMPIR_START_DAEMON)
 	$(WINDOWS_ONLY_SLEEP)
