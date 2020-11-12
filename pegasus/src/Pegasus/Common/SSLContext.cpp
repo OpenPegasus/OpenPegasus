@@ -74,25 +74,6 @@ PEGASUS_NAMESPACE_BEGIN
 // are kept in a queue of log entries and this gets that log and creates
 // a copy in a new buffer. It is the users responsibility to free this
 // memory.
-#ifdef PEGASUS_HAS_SSL
-char *ossl_err_as_string(void)
-{
-    BIO *bio = BIO_new (BIO_s_mem ());
-    ERR_print_errors (bio);
-    char *buf = NULL;
-    size_t len = BIO_get_mem_data(bio, &buf);
-    char *ret = (char *) calloc (1, 1 + len);
-    if (ret)
-        memcpy (ret, buf, len);
-    BIO_free (bio);
-    return ret;
-}
-# else
-char *ossl_err_as_string(void)
-    {
-        return NULL
-    }
-#endif
 
 
 const int SSLCallbackInfo::SSL_CALLBACK_INDEX = 0;
@@ -119,6 +100,26 @@ public:
 // use the following definitions only if SSL is available
 //
 #ifdef PEGASUS_HAS_SSL
+
+// Function that returns char * of the detailed SSL errors. Used with
+// some OpenSSL methods that just return an integer as pass/fail.  This
+// May generate multiple lines of error/status messages that will help
+// diagnose the reason for the error.  In effect the internal error messages
+// are kept in a queue of log entries and this gets that log and creates
+// a copy in a new buffer. It is the users responsibility to free this
+// memory.
+char *ossl_err_as_string(void)
+{
+    BIO *bio = BIO_new (BIO_s_mem ());
+    ERR_print_errors (bio);
+    char *buf = NULL;
+    size_t len = BIO_get_mem_data(bio, &buf);
+    char *ret = (char *) calloc (1, 1 + len);
+    if (ret)
+        memcpy (ret, buf, len);
+    BIO_free (bio);
+    return ret;
+}
 
 AutoArrayPtr<Mutex> SSLEnvironmentInitializer::_sslLocks;
 int SSLEnvironmentInitializer::_instanceCount = 0;
@@ -741,7 +742,7 @@ void SSLContextRep::_randomInit(const String& randomFile)
         umeGenerateRandomNumber(prn, sizeof(prn));
         RAND_seed(prn, 1024);
     }
-#endif
+#endif  // PEGASUS_OS_PASE
 
     int seedRet = RAND_status();
     if (seedRet == 0)
@@ -791,7 +792,7 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
         // TLS v1.0, TLSv1.1)
 
         options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_SSLv3;
-#else
+#else  TLS1_2_VERSION
         PEG_METHOD_EXIT();
         MessageLoaderParms parms(
             " Common.SSLContext.TLS_1_2_PROTO_NOT_SUPPORTED",
@@ -799,7 +800,7 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
             " To run in less secured mode, set sslBackwardCompatibility=true"
             " in planned config file and start cimserver.");
         throw SSLException(parms);
-#endif
+#endif // TLS1_2_VERSION
     }
 
     // sslv2 is off permanently even if sslCompatibility is true
@@ -817,7 +818,7 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
             "Could not set the cipher list");
         throw SSLException(parms);
     }
-#endif
+#endif // PEGASUS_SSL_WEAKENCRYPTION
 
     if (_cipherSuite.size() != 0)
     {
@@ -851,10 +852,10 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
 #ifdef SSL_OP_NO_COMPRESSION
 #ifndef TLS1_2_VERSION
     SSL_CTX_set_options(sslContext, SSL_OP_NO_COMPRESSION);
-#endif
+#endif // TLS1_2_VERSION
 #elif OPENSSL_VERSION_NUMBER >= 0x00908000L
     sk_SSL_COMP_zero(SSL_COMP_get_compression_methods());
-#endif
+#endif // SSL_OP_NO_COMPRESSION
     SSL_CTX_set_quiet_shutdown(sslContext, 1);
     SSL_CTX_set_mode(sslContext, SSL_MODE_AUTO_RETRY);
     SSL_CTX_set_mode(sslContext, SSL_MODE_ENABLE_PARTIAL_WRITE);
@@ -863,7 +864,7 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
 #ifdef SSL_MODE_RELEASE_BUFFERS
     // Keep memory usage as low as possible
     SSL_CTX_set_mode (sslContext, SSL_MODE_RELEASE_BUFFERS);
-#endif
+#endif // SSL_MODE_RELEASE_BUFFERS
 
     if (_verifyPeer)
     {
@@ -1315,7 +1316,7 @@ void SSLContextRep::validateCertificate()
     X509_free(cert);
 }
 
-#else
+#else // PEGASUS_HAS_SSL
 
 //
 // these definitions are used if ssl is not available
