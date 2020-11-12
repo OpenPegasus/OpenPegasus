@@ -34,6 +34,7 @@
 # include <Pegasus/Common/Executor.h>
 # include <Pegasus/Common/Network.h>
 # define OPENSSL_NO_KRB5 1
+# include <openssl/bio.h>
 # include <openssl/err.h>
 # include <openssl/ssl.h>
 # include <openssl/rand.h>
@@ -73,6 +74,7 @@ PEGASUS_NAMESPACE_BEGIN
 // are kept in a queue of log entries and this gets that log and creates
 // a copy in a new buffer. It is the users responsibility to free this
 // memory.
+#ifdef PEGASUS_HAS_SSL
 char *ossl_err_as_string(void)
 {
     BIO *bio = BIO_new (BIO_s_mem ());
@@ -85,6 +87,13 @@ char *ossl_err_as_string(void)
     BIO_free (bio);
     return ret;
 }
+else:
+char *ossl_err_as_string(void)
+    {
+        return NULL
+    }
+#endif
+
 
 const int SSLCallbackInfo::SSL_CALLBACK_INDEX = 0;
 
