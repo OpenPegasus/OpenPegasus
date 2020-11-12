@@ -531,11 +531,17 @@ inline CIMInstance _getCRLInstance(X509_CRL* xCrl, String host,
     for (int i = 0; i < numRevoked; i++)
     {
         r = sk_X509_REVOKED_value(revoked, i);
-        rawSerialNumber = ASN1_INTEGER_get(r->serialNumber);
+        // TODO: 1. Same as code in SSLContext. Make common method
+        // 1.1.0 move to use
+        // rawSerialNumber = ASN1_INTEGER_get(r->serialNumber);
+        rawSerialNumber = ASN1_INTEGER_get(X509_REVOKED_get0_serialNumber(r));
+
         sprintf(serial, "%lu", (unsigned long)rawSerialNumber);
         revokedSerialNumbers.append(String(serial));
+        // TODO: change pointer reference for OpenSSL 1.1.x
+        //revocationDate = getDateTime(r->revocationDate);
+        revocationDate = getDateTime(X509_REVOKED_get0_revocationDate(r));
 
-        revocationDate = getDateTime(r->revocationDate);
         revocationDates.append(revocationDate);
     }
 

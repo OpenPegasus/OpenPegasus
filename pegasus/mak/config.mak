@@ -741,6 +741,8 @@ endif
 
 ifdef PEGASUS_HAS_SSL
     DEFINES += -DPEGASUS_HAS_SSL
+    # TODO set based on version TODO TODO
+    DEFINES += -DOPENSSL_API_COMPAT=0x10000000
 
     # Enable SSL Random file by default.
     ifndef PEGASUS_USE_SSL_RANDOMFILE

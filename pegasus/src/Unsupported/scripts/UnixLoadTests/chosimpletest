@@ -10,7 +10,7 @@
 ## - More sophisticated way to output data from the clients called
 ##   in the test. Today everything just splashes on the screen
 ## - Catch client failures
-## 
+##
 ##
 
 usage()
@@ -25,21 +25,21 @@ Usage: $(basename $0) - Run a selected number of pegasus cim client
 
     The commands to be executed are fixed defined in the script
     $PEGASUS_ROOT must exist to run this command
-    
+
     chosimpletest [OPTIONS]
 
     OPTIONS
     -r count   Number of times to repeat the the commands.
                This passes directly to the command repeat options.
-	       Note that all commands do not take the same time so
-	       not all of the clients will take the same time to
-	       finish
+               Note that all commands do not take the same time so
+               not all of the clients will take the same time to
+               finish
     -p         pull only
     -v         Verbose display
     -s         Start server before starting client tests
     -t min(h,d) Terminate min minutes after starting the test
                If the last character is h or d, this represents
-	       hours or days. (i.e 3d will run the test for 3 days)
+               hours or days. (i.e 3d will run the test for 3 days)
     -V     Running server under valgrind.  Used to determine if server
            is running since process names is different .
            NOTE: This only works because we ignore the check on process running.
@@ -79,7 +79,7 @@ control_c()
   echo -en "\n*** will end  at end of this loop ***\n"
   EXIT_PGM=1
 }
- 
+
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
 
@@ -91,7 +91,7 @@ declare -i addTime
 if [ -z "$PEGASUS_ROOT" ]; then
    echo PEGASUS_ROOT not set. Terminating and end of this client loop
    exit 1
-fi 
+fi
 
 ##if [[ $(basename $PWD) != "pegasus" ]]; then
 ##   echo Must be run from pegasus directory
@@ -99,17 +99,17 @@ fi
 ##fi
 
 while getopts "hvt:r:ps" OPTION
-do 
-     case $OPTION in 
-         h)  usage 
-             exit 1 
-             ;; 
+do
+     case $OPTION in
+         h)  usage
+             exit 1
+             ;;
          v)  VERBOSE=true
              ;;
-	 s)  STARTSERVER=1
-	     ;;
+     s)  STARTSERVER=1
+         ;;
          t)  STOPTIME=$OPTARG
-	     case "$STOPTIME" in
+         case "$STOPTIME" in
 
             *m ) STOPTIME=${STOPTIME%%"m"}
             ;;
@@ -128,22 +128,22 @@ do
             * ) echo ERROR: Option -t $STOPTIME incorrect
             exit 1
            ;;
-	     esac
+         esac
              TEST_END_SEC=$(date +%s --date="now + $STOPTIME min")
              ;;
      V) RUN_UNDER_VALGRIND=1
         ;;
-	 r) REPEAT=$OPTARG
-	    ;;
+     r) REPEAT=$OPTARG
+        ;;
          p) PULL_ONLY=1
              ;;
-         ?) usage 
-             exit 
+         ?) usage
+             exit
              ;;
-         *) usage 
-             exit 
+         *) usage
+             exit
              ;;
-     esac 
+     esac
 done
 
 ## use this for repeat count on short commands. More repetitions
@@ -160,7 +160,7 @@ if [ -n $VERBOSE ]; then
    if [ $STOPTIME -ne 0 ]; then
       echo Client test will end at $(date -d @$TEST_END_SEC)
    else
-	echo test for one loop
+    echo test for one loop
    fi
 fi
 
@@ -214,17 +214,17 @@ while true
 do
     LOOPSTARTTIME=$(date +"%s")
     let LOOPCOUNT++
-      
+
     if [ ! -e $PROCFILE ]; then
         echo cimserver $PROCFILE not running. Terminate test on loop $LOOPCOUNT
-	exit 1
+    exit 1
     fi
 
     ## Collection of non-pull tests.  execute only if the -p flag not
-    ## set. 
+    ## set.
     if [[ $PULL_ONLY == 0 ]]; then
         ## This command typically takes a couple of minutes to execute
-        ## so use basic REPEAT. 
+        ## so use basic REPEAT.
         TestClient -t $TEST_CLIENT_PARALLEL_CLIENTS -r $REPEAT &
 
         ## execute number of client operations repeatedly
@@ -246,7 +246,7 @@ do
     ###############################################################
     ##  Tests involving pull operations
     ##
-    
+
     ## Execute the general tests for pull operations
     ## can only run this test once because it sets parameters in
     ## provider and uses the results. Thus, the size of the response
@@ -295,8 +295,8 @@ do
         if [[ $TEST_END_SEC -lt $(date +%s) ]]; then
            echo Stopped at defined end time after running $RUNTIME_MIN minutes
            exit 0
-	else
-	   echo Start new client loop. Loop number $((COUNTER+=1)) after running $RUNTIME_MIN
+    else
+       echo Start new client loop. Loop number $((COUNTER+=1)) after running $RUNTIME_MIN
         fi
     else
        echo Test executed for one loop and is terminating
@@ -310,5 +310,3 @@ do
 done
 
 echo ++++++ $(basename $0) completed. Ran for $RUNTIME_MIN minutes +++++++
-
-
