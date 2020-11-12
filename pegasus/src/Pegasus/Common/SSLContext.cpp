@@ -87,7 +87,9 @@ char *ossl_err_as_string(void)
     BIO_free (bio);
     return ret;
 }
-else:
+
+#else
+
 char *ossl_err_as_string(void)
     {
         return NULL
