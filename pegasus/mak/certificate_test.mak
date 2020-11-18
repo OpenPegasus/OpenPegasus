@@ -28,6 +28,11 @@
 #//////////////////////////////////////////////////////////////////////////
 
 ###############################################################################
+#   This Makefile implements the tests for Certificate Based Authority (CBA)
+#   tests for OpenPegasus.
+#   NOTE: There is another set of tests in src/Clients/cimtrust/tests that
+#         may duplicate some of these tests but that are really just to thes
+#         the cimtrust CLI of OpenPegasus
 #   This Makefile implements three main funtions:
 #       make -f TestMakefile setupCBATestCertificates
 #       make -f TestMakefile runCBATestSuites
