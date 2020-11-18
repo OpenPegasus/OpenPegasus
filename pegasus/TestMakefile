@@ -191,7 +191,7 @@ prestarttests: prestarttests_msg shortsleep unittests
 prestarttests_msg: FORCE
 	@$(ECHO) "=============================================================================="
 	@$(ECHO) "TestMakefile: The \"prestarttests\" rule is being deprecated."
-	@$(ECHO) "              Use \"make testusage\" for a description of the usage model."	
+	@$(ECHO) "              Use \"make testusage\" for a description of the usage model."
 	@$(ECHO) "              The equivalent new rule is \"unittests\"."
 	@$(ECHO) "              Invoking the \"unittests\" rule now."
 	@$(ECHO) "=============================================================================="
@@ -206,7 +206,7 @@ poststarttests: poststarttests_msg shortsleep servertests
 poststarttests_msg: FORCE
 	@$(ECHO) "==============================================================================="
 	@$(ECHO) "TestMakefile: The \"posstarttests\" rule is being deprecated.."
-	@$(ECHO) "              Use \"make testusage\" for a description of the usage model."	
+	@$(ECHO) "              Use \"make testusage\" for a description of the usage model."
 	@$(ECHO) "              The equivalent new rule is \"servertests\"."
 	@$(ECHO) "              Invoking the \"servertests\" rule now."
 	@$(ECHO) "==============================================================================="
@@ -221,7 +221,7 @@ tests: tests_msg shortsleep alltests
 tests_msg: FORCE
 	@$(ECHO) "==================================================================="
 	@$(ECHO) "TestMakefile: The \"tests\" rule is being deprecated."
-	@$(ECHO) "              Use \"make testusage\" for a description of the usage model."	
+	@$(ECHO) "              Use \"make testusage\" for a description of the usage model."
 	@$(ECHO) "              The equivalent new rule is \"alltests\"."
 	@$(ECHO) "              Invoking the \"alltests\" rule now."
 	@$(ECHO) "==================================================================="
@@ -286,6 +286,8 @@ slptests:
 	$(MAKE) --directory=$(PEGASUS_ROOT)/src/slp/tests/slptests -f Makefile slptests
 	@ $(ECHO) "+++++ TestMakefile slp test suite completed"
 
+# TODO: Temporary target defined to execute just cert tests.
+# servertests: servertestsclean servertestssetup serversuite_cert_tests
 servertests: servertestsclean servertestssetup serversuite
 	@ $(ECHO) "+++++ TestMakefile servertests suites complete"
 
@@ -324,7 +326,7 @@ endif
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_providerLifecycleIndicationTests
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile startcimListenAddress
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_interfaceRestrictionTest
-	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_providerReregisterTests 
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_providerReregisterTests
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ENUMCTXT_TS1
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ENUMCTXT_TS2
 
@@ -561,7 +563,7 @@ run_INDSSL_TS1: EnableUsers Create_SSL_Certificate_ignore
             TESTSUITE_CMDS="$(INDSSL_TS1b_TEST_CMDS)"
 else
 run_INDSSL_TS1: FORCE
-	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping run_INDSSL_TS1"	
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping run_INDSSL_TS1"
 endif
 else
 run_INDSSL_TS1: FORCE
@@ -580,10 +582,10 @@ endif
 ##  destination of the subcription/indication should be changed to a Linux
 ##  system where wseventsink is running.
 ##  Once we have a wsman listner in OP we include this test in Nigthly tests.
-##  As of now, this has to be run explicitly. 
+##  As of now, this has to be run explicitly.
 ##
 ###############################################################################
-ifeq ($(OS),linux) 
+ifeq ($(OS),linux)
 ifeq ($(PEGASUS_ENABLE_PROTOCOL_WSMAN),true)
 INDWSMAN_CONFIG_OPTIONS = enableHttpsConnection=true enableAuthentication=false
 INDWSMAN_TS1a_TEST_CMDS = \
@@ -697,7 +699,7 @@ run_SSL_CBA_TS1: FORCE
             TESTSUITE_CMDS="$(SSL_CBA_TS1_TEST_CMD_2)"
 else
 run_SSL_CBA_TS1: FORCE
-	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping run_SSL_CBA_TS1"	
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping run_SSL_CBA_TS1"
 endif
 else
 run_SSL_CBA_TS1: FORCE
@@ -810,7 +812,7 @@ run_SDK_TS1: FORCE
             TESTSUITE_CMDS="$(SDK_TS1_TEST_CMDS)"
 else
 run_SDK_TS1: FORCE
-	@ $(ECHO) "+++++ PEGASUS_TEST_SDK is not true: Skipping run_SDK_TS1"	
+	@ $(ECHO) "+++++ PEGASUS_TEST_SDK is not true: Skipping run_SDK_TS1"
 endif
 ###############################################################################
 
@@ -966,7 +968,7 @@ run_Cmpi_Sub: FORCE
 ##  that all enumerations contexts completed. Note that today the code that
 ##  tests the trace results is a sh script and grep so this runs only on
 ##  systems that have these tools
-##  This test was added in OpenPegasus 2.14 when the pull operations were 
+##  This test was added in OpenPegasus 2.14 when the pull operations were
 ##  added
 ##
 ###############################################################################
@@ -1093,7 +1095,7 @@ run_providerReregisterTests:FORCE
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstart
 	$(MAKE) --directory $(PEGASUS_ROOT)/src/Providers/TestProviders/IndicationStressTestProvider/testclient -f Makefile reregister_providerTests
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile -i cimstop
-	
+
 
 #############################################################################
 ##
@@ -1553,7 +1555,7 @@ ifndef PEGASUS_DISABLE_PRIVILEGED_TESTS
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile TestAuthorization
 else
 	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping EnableAuthentication, TestLocalSecurity, and TestRemoteSecurity "
-	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping EnableAuthorization and TestAuthorization "	
+	@ $(ECHO) "+++++ PEGASUS_DISABLE_PRIVILEGED_TESTS defined: Skipping EnableAuthorization and TestAuthorization "
 endif
         # Reset the security options to the defaults
 	cimconfig -u enableNamespaceAuthorization -p
