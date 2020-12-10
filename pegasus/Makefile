@@ -127,7 +127,7 @@ usage: FORCE
 	$(USAGE)
 	$(USAGE)"  After \"cvs update\" or to start over: make new world"
 	$(USAGE)
-
+	
 
 listplatforms: FORCE
 	$(USAGE)
@@ -263,7 +263,7 @@ buildmu: FORCE
 # and changes that to "interop" or "root/interop".
 #
 # This uses mu replace internally. The original files are all saved as
-# filename.save. These file can be restored by running
+# filename.save. These file can be restored by running 
 # make -f Makefile.interop restore
 #
 renameinterop: buildmu
@@ -275,7 +275,7 @@ ifeq ($(PEGASUS_INTEROP_NAMESPACE),interop)
 endif
 
 # buildclientlibs: The libpegclient depends on libpegcommon library.
-# This build target can be used to build just these two libraries.
+# This build target can be used to build just these two libraries. 
 # With this target, SLP support for clients is not enabled.
 #
 
@@ -302,7 +302,6 @@ clobber: FORCE
 	- $(RMDIRHIER) $(PEGASUS_HOME)/bin
 	- $(RMDIRHIER) $(PEGASUS_HOME)/lib
 	- $(RMDIRHIER) $(PEGASUS_HOME)/obj
-	- $(RMDIRHIER) $(PEGASUS_HOME)/bin_exe
 
 
 #---------------------

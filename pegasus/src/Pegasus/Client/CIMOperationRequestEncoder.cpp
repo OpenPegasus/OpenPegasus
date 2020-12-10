@@ -533,15 +533,15 @@ void CIMOperationRequestEncoder::_encodeGetInstanceRequest(
         XmlWriter::appendPropertyListIParameter(
             params, message->propertyList);
 
-    Buffer buffer = XmlWriter::formatSimpleIMethodReqMessage(_hostName,
-    message->nameSpace, CIMName ("GetInstance"), message->messageId,
-    message->getHttpMethod(),
-    _authenticator->buildRequestAuthHeader(),
-    ((AcceptLanguageListContainer)message->operationContext.get(
-        AcceptLanguageListContainer::NAME)).getLanguages(),
-    ((ContentLanguageListContainer)message->operationContext.get(
-        ContentLanguageListContainer::NAME)).getLanguages(),
-    params, _binaryResponse);
+        Buffer buffer = XmlWriter::formatSimpleIMethodReqMessage(_hostName,
+        message->nameSpace, CIMName ("GetInstance"), message->messageId,
+        message->getHttpMethod(),
+        _authenticator->buildRequestAuthHeader(),
+        ((AcceptLanguageListContainer)message->operationContext.get(
+            AcceptLanguageListContainer::NAME)).getLanguages(),
+        ((ContentLanguageListContainer)message->operationContext.get(
+            ContentLanguageListContainer::NAME)).getLanguages(),
+        params, _binaryResponse);
 
     _sendRequest(buffer);
 }

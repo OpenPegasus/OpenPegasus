@@ -52,7 +52,7 @@ LIBRARIES += peggetoopt
 
 EXTRA_INCLUDES = $(SYS_INCLUDES)
 
-PROGRAM = TestPullop
+PROGRAM = pullop
 CLI = cimcli
 
 SOURCES = pullop.cpp
@@ -87,7 +87,7 @@ DSP=-v 2
 ## Unit test. This is not a compelete test since this is a test program
 ## Simply assures that we do not crash when help executed.
 tests:
-	$(PROGRAM) -h
+	pullop -h
 	$(PROGRAM) --help
 
 ##################################################################
@@ -307,7 +307,7 @@ stresstests:
 ##      KS_FUTURE Test 3 disabled because there are
 ##      client limits on size of responses in some test environments.  There
 ##      is a manual test (target testSizeLimits) that tests up to a million
-##      objects in the response. Please run that test to determine your system
+##      objects in the response. Please run that test to determine your system 
 ##      limits on operation response size.
 ##	make stressEnum3
 ##	make stressEnumName3
@@ -710,7 +710,7 @@ testNoDelay:
 ## zero length responses are sent
 testSmallDelayedResponse:
 	$(ECHO) This test should take about 5 seconds total
-	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=500 Delay=5 $(CIMCLIHOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) set ResponseCount=500 Delay=5 $(CIMCLIHOSTID) 
 	cimcli pei $(STRESSCXX_CLASS_ID) --sum -v -count 500 --t $(CIMCLIHOSTID)
         ## reset to restore zero delay
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
@@ -793,8 +793,9 @@ clicmpir2:
 ## Manual test to assure that the reset works as it should
 testSetReset:
 
-	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)	
 	cimcli im $(STRESSCXX_CLASS_ID) set Size=100 ResponseCount=1000 $(CIMCLIHOSTID)
-	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)	
 	cimcli im $(STRESSCXX_CLASS_ID) reset $(CIMCLIHOSTID)
-	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)
+	cimcli im $(STRESSCXX_CLASS_ID) get $(CIMCLIHOSTID)	
+

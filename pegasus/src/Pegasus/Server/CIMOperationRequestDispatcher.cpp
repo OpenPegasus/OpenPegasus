@@ -1006,11 +1006,11 @@ Boolean CIMOperationRequestDispatcher::_enqueueResponse(
                 // return true, just discards everything.
                 return true;
             }
-            else  // valid enumeration context
+            else
             {
-                // Secondary validity test in debug mode
-                PEGASUS_DEBUG_ASSERT(en == _enumerationContextTable->find(
-                    poA->_contextId));
+                EnumerationContext* ent = _enumerationContextTable->find(
+                    poA->_contextId);
+                PEGASUS_DEBUG_ASSERT(ent == en);
             }
 
             PEGASUS_DEBUG_ASSERT(poA->_contextId == en->getContextId());

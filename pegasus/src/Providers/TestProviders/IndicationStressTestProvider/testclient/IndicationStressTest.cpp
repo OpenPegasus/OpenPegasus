@@ -1036,7 +1036,7 @@ ThreadReturnType PEGASUS_THREAD_CDECL _executeTests(void *parm)
         elapsedTime.stop();
         _testEnd(uniqueID, elapsedTime.getElapsed());
     }
-    catch(const Exception & e)
+    catch(Exception e)
     {
         cout << e.getMessage() << endl;
     }

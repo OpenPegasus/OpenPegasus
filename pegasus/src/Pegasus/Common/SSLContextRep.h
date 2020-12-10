@@ -104,7 +104,7 @@ public:
 
             //important as per following site for 
             //http://www.openssl.org/support/faq.html#PROG
-            OPENSSL_malloc_init();
+            CRYPTO_malloc_init();
             SSL_library_init();
             SSL_load_error_strings();
         }
@@ -129,9 +129,7 @@ public:
             ERR_free_strings();
             _uninitializeCallbacks();
         }
-        // TODO:  deprecated 1.0.0 in favor of ERR_remove_thread_state
-        // but should exist. Do not know why failure.  This is deprecated
-        // ERR_remove_state(0);
+        ERR_remove_state(0);
     }
 
 private:
@@ -151,15 +149,15 @@ private:
         // up to CRYPTO_num_locks() different mutex locks.
 
         _sslLocks.reset(new Mutex[CRYPTO_num_locks()]);
-// TODO: hide for now
-//#ifdef PEGASUS_HAVE_PTHREADS
+
+#ifdef PEGASUS_HAVE_PTHREADS
         // Set the ID callback. The ID callback returns a thread ID.
-//# ifdef PEGASUS_OS_VMS
-//        CRYPTO_set_id_callback((CRYPTO_SET_ID_CALLBACK) _getThreadId);
-//# else
-//        CRYPTO_set_id_callback((CRYPTO_SET_ID_CALLBACK) pthread_self);
-//# endif
-//#endif
+# ifdef PEGASUS_OS_VMS
+        CRYPTO_set_id_callback((CRYPTO_SET_ID_CALLBACK) _getThreadId);
+# else
+        CRYPTO_set_id_callback((CRYPTO_SET_ID_CALLBACK) pthread_self);
+# endif
+#endif
 
         // Set the locking callback.
 
@@ -179,9 +177,8 @@ private:
     static void _uninitializeCallbacks()
     {
         PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4, "Resetting SSL callbacks.");
-        // TODO: Removed in 1.1.0
-        // CRYPTO_set_locking_callback(NULL);
-        // CRYPTO_set_id_callback(NULL);
+        CRYPTO_set_locking_callback(NULL);
+        CRYPTO_set_id_callback(NULL);
         _sslLocks.reset();
     }
 

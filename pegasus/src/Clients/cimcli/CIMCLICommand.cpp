@@ -227,7 +227,7 @@ public:
         // FUTURE - Should test against operation we are expecting
         if (_localVerboseTest &&
             ((item.operationType <= 0) || item.operationType >
-                (CIMOperationType)CIM_ENUMERATION_COUNT_REQUEST_MESSAGE))
+                CIM_ENUMERATION_COUNT_REQUEST_MESSAGE))
         {
            cerr << "Error:Operation type " << item.operationType
                 << " out of expected range in ClientOpPerformanceData"

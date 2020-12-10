@@ -51,7 +51,7 @@ const String TESTSCMO2XML("/src/Pegasus/Common/tests/SCMOStreamer/");
 #define TEST_INSTANCE_ID "my_instance_id"
 #define TEST_ERROR_SOURCE "my_error_source"
 #define TEST_PRE_METHOD_NAME "my_pre_method_name"
-#define TEST_POST_METHOD_NAME (char*)"my_post_method_name"
+#define TEST_POST_METHOD_NAME "my_post_method_name"
 
 SCMOClass _scmoClassCache_GetClass(
     const CIMNamespaceName& nameSpace,
@@ -121,7 +121,7 @@ void SCMOInstanceConverterTest()
 
     VCOUT << endl << "Creating PostCall instance" << endl;
     SCMOInstance postCall = SCMOInstance(CIM_InstMethodCall);
-    val.extString.pchar  = (char*)TEST_POST_METHOD_NAME;
+    val.extString.pchar  = TEST_POST_METHOD_NAME;
     val.extString.length = strlen(val.extString.pchar);
     postCall.setPropertyWithOrigin("MethodName", CIMTYPE_STRING, &val);
     val.extRefPtr = &error;

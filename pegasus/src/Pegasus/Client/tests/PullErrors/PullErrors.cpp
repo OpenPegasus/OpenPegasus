@@ -102,7 +102,7 @@ static Boolean verbose;
  *    [-charSet]    set matches a literal hypen and any character in the set
  *    []charSet]    match a literal close bracket and any character in the set
  *
- *    char          match itself except where char is '*', '?', '[', or '\'
+ *    char          match itself except where char is '*' or '?' or '['
  *    \char         match char, including any pattern character
  *
  * examples:
@@ -261,8 +261,6 @@ bool _globMatch(const char* pattern, const char* str)
                 {
                     patChar = *pattern++;
                 }
-                // TODO'ks'15Oct20: validate this fallthrough with test
-                /*FALLTHROUGH*/
             // default, test current character
             default:
                 if (patChar != *str)
@@ -281,6 +279,61 @@ static int _globMatch(const String& pattern, const String& str)
     return _globMatch(pattern.getCString(), str.getCString());
 }
 
+////// Original match.  However, this one appears to have problems
+////static int _match(const char* pattern, const char* str)
+////{
+////    const char* p;
+////    const char* q;
+////
+////    /* Now match expression to str. */
+////
+////    for (p = pattern, q = str; *p && *q; )
+////    {
+////        if (*p == '*')
+////        {
+////            const char* r;
+////
+////            p++;
+////
+////            /* Recursively call to find the shortest match. */
+////
+////            for (r = q; *r; r++)
+////            {
+////                if (_match(p, r) == 0)
+////                    break;
+////            }
+////
+////            q = r;
+////
+////        }
+////        else if (*p == *q)
+////        {
+////            p++;
+////            q++;
+////        }
+////        else
+////            return -1;
+////    }
+////
+////    /* If src was exhausted but pattern has a single '*'remaining charcters,
+////     * then match the result.
+////     */
+////
+////    if (p[0] == '*' && p[1] == '\0')
+////        return 0;
+////
+////    /* If anything left over, then they do not match. */
+////
+////    if (*p || *q)
+////        return -1;
+////
+////    return 0;
+////}
+////
+////static int _Match(const String& pattern, const String& str)
+////{
+////    return _match(pattern.getCString(), str.getCString());
+////}
 
 /***************************************************************************
     Class to test all of the different operations with various

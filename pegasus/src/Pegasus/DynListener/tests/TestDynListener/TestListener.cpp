@@ -258,7 +258,7 @@ int main()
         printf("CIMException %s\n",
                (const char*)ce.getMessage().getCString());
     }
-    catch (const Exception& e)
+    catch (Exception e)
     {
         printf("Exception %s\n",
                (const char*)e.getMessage().getCString());
@@ -266,3 +266,4 @@ int main()
 
     return 0;
 }
+

@@ -258,7 +258,7 @@ public:
         {
             _dateTimeValue.set(x);
         }
-        catch (const InvalidDateTimeFormatException&)
+        catch (InvalidDateTimeFormatException)
         {
             throw TypeMismatchException();
         }
@@ -284,7 +284,7 @@ public:
                 _arrayDateTimeValue.append(y);
             }
         }
-        catch (const InvalidDateTimeFormatException&)
+        catch (InvalidDateTimeFormatException)
         {
             throw TypeMismatchException();
         }
@@ -309,7 +309,7 @@ public:
         {
             _referenceValue = CIMObjectPath(x);
         }
-        catch (const MalformedObjectNameException&)
+        catch (MalformedObjectNameException)
         {
             throw TypeMismatchException();
         }
@@ -344,7 +344,7 @@ public:
                 _arrayReferenceValue.append(y);
             }
         }
-        catch (const MalformedObjectNameException&)
+        catch (MalformedObjectNameException)
         {
             throw TypeMismatchException();
         }
@@ -582,7 +582,7 @@ public:
             {
                return CIMDateTime(_stringValue);
             }
-            catch (const InvalidDateTimeFormatException&)
+            catch (InvalidDateTimeFormatException)
             {
                 throw TypeMismatchException();
             }
@@ -603,7 +603,7 @@ public:
             {
                return CIMObjectPath(String(_stringValue));
             }
-            catch (const Exception&)
+            catch (...)
             {
                 throw TypeMismatchException();
             }
@@ -633,7 +633,7 @@ public:
                     rtn.append(CIMDateTime(_arrayStringValue[i]));
                 }
             }
-            catch (const InvalidDateTimeFormatException&)
+            catch (InvalidDateTimeFormatException)
             {
                 throw TypeMismatchException();
             }
@@ -667,7 +667,7 @@ public:
                     rtn.append(CIMObjectPath(_arrayStringValue[i]));
                 }
             }
-            catch (const MalformedObjectNameException&)
+            catch (MalformedObjectNameException)
             {
                 throw TypeMismatchException();
             }
@@ -925,10 +925,10 @@ private:
 
     /// Type value for this operand
     Type _type;
-    bool _resolved;
-    bool _isArray;
     // Set when property types are resolved
     CIMType _cimType;
+    bool _isArray;
+    bool _resolved;
     propertyType propertyType;
     // Define existence of Property Operand with index
     // and the value of the index if _isIndexedProperty = true
@@ -940,3 +940,4 @@ private:
 PEGASUS_NAMESPACE_END
 
 #endif /* Pegasus_FQLOperand_h */
+

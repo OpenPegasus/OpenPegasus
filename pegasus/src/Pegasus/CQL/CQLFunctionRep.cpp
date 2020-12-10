@@ -304,10 +304,7 @@ String CQLFunctionRep::functionTypeToString() const
             break;
         case UNKNOWN:
             returnStr.append("UNKNOWN");
-            break;
         default:
-            /* TODO/ks/15Oct20: This and the above append UNKNOWN.  Should this
-               append something else to avoid confusion. */
             returnStr.append("UNKNOWN");
             break;
     }

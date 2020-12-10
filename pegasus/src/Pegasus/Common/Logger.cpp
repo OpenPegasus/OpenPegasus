@@ -500,16 +500,12 @@ void Logger::setlogLevelMask( const String &logLevelList )
         {
             case Logger::TRACE:
                   _severityMask |= Logger::TRACE;
-                  /* FALLTHROUGH */
             case Logger::INFORMATION:
                   _severityMask |= Logger::INFORMATION;
-                  /* FALLTHROUGH */
             case Logger::WARNING:
                   _severityMask |= Logger::WARNING;
-                  /* FALLTHROUGH */
             case Logger::SEVERE:
                   _severityMask |= Logger::SEVERE;
-                  /* FALLTHROUGH */
             case Logger::FATAL:
                   _severityMask |= Logger::FATAL;
         }

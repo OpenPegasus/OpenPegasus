@@ -979,7 +979,7 @@ void CIMResponseData::completeHostNameAndNamespace(
         {
             // Instances added to account for namedInstance in Pull operations.
             case RESP_INSTANCES:
-            {
+
                 for (Uint32 j = 0, n = _instances.size(); j < n; j++)
                 {
                     const CIMInstance& instance = _instances[j];
@@ -994,9 +994,6 @@ void CIMResponseData::completeHostNameAndNamespace(
                         p.setNameSpace(ns);
                     }
                 }
-            }
-            break;
-
             case RESP_OBJECTS:
             {
                 for (Uint32 j = 0, n = _objects.size(); j < n; j++)

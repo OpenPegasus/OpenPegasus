@@ -408,7 +408,6 @@ static Boolean _Evaluate(
                         op);
                 }
             }
-
             // In this case, the right hand might still be String and we
             // must convert
             case FQLOperand::REFERENCE_VALUE:
@@ -428,7 +427,6 @@ static Boolean _Evaluate(
                         op);
                 }
             }
-
             case FQLOperand::PROPERTY_NAME:
                 PEGASUS_ASSERT(0);
         }
@@ -436,7 +434,7 @@ static Boolean _Evaluate(
     }
 
     // Catch the specific IndexOutOf range set by FQLOperand.h
-    catch (const IndexOutOfBoundsException&)
+    catch (IndexOutOfBoundsException)
     {
 #ifdef FQL_DOTRACE
         DCOUT << "Caught index out of Bounds Exception" << endl;
@@ -741,8 +739,6 @@ Boolean FQLQueryStatementRep::evaluateQuery(
                 // All operations allowed
                 allComparesAllowed = true;
             }
-            // fall through
-            /* FALLTHRU */
             case FQL_LT:
             case FQL_LE:
             case FQL_GT:
@@ -836,8 +832,7 @@ Boolean FQLQueryStatementRep::evaluateQuery(
             case FQL_NOT_ANY:
             case FQL_NOT_EVERY:
                 isNotType = true;
-                // fall through
-                /* FALLTHRU */
+
             case FQL_EVERY:
             case FQL_ANY:
                 {

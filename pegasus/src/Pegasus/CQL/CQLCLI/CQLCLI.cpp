@@ -511,7 +511,7 @@ Boolean _evaluate(Array<CQLSelectStatement>& _statements,
                   else
                        cout << "FALSE" << endl;
                 }
-                catch(const Exception& e)
+                catch(Exception e)
                 {
                   if (cqlcli_verbose)
                     cout << "ERROR! -- " << _statements[i].toString() << endl
@@ -1158,7 +1158,7 @@ int main(int argc, char ** argv)
                 _evaluate(_statements,_instances, testOption);
                 _normalize(_statements,_instances, testOption);
             }
-            catch(const Exception& e)
+            catch(Exception e)
             {
                 cout << getStatementString(e.getMessage()) << endl;
             }
@@ -1177,3 +1177,4 @@ int main(int argc, char ** argv)
      //
     return 0;
 }
+

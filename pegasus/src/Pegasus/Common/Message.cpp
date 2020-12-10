@@ -424,15 +424,13 @@ CIMOperationType Message::convertMessageTypetoCIMOpType(MessageType type)
 /**
  * Validate the magic object for this Message. This
  * compiles only in debug mode and can be use to validate the
- * CIMResponseData object. This validates the magic number if
- * in debug mode and always the _type.
+ * CIMResponseData object
  *
  * @return Boolean True if valid object.
  */
 Boolean Message::valid() const
 {
-    PEGASUS_DEBUG_ASSERT(magic);
-    return (_type < NUMBER_OF_MESSAGES);
+    return magic && (_type < NUMBER_OF_MESSAGES);
 }
 
 
