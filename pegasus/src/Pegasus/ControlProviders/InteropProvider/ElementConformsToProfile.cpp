@@ -154,7 +154,7 @@ Array<CIMInstance> InteropProvider::enumElementConformsToProfileInstances(
                 opNamespace == currentNamespace)
             {
                 String currentElementStr(currentElement.getString());
-                if (currentElementStr.find(PEGASUS_DYNAMIC) == 0)
+                if (currentElementStr.find(PEGASUS_DYNAMIC.size()) == 0)
                 {
                     // If the provider profile registration did not provide a
                     // list of conforming elements (presumably because there is
@@ -166,7 +166,7 @@ Array<CIMInstance> InteropProvider::enumElementConformsToProfileInstances(
                         continue;
                     }
                     CIMName subclassName(
-                        currentElementStr.subString(PEGASUS_DYNAMIC_LEN));
+                        currentElementStr.subString(PEGASUS_DYNAMIC.size()));
                     Array<CIMInstance> elementConformsInstances =
                         cimomHandle.enumerateInstances(opContext,
                         currentNamespace, subclassName, true, false, false,
