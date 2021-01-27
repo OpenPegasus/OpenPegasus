@@ -104,7 +104,11 @@ public:
 
             //important as per following site for 
             //http://www.openssl.org/support/faq.html#PROG
+#if OPENSSL_API_COMPAT < 0x10100000L
+            CRYPTO_malloc_init();
+#else
             OPENSSL_malloc_init();
+#endif
             SSL_library_init();
             SSL_load_error_strings();
         }
@@ -179,9 +183,10 @@ private:
     static void _uninitializeCallbacks()
     {
         PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4, "Resetting SSL callbacks.");
-        // TODO: Removed in 1.1.0
-        // CRYPTO_set_locking_callback(NULL);
-        // CRYPTO_set_id_callback(NULL);
+#if OPENSSL_API_COMPAT < 0x10100000L
+        CRYPTO_set_locking_callback(NULL);
+        CRYPTO_set_id_callback(NULL);
+#endif
         _sslLocks.reset();
     }
 

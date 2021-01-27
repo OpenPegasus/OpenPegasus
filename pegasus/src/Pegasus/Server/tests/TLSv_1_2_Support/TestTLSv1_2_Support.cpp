@@ -37,6 +37,7 @@
 
 
 #ifdef PEGASUS_HAS_SSL
+#  include <openssl/ssl.h>
 #  include <openssl/tls1.h>
 #endif
 

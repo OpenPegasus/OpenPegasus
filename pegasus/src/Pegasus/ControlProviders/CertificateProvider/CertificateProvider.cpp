@@ -534,13 +534,20 @@ inline CIMInstance _getCRLInstance(X509_CRL* xCrl, String host,
         // TODO: 1. Same as code in SSLContext. Make common method
         // 1.1.0 move to use
         // rawSerialNumber = ASN1_INTEGER_get(r->serialNumber);
+#if OPENSSL_API_COMPAT < 0x10100000L
+        rawSerialNumber = ASN1_INTEGER_get(r->serialNumber);
+#else
         rawSerialNumber = ASN1_INTEGER_get(X509_REVOKED_get0_serialNumber(r));
+#endif
 
         sprintf(serial, "%lu", (unsigned long)rawSerialNumber);
         revokedSerialNumbers.append(String(serial));
         // TODO: change pointer reference for OpenSSL 1.1.x
-        //revocationDate = getDateTime(r->revocationDate);
+#if OPENSSL_API_COMPAT < 0x10100000L
+        revocationDate = getDateTime(r->revocationDate);
+#else
         revocationDate = getDateTime(X509_REVOKED_get0_revocationDate(r));
+#endif
 
         revocationDates.append(revocationDate);
     }

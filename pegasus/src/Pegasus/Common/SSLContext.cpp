@@ -260,7 +260,8 @@ int SSLCallback::verificationCRLCallback(
     PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4, buf);
 
     //initialize the CRL store
-    // TODO: is this a 1.1.0 change to set with new
+    // TODO: is this a 1.1.0 change to use pointers
+#if OPENSSL_API_COMPAT >= 0x10100000L
     X509_STORE_CTX* crlStoreCtx = X509_STORE_CTX_new();
 
     X509_STORE_CTX_init(crlStoreCtx, sslCRLStore, NULL, NULL);
@@ -289,6 +290,30 @@ int SSLCallback::verificationCRLCallback(
     /// X509_OBJECT_get0_X509_CRL
     // X509_CRL* crl = x509_obj->data.crl;
     X509_CRL* crl = X509_OBJECT_get0_X509_CRL(x509_obj);
+
+# else
+    X509_STORE_CTX crlStoreCtx;
+    X509_STORE_CTX_init(&crlStoreCtx, sslCRLStore, NULL, NULL);
+
+    PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4,
+        "---> SSL: Initialized CRL store");
+
+    //attempt to get a CRL issued by the certificate's issuer
+    X509_OBJECT obj;
+    if (X509_STORE_get_by_subject(
+            &crlStoreCtx, X509_LU_CRL, issuerName, &obj) <= 0)
+    {
+        X509_STORE_CTX_cleanup(&crlStoreCtx);
+        PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL3,
+            "---> SSL: No CRL by that issuer");
+        PEG_METHOD_EXIT();
+        return 0;
+    }
+    X509_STORE_CTX_cleanup(&crlStoreCtx);
+
+    //get CRL
+    X509_CRL* crl = obj.data.crl;
+#endif
 
     if (crl == NULL)
     {
@@ -328,10 +353,15 @@ int SSLCallback::verificationCRLCallback(
     {
         revokedCert = sk_X509_REVOKED_value(X509_CRL_get_REVOKED(crl), i);
         // A matching serial number indicates revocation
+
+#if OPENSSL_API_COMPAT >= 0x10100000L
         // Cannot access serial number in 1.1.0 directly.
-        // NOTE: Why not use X509_CRL_get0_by_serial() or
+        // TODO: Why not use X509_CRL_get0_by_serial() or
         //                 or X509_CRL_get0_by_cert(crl, **ret, *x509)
         if (ASN1_INTEGER_cmp(X509_REVOKED_get0_serialNumber(revokedCert), serialNumber) == 0)
+#else
+        if (ASN1_INTEGER_cmp(revokedCert->serialNumber, serialNumber) == 0)
+#endif
         {
             PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL2,
                 "---> SSL: Certificate is revoked");
@@ -792,7 +822,7 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
         // TLS v1.0, TLSv1.1)
 
         options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_SSLv3;
-#else  TLS1_2_VERSION
+#else  // not TLS1_2_VERSION
         PEG_METHOD_EXIT();
         MessageLoaderParms parms(
             " Common.SSLContext.TLS_1_2_PROTO_NOT_SUPPORTED",
