@@ -43,7 +43,7 @@
 PEGASUS_USING_PEGASUS;
 PEGASUS_USING_STD;
 
-const CIMNamespaceName INTEROPNAMESPACE = CIMNamespaceName("root/PG_InterOp");
+const CIMNamespaceName INTEROPNAMESPACE = CIMNamespaceName("root/interop");
 const CIMNamespaceName
     SOURCENAMESPACE = CIMNamespaceName ("SDKExamples/DefaultCXX");
 static const CIMName
