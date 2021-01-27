@@ -56,6 +56,13 @@
 # include <ILEWrapper/ILEUtilities.h>
 #endif
 
+// If OpenSSL version  1.1.0 or greater set flag
+// Required because of API issues in version
+// 1.1.0
+# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#  define OPENSSL_11
+# endif
+
 typedef struct x509_store_ctx_st X509_STORE_CTX;
 
 PEGASUS_USING_STD;
@@ -261,7 +268,7 @@ int SSLCallback::verificationCRLCallback(
 
     //initialize the CRL store
     // TODO: is this a 1.1.0 change to use pointers
-#if OPENSSL_API_COMPAT >= 0x10100000L
+#ifdef OPENSSL_11
     X509_STORE_CTX* crlStoreCtx = X509_STORE_CTX_new();
 
     X509_STORE_CTX_init(crlStoreCtx, sslCRLStore, NULL, NULL);
@@ -354,7 +361,7 @@ int SSLCallback::verificationCRLCallback(
         revokedCert = sk_X509_REVOKED_value(X509_CRL_get_REVOKED(crl), i);
         // A matching serial number indicates revocation
 
-#if OPENSSL_API_COMPAT >= 0x10100000L
+#ifdef OPENSSL_11
         // Cannot access serial number in 1.1.0 directly.
         // TODO: Why not use X509_CRL_get0_by_serial() or
         //                 or X509_CRL_get0_by_cert(crl, **ret, *x509)
