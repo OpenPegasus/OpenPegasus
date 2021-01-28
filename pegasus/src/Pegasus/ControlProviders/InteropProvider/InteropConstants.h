@@ -149,8 +149,9 @@ const String PEGASUS_INTERNAL_PROVIDER_TYPE(
     "Internal Control Provider");
 const String PEGASUS_INTERNAL_SERVICE_TYPE(
     "Internal Service");
+
 const String PEGASUS_DYNAMIC("__DYNAMIC_");
-// const Uint32 PEGASUS_DYNAMIC_LEN(PEGASUS_DYNAMIC.size());
+const Uint32 PEGASUS_DYNAMIC_LEN(PEGASUS_DYNAMIC.size());
 
 const CIMNamespaceName PEGASUS_NAMESPACENAME_ROOT("root");
 
