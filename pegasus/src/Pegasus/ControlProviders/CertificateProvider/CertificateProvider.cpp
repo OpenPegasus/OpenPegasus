@@ -65,6 +65,11 @@
 PEGASUS_USING_STD;
 PEGASUS_NAMESPACE_BEGIN
 
+// Set flag if OpenSSL version ge 1.1.0
+# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#  define OPENSSL_11
+# endif
+
 // PG_SSLCertificate property names
 static const CIMName ISSUER_NAME_PROPERTY      =
     CIMNameCast("IssuerName");
@@ -534,13 +539,20 @@ inline CIMInstance _getCRLInstance(X509_CRL* xCrl, String host,
         // TODO: 1. Same as code in SSLContext. Make common method
         // 1.1.0 move to use
         // rawSerialNumber = ASN1_INTEGER_get(r->serialNumber);
+#ifndef OPENSSL_11
+        rawSerialNumber = ASN1_INTEGER_get(r->serialNumber);
+#else
         rawSerialNumber = ASN1_INTEGER_get(X509_REVOKED_get0_serialNumber(r));
+#endif
 
         sprintf(serial, "%lu", (unsigned long)rawSerialNumber);
         revokedSerialNumbers.append(String(serial));
         // TODO: change pointer reference for OpenSSL 1.1.x
-        //revocationDate = getDateTime(r->revocationDate);
+#ifndef OPENSSL_11
+        revocationDate = getDateTime(r->revocationDate);
+#else
         revocationDate = getDateTime(X509_REVOKED_get0_revocationDate(r));
+#endif
 
         revocationDates.append(revocationDate);
     }

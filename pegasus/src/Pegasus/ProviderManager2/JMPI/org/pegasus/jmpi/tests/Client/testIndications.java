@@ -49,7 +49,7 @@ public class testIndications
 {
    private final static String className           = "JMPIExpIndication";
    private final static String nameSpaceClass      = "root/SampleProvider";
-   private final static String nameSpaceInterOp    = "root/PG_InterOp";
+   private final static String nameSpaceInterOp    = "root/interop";
    private final static String nameSpaceCIMV2      = "root/cimv2";
 
    private static boolean      DEBUG               = false;
@@ -237,7 +237,7 @@ public class testIndications
 
       try
       {
-         cop = new CIMObjectPath ("PG_NameSpace", "root/PG_InterOp");
+         cop = new CIMObjectPath ("PG_NameSpace", "root/interop");
          enm = cc.enumInstances (cop,
                                  true,   // deepInheritance
                                  true);  // localOnly

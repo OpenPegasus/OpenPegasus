@@ -757,7 +757,7 @@ public class JMPIPropertyProvider
    }
 
    private static final String NAMESPACE               = "root/SampleProvider";
-   private static final String NAMESPACE_INTEROP       = "root/PG_InterOp";
+   private static final String NAMESPACE_INTEROP       = "root/interop";
 
    // Class names
    private static final String CLASS_PROPERTYTYPES     = "JMPIProperty_TestPropertyTypes";
