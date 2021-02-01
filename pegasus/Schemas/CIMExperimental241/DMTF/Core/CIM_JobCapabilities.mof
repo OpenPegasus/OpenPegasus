@@ -1,0 +1,135 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.37.0" ), 
+    UMLPackagePath ( "CIM::Core::Capabilities" ), 
+    Description ( 
+       "CIM_JobCapabilities identifies the capabilities of a job "
+       "created as a result of a Service method." )]
+class CIM_JobCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "This property indicates whether the implementation "
+          "supports a delete operation on CIM_Job. If the value is "
+          "TRUE, CIM_Job.DeleteOnCompletion may be set to TRUE or "
+          "FALSE. If the value is FALSE, CIM_Job.DeleteOnCompletion "
+          "shall be TRUE. \n"
+          "\n"
+          "If DeleteJobSupported is FALSE and "
+          "CIM_Job.DeleteOnCompletion is TRUE, the job should "
+          "remain available for the ConcreteJob.TimeBeforeRemoval "
+          "time interval.\n"
+          "If DeleteJobSupported is TRUE and a DeleteInstance is "
+          "never issued, the job may be deleted after the "
+          "CleanupInterval time delay." ), 
+       ModelCorrespondence { "CIM_Job.DeleteOnCompletion", 
+          "CIM_JobCapabilities.CleanupInterval", 
+          "CIM_ConcreteJob.TimeBeforeRemoval" }]
+   boolean DeleteJobSupported;
+
+      [Description ( 
+          "The RequestedStatesSupported property indicates the "
+          "possible states that can be requested when using the "
+          "method RequestStateChange on the ConcreteJob." ), 
+       ValueMap { "2", "3", "4", "5", "6", "..", "32768..65535" }, 
+       Values { "Start", "Suspend", "Terminate", "Kill", "Service", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_ConcreteJob.RequestStateChange" }]
+   uint16 RequestedStatesSupported[];
+
+      [Description ( 
+          "This property indicates the maximum value for "
+          "CIM_JobSettingData.InteractiveTimeout." ), 
+       ModelCorrespondence { "CIM_JobSettingData.InteractiveTimeout" }]
+   datetime InteractiveTimeoutMax;
+
+      [Description ( 
+          "This property indicates whether the implementation will "
+          "supply default input values for an interactive job when "
+          "a client fails to respond. If the value is TRUE, "
+          "CIM_JobSettingData.DefaultInputValues and "
+          "CIM_JobSettingData.DefaultInputNames shall have values.\n"
+          "This property should be FALSE if "
+          "CIM_JobCapabilities.Characteristics does not contain 3 "
+          "(Is Interactive).\n"
+          "If this property is TRUE, then "
+          "CIM_JobSettingData.InteractiveTimeout and "
+          "CIM_JobSettingData.ClientRetries should have values." ), 
+       ModelCorrespondence { 
+          "CIM_JobSettingData.DefaultInputValues", 
+          "CIM_JobSettingData.DefaultInputNames", 
+          "CIM_JobSettingData.InteractiveTimeout", 
+          "CIM_JobSettingData.ClientRetries", 
+          "CIM_JobCapabilities.Characteristics" }]
+   boolean DefaultValuesSupported;
+
+      [Description ( 
+          "This property indicates the maximum value of "
+          "CIM_JobSettingData.ClientRetries." ), 
+       ModelCorrespondence { "CIM_JobSettingData.ClientRetries" }]
+   uint32 ClientRetriesMax;
+
+      [Description ( 
+          "This property indicates the time interval an "
+          "implementation shall wait before removing a job when the "
+          "value of CIM_Job.DeleteOnCompletion is FALSE." ), 
+       ModelCorrespondence { "CIM_Job.DeleteOnCompletion" }]
+   datetime CleanupInterval;
+
+      [Description ( 
+          "If an interactive job will support running in \"silent "
+          "mode\", then this shall be set to TRUE. If the job\n"
+          "cannot support \"silent mode\", then this shall be set "
+          "to FALSE. If the job is not interactive, then this "
+          "should be NULL or set to TRUE." ), 
+       ModelCorrespondence { "CIM_JobSettingData.RunInSilentMode" }]
+   boolean SilentModeSupported;
+
+      [Description ( 
+          "This specifies the characteristics that are supported by "
+          "the job. The possible values are 0 (none), 1 (Other), 2 "
+          "(Is Exclusive) or 3 (Is Interactive).\n"
+          "* \"none\" (value=0) is specified if no special "
+          "characteristics apply. No other value should be "
+          "specified if 0 is specified.\n"
+          "* \"Other\" (value=1) is specified if the job supports "
+          "vendor specific characteristics. If this is specified, "
+          "then OtherCharacteristicsDescriptions shall also be specified.\n"
+          "* \"Is Exclusive\" (value=2) is specified for the job "
+          "only if the method cannot run more than one at a time on "
+          "the affected job element. Typically, this occurs when "
+          "hardware or software constrains prevent the method from "
+          "running as multiple, concurrent instances.\n"
+          "* If \"Is Interactive\" (value=3) is set, then the "
+          "method issues a message during the method execution "
+          "requesting input or actions from the client application." ), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "none", "other", "Is Exclusive", "Is Interactive" }]
+   string Characteristics[];
+
+      [Description ( 
+          "This array of strings is for identifying vendor specific "
+          "characteristics. This shall be identified if the "
+          "Characteristics property contains 1 (Other)." ), 
+       ModelCorrespondence { "CIM_JobCapabilities.Characteristics" }]
+   string OtherCharacteristicsDescriptions[];
+
+      [Description ( 
+          "This string array contains the method names of the "
+          "methods to which these capabilities apply. The methods "
+          "must be contained in a CIM_Service associated with this "
+          "CIM_JobCapabilities." )]
+   string ApplicableMethods[];
+
+      [Description ( 
+          "This is the minimum value supported for the "
+          "CIM_ConcreteJob.TimeBeforeRemoval for the job instances "
+          "that are subject to these capabilities." )]
+   datetime TimeBeforeRemovalMin;
+
+      [Description ( 
+          "This is the maximum value supported for the "
+          "CIM_ConcreteJob.TimeBeforeRemoval for the job instances "
+          "that are subject to these capabilities." )]
+   datetime TimeBeforeRemovalMax;
+
+
+};

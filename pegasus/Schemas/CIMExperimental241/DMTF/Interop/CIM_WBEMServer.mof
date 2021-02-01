@@ -1,0 +1,59 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Version ( "2.38.0" ), 
+    UMLPackagePath ( "CIM::Interop::WBEMServer" ), 
+    Description ( 
+       "CIM_WBEMServer represents a WBEMServer and serves as an "
+       "aggregation point for the WBEM Server settings, capabilities, "
+       "services, protocols, etc." )]
+class CIM_WBEMServer : CIM_Service {
+
+      [Required, Override ( "Description" ), 
+       Description ( 
+          "The Description of the WBEM Server (e.g. ACME WBEM Server 1.0.0)."
+           )]
+   string Description;
+
+      [Required, Override ( "ElementName" ), 
+       Description ( 
+          "The ElementName property is used as a name of the WBEM "
+          "Server for human interfaces. For example, \"ACME WBEM "
+          "Server\")." )]
+   string ElementName;
+
+      [Key, Override ( "Name" ), 
+       Description ( 
+          "The Name property is used to uniquely identify a WBEM "
+          "Server. The WBEM Server shall ensure that this value is "
+          "globally unique." ), 
+       MaxLen ( 256 )]
+   string Name;
+
+
+      [Description ( 
+          "CreateNamespace creates an Namespace. Upon successful "
+          "completion of the method, there shall be a newly created "
+          "instance of CIM_WBEMServerNamespace associated through "
+          "the CIM_HostedDependency association with this instance "
+          "of CIM_WBEMServer." ), 
+       ValueMap { "0", "1", ".." }, 
+       Values { "Completed with No Error", "Failed", "DMTF Reserved" }]
+   uint32 CreateWBEMServerNamespace(
+         [Required, Description ( 
+             "NamespaceTemplate is a template for the desired "
+             "Namespace to be created." ), 
+          EmbeddedInstance ( "CIM_WBEMServerNamespace" )]
+      string NamespaceTemplate, 
+         [In ( false ), Out, Description ( 
+             "Reference to the instance of "
+             "CIM_WBEMServerNamespace created when the method "
+             "returns a value of 0." )]
+      CIM_WBEMServerNamespace REF Namespace, 
+         [In ( false ), Out, Description ( 
+             "Error information for this method. This coudl "
+             "include any information the implementation wants "
+             "to return during the process of this method, even "
+             "if completed successfully." ), 
+          EmbeddedInstance ( "CIM_Error" )]
+      string Errors[]);
+
+};

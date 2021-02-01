@@ -1,0 +1,60 @@
+// Copyright (c) 2007 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.17.1" ), 
+    UMLPackagePath ( "CIM::User::Identity" ), 
+    Description ( 
+       "An instance of RemoteIdentity is an Identity that should be "
+       "used to provide a persistent representation of a security "
+       "principal for which authoritative information required for "
+       "mapping to users or groups is not otherwise modeled." )]
+class CIM_RemoteIdentity : CIM_Identity {
+
+      [Description ( 
+          "Name is an octet string representing an identifier that "
+          "can be correlated to the authoritative information. The "
+          "type and format are defined by the NameFormat and "
+          "OtherNameFormat properties." ), 
+       OctetString, ModelCorrespondence { 
+          "CIM_RemoteIdentity.NameFormat" }]
+   uint8 Name[];
+
+      [Description ( 
+          "An enumeration defining the type and format of Name.\n"
+          "\t* GID: A Unix Group ID, an integer encoded as an octet "
+          "string. For example, the decimal value 25 results in the "
+          "octet string 0x00000005 0x19.\n"
+          "\t* UID: A Unix User ID, an integer encoded as an octet "
+          "string. For example, the decimal value 100 results in "
+          "the octet string 0x00000005 0x64.\n"
+          "\t* SID: A Windows Security ID in its native binary "
+          "encoding, embedded in an octet string. For example, the "
+          "SID0x01020000 0x00000005 0x20000000 0x20020000 results "
+          "in the octet string 0x00000014 0x01020000 0x00000005 "
+          "0x20000000 0x20020000.\n"
+          "\t* DN: An LDAP Distinguished Name encoded according to "
+          "the ASN.1 Distinguished Encoding Rules (DER), embedded "
+          "in an octet string. For example, a Distinguished Name "
+          "ASN.1 DER encoding that starts with the header 0x3081DE "
+          "(which represents an ASN.1 SEQUENCE 0xDE = 222 bytes in "
+          "length, not including the header) results in an octet "
+          "string that starts with the bytes 0x000000E5 0x3081DE. "
+          "The ASN.1 Distinguished Encoding Rules are specified in X.690.\n"
+          "\t* KID: A Kerberos Remote Identifier, encoded as a "
+          "UTF-8 string embedded in an octet string. For example, "
+          "the KID \"Jane Doe\" results in the octet string "
+          "0x0000000C 0x4A616E65 0x20446F65." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", ".." }, 
+       Values { "Other", "GID", "UID", "SID", "DN", "KID", 
+          "DMTF Reserved" }, 
+       ModelCorrespondence { "CIM_RemoteIdentity.Name", 
+          "CIM_RemoteIdentity.OtherNameFormat" }]
+   uint16 NameFormat;
+
+      [Description ( 
+          "OtherNameFormat is a string that describes the format of "
+          "the Name property when NameFormat is set to \"Other\" . "
+          "The format of this string is vendor specific." ), 
+       ModelCorrespondence { "CIM_RemoteIdentity.NameFormat" }]
+   string OtherNameFormat;
+
+
+};

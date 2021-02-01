@@ -1,0 +1,2394 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.41.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "The ReplicationService class provides methods to allow a "
+       "client to manage copy operations on storage objects, including "
+       "management of replication groups, manipulation of replication "
+       "operations, and retrieval of replication relationships." )]
+class CIM_ReplicationService : CIM_Service {
+
+
+      [Description ( "Create a new replication group." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", 
+          "Groups are not nameable", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 CreateGroup(
+         [IN, Description ( 
+             "If nameable, an end user relevant name for the "
+             "group being created. If NULL or not nameable, then "
+             "system assigns a name." )]
+      string GroupName, 
+         [IN, Description ( 
+             "List of elements to add to the group -- order is "
+             "maintained. If NULL, the group will be empty -- if "
+             "empty groups are supported." )]
+      CIM_LogicalElement REF Members[], 
+         [IN, Description ( 
+             "If false, the group, not the elements associated "
+             "with the group, may be deleted at the completion "
+             "of a copy operation. Use the intrinsic method "
+             "ModifyInstance to change Persistency of a group." )]
+      boolean Persistent, 
+         [IN, Description ( 
+             "If true and empty groups are allowed, the group "
+             "will be deleted when the last element is removed "
+             "from the group. If empty groups are not allowed, "
+             "the group will be deleted automatically when the "
+             "group becomes empty. If this parameter is not "
+             "NULL, its value will be used to set the group\'s "
+             "DeleteOnEmptyElement property. Use the intrinsic "
+             "method ModifyInstance to change this property "
+             "after the group is created." )]
+      boolean DeleteOnEmptyElement, 
+         [IN, Description ( 
+             "If true, the group will be deleted when the group "
+             "is no longer associated with another group. This "
+             "can happen if all synchronization associations to "
+             "the individual elements of the group are "
+             "dissolved. If this parameter is not NULL, its "
+             "value will be used to set the group\'s "
+             "DeleteOnUnassociated property. Use the intrinsic "
+             "method ModifyInstance to change this property "
+             "after the group is created." )]
+      boolean DeleteOnUnassociated, 
+         [IN, Description ( 
+             "Reference to access point information to allow the "
+             "service to create a group on a remote system. If "
+             "NULL, the group is created on the local system." )]
+      CIM_ServiceAccessPoint REF ServiceAccessPoint, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created group." )]
+      CIM_ReplicationGroup REF ReplicationGroup, 
+         [IN, Description ( 
+             "If supplied, it provides additional replication "
+             "settings for the method. For example, to supply "
+             "the \"Description\" for the created group." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN, Description ( 
+             "The created group is reserved to be the source or "
+             "the target of a copy operation. \n"
+             "If not supplied, the group can be either the "
+             "source or the target (4)." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Source Only", "Target Only", 
+             "Source or Target", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 ReservedAs);
+
+      [Description ( "Delete a replication group." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", 
+          "One or more elements in a replication relationship", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint32 DeleteGroup(
+         [Required, IN, Description ( 
+             "Reference to a replication group." )]
+      CIM_ReplicationGroup REF ReplicationGroup, 
+         [IN, Description ( 
+             "Reference to access point information to allow the "
+             "service to delete the group on a remote system." )]
+      CIM_ServiceAccessPoint REF ServiceAccessPoint, 
+         [IN, Description ( 
+             "Delete the group even if it is not empty. If one "
+             "or more elements in the group are in a replication "
+             "relationship, RemoveElements has no effect." )]
+      boolean RemoveElements, 
+         [IN, Description ( 
+             "If supplied, it provides additional replication "
+             "settings for the method. For example, what should "
+             "happen OnGroupOrListError." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData);
+
+      [Description ( "Add members to an existing replication group." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", 
+          "Group does not exist", "DMTF Reserved", "Vendor Specific" }]
+   uint32 AddMembers(
+         [IN, Description ( 
+             "List of elements to add to the group. New members "
+             "are added, in the order supplied, to the end of "
+             "the existing members of the group. It is not an "
+             "error, if a new member is already in the group." )]
+      CIM_LogicalElement REF Members[], 
+         [Required, IN, Description ( 
+             "Reference to an existing replication group." )]
+      CIM_ReplicationGroup REF ReplicationGroup, 
+         [IN, Description ( 
+             "Reference to access point information to allow the "
+             "service to access the group on a remote system." )]
+      CIM_ServiceAccessPoint REF ServiceAccessPoint, 
+         [IN, Description ( 
+             "If supplied, it provides additional replication "
+             "settings for the method. For example, what should "
+             "happen OnGroupOrListError." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData);
+
+      [Description ( "Remove members from a replication group." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "..", 
+          "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", 
+          "Group does not exist", "Member not in group", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint32 RemoveMembers(
+         [IN, Description ( 
+             "List of elements to remove from a group. A member "
+             "can not be removed if it is in a replication "
+             "relationship. Deleting all members of a group is "
+             "equivalent to deleting the group if empty groups "
+             "are not supported by the implementation." )]
+      CIM_LogicalElement REF Members[], 
+         [IN, Description ( 
+             "If true and removal of the members causes the "
+             "group to become empty, the group will be deleted. "
+             "Note, if empty groups are not allowed, the group "
+             "will be deleted automatically when the group "
+             "becomes empty. If this parameter is not NULL, it "
+             "overrides the group\'s property "
+             "DeleteOnEmptyElement." )]
+      boolean DeleteOnEmptyElement, 
+         [Required, IN, Description ( 
+             "Reference to an existing replication group." )]
+      CIM_ReplicationGroup REF ReplicationGroup, 
+         [IN, Description ( 
+             "Reference to access point information to allow the "
+             "service to access the group on a remote system." )]
+      CIM_ServiceAccessPoint REF ServiceAccessPoint, 
+         [IN, Description ( 
+             "If supplied, it provides additional replication "
+             "settings for the method. For example, what should "
+             "happen OnGroupOrListError." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData);
+
+      [Description ( 
+          "Create (or start a job to create) a new storage object, "
+          "which is a replica of the specified source storage "
+          "object (SourceElement). Note that using the input "
+          "parameter, SyncType, this function can be used to "
+          "instantiate the replica, and to create an ongoing "
+          "association between the source and replica. If 0 is "
+          "returned, the function completed successfully and no "
+          "ConcreteJob instance created. If 4096/0x1000 is "
+          "returned, a ConcreteJob is started, a reference to which "
+          "is returned in the Job output parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateElementReplica(
+         [IN, Description ( 
+             "A end user relevant name for the element being "
+             "created. If NULL, then a system supplied default "
+             "name can be used. The value will be stored in the "
+             "\'ElementName\' property for the created element." )]
+      string ElementName, 
+         [Required, IN, Description ( 
+             "SyncType describes the type of copy that will be made."
+              ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Mode describes whether the target elements will be "
+             "updated synchronously or asynchronously. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes. \n"
+             "If NULL, implementation decides the mode." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [Required, IN, Description ( 
+             "The source storage object which may be a "
+             "StorageVolume or other storage objects." )]
+      CIM_LogicalElement REF SourceElement, 
+         [IN, Description ( 
+             "Reference to source access point information. If "
+             "NULL, service does not need access information to "
+             "access the source element." )]
+      CIM_ServiceAccessPoint REF SourceAccessPoint, 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a target "
+             "element to use. As an output, refers to the "
+             "created target storage element (i.e., the "
+             "replica). If a job is created, the target element "
+             "may not be available immediately." )]
+      CIM_LogicalElement REF TargetElement, 
+         [IN, Description ( 
+             "Reference to target access point information. If "
+             "NULL, service does not need access information to "
+             "access the target elements." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created association between the "
+             "source and the target element. If a job is "
+             "created, this parameter may be NULL unless the "
+             "association is actually formed." )]
+      CIM_Synchronized REF Synchronization, 
+         [IN, Description ( 
+             "The definition for the SettingData to be "
+             "maintained by the target storage object (the "
+             "replica). If a target element is supplied, this "
+             "parameter shall be NULL." )]
+      CIM_SettingData REF TargetSettingGoal, 
+         [IN, Description ( 
+             "The underlying storage for the target element (the "
+             "replica) will be drawn from TargetPool if "
+             "specified, otherwise the allocation is "
+             "implementation specific. If a target element is "
+             "supplied, this parameter shall be NULL." )]
+      CIM_ResourcePool REF TargetPool, 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the data flow remains idle until it "
+             "is activated. Synchronized: Replicas are an exact "
+             "copy of the source. UnSynchronized: Copy operation "
+             "is in progress." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState, 
+         [IN, Description ( 
+             "Reference to the ConnectivityCollection - for "
+             "example, a RemoteReplicationCollection. Since a "
+             "RemoteReplicationCollection aggregates the "
+             "ProtocolEndpoints that provide the paths to a "
+             "remote system, generally, it is not necessary to "
+             "supply both the ConnectivityCollection and the "
+             "ServiceAccessPoint." )]
+      CIM_ConnectivityCollection REF ConnectivityCollection, 
+         [IN, Description ( 
+             "The target elements are added to each referenced "
+             "collection, for example, DeviceMaskingGroups." )]
+      CIM_Collection REF Collections[]);
+
+      [Description ( 
+          "Create (or start a job to create) a new group of storage "
+          "objects which are replicas of the specified source "
+          "storage or a group of source storage objects "
+          "(SourceElements). Note that using the input parameter, "
+          "SyncType, this function can be used to instantiate the "
+          "replicas, and to create an ongoing association between "
+          "the source(s) and replicas. If 0 is returned, the "
+          "function completed successfully and no ConcreteJob "
+          "instance is created. If 4096/0x1000 is returned, a "
+          "ConcreteJob is started, a reference to which is returned "
+          "in the Job output parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateGroupReplica(
+         [IN, Description ( 
+             "A user relevant name for the relationship between "
+             "the source and target groups or between a source "
+             "element and a target group (i.e. one-to-many). If "
+             "NULL, the implementation assigns a name. If the "
+             "individual target elements require an ElementName, "
+             "the implementation constructs an appropriate "
+             "ElementName using the RelationshipName. For "
+             "example, RelationshipName as a prefix followed by "
+             "\"_n\" sequence number, where n is a number "
+             "beginning with 1." )]
+      string RelationshipName, 
+         [Required, IN, Description ( 
+             "SyncType describes the type of copy that will be made."
+              ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Mode describes whether the target elements will be "
+             "updated synchronously or asynchronously. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes. \n"
+             "If NULL, implementation decides the mode." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [IN, Description ( 
+             "A group of source storage objects which may be one "
+             "or more StorageVolumes or other storage objects. "
+             "If this parameter is not supplied, SourceElement "
+             "is required. Both SourceGroup and SourceElement "
+             "shall not be supplied." )]
+      CIM_ReplicationGroup REF SourceGroup, 
+         [IN, Description ( 
+             "The source storage object which may be a "
+             "StorageVolume or other storage objects. If this "
+             "parameter is not supplied, SourceGroup is "
+             "required. Both SourceGroup and SourceElement shall "
+             "not be supplied." )]
+      CIM_LogicalElement REF SourceElement, 
+         [IN, Description ( 
+             "Reference to source access point information. If "
+             "NULL, service does not need access information to "
+             "access the source element." )]
+      CIM_ServiceAccessPoint REF SourceAccessPoint, 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a target group "
+             "to use. As an output, refers to the created target "
+             "group (i.e., the replica group). If a job is "
+             "created, the target group may not be available "
+             "immediately. If TargetGroup is supplied, "
+             "TargetElementCount shall be NULL." )]
+      CIM_ReplicationGroup REF TargetGroup, 
+         [IN, Description ( 
+             "This parameter applies to "
+             "one-source-to-many-target- elements. It is "
+             "possible to create multiple copies of a source "
+             "element. If TargetGroup is supplied, this "
+             "parameter shall be NULL." )]
+      uint64 TargetElementCount, 
+         [IN, Description ( 
+             "Reference to target access point information. If "
+             "NULL, service does not need access information to "
+             "access the target element/group." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN, Description ( 
+             "Overrides the default group consistency." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "No Consistency", "Sequential Consistency", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Consistency, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created group association between "
+             "the source and the target elements. If a job is "
+             "created, this parameter may be NULL until the "
+             "association is actually formed." )]
+      CIM_Synchronized REF Synchronization, 
+         [IN, Description ( 
+             "The definition for the SettingData to be "
+             "maintained by the target storage objects (the "
+             "replicas). If target elements are supplied, this "
+             "parameter shall be NULL." )]
+      CIM_SettingData REF TargetSettingGoal, 
+         [IN, Description ( 
+             "The underlying storage for the target elements "
+             "(the replicas) will be drawn from TargetPool if "
+             "specified, otherwise the allocation is "
+             "implementation specific. If target elements are "
+             "supplied, this parameter shall be NULL." )]
+      CIM_ResourcePool REF TargetPool, 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the data flow remains idle until it "
+             "is activated. Synchronized: Replicas are an exact "
+             "copy of the source. UnSynchronized: Copy operation "
+             "is in progress." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState, 
+         [IN, Description ( 
+             "Reference to the ConnectivityCollection - for "
+             "example, a RemoteReplicationCollection. Since a "
+             "RemoteReplicationCollection aggregates the "
+             "ProtocolEndpoints that provide the paths to a "
+             "remote system, generally, it is not necessary to "
+             "supply both the ConnectivityCollection and the "
+             "ServiceAccessPoint." )]
+      CIM_ConnectivityCollection REF ConnectivityCollection, 
+         [IN, Description ( 
+             "The target elements are added to each referenced "
+             "collection, for example, DeviceMaskingGroups." )]
+      CIM_Collection REF Collections[]);
+
+      [Description ( 
+          "Create (or start a job to create) a new point-in-time "
+          "representation of a source element. This representation "
+          "may be of a form of pointers that keep track of data at "
+          "the time the point-in-time was created, or a series "
+          "checkpoints that capture the view of data on the source "
+          "elements at the time of point-in-time. This method does "
+          "not include a target element, however, a target element "
+          "can be added subsequently using the "
+          "ModifySettingsDefineState method. If the method executes "
+          "successfully, a SettingsDefineState association is "
+          "created between the source element and the "
+          "SynchronizationAspect, which will have the datetime of "
+          "the point-in-time." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateSynchronizationAspect(
+         [IN, Description ( 
+             "A end user relevant name for the element or "
+             "relationship being created. If NULL, then a system "
+             "supplied default name can be used. The value will "
+             "be stored in the ElementName or relationship name "
+             "depending on whether an element is created or a "
+             "group." )]
+      string Name, 
+         [Required, IN, Description ( 
+             "SyncType describes the type of copy that will be made."
+              ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Mode describes whether the target elements will be "
+             "updated synchronously or asynchronously. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes. \n"
+             "If NULL, implementation decides the mode." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [IN, Description ( 
+             "A group of source storage objects which may be one "
+             "or more StorageVolumes or other storage objects. "
+             "If this parameter is not supplied, SourceElement "
+             "is required. Both SourceGroup and SourceElement "
+             "shall not be supplied." )]
+      CIM_ReplicationGroup REF SourceGroup, 
+         [IN, Description ( 
+             "The source storage object which may be a "
+             "StorageVolume or other storage objects. If this "
+             "parameter is not supplied, SourceGroup is "
+             "required. Both SourceGroup and SourceElement shall "
+             "not be supplied." )]
+      CIM_ManagedElement REF SourceElement, 
+         [IN, Description ( 
+             "Reference to source access point information. If "
+             "NULL, service does not need access information to "
+             "access the source element/group." )]
+      CIM_ServiceAccessPoint REF SourceAccessPoint, 
+         [IN, Description ( 
+             "Overrides the default group consistency." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "No Consistency", "Sequential Consistency", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Consistency, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created association between the "
+             "source element or group and an instance of "
+             "SynchronizationAspect. If a job is created, this "
+             "parameter may be NULL unless the association is "
+             "actually formed." )]
+      CIM_SettingsDefineState REF SettingsState);
+
+      [Description ( 
+          "Modify (or start a job to modify) the synchronization "
+          "association between two storage objects or replication "
+          "groups. If 0 is returned, the function completed "
+          "successfully and no ConcreteJob instance was created. If "
+          "0x1000 is returned, a ConcreteJob was started and a "
+          "reference to this Job is returned in the Job output "
+          "parameter. A return value of 1 indicates the method is "
+          "not supported. All other values indicate some type of "
+          "error condition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ModifyReplicaSynchronization(
+         [Required, IN, Description ( 
+             "Operation describes the type of modification to be "
+             "made to the replica and/or to the related "
+             "associations. \n"
+             "Abort: Abort the copy operation if it is possible. "
+             "Activate Consistency: if consistency was not "
+             "requested when CreateGroupReplica was called. If "
+             "Consistency is already active, no modification is "
+             "made. \n"
+             "Activate: Activate an inactive or prepared "
+             "Synchronized association. \n"
+             "AddSyncPair: Add pairs of elements already in a "
+             "relationship to source and target groups -- see "
+             "SyncPair parameter. \n"
+             "Deactivate Consistency: Deactivate consistency. If "
+             "consistency was not enabled, this operation has no "
+             "effect. \n"
+             "Deactivate: Stop the data flow. Writes to source "
+             "element are not copied to target. For Snapshots, "
+             "writes to target are lost as the pointers to "
+             "changed data are deleted. \n"
+             "Detach: \'Forget\' the synchronization between two "
+             "storage objects. Start to treat the objects as "
+             "independent. \n"
+             "Dissolve: Dissolve the synchronization between two "
+             "storage objects, however, the target element "
+             "continues to exist. \n"
+             "Failover: Use the target element as the source "
+             "elements. \n"
+             "Failback: Reverse the effect of failback. \n"
+             "Fracture: Suspend the synchronization between two "
+             "storage objects. The association and (typically) "
+             "changes are remembered to allow a fast "
+             "resynchronization. This may be used during a "
+             "backup cycle to allow one of the objects to be "
+             "copied while the other remains in production. \n"
+             "RemoveSyncPair: Remove the pair associated via "
+             "StorageSynchronized from the source and target "
+             "groups. The pair continue to remain associated but "
+             "not in the groups. \n"
+             "Resync Replica: Re-establish the synchronization. "
+             "This will negate the action of a previous "
+             "Fracture/Split operation. Recreate a Point In Time "
+             "image for a Snapshot or a Clone replication. "
+             "Restart a Broken or Aborted synchronization "
+             "relationship. \n"
+             "Restore from Replica: Renew the contents of the "
+             "original storage object from a replica. \n"
+             "Resume: Continue the copy operation of a suspended "
+             "association. \n"
+             "Reset To Sync: Change the Mode of the copy "
+             "operation to Synchronous (e.g., from the "
+             "Asynchronous Mode). \n"
+             "Reset To Async: Change the Mode of the copy "
+             "operation to Asynchronous (e.g., from the "
+             "Synchronous Mode). \n"
+             "Return to ResourcePool: Dissolve a snapshot and "
+             "free up its space back to the storage pool. \n"
+             "Reverse Roles: Source element becomes the target "
+             "element and vise versa. \n"
+             "Split: Same as Fracture, however steps are taken "
+             "to ensure the target elements are consistent. For "
+             "example, stop I/O to source elements, wait for "
+             "in-transit copy operations between source and "
+             "target elements to stop, then instantly split "
+             "source/target groups/elements. Suspend: Stop the "
+             "background copy previously started. \n"
+             "Unprepare: note, this operation has been "
+             "deprecated. Use \"Prepare\" instead. \n"
+             "Prepare: Causes the synchronization to be "
+             "reinitialized. \n"
+             "Reset To Adaptive: Change the Mode of the copy "
+             "operation to Adaptive." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "11", "12", "13", "14", "15", "16", "17", 
+             "18", "19", "20", "21", "22", "23", "24", "25", 
+             "..", "0x8000..0xFFFF" }, 
+          Values { "Abort", "Activate Consistency", "Activate", 
+             "AddSyncPair", "Deactivate Consistency", 
+             "Deactivate", "Detach", "Dissolve", "Failover", 
+             "Failback", "Fracture", "RemoveSyncPair", 
+             "Resync Replica", "Restore from Replica", "Resume", 
+             "Reset To Sync", "Reset To Async", 
+             "Return To ResourcePool", "Reverse Roles", "Split", 
+             "Suspend", "Unprepare", "Prepare", 
+             "Reset to Adaptive", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Operation, 
+         [Required, IN, Description ( 
+             "The reference to the replication association "
+             "describing the elements/groups relationship." )]
+      CIM_Synchronized REF Synchronization, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN, Description ( 
+             "This parameter applies to "
+             "AddSyncPair/RemoveSyncPair Operations." )]
+      CIM_Synchronized REF SyncPair[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the association between the source "
+             "element and an instance of SynchronizationAspect. "
+             "This parameters applies to operations such as "
+             "Dissolve, which dissolves the Synchronized "
+             "relationship, but causes the SettingDefineState "
+             "association to be created." )]
+      CIM_SettingsDefineState REF SettingsState, 
+         [IN, Description ( 
+             "Some operations may cause an inconsistency among "
+             "the target elements. If true, the client is not "
+             "warned and the operation is performed." )]
+      boolean Force, 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the data flow remains idle until it "
+             "is activated. Synchronized: Replicas are an exact "
+             "copy of the source. UnSynchronized: Copy operation "
+             "is in progress. Fractured/Split: Target elements "
+             "are separated from the source elements. Etc." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState, 
+         [IN ( false ), OUT, Description ( 
+             "If the operation updates the keys of the supplied "
+             "Synchronization parameter, a reference to the "
+             "updated Synchronization parameter is returned in "
+             "this parameter." )]
+      CIM_Synchronized REF UpdatedSynchronization);
+
+      [Description ( 
+          "Modify (or start a job to modify) an array of "
+          "synchronization associations between two storage objects "
+          "or replication groups. If 0 is returned, the function "
+          "completed successfully and no ConcreteJob instance was "
+          "created. If 4096 is returned, a ConcreteJob was started "
+          "and a reference to this Job is returned in the Job "
+          "output parameter. A return value of 1 indicates the "
+          "method is not supported. All other values indicate some "
+          "type of error condition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ModifyListSynchronization(
+         [Required, IN, Description ( 
+             "Operation describes the type of modification to be "
+             "made to the replica and/or to the related "
+             "associations. \n"
+             "Abort: Abort the copy operation if it is possible. "
+             "Activate: Activate an inactive or prepared "
+             "Synchronized association. \n"
+             "Deactivate: Stop the data flow. Writes to source "
+             "element are not copied to target. For Snapshots, "
+             "writes to target are lost as the pointers to "
+             "changed data are deleted. \n"
+             "Detach: \'Forget\' the synchronization between two "
+             "storage objects. Start to treat the objects as "
+             "independent. \n"
+             "Dissolve: Dissolve the synchronization between two "
+             "storage objects, however, the target element "
+             "continues to exist. \n"
+             "Failover: Use the target element as the source "
+             "elements. \n"
+             "Failback: Reverse the effect of failback. \n"
+             "Fracture: Suspend the synchronization between two "
+             "storage objects using Mirror or Snapshot "
+             "replication. The association and (typically) "
+             "changes are remembered to allow a fast "
+             "resynchronization. This may be used during a "
+             "backup cycle to allow one of the objects to be "
+             "copied while the other remains in production. \n"
+             "Resync Replica: Re-establish the synchronization. "
+             "This will negate the action of a previous "
+             "Fracture/Split operation. Recreate a Point In Time "
+             "image for a Snapshot or a Clone replication. "
+             "Restart a Broken or Aborted synchronization "
+             "relationship. \n"
+             "Restore from Replica: Renew the contents of the "
+             "original storage object from a replica. \n"
+             "Resume: Continue the copy operation of a suspended "
+             "association. \n"
+             "Reset To Sync: Change the Mode of the copy "
+             "operations to Synchronous (e.g., from the "
+             "Asynchronous Mode). \n"
+             "Reset To Async: Change the Mode of the copy "
+             "operations to Asynchronous (e.g., from the "
+             "Synchronous Mode). \n"
+             "Return to ResourcePool: Dissolve a snapshot and "
+             "free up its space back to the storage pool. \n"
+             "Reverse Roles: Source element becomes the target "
+             "element and vise versa. \n"
+             "Split: Same as Fracture, however steps are taken "
+             "to ensure the target elements are consistent. For "
+             "example, stop I/O to source elements, wait for "
+             "in-transit copy operations between source and "
+             "target elements to stop, then instantly split "
+             "source/target groups/elements. \n"
+             "Suspend: Stop the background copy previously "
+             "started. \n"
+             "Unprepare: note, this operation has been "
+             "deprecated. Use \"Prepare\" instead. \n"
+             "Prepare: Causes the synchronization to be "
+             "reinitialized. \n"
+             "Reset To Adaptive: Change the Mode of the copy "
+             "operation to Adaptive." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "11", "12", "13", "14", "15", "16", "17", 
+             "18", "19", "20", "21", "22", "23", "24", "25", 
+             "..", "0x8000..0xFFFF" }, 
+          Values { "Abort", "DMTF Reserved", "Activate", 
+             "DMTF Reserved", "DMTF Reserved", "Deactivate", 
+             "Detach", "Dissolve", "Failover", "Failback", 
+             "Fracture", "DMTF Reserved", "Resync Replica", 
+             "Restore from Replica", "Resume", "Reset To Sync", 
+             "Reset To Async", "Return To ResourcePool", 
+             "Reverse Roles", "Split", "Suspend", "Unprepare", 
+             "Prepare", "Reset to Adaptive", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Operation, 
+         [Required, IN, Description ( 
+             "Array of replication associations describing the "
+             "elements/groups relationship. All elements of this "
+             "array shall be the same concrete class, i.e. "
+             "StorageSynchronized or GroupSynchronized, and "
+             "shall have the same SyncType, the same Mode, and "
+             "the Operation must be valid for the "
+             "ReplicationType -- SyncType, Mode, Local/Remote." )]
+      CIM_Synchronized REF Synchronization[], 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "References to the associations between the source "
+             "element and an instance of SynchronizationAspect. "
+             "This parameters applies to operations such as "
+             "Dissolve, which dissolves the Synchronized "
+             "relationship, but causes the SettingDefineState "
+             "association to be created.." )]
+      CIM_SettingsDefineState REF SettingsState[], 
+         [IN, Description ( 
+             "Some operations may cause an inconsistency among "
+             "the target elements. If true, the client is not "
+             "warned and the operation is performed." )]
+      boolean Force, 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the data flow remains idle until it "
+             "is activated. Synchronized: Replicas are an exact "
+             "copy of the source. UnSynchronized: Copy operation "
+             "is in progress. Fractured/Split: Target elements "
+             "are separated from the source elements. Etc." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState, 
+         [IN ( false ), OUT, Description ( 
+             "If the operation updates the keys of the supplied "
+             "synchronizations in the Synchronization parameter, "
+             "references to the updated synchronizations are "
+             "returned in this parameter." )]
+      CIM_Synchronized REF UpdatedSynchronizations[]);
+
+      [Description ( 
+          "Modify (or start a job to modify) the "
+          "SettingsDefineState association between the storage "
+          "objects and SynchronizationAspect. The modification "
+          "could range from introducing the target elements, which "
+          "creates a new StorageSynchronized association to "
+          "dissolving the SettingsDefineState association. If 0 is "
+          "returned, the function completed successfully and no "
+          "ConcreteJob instance was created. If 4096/0x1000 is "
+          "returned, a ConcreteJob was started and a reference to "
+          "this Job is returned in the Job output parameter. A "
+          "return value of 1 indicates the method is not supported. "
+          "All other values indicate some type of error condition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ModifySettingsDefineState(
+         [Required, IN, Description ( 
+             "Operation describes the type of modification to be "
+             "made to the related associations. \n"
+             "Activate Consistency: if consistency was not "
+             "requested when CreateSynchronizationAspect was "
+             "called. If Consistency is already active, no "
+             "modification is made. \n"
+             "Deactivate Consistency: Deactivate consistency. If "
+             "consistency was not enabled, this operation has no "
+             "effect. \n"
+             "Delete: Remove the SettingsDefineState "
+             "association. \n"
+             "Copy To Target: Introduces the target elements and "
+             "forms the necessary associations between the "
+             "source and the target elements i.e. "
+             "StorageSynchronized and GroupSynchronized. \n"
+             "Detach: Removes the association between the "
+             "SynchronizationAspect and the target element. \n"
+             "Restore: Restore the source element from the "
+             "associated SynchronizationAspect. \n"
+             "Attach To Target: Same as Copy To Target except no "
+             "data is copied." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "..", 
+             "0x8000..0xFFFF" }, 
+          Values { "Activate Consistency", 
+             "Deactivate Consistency", "Delete", 
+             "Copy To Target", "Detach", "Restore", 
+             "Attach To Target", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Operation, 
+         [Required, IN, Description ( 
+             "Reference to the association between the source "
+             "element and an instance of SynchronizationAspect." )]
+      CIM_SettingsDefineState REF SettingsState, 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a target "
+             "element to use. If TargetElement is supplied, "
+             "TargetGroup and TargetCount shall be NULL. As an "
+             "output, refers to the created target storage "
+             "element (i.e., the replica). If a job is created, "
+             "the target element may not be available "
+             "immediately." )]
+      CIM_LogicalElement REF TargetElement, 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a target group "
+             "to use. If TargetGroup is supplied, TargetElement "
+             "and TargetCount shall be NULL. As an output, "
+             "refers to the created target group (i.e., the "
+             "replica group). If a job is created, the target "
+             "group may not be available immediately. If "
+             "TargetGroup is supplied, TargetElementCount shall "
+             "be NULL." )]
+      CIM_ReplicationGroup REF TargetGroup, 
+         [IN, Description ( 
+             "This parameter applies to "
+             "one-source-to-many-target- elements. It is "
+             "possible to create multiple copies of a source "
+             "element. If TargetCount is supplied, TargetElement "
+             "and TargetGroup shall be NULL." )]
+      uint64 TargetElementCount, 
+         [IN, Description ( 
+             "Reference to target access point information. If "
+             "NULL, service does not need access information to "
+             "access the target elements/group." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN ( false ), OUT, Description ( 
+             "The reference to the created replication "
+             "association describing the elements/groups "
+             "relationship." )]
+      CIM_Synchronized REF Synchronization, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The definition for the SettingData to be "
+             "maintained by the target storage object (the "
+             "replica). If a target element is supplied, this "
+             "parameter shall be NULL." )]
+      CIM_SettingData REF TargetSettingGoal, 
+         [IN, Description ( 
+             "The underlying storage for the target element (the "
+             "replica) will be drawn from TargetPool if "
+             "specified, otherwise the allocation is "
+             "implementation specific. If a target element is "
+             "supplied, this parameter shall be NULL." )]
+      CIM_ResourcePool REF TargetPool, 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the data flow remains idle until it "
+             "is activated. Synchronized: Replicas are an exact "
+             "copy of the source. UnSynchronized: Copy operation "
+             "is in progress. Fractured/Split: Target elements "
+             "are separated from the source elements. Etc." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState, 
+         [IN, Description ( 
+             "A end user relevant name for the element being "
+             "created. If NULL, then a system supplied default "
+             "name can be used. The value will be stored in the "
+             "\'ElementName\' property for the created element." )]
+      string ElementName, 
+         [IN, Description ( 
+             "The target elements are added to each referenced "
+             "collection, for example, DeviceMaskingGroups." )]
+      CIM_Collection REF Collections[]);
+
+      [Description ( 
+          "Get (or start a job to get) all of the candidate target "
+          "elements for the supplied source element. If a job is "
+          "started, once the job completes, examine the "
+          "AffectedJobElement associations for candidate targets." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 GetAvailableTargetElements(
+         [Required, IN, Description ( 
+             "The source storage object which may be a "
+             "StorageVolume or other storage objects." )]
+      CIM_LogicalElement REF SourceElement, 
+         [Required, IN, Description ( 
+             "SyncType describes the type of copy." ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Mode describes whether the target elements will be "
+             "updated synchronously or asynchronously. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes. \n"
+             "If NULL, implementation decides the mode." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN, Description ( 
+             "Reference to access point information. If NULL, "
+             "only local system is examined." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN, Description ( 
+             "Desired target SettingData. If NULL, settings of "
+             "the source element will be used." )]
+      CIM_SettingData REF TargetSettingGoal, 
+         [IN, Description ( 
+             "The storage pools for the target elements. If "
+             "NULL, all storage pools (on the given system) will "
+             "be examined." )]
+      CIM_ResourcePool REF TargetPools[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [OUT, Description ( 
+             "The list of the candidate target elements." )]
+      CIM_LogicalElement REF Candidates[], 
+         [IN, Description ( 
+             "Specifies the maximum number of elements to be "
+             "returned by the method." )]
+      uint16 MaxElementCount);
+
+      [Description ( 
+          "Get (or start a job to get) all of the peer systems. A "
+          "peer system is a system that is known and visible to the "
+          "Replication Service. Peer systems are discovered through "
+          "discovery services and/or implementation specific "
+          "services.If a job is started, once the job completes, "
+          "examine the AffectedJobElement associations for the peer "
+          "systems." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 GetPeerSystems(
+         [IN, Description ( 
+             "This parameter specifies which peer systems to "
+             "return. If NULL, all known systems are returned, "
+             "whether those systems are currently reachable or "
+             "not." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Only systems currently reachable", 
+             "Include access points for systems currently reachable", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Options, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [OUT, Description ( "List of peer ComputerSystems." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_ReplicationService.LocalAccessPoints[]", 
+             "CIM_ReplicationService.RemoteAccessPoints[]" }]
+      CIM_ComputerSystem REF Systems[], 
+         [OUT, Description ( 
+             "An array of references to local "
+             "ServiceAccessPoints (for example, "
+             "ProtocolEndpoints) that allow communication to the "
+             "remote system." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { "CIM_ReplicationService.Systems[]" }]
+      CIM_ServiceAccessPoint REF LocalAccessPoints[], 
+         [OUT, Description ( 
+             "An array of references to remote "
+             "ServiceAccessPoints (for example, "
+             "ProtocolEndpoints) that allow communication to the "
+             "remote system." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { "CIM_ReplicationService.Systems[]" }]
+      CIM_ServiceAccessPoint REF RemoteAccessPoints[]);
+
+      [Description ( 
+          "Get (or start a job to get) all of the synchronization "
+          "relationships known to the processing replication "
+          "service. If a job is started, once the job completes, "
+          "examine the AffectedJobElement associations for the "
+          "synchronization relationships." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 GetReplicationRelationships(
+         [IN, Description ( 
+             "The type of synchronization relationships, for "
+             "example, StorageSynchronized or GroupSynchronized. "
+             "If this parameter is not supplied, all such "
+             "relationships are retrieved." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "StorageSynchronized", "GroupSynchronized", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Type, 
+         [IN, Description ( 
+             "Describes the desired synchronization type. If "
+             "this parameter is not specified, all SyncType are "
+             "retrieved." ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Describes the desired mode. If this parameter is "
+             "not supplied, both all modes are retrieved. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [IN, Description ( 
+             "Describes the desired locality. If this parameter "
+             "is not supplied, all replication relationships are "
+             "retrieved, regardless of the locality of elements. \n"
+             "Local only: Source and target elements are "
+             "contained in the same system. \n"
+             "Remote only: Source and target elements are "
+             "contained in two different systems." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Local only", "Remote only", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Locality, 
+         [IN, Description ( 
+             "Only retrieve synchronization relationships that "
+             "are currently in this CopyState. If this parameter "
+             "is not supplied, relationships are retrieved "
+             "regardless of their current CopyState." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 CopyState, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [OUT, Description ( "An array of elements found." )]
+      CIM_Synchronized REF Synchronizations[], 
+         [IN, Description ( 
+             "If supplied, it provides additional replication "
+             "settings to consider in locating the replication "
+             "relationships, for example, the CopyMethodology -- "
+             "which indicates how the copy operation is carried "
+             "out -- for example, full or incremental mirroring." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData);
+
+      [Description ( 
+          "Get (or start a job to get) ServiceAccessPoints "
+          "associated with a peer system. If a job is started, once "
+          "the job completes, examine the AffectedJobElement "
+          "associations for the peer system\'s ServiceAccessPoints." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 GetServiceAccessPoints(
+         [Required, IN, Description ( 
+             "This parameter specifies the peer system." )]
+      CIM_ComputerSystem REF System, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [OUT, Description ( 
+             "List of ServiceAccessPoints for the supplied System."
+              )]
+      CIM_ServiceAccessPoint REF ServiceAccessPoints[]);
+
+      [Description ( 
+          "Introduces a new instance of ReplicationEntity in the "
+          "specified Namespace." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 AddReplicationEntity(
+         [Required, IN, EmbeddedInstance ( 
+             "CIM_ReplicationEntity" )]
+      string ReplicationEntity, 
+         [IN, Description ( 
+             "If true, the instance must persist across "
+             "Management Server reboot. If NULL, the value will "
+             "be based on the default value of the class in the "
+             "MOF. Use the intrinsic method ModifyInstance to "
+             "change the Persistency value." )]
+      boolean Persistent, 
+         [IN, Description ( 
+             "Namespace of created instance. If null, created "
+             "instance will be in the same namespace as the "
+             "service." )]
+      string InstanceNamespace, 
+         [OUT, Description ( "Reference to the created instance." )]
+      CIM_ReplicationEntity REF ReplicationEntityPath);
+
+      [Description ( 
+          "Introduces a new instance of a ServiceAccessPoint, or "
+          "one of its subclasses, for example, a "
+          "RemoteServiceAccessPoint in the specified namespace." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 AddServiceAccessPoint(
+         [Required, IN, EmbeddedInstance ( 
+             "CIM_ServiceAccessPoint" )]
+      string ServiceAccessPoint, 
+         [IN, Description ( 
+             "Namespace of created instance. If null, created "
+             "instance will be in the same namespace as the "
+             "service." )]
+      string InstanceNamespace, 
+         [OUT, Description ( "Reference to the created instance." )]
+      CIM_ServiceAccessPoint REF ServiceAccessPointPath);
+
+      [Description ( 
+          "Introduces a new instance of SharedSecret in the "
+          "specified namespace and optionally associates it to an "
+          "instance of a ServiceAccessPoint." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 AddSharedSecret(
+         [Required, IN, EmbeddedInstance ( "CIM_SharedSecret" )]
+      string SharedSecret, 
+         [IN, Description ( 
+             "Associate created instance to this "
+             "ServiceAccessPoint. If null, no such association "
+             "is established." )]
+      CIM_ServiceAccessPoint REF ServiceAccessPoint, 
+         [IN, Description ( 
+             "Namespace of created instance. If null, created "
+             "instance will be in the same namespace as the the "
+             "service." )]
+      string InstanceNamespace, 
+         [OUT, Description ( "Reference to the created instance." )]
+      CIM_SharedSecret REF SharedSecretPath);
+
+      [Description ( 
+          "Create (or start a job to create) new storage objects, "
+          "which are replicas of the specified source storage "
+          "objects (SourceElements). Note that using the input "
+          "parameter, SyncType, this function can be used to "
+          "instantiate the replicas, and to create an ongoing "
+          "association between the source and replica elements. If "
+          "0 is returned, the function completed successfully and "
+          "no ConcreteJob instance created. If 4096/0x1000 is "
+          "returned, a ConcreteJob is started, a reference to which "
+          "is returned in the Job output parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateListReplica(
+         [IN, Description ( 
+             "An array of end user relevant names for the "
+             "elements being created. If NULL, then a system "
+             "supplied name is used. The value will be stored in "
+             "the \'ElementName\' property for the created "
+             "element. The first element of the array "
+             "ElementNames is assigned to the first replica, the "
+             "second element to the second replica and so on. If "
+             "there are more SourceElements entries than "
+             "ElementNames, the system supplied name is used." )]
+      string ElementNames[], 
+         [Required, IN, Description ( 
+             "SyncType describes the type of copy that will be "
+             "made. The same SyncType applies to all elements in "
+             "the list." ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Mode describes whether the target elements will be "
+             "updated synchronously or asynchronously. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes. \n"
+             "If NULL, implementation decides the mode." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [Required, IN, Description ( 
+             "A list of source storage objects which may be "
+             "StorageVolumes or other storage objects. All the "
+             "source elements shall be of the same type -- for "
+             "example, all StorageVolumes." )]
+      CIM_LogicalElement REF SourceElements[], 
+         [IN, Description ( 
+             "Reference to source access point information. If "
+             "NULL, service does not need access information to "
+             "access the source element. This parameter applies "
+             "to all elements in the source list." )]
+      CIM_ServiceAccessPoint REF SourceAccessPoint, 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to the target "
+             "elements to use. If specified, the elements will "
+             "match one to one with SourceElements[]. As an "
+             "output, refers to the created target storage "
+             "elements (i.e., the replicas). If a job is "
+             "created, the target elements may not be available "
+             "immediately." )]
+      CIM_LogicalElement REF TargetElements[], 
+         [IN, Description ( 
+             "Reference to target access point information. If "
+             "NULL, service does not need access information to "
+             "access the target elements. This parameter applies "
+             "to all elements in the target list." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the provider uses the default "
+             "replication setting data. The same "
+             "ReplicationSettingData applies to all "
+             "SourceElements entries." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created associations between the "
+             "source and the target elements. If a job is "
+             "created, this parameter may be NULL unless the "
+             "associations are actually formed." )]
+      CIM_Synchronized REF Synchronizations[], 
+         [IN, Description ( 
+             "The definition for the SettingData to be "
+             "maintained by the target storage objects (the "
+             "replicas). If the target elements are supplied, "
+             "this parameter shall be NULL. This parameter "
+             "applies to all elements in the target list." )]
+      CIM_SettingData REF TargetSettingGoal, 
+         [IN, Description ( 
+             "The underlying storage for the target elements "
+             "(the replicas) will be drawn from TargetPool if "
+             "specified, otherwise the allocation is "
+             "implementation specific. If the target elements "
+             "are supplied, this parameter shall be NULL. This "
+             "parameter applies to all elements in the target "
+             "list." )]
+      CIM_ResourcePool REF TargetPool, 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the copy operation remains idle "
+             "until it is activated. Synchronized: Replicas are "
+             "an exact copy of the sources. UnSynchronized: Copy "
+             "operation is in progress. If this parameter is "
+             "supplied, then all the created replication "
+             "relationships shall have this supplied CopyState "
+             "before the method returns." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState, 
+         [IN, Description ( 
+             "Reference to the ConnectivityCollection - for "
+             "example, a RemoteReplicationCollection. Since a "
+             "RemoteReplicationCollection aggregates the "
+             "ProtocolEndpoints that provide the paths to a "
+             "remote system, generally, it is not necessary to "
+             "supply both the ConnectivityCollection and the "
+             "ServiceAccessPoint." )]
+      CIM_ConnectivityCollection REF ConnectivityCollection, 
+         [IN, Description ( 
+             "Specifies whether consistency is to be maintained "
+             "across the list of created replication "
+             "relationships." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "No Consistency", "Sequential Consistency", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Consistency, 
+         [IN, Description ( 
+             "The target elements are added to each referenced "
+             "collection, for example, DeviceMaskingGroups." )]
+      CIM_Collection REF Collections[]);
+
+      [Description ( 
+          "Create (or start a job to create) new storage objects, "
+          "which are replicas of the specified source storage "
+          "objects (SourceElements). Note that using the input "
+          "parameter, SyncType, this function can be used to "
+          "instantiate the replicas, and to create an ongoing "
+          "association between the source and replica elements. If "
+          "0 is returned, the function completed successfully and "
+          "no ConcreteJob instance created. If 4096/0x1000 is "
+          "returned, a ConcreteJob is started, a reference to which "
+          "is returned in the Job output parameter. This method "
+          "combines the functionality of CreateGroup and "
+          "CreateGroupReplica, in one call." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateGroupReplicaFromElements(
+         [IN, Description ( 
+             "A user relevant name for the relationship between "
+             "the source and target groups or between a source "
+             "element and a target group (i.e. one-to-many). If "
+             "NULL, the implementation assigns a name. If the "
+             "individual target elements require an ElementName, "
+             "the implementation constructs an appropriate "
+             "ElementName using the RelationshipName. For "
+             "example, RelationshipName as a prefix followed by "
+             "\"_n\" sequence number, where n is a number "
+             "beginning with 1." )]
+      string RelationshipName, 
+         [Required, IN, Description ( 
+             "SyncType describes the type of copy that will be made."
+              ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Mode describes whether the target elements will be "
+             "updated synchronously or asynchronously. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes. \n"
+             "If NULL, implementation decides the mode." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a source group "
+             "to use. As an output, refers to the created source "
+             "group (i.e., the replica group). If a job is "
+             "created, the source group may not be available "
+             "immediately." )]
+      CIM_ReplicationGroup REF SourceGroup, 
+         [Required, IN, Description ( 
+             "A list of source storage objects which may be "
+             "StorageVolumes or other storage objects. All the "
+             "source elements shall be of the same type -- for "
+             "example, all StorageVolumes." )]
+      CIM_LogicalElement REF SourceElements[], 
+         [IN, OUT, Description ( 
+             "As in parameter, the name of the group to be "
+             "created. If the name is not supplied, the "
+             "implementation may assign a group name and return "
+             "it in this parameter." )]
+      string SourceGroupName, 
+         [IN, Description ( 
+             "Reference to source access point information. If "
+             "NULL, service does not need access information to "
+             "access the source elements." )]
+      CIM_ServiceAccessPoint REF SourceAccessPoint, 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a target group "
+             "to use. As an output, refers to the created target "
+             "group (i.e., the replica group). If a job is "
+             "created, the target group may not be available "
+             "immediately." )]
+      CIM_ReplicationGroup REF TargetGroup, 
+         [IN, OUT, Description ( 
+             "As in parameter, the name of the group to be "
+             "created. If the name is not supplied, the "
+             "implementation may assign a group name and return "
+             "it in this parameter." )]
+      string TargetGroupName, 
+         [IN, Description ( 
+             "A list of target storage objects which may be "
+             "StorageVolumes or other storage objects. All the "
+             "target elements shall be of the same type -- for "
+             "example, all StorageVolumes." )]
+      CIM_LogicalElement REF TargetElements[], 
+         [IN, Description ( 
+             "An array of end user relevant names for the "
+             "elements being created. If NULL, then a system "
+             "supplied name is used. The value will be stored in "
+             "the \'ElementName\' property for the created "
+             "elements." )]
+      string TargetElementNames[], 
+         [IN, Description ( 
+             "Reference to target access point information. If "
+             "NULL, service does not need access information to "
+             "access the target element/group." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN, Description ( 
+             "Overrides the default group consistency." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "No Consistency", "Sequential Consistency", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Consistency, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created group association between "
+             "the source and the target elements. If a job is "
+             "created, this parameter may be NULL until the "
+             "association is actually formed." )]
+      CIM_Synchronized REF Synchronization, 
+         [IN, Description ( 
+             "The definition for the SettingData to be "
+             "maintained by the target storage objects (the "
+             "replicas). If target elements are supplied, this "
+             "parameter shall be NULL." )]
+      CIM_SettingData REF TargetSettingGoal, 
+         [IN, Description ( 
+             "The underlying storage for the target elements "
+             "(the replicas) will be drawn from TargetPool if "
+             "specified, otherwise the allocation is "
+             "implementation specific. If target elements are "
+             "supplied, this parameter shall be NULL. \n"
+             "If TargetPool supplied, TargetPools shall be NULL." )]
+      CIM_ResourcePool REF TargetPool, 
+         [IN, Description ( 
+             "The underlying storage for the target elements "
+             "(the replicas) will be drawn from TargetPools if "
+             "specified, otherwise the allocation is "
+             "implementation specific. If target elements are "
+             "supplied, this parameter shall be NULL.supplied, "
+             "this parameter shall be NULL. \n"
+             "If TargetPools supplied, TargetPool shall be NULL." )]
+      CIM_ResourcePool REF TargetPools[], 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the data flow remains idle until it "
+             "is activated. Synchronized: Replicas are an exact "
+             "copy of the source. UnSynchronized: Copy operation "
+             "is in progress." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState, 
+         [IN, Description ( 
+             "Reference to the ConnectivityCollection - for "
+             "example, a RemoteReplicationCollection. Since a "
+             "RemoteReplicationCollection aggregates the "
+             "ProtocolEndpoints that provide the paths to a "
+             "remote system, generally, it is not necessary to "
+             "supply both the ConnectivityCollection and the "
+             "ServiceAccessPoint." )]
+      CIM_ConnectivityCollection REF ConnectivityCollection, 
+         [IN, Description ( 
+             "The target elements are added to each referenced "
+             "collection, for example, DeviceMaskingGroups." )]
+      CIM_Collection REF Collections[]);
+
+      [Description ( 
+          "Get (or start a job to get) all of the synchronization "
+          "relationships known to the processing replication "
+          "service. If a job is started, once the job completes, "
+          "examine the AffectedJobElement associations for the "
+          "synchronization relationships. This method is similar to "
+          "GetReplicationRelationships, except that this method "
+          "returns the instances as opposed to object paths." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 GetReplicationRelationshipInstances(
+         [IN, Description ( 
+             "The type of synchronization relationships, for "
+             "example, StorageSynchronized or GroupSynchronized. "
+             "If this parameter is not supplied, all such "
+             "relationships are retrieved." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "StorageSynchronized", "GroupSynchronized", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Type, 
+         [IN, Description ( 
+             "Describes the desired synchronization type. If "
+             "this parameter is not specified, all SyncType are "
+             "retrieved." ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Describes the desired mode. If this parameter is "
+             "not supplied, all modes are retrieved. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [IN, Description ( 
+             "Describes the desired locality. If this parameter "
+             "is not supplied, all replication relationships are "
+             "retrieved, regardless of the locality of elements. \n"
+             "Local only: Source and target elements are "
+             "contained in the same system. \n"
+             "Remote only: Source and target elements are "
+             "contained in two different systems." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Local only", "Remote only", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Locality, 
+         [IN, Description ( 
+             "Only retrieve synchronization relationships that "
+             "are currently in this CopyState. If this parameter "
+             "is not supplied, relationships are retrieved "
+             "regardless of their current CopyState." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 CopyState, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [OUT, Description ( "An array of instances found." ), 
+          EmbeddedInstance ( "CIM_Synchronized" )]
+      string Synchronizations[], 
+         [IN, Description ( 
+             "If supplied, it provides additional replication "
+             "settings to consider in locating the replication "
+             "relationships, for example, the CopyMethodology -- "
+             "which indicates how the copy operation is carried "
+             "out -- for example, full or incremental mirroring." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData);
+
+      [Description ( 
+          "Modify (or start a job to modify) a list of "
+          "SettingsDefineState associations. These associations are "
+          "between the storage objects and SynchronizationAspect. "
+          "The modification could range from introducing the target "
+          "elements, which creates a new StorageSynchronized "
+          "association to dissolving the SettingsDefineState "
+          "association. If 0 is returned, the function completed "
+          "successfully and no ConcreteJob instance was created. If "
+          "4096/0x1000 is returned, a ConcreteJob was started and a "
+          "reference to this Job is returned in the Job output "
+          "parameter. A return value of 1 indicates the method is "
+          "not supported. All other values indicate some type of "
+          "error condition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ModifyListSettingsDefineState(
+         [Required, IN, Description ( 
+             "Operation describes the type of modification to be "
+             "made to the related associations. \n"
+             "Activate Consistency: if consistency was not "
+             "requested when CreateSynchronizationAspect was "
+             "called. If Consistency is already active, no "
+             "modification is made. \n"
+             "Deactivate Consistency: Deactivate consistency. If "
+             "consistency was not enabled, this operation has no "
+             "effect. \n"
+             "Delete: Remove the SettingsDefineState "
+             "association. \n"
+             "Copy To Target: Introduces the target elements and "
+             "forms \n"
+             "the necessary associations between the source and "
+             "the target elements i.e. StorageSynchronized and "
+             "GroupSynchronized." ), 
+          ValueMap { "2", "3", "4", "5", "..", "0x8000..0xFFFF" }, 
+          Values { "Activate Consistency", 
+             "Deactivate Consistency", "Delete", 
+             "Copy To Target", "DMTF Reserved", "Vendor Specific" }]
+      uint16 Operation, 
+         [Required, IN, Description ( 
+             "An array of references to the associations between "
+             "the source elements and instances of "
+             "SynchronizationAspect." )]
+      CIM_SettingsDefineState REF SettingsStates[], 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a list of "
+             "target elements to use. If TargetElements are "
+             "supplied, TargetGroups and TargetCount shall be "
+             "NULL. As an output, refers to the created target "
+             "storage elements (i.e., the replicas). If a job is "
+             "created, the target elements may not be available "
+             "immediately." )]
+      CIM_LogicalElement REF TargetElements[], 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a list of "
+             "target groups to use. If TargetGroups are "
+             "supplied, TargetElements and TargetCount shall be "
+             "NULL. As an output, refers to the created target "
+             "groups (i.e., the replica groups). If a job is "
+             "created, the target groups may not be available "
+             "immediately. If TargetGroups are supplied, "
+             "TargetElementCount shall be NULL." )]
+      CIM_ReplicationGroup REF TargetGroups[], 
+         [IN, Description ( 
+             "This parameter applies to "
+             "one-source-to-many-target elements. It is possible "
+             "to create multiple copies of a source element. If "
+             "TargetCount is supplied, TargetElement and "
+             "TargetGroup shall be NULL." )]
+      uint64 TargetElementCount, 
+         [IN, Description ( 
+             "Reference to target access point information. If "
+             "NULL, service does not need access information to "
+             "access the target elements/group." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN ( false ), OUT, Description ( 
+             "The reference to the created replication "
+             "associations describing the elements/groups "
+             "relationship." )]
+      CIM_Synchronized REF Synchronizations[], 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The definition for the SettingData to be "
+             "maintained by the target storage object (the "
+             "replica). If a target element is supplied, this "
+             "parameter shall be NULL." )]
+      CIM_SettingData REF TargetSettingGoal, 
+         [IN, Description ( 
+             "The underlying storage for the target element (the "
+             "replica) will be drawn from TargetPool if "
+             "specified, otherwise the allocation is "
+             "implementation specific. If a target element is "
+             "supplied, this parameter shall be NULL." )]
+      CIM_ResourcePool REF TargetPool, 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the data flow remains idle until it "
+             "is activated. Synchronized: Replicas are an exact "
+             "copy of the source. UnSynchronized: Copy operation "
+             "is in progress. Fractured/Split: Target elements "
+             "are separated from the source elements. Etc." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState, 
+         [IN, Description ( 
+             "An array of end user relevant names for the "
+             "elements being created. If NULL, then a system "
+             "supplied name is used. The value will be stored in "
+             "the \'ElementName\' property for the created "
+             "element. The first element of the array "
+             "ElementNames is assigned to the first replica, the "
+             "second element to the second replica and so on. If "
+             "there are more SourceElements entries than "
+             "ElementNames, the system supplied name is used." )]
+      string ElementNames[], 
+         [IN, Description ( 
+             "The target elements are added to each referenced "
+             "collection, for example, DeviceMaskingGroups." )]
+      CIM_Collection REF Collections[]);
+
+      [Description ( 
+          "Add (or start a job to add) additional service access "
+          "points (i.e. ProtocolEndpoints) and/or remote systems "
+          "associations to an existing instance of "
+          "RemoteReplicationCollection.If 0 is returned, the "
+          "function completed successfully and no ConcreteJob "
+          "instance created. If 4096/0x1000 is returned, a "
+          "ConcreteJob is started, a reference to which is returned "
+          "in the Job output parameter. If parameter AccessPoints "
+          "is NULL, then only the RemoteComputerSystem is added for "
+          "the existing AccessPoints associated to the "
+          "RemoteReplicationCollection. If RemoteComputerSystem is "
+          "NULL, then only AccessPoints are added for the existing "
+          "remote ComputerSystems known to the "
+          "RemoteReplicationCollection." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 AddToRemoteReplicationCollection(
+         [IN, Description ( 
+             "An array of references to local "
+             "ServiceAccessPoints (for example, "
+             "ProtocolEndpoints) that allow communication to the "
+             "remote system." )]
+      CIM_ServiceAccessPoint REF LocalAccessPoints[], 
+         [IN, Description ( 
+             "An array of references to remote "
+             "ServiceAccessPoints (for example, "
+             "ProtocolEndpoints) that allow communication to the "
+             "remote system." )]
+      CIM_ServiceAccessPoint REF RemoteAccessPoints[], 
+         [IN, Description ( "A reference to the remote system." )]
+      CIM_ComputerSystem REF RemoteComputerSystem, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [Required, IN, Description ( 
+             "The reference to the RemoteReplicationCollection "
+             "to be expanded." )]
+      CIM_ConnectivityCollection REF ConnectivityCollection);
+
+      [Description ( 
+          "Create (or start a job to create) a new instance of "
+          "RemoteReplicationCollection, and optionally supply the "
+          "remote system and the paths (i.e. ProtocolEndpoints) "
+          "that are used to perform replication operations to/from "
+          "the remote system. If 0 is returned, the function "
+          "completed successfully and no ConcreteJob instance "
+          "created. If 4096/0x1000 is returned, a ConcreteJob is "
+          "started, a reference to which is returned in the Job "
+          "output parameter. Once the job completes, examine the "
+          "AffectedJobElement associations for the created instance "
+          "of RemoteReplicationCollection." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateRemoteReplicationCollection(
+         [IN, Description ( 
+             "A end user relevant name for the element being "
+             "created. If NULL, then a system supplied default "
+             "name can be used. The value will be stored in the "
+             "\'ElementName\' property for the created element." )]
+      string ElementName, 
+         [IN, Description ( 
+             "An array of references to local "
+             "ServiceAccessPoints (for example, "
+             "ProtocolEndpoints) that allow communication to the "
+             "remote system." )]
+      CIM_ServiceAccessPoint REF LocalAccessPoints[], 
+         [IN, Description ( 
+             "An array of references to remote "
+             "ServiceAccessPoints (for example, "
+             "ProtocolEndpoints) that allow communication to the "
+             "remote system." )]
+      CIM_ServiceAccessPoint REF RemoteAccessPoints[], 
+         [IN, Description ( "A reference to the remote system." )]
+      CIM_ComputerSystem REF RemoteComputerSystem, 
+         [IN, Description ( 
+             "If true, the instance of "
+             "RemoteReplicationCollection will be enabled and "
+             "allows replication operations to to the remote "
+             "system. Use the intrinsic method ModifyInstance to "
+             "change this property after the "
+             "RemoteReplicationCollection is created." )]
+      boolean Active, 
+         [IN, Description ( 
+             "If true, the instance of "
+             "RemoteReplicationCollection will be deleted when "
+             "it is no longer associated to a "
+             "ServiceAccessPoint. Use the intrinsic method "
+             "ModifyInstance to change this property after the "
+             "RemoteReplicationCollection is created." )]
+      boolean DeleteOnUnassociated, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created instance of "
+             "RemoteReplicationCollection." )]
+      CIM_ConnectivityCollection REF ConnectivityCollection, 
+         [IN, Description ( 
+             "If supplied, it provides additional replication "
+             "settings for the method. For example, enable data "
+             "compression." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData);
+
+      [Description ( 
+          "Remove (or start a job to remove) service access points "
+          "(i.e. ProtocolEndpoints) and/or remote systems "
+          "associations from an existing instance of "
+          "RemoteReplicationCollection.If 0 is returned, the "
+          "function completed successfully and no ConcreteJob "
+          "instance created. If 4096/0x1000 is returned, a "
+          "ConcreteJob is started, a reference to which is returned "
+          "in the Job output parameter. If parameter AccessPoints "
+          "is NULL, then only the remote ComputerSystem is removed "
+          "for the existing AccessPoints associated to the "
+          "RemoteReplicationCollection. If ComputerSystem is NULL, "
+          "then only AccessPoints are removed from the existing "
+          "remote ComputerSystems known to the "
+          "RemoteReplicationCollection." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RemoveFromRemoteReplicationCollection(
+         [IN, Description ( 
+             "An array of references to local "
+             "ServiceAccessPoints (for example, "
+             "ProtocolEndpoints) that allow communication to the "
+             "remote system." )]
+      CIM_ServiceAccessPoint REF LocalAccessPoints[], 
+         [IN, Description ( 
+             "An array of references to remote "
+             "ServiceAccessPoints (for example, "
+             "ProtocolEndpoints) that allow communication to the "
+             "remote system." )]
+      CIM_ServiceAccessPoint REF RemoteAccessPoints[], 
+         [IN, Description ( 
+             "A reference to the remote system to remove." )]
+      CIM_ComputerSystem REF RemoteComputerSystem, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [Required, IN, Description ( 
+             "The reference to the RemoteReplicationCollection to affect."
+              )]
+      CIM_ConnectivityCollection REF ConnectivityCollection);
+
+      [Description ( 
+          "Add elements (or start a job to add elements) to "
+          "replication groups of a GroupSynchronized association. "
+          "The implementation then creates StorageSynchronized "
+          "associations between the matching added elements. \n"
+          "If 4096/0x1000 is returned, a ConcreteJob is started, a "
+          "reference to which is returned in the Job output "
+          "parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 AddElementsToGroupSynchronized(
+         [IN, Description ( 
+             "Reference to the Synchronized association." )]
+      CIM_Synchronized REF Synchronized, 
+         [IN, Description ( 
+             "Reference to the elements to add to the source group."
+              ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_ReplicationService.TargetElements[]" }]
+      CIM_LogicalElement REF SourceElements[], 
+         [IN, Description ( 
+             "Reference to the elements to add to the target "
+             "group. \n"
+             "Pairing of source and target elements is "
+             "controlled by the Pairing property of "
+             "ReplicationSettingData if supplied, otherwise, "
+             "based on default ReplicationSettingData." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_ReplicationService.SourceElements[]" }]
+      CIM_LogicalElement REF TargetElements[], 
+         [IN, Description ( 
+             "Reference to source access point information. If "
+             "NULL, service does not need access information to "
+             "access the source element/group." )]
+      CIM_ServiceAccessPoint REF SourceAccessPoint, 
+         [IN, Description ( 
+             "Reference to target access point information. If "
+             "NULL, service does not need access information to "
+             "access the target element/group." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN, Description ( 
+             "Overrides the default group consistency." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "No Consistency", "Sequential Consistency", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Consistency, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created associations between the "
+             "source and the target elements. If a job is "
+             "created, this parameter may be NULL until the "
+             "associations is actually formed." )]
+      CIM_Synchronized REF Synchronizations[], 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the data flow remains idle until it "
+             "is activated. Synchronized: Replicas are an exact "
+             "copy of the source. UnSynchronized: Copy operation "
+             "is in progress." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState);
+
+      [Description ( 
+          "Confirm data written to the source elements has been "
+          "replicated to the target elements. \n"
+          "This method is useful for asynchronous replication where "
+          "data written to the source elements may not be "
+          "replicated to the target elements right away. If "
+          "4096/0x1000 is returned, a ConcreteJob is started, a "
+          "reference to which is returned in the Job output "
+          "parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "4096", "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "Unable to confirm target data", 
+          "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ConfirmTargetData(
+         [IN, Description ( 
+             "Reference to the Synchronized association. For "
+             "example, a StorageSynchronized or a "
+             "GroupSynchronized." )]
+      CIM_Synchronized REF Synchronized, 
+         [IN, Description ( 
+             "Reference to source access point information. If "
+             "NULL, service does not need access information to "
+             "access the source element/group." )]
+      CIM_ServiceAccessPoint REF SourceAccessPoint, 
+         [IN, Description ( 
+             "Reference to target access point information. If "
+             "NULL, service does not need access information to "
+             "access the target element/group." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "Reference to the ConnectivityCollection - for "
+             "example, a RemoteReplicationCollection. Since a "
+             "RemoteReplicationCollection aggregates the "
+             "ProtocolEndpoints that provide the paths to a "
+             "remote system, generally, it is not necessary to "
+             "supply both the ConnectivityCollection and the "
+             "ServiceAccessPoint." )]
+      CIM_ConnectivityCollection REF ConnectivityCollection, 
+         [IN, Description ( 
+             "It specifies the interval of time to wait to "
+             "confirm data is written to the target elements. \n"
+             "For example, to wait 5 minutes, the value would be "
+             "00000000000500.000000:000, using the CIM interval "
+             "format. If NULL or 0, the implementation decides "
+             "the interval. \n"
+             "If the WaitTime expires before the target data is "
+             "confirmed, the method will return \"3\" (Timeout)." )]
+      datetime WaitTime);
+
+      [Description ( 
+          "Based on existing storage element synchronizations, "
+          "create (or start a job to create) the source and target "
+          "groups, add the elements into the groups and create an "
+          "ongoing association between the groups. If 0 is "
+          "returned, the function completed successfully and no "
+          "ConcreteJob instance created. If 4096/0x1000 is "
+          "returned, a ConcreteJob is started, a reference to which "
+          "is returned in the Job output parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateGroupReplicaFromElementSynchronizations(
+         [IN, Description ( 
+             "A user relevant name for the relationship between "
+             "the source and target group. If NULL, the "
+             "implementation assigns a name. If the target group "
+             "requires an ElementName, the implementation "
+             "constructs an appropriate ElementName using the "
+             "RelationshipName. For example, RelationshipName as "
+             "a prefix followed by \"_n\" sequence number, where "
+             "n is a number beginning with 1." )]
+      string RelationshipName, 
+         [IN, Description ( 
+             "Reference to the associations between the source "
+             "and the target elements." )]
+      CIM_Synchronized REF ElementSynchronizations[], 
+         [IN, OUT, Description ( 
+             "As in parameter, the name of the source group to "
+             "be created. If the name is not supplied, the "
+             "implementation may assign a group name and return "
+             "it in this parameter." )]
+      string SourceGroupName, 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a source group "
+             "to use. As an output, refers to the created source "
+             "group (i.e., the replica group). If a job is "
+             "created, the source group may not be available "
+             "immediately." )]
+      CIM_ReplicationGroup REF SourceGroup, 
+         [IN, Description ( 
+             "Reference to source access point information. If "
+             "NULL, service does not need access information to "
+             "access the source elements." )]
+      CIM_ServiceAccessPoint REF SourceAccessPoint, 
+         [IN, OUT, Description ( 
+             "As in parameter, the name of the target group to "
+             "be created. If the name is not supplied, the "
+             "implementation may assign a group name and return "
+             "it in this parameter." )]
+      string TargetGroupName, 
+         [IN, OUT, Description ( 
+             "Optionally, as an input, refers to a target group "
+             "to use. As an output, refers to the created target "
+             "group (i.e., the replica group). If a job is "
+             "created, the target group may not be available "
+             "immediately." )]
+      CIM_ReplicationGroup REF TargetGroup, 
+         [IN, Description ( 
+             "Reference to target access point information. If "
+             "NULL, service does not need access information to "
+             "access the target element/group." )]
+      CIM_ServiceAccessPoint REF TargetAccessPoint, 
+         [IN, Description ( 
+             "Overrides the default group consistency." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "No Consistency", "Sequential Consistency", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Consistency, 
+         [IN, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. If not "
+             "provided, the management server uses the default "
+             "replication setting data." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created group association between "
+             "the source and the target elements. If a job is "
+             "created, this parameter may be NULL until the "
+             "association is actually formed." )]
+      CIM_Synchronized REF GroupSynchronization, 
+         [IN, Description ( 
+             "Method must wait until this CopyState is reached "
+             "before returning. Only a subset of valid "
+             "CopyStates apply. For example, Initialized: "
+             "Associations have been established, but there is "
+             "no data flow. Inactive: Initialization is "
+             "complete, but the data flow remains idle until it "
+             "is activated. Synchronized: Replicas are an exact "
+             "copy of the source. UnSynchronized: Copy operation "
+             "is in progress." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 WaitForCopyState);
+
+      [Description ( 
+          "Get (or start a job to get) all of the instances of "
+          "synchronization aspects known to the processing "
+          "replication service. If a job is started, once the job "
+          "completes, examine the AffectedJobElement associations "
+          "for the synchronization aspects." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 GetSynchronizationAspectInstances(
+         [IN, Description ( 
+             "Describes the desired synchronization type. If "
+             "this parameter is not specified, all SyncType are "
+             "retrieved." ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Describes the desired mode. If this parameter is "
+             "not supplied, all modes are retrieved. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [IN, Description ( 
+             "Describes the desired locality. If this parameter "
+             "is not supplied, all synchronization aspects are "
+             "retrieved, regardless of the locality of elements. \n"
+             "Local only: Source and aspect are contained in the "
+             "same system. \n"
+             "Remote only: Source and aspect elements are "
+             "contained in two different systems." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Local only", "Remote only", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Locality, 
+         [IN, Description ( 
+             "Only retrieve synchronization aspects that are "
+             "currently in this SyncState. If this parameter is "
+             "not supplied, synchronization aspects are "
+             "retrieved regardless of their current SyncState." ), 
+          ModelCorrespondence { 
+             "CIM_SynchronizationAspect.SyncState" }]
+      uint16 SyncState, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "If true, for faster response, retrieve the data "
+             "from the local cache. If false retrieve the most "
+             "up-to-date data by examining each relationship\'s "
+             "updated state. If not specified, the "
+             "implementation decides." )]
+      boolean CachedData, 
+         [IN, Description ( 
+             "If supplied, it provides additional replication "
+             "settings to consider in locating the replication "
+             "relationships, for example, the CopyMethodology." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [OUT, Description ( "An array of instances found." ), 
+          EmbeddedInstance ( "CIM_SynchronizationAspect" )]
+      string SynchronizationAspects[]);
+
+      [Description ( 
+          "Get (or start a job to get) all of the synchronization "
+          "aspects known to the processing replication service. If "
+          "a job is started, once the job completes, examine the "
+          "AffectedJobElement associations for the synchronization "
+          "aspects." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 GetSynchronizationAspects(
+         [IN, Description ( 
+             "Describes the desired synchronization type. If "
+             "this parameter is not specified, all SyncType are "
+             "retrieved." ), 
+          ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+          Values { "DMTF Reserved", "Mirror", "Snapshot", 
+             "Clone", "TokenizedClone", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [IN, Description ( 
+             "Describes the desired mode. If this parameter is "
+             "not supplied, all modes are retrieved. \n"
+             "Adaptive: Allows implementation to dynamically "
+             "switch between synchronous and asynchronous modes." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", "Adaptive", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [IN, Description ( 
+             "Describes the desired locality. If this parameter "
+             "is not supplied, all synchronization aspects are "
+             "retrieved, regardless of the locality of elements. \n"
+             "Local only: Source and aspect are contained in the "
+             "same system. \n"
+             "Remote only: Source and aspect elements are "
+             "contained in two different systems." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Local only", "Remote only", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Locality, 
+         [IN, Description ( 
+             "Only retrieve synchronization aspects that are "
+             "currently in this SyncState. If this parameter is "
+             "not supplied, synchronization aspects are "
+             "retrieved regardless of their current SyncState." ), 
+          ModelCorrespondence { 
+             "CIM_SynchronizationAspect.SyncState" }]
+      uint16 SyncState, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "If true, for faster response, retrieve the data "
+             "from the local cache. If false retrieve the most "
+             "up-to-date data by examining each relationship\'s "
+             "updated state. If not specified, the "
+             "implementation decides." )]
+      boolean CachedData, 
+         [IN, Description ( 
+             "If supplied, it provides additional replication "
+             "settings to consider in locating the replication "
+             "relationships, for example, the CopyMethodology." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [OUT, Description ( "An array of elements found." )]
+      CIM_SynchronizationAspect REF SynchronizationAspects[]);
+
+};

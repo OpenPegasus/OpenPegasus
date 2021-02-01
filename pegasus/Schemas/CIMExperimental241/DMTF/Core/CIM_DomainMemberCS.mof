@@ -1,0 +1,279 @@
+//Copyright (c) 2007 DMTF. All Rights Reserved.
+   [Association, Experimental, Aggregation, Composition, Version ( 
+       "2.17.0" ), 
+    UMLPackagePath ( "CIM::Core::CoreElements" ), 
+    Description ( 
+       "AdminDomain instances can represent the aggregation of "
+       "computer systems for the purposes of administration of the set "
+       "as a unit. For example, a use of this class is to collect "
+       "computer systems that together are a high performance cluster. "
+       "DomainMemberCS reports the membership in the domain and the "
+       "status and states of each member. The status of a member from "
+       "the point of view of a domain can be different than the status "
+       "as reported for the member itself." )]
+class CIM_DomainMemberCS : CIM_SystemComponent {
+
+      [Aggregate, Override ( "GroupComponent" ), 
+       Max ( 1 ), 
+       Description ( 
+          "The AdminDomain that contains and/or aggregates other Systems."
+           )]
+   CIM_AdminDomain REF GroupComponent;
+
+      [Override ( "PartComponent" ), 
+       Description ( "The member ComputerSystem." )]
+   CIM_ComputerSystem REF PartComponent;
+
+      [Description ( 
+          "PrimaryStatus provides a high level status value, "
+          "intended to align with Red-Yellow-Green type "
+          "representation of status. The status from the point of "
+          "view of the AdminDoman can be different from that of the "
+          "member. The instrumentation may be different between "
+          "that for the AdminDomain and that for the "
+          "ComputerSystem.For example, the AdminDomain "
+          "instrumentation may not be able to communicate with the "
+          "ComputerSystem; however, the ComputerSystem is "
+          "functioning. In this example, the communication problem "
+          "was neither the AdminDomain nor the ComputerSystem but "
+          "in the network connecting them. It should be used in "
+          "conjunction with DetailedStatus to provide high level "
+          "and detailed health status of the ManagedElement and its "
+          "subcomponents. \n"
+          "PrimaryStatus consists of one of the following values: "
+          "Unknown, OK, Degraded or Error. \"Unknown\" indicates "
+          "the implementation is in general capable of returning "
+          "this property, but is unable to do so at this time. \n"
+          "\"OK\" indicates the ManagedElement is functioning "
+          "normally. \n"
+          "\"Degraded\" indicates the ManagedElement is functioning "
+          "below normal. \n"
+          "\"Error\" indicates the ManagedElement is in an Error "
+          "condition." ), 
+       ValueMap { "0", "1", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "OK", "Degraded", "Error", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.DetailedStatus", 
+          "CIM_ManagedSystemElement.HealthState" }]
+   uint16 PrimaryStatus;
+
+      [Experimental, Description ( 
+          "DetailedStatus compliments PrimaryStatus with additional "
+          "status detail. The status from the point of view of the "
+          "AdminDoman can be different from that of the member. The "
+          "instrumentation may be different between that for the "
+          "AdminDomain and that for the ComputerSystem.For example, "
+          "the AdminDomain instrumentation may not be able to "
+          "communicate with the ComputerSystem; however, the "
+          "ComputerSystem is functioning. In this example, the "
+          "communication problem was neither the AdminDomain nor "
+          "the ComputerSystem but in the network connecting them. "
+          "It consists of one of the following values: Not "
+          "Available, No Additional Information, Stressed, "
+          "Predictive Failure, Error, Non-Recoverable Error, "
+          "SupportingEntityInError. Detailed status is used to "
+          "expand upon the PrimaryStatus of the element. \n"
+          "A Null return indicates the implementation (provider) "
+          "does not implement this property. \n"
+          "\"Not Available\" indicates that the implementation "
+          "(provider) is capable of returning a value for this "
+          "property, but not ever for this particular piece of "
+          "hardware/software or the property is intentionally not "
+          "used because it adds no meaningful information (as in "
+          "the case of a property that is intended to add "
+          "additional info to another property). \n"
+          "\"No Additional Information\" indicates that the element "
+          "is functioning normally as indicated by PrimaryStatus = "
+          "\"OK\". \n"
+          "\"Stressed\" indicates that the element is functioning, "
+          "but needs attention. Examples of \"Stressed\" states are "
+          "overload, overheated, and so on. \n"
+          "\"Predictive Failure\" indicates that an element is "
+          "functioning normally but a failure is predicted in the "
+          "near future. \n"
+          "\"Non-Recoverable Error \" indicates that this element "
+          "is in an error condition that requires human "
+          "intervention. \n"
+          "\"Supporting Entity in Error\" indicates that this "
+          "element might be \"OK\" but that another element, on "
+          "which it is dependent, is in error. An example is a "
+          "network service or endpoint that cannot function due to "
+          "lower-layer networking problems." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "Not Available", "No Additional Information", 
+          "Stressed", "Predictive Failure", "Non-Recoverable Error", 
+          "Supporting Entity in Error", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_EnabledLogicalElement.PrimaryStatus", 
+          "CIM_ManagedSystemElement.HealthState" }]
+   uint16 DetailedStatus;
+
+      [Description ( 
+          "OperatingStatus provides a current status value for the "
+          "operational condition of the element and can be used for "
+          "providing more detail with respect to the value of "
+          "EnabledState. The status from the point of view of the "
+          "AdminDoman can be different from that of the member. The "
+          "instrumentation may be different between that for the "
+          "AdminDomain and that for the ComputerSystem.For example, "
+          "the AdminDomain instrumentation may not be able to "
+          "communicate with the ComputerSystem; however, the "
+          "ComputerSystem is functioning. In this example, the "
+          "communication problem was neither the AdminDomain nor "
+          "the ComputerSystem but in the network connecting them. "
+          "It can also provide the transitional states when an "
+          "element is transitioning from one state to another, such "
+          "as when an element is transitioning between EnabledState "
+          "and RequestedState, as well as other transitional "
+          "conditions. \n"
+          "OperatingStatus consists of one of the following values: "
+          "Unknown, Not Available, In Service, Starting, Stopping, "
+          "Stopped, Aborted, Dormant, Completed, Migrating, "
+          "Emmigrating, Immigrating, Snapshotting. Shutting Down, "
+          "In Test \n"
+          "A Null return indicates the implementation (provider) "
+          "does not implement this property. \n"
+          "\"Unknown\" indicates the implementation is in general "
+          "capable of returning this property, but is unable to do "
+          "so at this time. \n"
+          "\"None\" indicates that the implementation (provider) is "
+          "capable of returning a value for this property, but not "
+          "ever for this particular piece of hardware/software or "
+          "the property is intentionally not used because it adds "
+          "no meaningful information (as in the case of a property "
+          "that is intended to add additional info to another "
+          "property). \n"
+          "\"In Service\" describes an element being configured, "
+          "maintained, cleaned, or otherwise administered. \n"
+          "\"Starting\" describes an element being initialized. \n"
+          "\"Stopping\" describes an element being brought to an "
+          "orderly stop. \n"
+          "\"Stopped\" and \"Aborted\" are similar, although the "
+          "former implies a clean and orderly stop, while the "
+          "latter implies an abrupt stop where the state and "
+          "configuration of the element might need to be updated. \n"
+          "\"Dormant\" indicates that the element is inactive or "
+          "quiesced. \n"
+          "\"Completed\" indicates that the element has completed "
+          "its operation. This value should be combined with either "
+          "OK, Error, or Degraded in the PrimaryStatus so that a "
+          "client can tell if the complete operation Completed with "
+          "OK (passed), Completed with Error (failed), or Completed "
+          "with Degraded (the operation finished, but it did not "
+          "complete OK or did not report an error). \n"
+          "\"Migrating\" element is being moved between host "
+          "elements. \n"
+          "\"Immigrating\" element is being moved to new host "
+          "element. \n"
+          "\"Emigrating\" element is being moved away from host "
+          "element. \n"
+          "\"Shutting Down\" describes an element being brought to "
+          "an abrupt stop. \n"
+          "\"In Test\" element is performing test functions." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "11", "12", "13", "14", "..", "0x8000.." }, 
+       Values { "Unknown", "Not Available", "In Service", 
+          "Starting", "Stopping", "Stopped", "Aborted", "Dormant", 
+          "Completed", "Migrating", "Emigrating", "Immigrating", 
+          "Snapshotting", "Shutting Down", "In Test", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_EnabledLogicalElement.EnabledState" }]
+   uint16 OperatingStatus;
+
+      [Description ( 
+          "CommunicationStatus indicates the ability of the "
+          "instrumentation to communicate with the underlying "
+          "ManagedElement. The status from the point of view of the "
+          "AdminDoman can be different from that of the member. The "
+          "instrumentation may be different between that for the "
+          "AdminDomain and that for the ComputerSystem.For example, "
+          "the AdminDomain instrumentation may not be able to "
+          "communicate with the ComputerSystem; however, the "
+          "ComputerSystem is functioning. In this example, the "
+          "communication problem was neither the AdminDomain nor "
+          "the ComputerSystem but in the network connecting them. "
+          "CommunicationStatus consists of one of the following "
+          "values: Unknown, None, Communication OK, Lost "
+          "Communication, or No Contact. \n"
+          "A Null return indicates the implementation (provider) "
+          "does not implement this property. \n"
+          "\"Unknown\" indicates the implementation is in general "
+          "capable of returning this property, but is unable to do "
+          "so at this time. \n"
+          "\"Not Available\" indicates that the implementation "
+          "(provider) is capable of returning a value for this "
+          "property, but not ever for this particular piece of "
+          "hardware/software or the property is intentionally not "
+          "used because it adds no meaningful information (as in "
+          "the case of a property that is intended to add "
+          "additional info to another property). \n"
+          "\"Communication OK \" indicates communication is "
+          "established with the element, but does not convey any "
+          "quality of service. \n"
+          "\"No Contact\" indicates that the monitoring system has "
+          "knowledge of this element, but has never been able to "
+          "establish communications with it. \n"
+          "\"Lost Communication\" indicates that the Managed "
+          "Element is known to exist and has been contacted "
+          "successfully in the past, but is currently unreachable." ), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "Not Available", "Communication OK", 
+          "Lost Communication", "No Contact", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint16 CommunicationStatus;
+
+      [Description ( 
+          "MemberRole indicates what a particular PartComponent "
+          "ComputerSystem accomplishes for a particular AdminDomain "
+          "aggregation. For clusters, MemberRole can be: \n"
+          "\"Unknown\" indicates that the role is indetermine "
+          "because, for example, the member is joining or departing "
+          "the domain, is paused, and is in error. \n"
+          "\"Management Hub\" indicates that a particular member "
+          "houses the administrative functions of the domain "
+          "itself. \n"
+          "\"Compute Member\" indications that the ComputerSystem "
+          "can participate in the work fulfilled for the domain. "
+          "For high performance clusters, compute members can "
+          "processes jobs, depending on the job requirements. \n"
+          "\"Login Member\" indicates that this ComputerSystem "
+          "gates membership into the domain. \n"
+          "\"I/O member\" indicates that this member is dedicated "
+          "for to data processing. These members generally do not "
+          "accept jobs. \n"
+          "\"Lock Manager\" indicates that this member arbitrates "
+          "access to the shared resources of the domain." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Unknown", "Management Hub", "Compute Member", 
+          "Login Member", "I/O Member", "Lock Manager", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 MemberRole[];
+
+      [Description ( 
+          "MemberState indicates state of membership of a "
+          "particular PartComponent ComputerSystem for a particular "
+          "AdminDomain aggregation. For clusters, MemberState can "
+          "be: \n"
+          "\"Unknown\" indicates that the implementation can not "
+          "determine membership state for other reasons, see status "
+          "properties of this class. \n"
+          "\"Member\" indicates that PartComponent ComputerSystem "
+          "is a member of the domain. \n"
+          "\"Joining\" indicates that the request for membership in "
+          "the domain is accepted and the ComputerSystem is joining "
+          "the domain. \n"
+          "\"Paused\" indicates that the ComputerSystem is a member "
+          "of the domain but currently the ComputerSystem can not "
+          "fulfill the function described by its MemberRole. \n"
+          "\"Departing\" indicates that the request for "
+          "non-membership in the domain is accepted and the "
+          "ComputerSystem is departing the domain." ), 
+       ValueMap { "0", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "Unknown", "Member", "Joining", "Paused", 
+          "Departing", "DMTF Reserved", "Vendor Reserved" }]
+   uint16 MemberState;
+
+
+};

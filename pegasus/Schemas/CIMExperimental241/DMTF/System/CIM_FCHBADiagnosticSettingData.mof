@@ -1,0 +1,129 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.31.0" ), 
+    UMLPackagePath ( "CIM::System::Diagnostics" ), 
+    Description ( 
+       "This class is being used in the FC HBA Diagnostics Profile to "
+       "pass in optional parameters when running certain tests." )]
+class CIM_FCHBADiagnosticSettingData : CIM_DiagnosticSettingData {
+
+      [Description ( 
+          "This property is used by a client for the Echo test to "
+          "specify one of the following Echo test types. FC Echo "
+          "can be used to implement the Echo test against many FC "
+          "devices. CT Pass Through allows SCSI read/write buffer "
+          "commands to be used to implement Echo against SCSI or "
+          "SAS devices attached to the SAN. FC Trace Route requires "
+          "support for HBA_SendCTPassThruV2 while FC Test requires "
+          "support for SMHBA_SendTEST. Both require HBAAPI library "
+          "and SM-HBA suppoort." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "FC Echo", 
+          "SCSI read/write buffer", "FC Trace Route", "FC Test" }, 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticSettingData.OtherEchoMechanism", 
+          "CIM_FCHBADiagnosticSettingData.LUN" }]
+   uint32 EchoMechanism = 2;
+
+      [Description ( 
+          "If EchoMechanism has a value of 1 (Other), this property "
+          "is Mandatory." ), 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticSettingData.EchoMechanism" }]
+   string OtherEchoMechanism;
+
+      [Description ( 
+          "This property specifies the format of the TargetDevice "
+          "value which is a string formatted as ASCII characters "
+          "representing hexadecimal digits. The only characters to "
+          "be used shall be 0 - 9 and A - F. Leading zeros are "
+          "permitted. WWPNs shall contain 16 characters. FC port "
+          "addresses shall contain 6 characters." ), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "WWPN", "FC Port" }, 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticSettingData.TargetDevice", 
+          "CIM_FCHBADiagnosticSettingData.OtherTargetDeviceFormat" }]
+   string TargetDeviceFormat;
+
+      [Description ( 
+          "This is the target device Address. The format of this "
+          "property is based on the value of the TargetDeviceFormat "
+          "property. The string is formatted as ASCII characters "
+          "representing hexadecimal digits. The only characters to "
+          "be used shall be 0 - 9 and A - F. Leading zeros are "
+          "permitted. WWPNs shall contain 16 characters. FC port "
+          "addresses shall contain 6 characters" ), 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticSettingData.TargetDeviceFormat", 
+          "CIM_FCHBADiagnosticSettingData.OtherTargetDeviceFormat" }]
+   string TargetDevice;
+
+      [Description ( 
+          "This property is mandatory when the EchoMechanism "
+          "property has the value of 3 (SCSI read/write buffer). "
+          "This property is used by the client to specify which LUN "
+          "they are targeting." ), 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticSettingData.EchoMechanism" }]
+   uint64 LUN = 0;
+
+      [Description ( 
+          "This array property is used by a client for some FC HBA "
+          "tests to specify the data buffer sizes to be used during "
+          "the test. The vendor-defined default value is advertised "
+          "using the default instance of "
+          "CIM_FCHBADiagnosticSettingData. If no value is specified "
+          "by the client, then the vendor-defined default value "
+          "will be used." ), 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticServiceCapabilities.BufferSizesSupported" }]
+   uint32 BufferSizes[];
+
+      [Description ( 
+          "This octet array property is used by a client for "
+          "several FC HBA tests to specify the data pattern to be "
+          "used by the test. If the buffer pattern is smaller than "
+          "BufferSize, then the pattern will be repeated as "
+          "necessary to fill the buffer. If the buffer pattern is "
+          "larger than BufferSize, then the pattern will be "
+          "truncated. The vendor-defined default value is "
+          "advertised using the default instance of "
+          "CIM_FCHBADiagnosticSettingData. If no value is specified "
+          "by the client, then the vendor-defined default pattern "
+          "will be used." ), 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticServiceCapabilities.MaxPatternSizeSupported" }]
+   uint8 BufferPattern[];
+
+      [Description ( 
+          "This property is used by a client for the Ping test. The "
+          "mechanism used depends upon the capabilities of the "
+          "device being tested. Clients may not know which "
+          "mechanism is appropriate for a particular device. "
+          "Therefore, providers shall have a mode where every "
+          "mechanism is tried in succession until one is successful "
+          "or all have been tried." ), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "Use All", "FC Echo", 
+          "SCSI Inquiry" }, 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticSettingData.OtherPingMechanism" }]
+   uint16 PingMechanism = 2;
+
+      [Description ( 
+          "If PingMechanism has a value of 1 (Other), this property "
+          "is Mandatory." ), 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticSettingData.PingMechanism" }]
+   string OtherPingMechanism;
+
+      [Description ( 
+          "If TargetDeviceFormat has a value of 1 (Other), this "
+          "property is Mandatory." ), 
+       ModelCorrespondence { 
+          "CIM_FCHBADiagnosticSettingData.TargetDeviceFormat", 
+          "CIM_FCHBADiagnosticSettingData.TargetDevice" }]
+   string OtherTargetDeviceFormat;
+
+
+};

@@ -1,0 +1,49 @@
+// Copyright (c) 2006 DMTF.  All rights reserved.
+// <change cr="CIMCoreCR00813" type="add">New class.</change>
+// ==================================================================
+//  CIM_ATAProtocolEndpoint
+// ==================================================================
+   [Experimental, Version ( "2.13.0" ), 
+    UMLPackagePath ( "CIM::Network::ProtocolEndpoints" ), 
+    Description ( 
+       "An ATAProtocolEndpoint represents the protocol (command) "
+       "aspects of a logical ATA port, independent of the "
+       "connection/transport. ATAProtocolEndpoint is either directly "
+       "or indirectly associated to one or more instances of "
+       "LogicalPort depending on the underlying transport." )]
+class CIM_ATAProtocolEndpoint : CIM_ProtocolEndpoint {
+
+      [Override ( "Name" ), 
+       Description ( 
+          "The ATA identifier for the target or initiator device, "
+          "in the format appropriate for the ConnectionType. If a "
+          "ConnectionType specific subclass is defined, the "
+          "subclass may override Name to define the format. For "
+          "other ConnectionTypes, the format (and content) should "
+          "match that of PermanentAddress of the corresponding port "
+          "if the port is is subclassed from NetworkPort." ), 
+       MaxLen ( 256 )]
+   string Name;
+
+      [Description ( 
+          "The supported connection type for this endpoint. The "
+          "connection type may be needed before the port(s) are "
+          "associated and also is used in some ATA commands." ), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Other", "ATA", "SATA" }]
+   uint16 ConnectionType;
+
+      [Description ( 
+          "This property indicates which role this ProtocolEndpoint "
+          "implements." ), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Initiator", "Target", 
+          "Both Initiator and Target" }]
+   uint16 Role;
+
+      [Description ( 
+          "The connection type, if ConnectionType is \"Other\"." )]
+   string OtherConnectionType;
+
+
+};

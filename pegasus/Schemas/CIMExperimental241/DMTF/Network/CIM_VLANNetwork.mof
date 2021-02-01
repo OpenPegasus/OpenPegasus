@@ -1,0 +1,73 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.40.0" ), 
+    UMLPackagePath ( "CIM::Network" ), 
+    Description ( 
+       "CIM_VLANNetwork represent the management aspects of a Virtual "
+       "Local Area Network (VLAN) as used within a network switch." ), 
+    MappingStrings { "Recommendation.ITU|M3100.Network" }]
+class CIM_VLANNetwork : CIM_Network {
+
+      [Description ( "A 12-bit VLAN ID used in the VLAN Tag header." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 4094 ), 
+       MappingStrings { "MIB.IETF|Q-BRIDGE-MIB.VlanId" }]
+   uint16 VLANId;
+
+      [Description ( 
+          "The value of the 802.10 SAID field which would be used "
+          "for this VLAN." )]
+   uint32 SAIdentifier;
+
+      [Description ( 
+          "The value of this property is set to a positive integer "
+          "when the value of the MTU for all embers (switch "
+          "endpoints/endstationendpoints of the VLAN is the same, "
+          "otherwise is set to -1 and the Transmission size is set "
+          "on each of the individual endpoints." )]
+   uint32 TransmissionSize;
+
+      [Description ( 
+          "Defines/restricts the media type of the VLAN. This \r\r\r\n"
+          "information is also needed when a VLAN is not yet "
+          "associated to any end point." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5..16000", ".." }, 
+       Values { "Unknown", "Other", "Not Applicable", "Ethernet", 
+          "FDDI", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_VLANNetwork.OtherTypeDescription" }]
+   uint16 TypeOfMedia;
+
+      [Override ( "OtherTypeDescription" ), 
+       Description ( 
+          "A string describing the type of media that is supported "
+          "by this VLAN, when the value of the Type property is set "
+          "to 1 (i.e., \"Other\"). This property should be set to "
+          "NULL when the Type property is any value other than 1." ), 
+       ModelCorrespondence { "CIM_VLANNetwork.TypeOfMedia" }]
+   string OtherTypeDescription;
+
+      [Description ( 
+          "A private VLAN allows the sub divsion of a VLAN, the "
+          "Primary VLAN in a single IP subnet. The secondary VLANs "
+          "can be in a community, they can communicate with each "
+          "other but not other secondary VLAN in the same primary "
+          "VLAN, or Isolated - only able to communicate to ports on "
+          "the Primary VLAN. 2 - Not private 3 - Primary 4 - "
+          "Community 5- Isolated )," ), 
+       ValueMap { "2", "3", "4", "5" }, 
+       Values { "Not Private", "Primary", "Community", "Isolated" }]
+   uint16 PrivateVLANType;
+
+      [Description ( 
+          "If PrivateVLANType matches 4(Community) or 5(Isolated) "
+          "then PrimaryVLANId is the VLANId of primary VLAN to "
+          "which the VLAN is bound" )]
+   uint16 PrimaryVLANId;
+
+      [Description ( 
+          "If PrivateVLANType matches 3(Primary) then "
+          "associatedVLANId is an array of VLANIds of the secondary "
+          "VLANs associated with the Primary VLAN" )]
+   uint16 AssociatedVLANIds[];
+
+
+};

@@ -1,0 +1,80 @@
+// Copyright (c) 2010 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.26.0" ), 
+    UMLPackagePath ( "CIM::Device::Ports" ), 
+    Description ( 
+       "ParallelPort is the logical representation of parallel "
+       "communications interface. It includes the setup or operation "
+       "of the parallel chips, at the lowest layers of a parallel "
+       "stack." )]
+class CIM_ParallelPort : CIM_LogicalPort {
+
+      [Description ( 
+          "An integer value that represents the base I/O address "
+          "used by the parallel port." )]
+   uint64 BaseIOAddress;
+
+      [Description ( 
+          "An integer value that represents the IRQ level used by "
+          "the parallel port." )]
+   uint32 IRQLevel;
+
+      [Description ( 
+          "The pinout used by the I/O device on this parallel port." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "25", "26", ".." }, 
+       Values { "Unknown", "XT/AT", "PS/2", "ECP", "EPP", 
+          "IEEE 1284", "PC-98", "PC-98-Hireso", "DMTF Reserved" }, 
+       MappingStrings { 
+          "SMBIOS.DMTF|Port Type|DSP0134_2.6.1.pdf 3.3.9.3" }]
+   uint32 Pinout;
+
+      [Description ( 
+          "ConnectorType is defined to force consistent naming of "
+          "the \'connector type\' property in subclasses and to "
+          "guarantee unique enum values for all instances of "
+          "ParallelPort. When set to 3 (\"Proprietary\"), the "
+          "related property OtherConnectorType contains a string "
+          "description of the type of port." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "32768.." }, 
+       Values { "Unknown", "Centronics", "Mini-Centronics", 
+          "Proprietary", "DB-25 Female", "DB-25 Male", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       MappingStrings { 
+          "SMBIOS.DMTF|Connector Type|DSP0134_2.6.1.pdf 3.3.9.2" }, 
+       ModelCorrespondence { "CIM_ParallelPort.OtherConnectorType" }]
+   uint16 ConnectorType;
+
+      [Description ( 
+          "Describes the connector type of the parallel port, when "
+          "ConnectorType is set to 3 (\"Proprietary\")." ), 
+       ModelCorrespondence { "CIM_ParallelPort.ConnectorType" }]
+   string OtherConnectorType;
+
+      [Description ( 
+          "An integer enumeration indicating the capabilities of "
+          "the ParallelController." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "..", "32768.." }, 
+       Values { "Unknown", "Other", "XT/AT Compatible", 
+          "PS/2 Compatible", "ECP", "EPP", "PC-98", "PC-98-Hireso", 
+          "PC-H98", "Device supports DMA", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ParallelController.Capabilities" }]
+   uint16 Capabilities[];
+
+      [Description ( 
+          "An enumeration indicating the operational security for "
+          "the Controller. For example, information that the "
+          "Device\'s external interface is locked out (valuemap=3) "
+          "or \"Boot Bypass\" (valuemap=5) can be described using "
+          "this property." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "32768.." }, 
+       Values { "Unknown", "Other", "None", 
+          "External Interface Locked Out", 
+          "External Interface Enabled", "Boot Bypass", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_ParallelController.Security" }]
+   uint16 Security;
+
+
+};

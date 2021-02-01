@@ -1,0 +1,45 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Association, Experimental, Version ( "2.28.0" ), 
+    UMLPackagePath ( "CIM::DEVICE::Views" ), 
+    Description ( 
+       "The CIM_AllocatedFromStoragePoolView instance is a view that "
+       "is derived from the CIM_AllocatedFromStoragePool association "
+       "between the StorageVolume or LogicalDisk (of the "
+       "CIM_VolumeView) and the StoragePool from which the "
+       "StorageVolume (or LogicalDisk is allocated. Note that if the "
+       "StorageVolume (or LogicalDisk) is allocated from multiple "
+       "StoragePools there will be multiple "
+       "AllocatedFromStoragePoolView instances for the StorageVolume "
+       "(or LogicalDisk).\n"
+       "This association is between a view class and a normalized "
+       "class. It can go in either direction (e.g., VolumeView "
+       "dependent on a StoragePool or a StorageVolume dependent on a "
+       "StoragePoolView)." )]
+class CIM_AllocatedFromStoragePoolView : CIM_AbstractElementAllocatedFromPool {
+
+      [Key, Override ( "Antecedent" ), 
+       Description ( 
+          "A StoragePool (or StoragePoolView) from which the "
+          "VolumeView (or StorageVolume) or StoragePoolView (or "
+          "StoragePool) is allocated." )]
+   CIM_ManagedElement REF Antecedent;
+
+      [Key, Override ( "Dependent" ), 
+       Description ( 
+          "The CIM_VolumeView (or StorageVolume) or child "
+          "StoragePoolView (or StoragePool) instance that is "
+          "allocated from the StoragePool (or StoragePoolView)" )]
+   CIM_ManagedElement REF Dependent;
+
+      [Description ( 
+          "The space consumed from the StoragePool by the "
+          "StorageVolume (or LogicalDisk). This value is the same "
+          "as the AllocatedFromStoragePool.SpaceConsumed value for "
+          "the base CIM_StorageVolume on the antecedent "
+          "StoragePool." ), 
+       ModelCorrespondence { 
+          "CIM_AllocatedFromStoragePool.SpaceConsumed" }]
+   uint64 AFSPSpaceConsumed;
+
+
+};

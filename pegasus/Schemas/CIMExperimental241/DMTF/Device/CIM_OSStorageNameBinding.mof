@@ -1,0 +1,68 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="sysdevCR00696.002" type ="remove">LocalPortName and
+// LocalPortNameType promoted.</
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_OSStorageNameBinding
+// ==================================================================
+   [Experimental, Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageNameBinding" ), 
+    Description ( 
+       "OSStorageNameBinding represent a binding between a "
+       "transport-specific name and an OS device name or address. "
+       "Bindings are defined by administrators and are persistent." )]
+class CIM_OSStorageNameBinding : CIM_StorageNameBinding {
+
+      [Override ( "BindingType" ), 
+       Description ( 
+          "OSStorageNameBinding only allows a subset of binding types."
+           ), 
+       ValueMap { "2", "3", "4", "5" }, 
+       Values { "FcApiBindToDID", "FcApiBindToWWPN", 
+          "FcApiBindToWWNN", "BindToLUID" }, 
+       MappingStrings { "FC API.INCITS-T11| HBA_BIND_TYPE" }]
+   uint16 BindingType;
+
+      [Description ( 
+          "A device file name valid for the current operating "
+          "system. It should follow the OS device naming guidelines "
+          "in the FC API or IMA specification." ), 
+       MappingStrings { "FC API.INCITS-T11|HBA_SCSIID|OSDeviceName", 
+          "IMA.SNIA|IMA_LU_PROPERTIES|osDeviceName" }]
+   string OSDeviceName;
+
+      [Description ( 
+          "A flag indicating whether OSBusNumber, OSTargetNumber, "
+          "and OSLUN prosperities are valid." ), 
+       MappingStrings { 
+          "IMA.SNIA|IMA_LU_PROPERTIES|osParallelIdsValid" }]
+   boolean OSAddressesValid = false;
+
+      [Description ( 
+          "The Bus Number as used in some OSes whether Bus, Target, "
+          "and LU number together form a unique internal address." ), 
+       MappingStrings { 
+          "FC API.INCITS-T11|HBA_SCSIID|SCSIBusNumber", 
+          "IMA.SNIA|IMA_LU_PROPERTIES|osBusNumber" }]
+   uint32 OSBusNumber;
+
+      [Description ( 
+          "The Target Number as used in some OSes whether Bus, "
+          "Target, and LU number together form a unique internal "
+          "address." ), 
+       MappingStrings { 
+          "FC API.INCITS-T11|HBA_SCSIID|SCSITargetNumber", 
+          "IMA.SNIA|IMA_LU_PROPERTIES|osTargetId" }]
+   uint32 OSTargetNumber;
+
+      [Description ( 
+          "The Logical Unit Number as used in some OSes where Bus, "
+          "Target, and LU number together form a unique internal "
+          "address." ), 
+       MappingStrings { "FC API.INCITS-T11|HBA_SCSIID|SCSIOSLUN", 
+          "IMA.SNIA|IMA_LU_PROPERTIES|osLun" }]
+   uint32 OSLUN;
+
+
+};

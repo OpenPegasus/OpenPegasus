@@ -1,0 +1,375 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.29.0" ), 
+    UMLPackagePath ( "CIM::Device::Printing" ), 
+    Description ( 
+       "A single instance of Capabilities for any PrintService which "
+       "corresponds to xxx-supported attributes of an IPP Printer. \n"
+       "See: Section 2.1 Printer Object in IPP/1.1 (RFC 2911). \n"
+       "See: Section 4.2 Job Template Attributes in IPP/1.1. \n"
+       "See: Section 4.4 Printer Description Attributes in IPP/1.1. \n"
+       "Note: An instance of PrintServiceCapabilities shall be "
+       "associated with exactly one instance of PrintService via an "
+       "instance of the CIM_ElementCapabilities association." )]
+class CIM_PrintServiceCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "The supported charsets for human-readable text output "
+          "from this instance of PrintService to network clients. \n"
+          "Values shall conform to section 4.1.2 Charset Parameter "
+          "in RFC 2046 and be contained in IANA Charset Registry, "
+          "e.g., \'utf-8\' and \'us-ascii\'." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.18 charset-supported" }, 
+       ModelCorrespondence { "CIM_PrintService.Charset" }]
+   string Charset[];
+
+      [Description ( 
+          "Specifies whether color printing is supported for the "
+          "associated PrintService." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.4.26 color-supported" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.PagesPerMinuteColor" }]
+   boolean ColorSupported;
+
+      [Description ( 
+          "The supported compression for document data (but not "
+          "operations themselves) for the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Additional vendor or site values may also be used. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'none\' means no compression is supported. \n"
+          "Value \'deflate\' means RFC 1951 (ZIP) is supported. \n"
+          "Value \'gzip\' means RFC 1952 (GNU zip) is supported. \n"
+          "Value \'compress\' means RFC 1977 (UNIX) is supported." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.32 compression-supported" }]
+   string Compression[];
+
+      [Description ( 
+          "The supported range of copies values for any PrintJob "
+          "processed by the associated PrintService (X:Y), e.g., "
+          "\'1:100\' or \'2:2\' (double copies only)." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.5 copies" }, 
+       ModelCorrespondence { "CIM_PrintServiceSettings.Copies", 
+          "CIM_PrintJob.Copies" }]
+   string Copies;
+
+      [Description ( 
+          "The supported named finishings values for any PrintJob "
+          "processed by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'punch\' means drill hole(s) in each Job copy. \n"
+          "Value \'staple\' means put staple(s) in each Job copy." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.6 finishings" }, 
+       ModelCorrespondence { "CIM_PrintServiceSettings.Finishings", 
+          "CIM_PrintJob.Finishings" }]
+   string Finishings[];
+
+      [Description ( 
+          "The supported set of IPP protocol named operations for "
+          "the associated PrintService (if any). \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'Print-Job\' means submit a new PrintJob. \n"
+          "Value \'Cancel-Job\' means cancel an existing PrintJob." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.15 operations-supported" }, 
+       ModelCorrespondence { 
+          "CIM_AccountManagementCapabilities.OperationsSupported" }]
+   string IPPOperations[];
+
+      [Description ( 
+          "The supported set of IPP protocol major/minor versions "
+          "for the associated PrintService (if any). \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values currently defined include: \n"
+          "Value \'1.0\' means IPP/1.0 (RFC 2566). \n"
+          "Value \'1.1\' means IPP/1.1 (RFC 2911). \n"
+          "Value \'2.0\' means IPP/2.0 (PWG 5100.12). \n"
+          "Value \'2.1\' means IPP/2.1 (PWG 5100.12). \n"
+          "Value \'2.2\' means IPP/2.2 (PWG 5100.12)." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.14 ipp-versions-supported" }, 
+       ModelCorrespondence { "CIM_SoftwareElement.Version" }]
+   string IPPVersions[];
+
+      [Description ( 
+          "The supported named job hold until values for any "
+          "PrintJob processed by the associated PrintService. That "
+          "is, the named time periods when the PrintJob may be "
+          "scheduled. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Additional vendor or site values may also be used. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'night\' means local night (site-specific). \n"
+          "Value \'weekend\' means local weekend (site-specific). \n"
+          "Value \'no-hold\' means schedule PrintJob immediately." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.2 job-hold-until" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceSettings.JobHoldUntil", 
+          "CIM_PrintJob.JobHoldUntil" }]
+   string JobHoldUntil[];
+
+      [Description ( 
+          "The supported range of priority values for any PrintJob "
+          "processed by the associated PrintService (X:Y), e.g., "
+          "\'1:100\' or \'50:50\' (single medium priority only). \n"
+          "Note: Weighted scale is *opposite* to Job.Priority. \n"
+          "The value 1 indicates the lowest possible priority. \n"
+          "The value 100 indicates the highest possible priority." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.1 job-priority" }, 
+       ModelCorrespondence { "CIM_Job.Priority", 
+          "CIM_PrintServiceSettings.JobPriority", 
+          "CIM_PrintJob.JobPriority" }]
+   string JobPriority;
+
+      [Description ( 
+          "The supported named start/end sheets for any PrintJob "
+          "processed by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Additional vendor or site values may also be used. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'none\' indicates no job start/end sheets. \n"
+          "Value \'standard\' indicates one or more site-specific "
+          "standard job sheets." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.3 job-sheets" }, 
+       ModelCorrespondence { "CIM_PrintServiceSettings.JobSheets", 
+          "CIM_PrintJob.RequiredJobSheets" }]
+   string JobSheets[];
+
+      [Description ( 
+          "The supported maximum output impressions for any "
+          "PrintJob processed by the associated PrintService." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.34 job-impressions-supported" }, 
+       ModelCorrespondence { "CIM_PrintJob.ImpressionsCompleted" }]
+   uint32 MaxImpressions;
+
+      [Description ( 
+          "The supported maximum document data size for any "
+          "PrintJob processed by the associated PrintService, in "
+          "units of KBytes." ), 
+       Units ( "KiloBytes" ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.33 job-k-octets-supported" }, 
+       ModelCorrespondence { "CIM_PrintQueue.MaxJobSize", 
+          "CIM_PrintJob.JobSize" }, 
+       PUnit ( "byte * 10^3" )]
+   uint32 MaxJobSize;
+
+      [Description ( 
+          "The supported maximum output sheets for any PrintJob "
+          "processed by the associated PrintService." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.35 job-media-sheets-supported" }, 
+       ModelCorrespondence { "CIM_PrintJob.SheetsCompleted" }]
+   uint32 MaxSheets;
+
+      [Description ( 
+          "The supported multiple document handling for any "
+          "PrintJob processed by the associated PrintService. \n"
+          "That is, the named policy for the handling of finishing, "
+          "the placement of one or more input logical pages onto "
+          "output impressions, and multiple copies in a PrintJob "
+          "with two or more documents. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'single-document\' means apply finishing to "
+          "multiple document sets (i.e., each copy of the "
+          "PrintJob). \n"
+          "Value \'single-document-new-sheet\' means the same "
+          "behavior as \'single-document\' plus each document must "
+          "start on a new sheet (i.e., a front side in duplex)." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.2.4 multiple-document-handling" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.MultipleDocumentJobs", 
+          "CIM_PrintServiceSettings.MultipleDocumentHandling", 
+          "CIM_PrintJob.MultipleDocumentHandling" }]
+   string MultipleDocumentHandling[];
+
+      [Description ( 
+          "Specifies whether multiple documents in a single Job are "
+          "supported for the associated PrintService (e.g., using "
+          "IPP Send-Document operations)." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.4.16" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.MultipleDocumentHandling", 
+          "CIM_PrintServiceSettings.MultipleDocumentHandling", 
+          "CIM_PrintJob.MultipleDocumentHandling" }]
+   boolean MultipleDocumentJobs;
+
+      [Description ( 
+          "The supported natural languages for human-readable text "
+          "output from this instance of PrintService to network "
+          "clients. \n"
+          "Values shall conform to IETF Tags for Identifying "
+          "Languages (RFC 5646) or successor and shall be contained "
+          "in the IANA Language Subtag Registry (RFC 5645), e.g., "
+          "\'en-us\' (US English) and \'fr\' (French)." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.4.20" }, 
+       ModelCorrespondence { "CIM_PrintService.NaturalLanguage" }]
+   string NaturalLanguage[];
+
+      [Description ( 
+          "The supported range of input logical pages per "
+          "impression for a PrintJob processed by the associated "
+          "PrintService (X:Y), e.g., \'1:9\' or \'1:1\' (one page "
+          "per impression). \n"
+          "Note: The translation, rotation, and scaling required "
+          "for values of \'2\' or more are implementation "
+          "dependent." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.9 number-up" }, 
+       ModelCorrespondence { "CIM_PrintServiceSettings.NumberUp", 
+          "CIM_PrintJob.NumberUp" }]
+   string NumberUp;
+
+      [Description ( 
+          "The supported orientation requested values for any "
+          "PrintJob processed by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'portrait\' means imaged across the short edge, "
+          "with no content rotation. \n"
+          "Value \'landscape\' means imaged across the long edge, "
+          "with content rotated 90 degrees anticlockwise from "
+          "\'portrait\'. \n"
+          "Value \'reverse-landscape\' means imaged across the long "
+          "edge, with content rotated 90 degrees clockwise from "
+          "\'portrait\'. \n"
+          "Value \'reverse-portrait\' means imaged across the short "
+          "edge, with content rotated 180 degrees (opposite) from "
+          "\'portrait\'." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.2.10 orientation-requested" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceSettings.OrientationRequested", 
+          "CIM_PrintJob.OrientationRequested" }]
+   string OrientationRequested[];
+
+      [Description ( 
+          "The supported named output bins for any PrintJob "
+          "processed by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Additional vendor or site values may also be used. \n"
+          "Standard values defined in PWG 5100.2 include: \n"
+          "Value \'top\' means the output bin that, when facing the "
+          "device, is best identified as the top bin. \n"
+          "Value \'side\' means the output bin that, when facing "
+          "the device, is best identified as the side bin." ), 
+       MappingStrings { "PWG5100-2.PWG|Section 2.1 output-bin" }, 
+       ModelCorrespondence { "CIM_PrintServiceSettings.OutputBin" }]
+   string OutputBin[];
+
+      [Description ( 
+          "The supported output device name(s) for any Print Job "
+          "processed by the associated PrintService." ), 
+       MappingStrings { 
+          "PWG5100-7.PWG|Section 4.2.1.2 output-device-supported" }, 
+       ModelCorrespondence { "CIM_Printer.ElementName", 
+          "CIM_PrintJob.OutputDevice" }]
+   string OutputDevice[];
+
+      [Description ( 
+          "The supported pages per minute color for any PrintJob "
+          "processed by the associated PrintService. \n"
+          "Value of zero indicates that the PrintService takes 2 or "
+          "more minutes to process a single page." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.36 pages-per-minute" }]
+   uint32 PagesPerMinute;
+
+      [Description ( 
+          "The supported color pages per minute for any PrintJob "
+          "processed by the associated PrintService. \n"
+          "Value of zero indicates that the PrintService takes 2 or "
+          "more minutes to process a single color page." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.37 pages-per-minute-color" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.ColorSupported" }]
+   uint32 PagesPerMinuteColor;
+
+      [Description ( 
+          "Support for input logical page ranges for any PrintJob "
+          "processed by the associated PrintService. \n"
+          "That is, support for the set of input logical pages to "
+          "be included in the output." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.7 page-ranges" }, 
+       ModelCorrespondence { "CIM_PrintJob.PageRanges" }]
+   boolean PageRanges;
+
+      [Description ( 
+          "Specifies whether PDL override is attempted for the "
+          "associated PrintService. \n"
+          "See section 15.2 of IPP/1.1 (RFC 2911) for details." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.28 pdl-override-supported" }]
+   boolean PDLOverrideAttempted;
+
+      [Description ( 
+          "The supported print quality values for impressions for "
+          "any PrintJob processed by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'draft\' means lowest print quality. \n"
+          "Value \'normal\' means normal print quality. \n"
+          "Value \'high\' means highest print quality." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.13 print-quality" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceSettings.PrintQuality", 
+          "CIM_PrintJob.PrintQuality" }]
+   string PrintQuality[];
+
+      [Description ( 
+          "The supported document reference URI schemes for Jobs "
+          "submitted to this instance of PrintService, e.g., \'ftp\' "
+          "in an IPP Print-URI operation). \n"
+          "Values shall include \'ftp\' if this capabilities "
+          "property is implemented by the associated PrintService." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.4.27" }]
+   string ReferenceURISchemes[];
+
+      [Description ( 
+          "The supported print resolutions for impressions for any "
+          "PrintJob processed by the associated PrintService. \n"
+          "That is, the horizontal by vertical resolution in pixels "
+          "per inch for output impressions (sides of selected "
+          "media) separated by a lowercase \'x\', e.g., print "
+          "resolutions of \'300x300\' and \'600x1200\'. \n"
+          "Horizontal resolution is defined as resolution in the "
+          "cross-feed direction, short-edge in portrait feed mode. \n"
+          "Vertical resolution is defined as resolution in the feed "
+          "direction, long-edge in portrait feed mode." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.2.12 printer-resolution" }, 
+       ModelCorrespondence { "CIM_PrintServiceSettings.Resolution", 
+          "CIM_PrintJob.HorizontalResolution", 
+          "CIM_PrintJob.VerticalResolution" }]
+   string Resolution[];
+
+      [Description ( 
+          "The supported imposition modes for impressions for any "
+          "PrintJob processed by the associated PrintService. \n"
+          "That is, the policy for imposing input logical pages "
+          "onto output impressions (sides of selected media). \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'one-sided\' means each successive input logical "
+          "page onto the same side of consecutive sheets of media. \n"
+          "Value \'two-sided-long-edge\' means each consecutive "
+          "pair of input logical pages onto front and back sides of "
+          "consecutive sheets of media, with orientation for long "
+          "edge binding \n"
+          "Value \'two-sided-short-edge\' means each consecutive "
+          "pair of input logical pages onto front and back sides of "
+          "consecutive sheets of media, with orientation for short "
+          "edge binding." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.8 sides" }, 
+       ModelCorrespondence { "CIM_PrintServiceSettings.Sides", 
+          "CIM_PrintJob.Sides" }]
+   string Sides[];
+
+
+};

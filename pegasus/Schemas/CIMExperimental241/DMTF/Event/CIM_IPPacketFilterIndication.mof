@@ -1,0 +1,98 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+// IPPacketFilterIndication
+// ==================================================================
+   [Indication, Experimental, Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Event" ), 
+    Description ( 
+       "The IPPacketFilterIndication class is intended to provide a "
+       "base set of properties to allow for common data to be logged "
+       "by all packet filtering services and devices in a consistent "
+       "manner. This single consistent model of data will allow for "
+       "common reporting of many messages across different packet "
+       "filtering systems, which will help improve security "
+       "information management by providing a single view of the "
+       "information." )]
+class CIM_IPPacketFilterIndication : CIM_IPNetworkSecurityIndication {
+
+      [Required, Override ( "MessageType" ), 
+       Description ( 
+          "An integer indicating the type of message to which the "
+          "indication applies. DMTF subclasses will define specific "
+          "values from the DMTF Class Reserved range." ), 
+       ValueMap { "0", "..", "2", "3", "4", "5", "6..100", "16000.." }, 
+       Values { "Unknown", "DMTF Reserved", "Not Applicable", 
+          "Connection Accepted", "Connection Rejected", 
+          "Connection Dropped", "DMTF Class Reserved", 
+          "Vendor Reserved" }]
+   uint16 MessageType;
+
+      [Required, Description ( 
+          "An integer indicating the direction of packet traffic "
+          "from the standpoint of the packet filter." ), 
+       ValueMap { "0", "1" }, 
+       Values { "Ingress", "Egress" }]
+   uint16 Direction;
+
+      [Description ( 
+          "An integer indicating the naming convention used for "
+          "host names reported by the packet filter. The default is "
+          "\"DNS\"." ), 
+       ValueMap { "0", "1" }, 
+       Values { "DNS", "NETBIOS" }]
+   uint16 NamingConvention = 0;
+
+      [Description ( 
+          "The name of the host that corresponds to the "
+          "IPv4SourceAddress or IPv6SourceAddress." ), 
+       ModelCorrespondence { 
+          "CIM_IPPacketFilterIndication.NamingConvention" }]
+   string SourceHostName;
+
+      [Description ( 
+          "The name of the host that corresponds to the "
+          "IPv4DestinationAddress or IPv6DestinationAddress." ), 
+       ModelCorrespondence { 
+          "CIM_IPPacketFilterIndication.NamingConvention" }]
+   string DestinationHostName;
+
+      [Description ( 
+          "The name of the TCP or UDP service that corresponds to "
+          "the DestPort." )]
+   string DestinationServiceName;
+
+      [Description ( 
+          "The source port after translation when Network Address "
+          "Translation is performed by the packet filter." )]
+   uint16 TranslatedSourcePort;
+
+      [Description ( 
+          "The source IPv4 address after translation when Network "
+          "Address Translation is performed by the packet filter." )]
+   uint32 TranslatedSourceIPv4NumericAddress;
+
+      [Description ( 
+          "The source address after translation when Network "
+          "Address Translation is performed by the packet filter." )]
+   string TranslatedSourceAddress;
+
+      [Description ( 
+          "The destination port after translation when Network "
+          "Address Translation is performed by the packet filter." )]
+   uint16 TranslatedDestPort;
+
+      [Description ( 
+          "The destination IPv4 address after translation when "
+          "Network Address Translation is performed by the packet "
+          "filter." )]
+   uint32 TranslatedDestIPv4NumericAddress;
+
+      [Description ( 
+          "The destination address after translation when Network "
+          "Address Translation is performed by the packet filter." )]
+   string TranslatedDestAddress;
+
+
+};

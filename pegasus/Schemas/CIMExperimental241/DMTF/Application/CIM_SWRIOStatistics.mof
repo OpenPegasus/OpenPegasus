@@ -1,0 +1,139 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Application::SWResources" ), 
+    Description ( 
+       "The metrics of SWRIOStatistics describe the transfer behavior "
+       "of the software resource in one particular direction (input or "
+       "the output). The transfer is basically the amount of data "
+       "input to or output from the software resource during a sample "
+       "interval in terms of technical units (e.g., kB) or "
+       "domain-specific units (e.g., the number of items (e.g., the "
+       "number of messages if the software resource is of the type "
+       "\'queue\'). \n"
+       "The operational parameters regarding the allocation limits are "
+       "surfaced also. Further details can be found in the description "
+       "of the base class SWRStatistics. \n"
+       "The metrics found in this statistics are raw values that "
+       "describe the allocation behavior of the software resource as "
+       "simple as possible. Thus, the metric values can be used most "
+       "flexibly (e.g., cumulative, averaged, etc.). The drawback of "
+       "the flexibility is that the likelyhood of required "
+       "calculations - subsequent to retrieval of the values - "
+       "increases in order to result in rates or statistical data "
+       "needed for monitoring and reporting." )]
+class CIM_SWRIOStatistics : CIM_SWRStatistics {
+
+      [Description ( 
+          "TransferredQuantity describes the quantity transferred "
+          "to/from the software resource in units corresponding to "
+          "the type of the statistics (e.g., technical based on "
+          "Kilobytes). The unit can be found at the "
+          "CIM_SWRStatistics.Unit. The direction of the transfer "
+          "can be found at the type of the statistics. \n"
+          "The metric accumulates the transfer quantity over the "
+          "sample interval and is the gross amount of data "
+          "transferred to/from the software resource. \n"
+          "A value of null indicates that no quantity is available. "
+          "The value is 0 if no transfer happened or all transfers "
+          "where empty. (Note that this must be true for both the "
+          "request and the response). \n"
+          "The corresponding limits are expected to be a rate. One "
+          "method to detect limit violations require the division "
+          "of TransferredQuantity by the sample interval in order "
+          "to result in rate that then can be compared to the "
+          "corresponding limit. \n"
+          "The initial value is 0." ), 
+       ModelCorrespondence { "CIM_SWRStatistics.Unit", 
+          "CIM_SWRStatistics.StatisticsType" }]
+   uint32 TransferredQuantity;
+
+      [Description ( 
+          "OtherTransferredQuantity describes the transfer size of "
+          "the software resource in complementary units compared to "
+          "AllocationLevel (e.g., domain-specific units like the "
+          "number of items: buffered objects or pooled "
+          "connections). The unit can be found at "
+          "CIM_SWRStatistics.OtherUnit. \n"
+          "The metric accumulates the transfer quantity over the "
+          "sample interval. \n"
+          "A value of null indicates that no quantity is available. \n"
+          "The initial value is 0." ), 
+       ModelCorrespondence { "CIM_SWRStatistics.OtherUnit", 
+          "CIM_SWRIOStatistics.TransferredQuantity" }]
+   uint32 OtherTransferredQuantity;
+
+      [Description ( 
+          "Transfers is the count of all transfers (sucessful or "
+          "not) that happened during the sample interval. If the "
+          "value is null no number can be provided. \n"
+          "The initial value is 0." )]
+   uint32 Transfers;
+
+      [Description ( 
+          "AverageTransferTime is the average time all counted "
+          "transfers took during the sample interval. If the value "
+          "is null no average can be provided. \n"
+          "The initial value is 0." )]
+   datetime AverageTransferTime;
+
+      [Description ( 
+          "SuccessfulTransfers is the count of all transfers that "
+          "could be executing fully (i.e., transfer all items "
+          "requested) during the sample interval. If the value is "
+          "null no number can be provided. In case of errors, the "
+          "property can be used to quantify the quality with which "
+          "the software resource works. \n"
+          "The initial value is 0." )]
+   uint32 SuccessfulTransfers;
+
+      [Description ( 
+          "SuccessfulQuantity specifies the successfully "
+          "transferred amount of data to/from the software "
+          "resource. It is the net amount in contrast to "
+          "TransferredQuantity. \n"
+          "The unit can be found at the CIM_SWRStatistics.Unit. The "
+          "direction of the transfer can be found at the type of "
+          "the statistics. \n"
+          "If the value is null no number can be provided. \n"
+          "The initial value is 0." ), 
+       ModelCorrespondence { "CIM_SWRStatistics.Unit" }]
+   uint32 SuccessfulQuantity;
+
+      [Description ( 
+          "CountOfActiveTransfers is a point metric and applies to "
+          "the point in time of the end of the sample interval. It "
+          "describes the number of in-progress transfers. This also "
+          "includes pending, suspended, open and asynchronous "
+          "requests that obviously have not been acknowledged to "
+          "the requestor of the transfer. If the implementation of "
+          "the resource is single process, single thread and "
+          "synchronous (i.e., no internal queue), the number cannot "
+          "be greater than 1 since no parallel requests can occur. \n"
+          "A value of null indicates that no count is available. A "
+          "value of 0 indicates no active requests. An increasing "
+          "number indicates that the software resource hangs and a "
+          "reinitialize() can solve the problem. \n"
+          "The initial value is 0." )]
+   uint32 CountOfActiveTransfers;
+
+      [Description ( 
+          "LastActivity is the point in time at which the last "
+          "transfer ended. The timestamp is 0 if "
+          "CountOfActiveTransfers is greater than 0, i.e., at least "
+          "one transfer is still in progress and, thus, the "
+          "software resource is still active. Even if a transfer is "
+          "still in progress, LastActivity can be a valid point in "
+          "time, if the software resource is currently idle due to "
+          "internal wait states or deadlocks. Thus, activity is "
+          "defined as the software resource is actively carrying "
+          "out inputs and outputs. LastActivity may refer to a "
+          "point in time that is outside the sample interval. This "
+          "is, the instrumentation internally keeps the timestamp "
+          "during the lifetime of the software resource. The metric "
+          "can be used to better quantify what happens at the "
+          "interfaces of the software resource. \n"
+          "The initial value is 0." )]
+   datetime LastActivity;
+
+
+};

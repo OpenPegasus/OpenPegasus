@@ -1,0 +1,132 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.35.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "A subclass of TierServiceCapabilities that defines the "
+       "Capabilities of a TierPolicyService. An instance of "
+       "TierServicePolicyCapabilities is associated with a "
+       "TierPolicyService using ElementCapabilities." )]
+class CIM_TierPolicyServiceCapabilities : CIM_TierServiceCapabilities {
+
+      [Description ( 
+          "Indicates if instrumentation supports policies for "
+          "storage tiering." )]
+   boolean SupportsTieringPolicies = false;
+
+      [Description ( 
+          "Enumeration indicating the supported features of the "
+          "storage tier policy service. \"Policy shall account for "
+          "100 percent allocation\", indicates if an element is "
+          "associated with a tiering policy, the policy shall "
+          "account for the element\'s entire space allocation from "
+          "various tiers." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "System creates policies", 
+          "Client can create policies", 
+          "Storage tier can belong to multiple policies", 
+          "Policy shall account for total allocation", 
+          "Supports global TierPolicyRule", 
+          "Supports local TierPolicyRule", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SupportedPolicyFeatures[];
+
+      [Description ( 
+          "Enumeration indicating the elements that are associated "
+          "with a tiering policy. For example, a tiering policy can "
+          "dictate the space allocation from different tiers for "
+          "all storage volumes belonging to a DeviceMaskingGroup." ), 
+       ValueMap { "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "StorageVolume", "LogicalDisk", "StorageExtent", 
+          "StoragePool", "DeviceMaskingGroup", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 PolicyAppliesToElements[];
+
+      [Description ( 
+          "The policy rule applies to elements that have the "
+          "indicated provisioning." ), 
+       ValueMap { "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "ThinlyProvisioned", "ThicklyProvisioned", 
+          "CompressedThinlyProvisioned", 
+          "CompressedThicklyProvisioned", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SupportedProvisioningTypes[];
+
+      [Description ( 
+          "Specifies how fast data should be moved between storage tiers."
+           ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Very High", "High", "Medium", "Low", "Very Low", 
+          "Implementation Decides", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_TierPolicyRule.DataMovementRate" }]
+   uint16 SupportedDataMovementRates[];
+
+      [Override ( "SupportedAsynchronousActions" ), 
+       Description ( 
+          "Enumeration indicating what operations will be executed "
+          "as asynchronous jobs. If an operation is included in "
+          "both this and SupportedSynchronousActions properties "
+          "then the underlying implementation is indicating that it "
+          "may or may not create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "..", "0x8000.." }, 
+       Values { "CreateStorageTier", "AddToStorageTier", 
+          "RemoveFromStorageTier", "CreateTierDomain", 
+          "DeleteTierDomain", "ModifyStorageTierDomainAssociation", 
+          "GetStorageTierCandidateObjects", "DeleteStorageTier", 
+          "CreateStorageTierPolicyRule", 
+          "DeleteStorageTierPolicyRule", 
+          "ModifyStorageTierPolicyRule", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_TierPolicyServiceCapabilities.SupportedSynchronousActions" }]
+   uint16 SupportedAsynchronousActions[];
+
+      [Override ( "SupportedSynchronousActions" ), 
+       Description ( 
+          "Enumeration indicating what operations will be executed "
+          "synchronously -- without the creation of a job. If an "
+          "operation is included in both this property and "
+          "SupportedAsynchronousActions then the underlying "
+          "implementation is indicating that it may or may not "
+          "create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "..", "0x8000.." }, 
+       Values { "CreateStorageTier", "AddToStorageTier", 
+          "RemoveFromStorageTier", "CreateTierDomain", 
+          "DeleteTierDomain", "ModifyStorageTierDomainAssociation", 
+          "GetStorageTierCandidateObjects", "DeleteStorageTier", 
+          "CreateStorageTierPolicyRule", 
+          "DeleteStorageTierPolicyRule", 
+          "ModifyStorageTierPolicyRule", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_TierPolicyServiceCapabilities.SupportedAsynchronousActions" }]
+   uint16 SupportedSynchronousActions[];
+
+      [Experimental, Description ( 
+          "Indicates if the Automated Storage Tiering subsystem has "
+          "the capability to coordinate with the remote site the "
+          "tiering characteristics of the elements involved in "
+          "remote replication." ), 
+       ValueMap { "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "ThinlyProvisioned Mirror", 
+          "ThicklyProvisioned Mirror", "ThinlyProvisioned Clone", 
+          "ThicklyProvisioned Clone", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SupportedRemoteTieringCoordination[];
+
+      [Experimental, Description ( 
+          "It indicates the system supports the following "
+          "capability. \n"
+          "When a thinly provisioned storage element subject to "
+          "storage tiering needs additional storage capacity and "
+          "the storage pool that the storage element is allocated "
+          "from is out of free capacity, the system allocates the "
+          "additional storage capacity from another storage pool in "
+          "the same tiering policy that is associated to the "
+          "storage volume." )]
+   boolean SupportsAutomaticStoragePoolAllocation;
+
+
+};

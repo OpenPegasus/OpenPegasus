@@ -1,0 +1,57 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::System::Processing" ), 
+    Description ( 
+       "This class records the completion statistics (such as "
+       "ElapsedTime) and other information for its associated Job. The "
+       "class will be extended in a future release to include "
+       "statistics regarding resource utilization. Note that there may "
+       "be many instances of this class if the Job is recurring (i.e., "
+       "if its JobRunTimes property is not 1)." )]
+class CIM_JobProcessingStatistics : CIM_StatisticalData {
+
+      [Description ( 
+          "The time that this invocation of the Job was started. "
+          "This SHOULD be represented by an actual date and time, "
+          "and not in interval format." ), 
+       ModelCorrespondence { "CIM_Job.StartTime" }]
+   datetime StartTime;
+
+      [Description ( 
+          "The total execution time of the Job. This MUST be "
+          "represented in interval format." ), 
+       ModelCorrespondence { "CIM_Job.ElapsedTime" }]
+   datetime ElapsedTime;
+
+      [Description ( 
+          "Indicates the urgency or importance of execution of the "
+          "Job. The lower the number, the higher the priority." ), 
+       ModelCorrespondence { "CIM_Job.Priority" }]
+   uint32 Priority;
+
+      [Description ( 
+          "The percentage of the job that was completed at the time "
+          "that the Job terminated. Note that this value will be "
+          "less than 100 if the Job terminated prematurely. \n"
+          "Note that the value 101 is undefined and will be not be "
+          "allowed in the next major revision of the specification." ), 
+       Units ( "Percent" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 101 ), 
+       ModelCorrespondence { "CIM_Job.PercentComplete" }, 
+       PUnit ( "percent" )]
+   uint16 PercentComplete;
+
+      [Description ( 
+          "Specifies the number of milliseconds of CPU that this "
+          "job has used in its current (or last) run. When a job is "
+          "actively running, this number will continue to change "
+          "until the job has finished its execution, either "
+          "successfully or unsuccessfully." ), 
+       Units ( "MilliSeconds" ), 
+       Counter, ModelCorrespondence { "CIM_BatchJob.MaxCPUTime" }, 
+       PUnit ( "second * 10^-3" )]
+   uint32 CPUTimeUsed;
+
+
+};

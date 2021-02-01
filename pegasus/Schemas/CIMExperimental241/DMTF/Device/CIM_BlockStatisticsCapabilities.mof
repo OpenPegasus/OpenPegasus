@@ -1,0 +1,99 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Version ( "2.39.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageStatistics" ), 
+    Description ( 
+       "A specialization of the StatisticsCapabilities class that "
+       "describes the capabilities of a BlockStatisticsService, which "
+       "provides statistical data for instances of "
+       "BlockStatisticalData." )]
+class CIM_BlockStatisticsCapabilities : CIM_StatisticsCapabilities {
+
+      [Required, Override ( "ElementTypesSupported" ), 
+       Description ( 
+          "The list of element types for which statistical data is "
+          "available. The values of this array correspond to the "
+          "values defined for the ElementType property of the "
+          "BlockStatisticalData class." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "..", "0x8000.." }, 
+       Values { "Unknown", "Computer System", 
+          "Front-end Computer System", "Peer Computer System", 
+          "Back-end Computer System", "Front-end Port", 
+          "Back-end Port", "Volume", "Extent", "Disk Drive", 
+          "Arbitrary LUs", "Remote Replica Group", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 ElementTypesSupported[];
+
+      [Override ( "SynchronousMethodsSupported" ), 
+       Description ( 
+          "The synchronous mechanisms supported for retrieving "
+          "statistics and defining and modifying filters for "
+          "statistics retrieval." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "..", "0x8000.." }, 
+       Values { "Execute Query", "Query Collection", 
+          "GetStatisticsCollection", "Manifest Creation", 
+          "Manifest Modification", "Manifest Removal", 
+          "GetRateStatisticsCollection", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SynchronousMethodsSupported[];
+
+      [Override ( "AsynchronousMethodsSupported" ), 
+       Description ( 
+          "The asychronous mechanisms supported for retrieving statistics."
+           ), 
+       ValueMap { "2", "3", "8", "..", "0x8000.." }, 
+       Values { "GetStatisticsCollection", "Indications", 
+          "GetRateStatisticsCollection", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 AsynchronousMethodsSupported[];
+
+      [Description ( 
+          "An internal clocking interval for all timers in the "
+          "subsystem, measured in microseconds (Unit of measure in "
+          "the timers, measured in microseconds). Time counters are "
+          "monotanically increasing counters that contain \'ticks\'. "
+          "Each tick represents one ClockTickInterval. If "
+          "ClockTickInterval contained a value of 32 then each time "
+          "counter tick would represent 32 microseconds." ), 
+       Units ( "MicroSeconds" ), 
+       PUnit ( "second * 10^-6" )]
+   uint64 ClockTickInterval;
+
+      [Experimental, Description ( 
+          "SupportedFeatures is an array identifying features "
+          "supported by the implementation. The valid values are "
+          "\"2\" (none) or \"3\" (Client Defined Sequence). If \"2\" "
+          "is specified, then no other entry may be included. If "
+          "\"3\" is specified, it indicates client may define, in "
+          "the manifest, the sequence in which the requested "
+          "properties are returned. \r\n"
+          "\"4\" is the same as \"3\", except that it covers the "
+          "rated data." ), 
+       ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+       Values { "none", "Client Defined Sequence", 
+          "Client Defined Rate Sequence", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_BlockStatisticsManifest.CSVSequence", 
+          "CIM_BlockStatisticsManifest.CSVRateSequence" }]
+   uint16 SupportedFeatures[];
+
+      [Experimental, Description ( 
+          "The list of element types for which statistical data is "
+          "available. The values of this array correspond to the "
+          "values defined for the RateElementType property of the "
+          "BlockStatisticalData class." ), 
+       ValueMap { "0", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "21", "22", "23", "..", "0x8000.." }, 
+       Values { "Unknown", "Computer System Rate", 
+          "Front-end Computer System Rate", 
+          "Peer Computer System Rate", 
+          "Back-end Computer System Rate", "Front-end Port Rate", 
+          "Back-end Port Rate", "Volume Rate", "Extent Rate", 
+          "Disk Drive Rate", "Arbitrary LUs Rate", 
+          "Remote Replica Group Rate", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 RateElementTypesSupported[];
+
+
+};

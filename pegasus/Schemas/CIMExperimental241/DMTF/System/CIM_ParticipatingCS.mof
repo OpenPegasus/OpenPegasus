@@ -1,0 +1,56 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Association, Deprecated { "CIM_MemberOfCollection" }, 
+    Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::System::SystemElements" ), 
+    Description ( 
+       "A Cluster is composed of two or more ComputerSystems, "
+       "operating together. A ComputerSystem may participate in "
+       "multiple Clusters. \n"
+       "\n"
+       "When first establishing or bringing up a Cluster, only one "
+       "ComputerSystem may be defined as participating in it. "
+       "Therfore, the cardinality of the association for the "
+       "ComputerSystem reference is Min (1). \n"
+       "The use of this association is deprecated in lieu of using "
+       "MemberOfCollection to RedundancySet." )]
+class CIM_ParticipatingCS : CIM_Dependency {
+
+      [Deprecated { "CIM_MemberOfCollection.Member" }, 
+       Override ( "Antecedent" ), 
+       Min ( 1 ), 
+       Description ( 
+          "The ComputerSystem which participates in the Cluster." )]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Deprecated { "CIM_MemberOfCollection.Collection" }, 
+       Override ( "Dependent" ), 
+       Description ( "The Cluster." )]
+   CIM_Cluster REF Dependent;
+
+      [Deprecated { "CIM_ComputerSystem.EnabledState", 
+          "CIM_ComputerSystem.OperationalStatus" }, 
+       Description ( 
+          "StateOfNode indicates the condition of the participating "
+          "ComputerSystem in the Cluster. For example, one value is "
+          "\"Joining\" (2)." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Other", "Joining", "Paused", 
+          "Available", "Unavailable", "Degraded" }]
+   uint16 StateOfNode;
+
+      [Deprecated { "CIM_ComputerSystem.Roles" }, 
+       Description ( 
+          "RoleOfNode indicates whether the Cluster nodes are peers "
+          "(value = 2), connected in a master-slave/primary- "
+          "secondary relationship (values = 3 for primary, 4 for "
+          "secondary), available in a standby configuration (5) or "
+          "of some other (1) or unknown (0) relationship. In a "
+          "System/390 environment, the nodes are identified as "
+          "\"Base Plex\" (value=6) or \"Enhanced Plex\" (value=7)." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "Peer", "Primary", "Secondary", 
+          "Standby", "Base Plex", "Enhanced Plex" }]
+   uint16 RoleOfNode;
+
+
+};

@@ -1,0 +1,58 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Association, Experimental, Abstract, Version ( "2.28.0" ), 
+    UMLPackagePath ( "CIM::Device::ProtocolController" ), 
+    Description ( 
+       "This abstract association indicates a subclass of "
+       "LogicalDevice or a view of a logical device is connected "
+       "through a specific ProtocolController or view of a "
+       "ProtocolController. Specific subclasses of this association "
+       "would identify whether views or specific classes are used." )]
+class CIM_AbstractProtocolControllerForDevice : CIM_Dependency {
+
+      [Key, Override ( "Antecedent" ), 
+       Description ( 
+          "A reference to a ProtocolController or a view of a "
+          "ProtocolController." )]
+   CIM_ManagedElement REF Antecedent;
+
+      [Key, Override ( "Dependent" ), 
+       Description ( 
+          "A reference to a LogicalDevice or a view of a LogicalDevice."
+           )]
+   CIM_ManagedElement REF Dependent;
+
+      [Description ( 
+          "Address of the associated Device in the context of the "
+          "Antecedent Controller." )]
+   string DeviceNumber;
+
+      [Description ( 
+          "This property describes the priority given to accesses "
+          "of the device through this Controller. The highest "
+          "priority path will have the lowest value for this "
+          "parameter." )]
+   uint16 AccessPriority;
+
+      [Description ( 
+          "The AccessState property describes the accessibility of "
+          "the LogicalDevice through the ProtocolController. \n"
+          "Unknown (0) indicates the instrumentation does not know "
+          "whether access is or is not functioning.\n"
+          "Active (2) indicates normal access. \n"
+          "Inactive (3) indicates the instrumentation knows this "
+          "path is not active, and one of the other values (below) "
+          "does not apply. \n"
+          "Replication in Progress (4) indicates that the path is "
+          "temporarily inactive due to a replication activity. \n"
+          "Mapping Inconsistency (5) indicates the instrumentation "
+          "has detected that this path is inactive due to an "
+          "inconsistency in the DeviceNumber/DeviceAccess "
+          "configuration." ), 
+       ValueMap { "0", "2", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "Unknown", "Active", "Inactive", 
+          "Replication In Progress", "Mapping Inconsistency", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 AccessState;
+
+
+};

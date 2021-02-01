@@ -1,0 +1,144 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Version ( "2.39.0" ), 
+    UMLPackagePath ( "CIM::Interop" ), 
+    Description ( 
+       "A RegisteredSpecification is used to advertise the "
+       "implementation of a specification within a WBEM server. The "
+       "specification may be authored by the DMTF or another standards "
+       "organization. In this context, specification is used to "
+       "describe a named and versioned set of constraints. There may "
+       "be a one to one correspondence between the set of constraints "
+       "and the document in which they are published. An example of a "
+       "one to one correspondence is the mechanism used by the DMTF to "
+       "publish its profiles. An example of one to many documents to "
+       "specifications is an SMI-S book published by SNIA." )]
+class CIM_RegisteredSpecification : CIM_ManagedElement {
+
+      [Key, Override ( "InstanceID" ), 
+       Description ( 
+          "Within the scope of the instantiating Namespace, "
+          "InstanceID opaquely and uniquely identifies an instance "
+          "of this class. In order to ensure uniqueness within the "
+          "NameSpace, the value of InstanceID shall be constructed "
+          "using the following \'preferred\' algorithm: \n"
+          ": \n"
+          "Where and are separated by a colon \':\', and where "
+          "shall include a copyrighted, trademarked or otherwise "
+          "unique name that is owned by the business entity "
+          "creating/defining the InstanceID, or is a registered ID "
+          "that is assigned to the business entity by a recognized "
+          "global authority. (This is similar to the _ structure of "
+          "Schema class names.) In addition, to ensure uniqueness, "
+          "shall not contain a colon (\':\'). The first colon to "
+          "appear in InstanceID shall appear between and . is "
+          "chosen by the organizational entity and should not be "
+          "re-used to identify different underlying (real-world) "
+          "elements. \n"
+          "For DMTF defined instances, shall be set to \'CIM\'." )]
+   string InstanceID;
+
+      [Description ( "The type of specification." ), 
+       ValueMap { "1", "2", "3", "4", ".." }, 
+       Values { "Other", "Profile", "Initiative Wrapper", "Mapping", 
+          "DMTF Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_RegisteredSpecification.OtherSpecificationType" }]
+   uint16 SpecificationType;
+
+      [Description ( 
+          "OtherSpecificationType shall be a a free-form string "
+          "providing a description of the specification type if 1, "
+          "\"Other\" is specified for the SpecificationType." ), 
+       MaxLen ( 256 ), 
+       ModelCorrespondence { 
+          "CIM_RegisteredSpecification.SpecificationType" }]
+   string OtherSpecificationType;
+
+      [Required, Description ( 
+          "The organization that defines this specification. \n"
+          "\"The Green Grid\" identifies \"The Green Grid "
+          "Association\"" ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "21", ".." }, 
+       Values { "Other", "DMTF", "CompTIA", 
+          "Consortium for Service Innovation", "FAST", "GGF", 
+          "INTAP", "itSMF", "NAC", 
+          "Northwest Energy Efficiency Alliance", "SNIA", 
+          "TM Forum", "The Open Group", "ANSI", "IEEE", "IETF", 
+          "INCITS", "ISO", "W3C", "OGF", "The Green Grid", 
+          "DMTF Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_RegisteredSpecification.OtherRegisteredOrganization" }]
+   uint16 RegisteredOrganization;
+
+      [Description ( 
+          "OtherRegisteredOrganization shall be a a free-form "
+          "string providing a description of the organization if 1, "
+          "\"Other\" is specified for the RegisteredOrganization." ), 
+       MaxLen ( 256 ), 
+       ModelCorrespondence { 
+          "CIM_RegisteredSpecification.RegisteredOrganization" }]
+   string OtherRegisteredOrganization;
+
+      [Required, Description ( 
+          "The name of this registered specification. Since "
+          "multiple versions can exist for the same RegisteredName, "
+          "the combination of RegisteredName, "
+          "RegisteredOrganization, and RegisteredVersion shall "
+          "uniquely identify the registered specification within "
+          "the scope of the organization. \n"
+          "The value of this property shall correspond to the name "
+          "given to the set of versioned constraints by a "
+          "specification or standard. The value does not identify "
+          "the name of the document or publishing media, unless it "
+          "happens to be the same as the name given to the "
+          "versioned constraints." ), 
+       MaxLen ( 256 )]
+   string RegisteredName;
+
+      [Required, Description ( 
+          "The version describing the creation or last "
+          "modificationof the specification. The string "
+          "representing the version shall be in the form: \n"
+          "M + \".\" + N + \".\" + U \n"
+          "Where: \n"
+          "M - The major version (in numeric form). \n"
+          "N - The minor version (in numeric form). \n"
+          "U - The update (e.g. errata, patch, ..., in numeric "
+          "form)." )]
+   string RegisteredVersion;
+
+      [Required, Description ( 
+          "This property identifies the requested network "
+          "advertisement for specification information. It is used "
+          "by the advertising services of the WBEM infrastructure "
+          "to determine what should be advertised, via what "
+          "mechanisms. The property is an array so that the "
+          "specification may be advertised using several "
+          "mechanisms. If an array entry has a value of 2 (Not "
+          "Advertised), this shall be the only array entry." ), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Not Advertised", "SLP", "WS-Identify" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_RegisteredSpecification.AdvertiseTypeDescriptions" }]
+   uint16 AdvertiseTypes[];
+
+      [Description ( 
+          "A free-form string identifying the requested network "
+          "advertisement for specification information for cases "
+          "where the predefined values in AdvertiseTypes are not "
+          "sufficient. Each entry in this array corresponds to the "
+          "entry in the AdvertiseTypes array at the same index, and "
+          "the two arrays shall have the same number of entries. A "
+          "non-Null value shall be provided for each array entry "
+          "that corresponds to an AdvertiseTypes entry with a value "
+          "of 1 (Other). Other array entries should be Null." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_RegisteredSpecification.AdvertiseTypes" }]
+   string AdvertiseTypeDescriptions[];
+
+
+};

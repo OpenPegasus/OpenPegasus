@@ -1,0 +1,137 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.21.0" ), 
+    UMLPackagePath ( "CIM::Device" ), 
+    Description ( 
+       "FingerprintMatchingService is the representation of matching "
+       "service of the Fingerprint Reader Device." )]
+class CIM_FingerprintMatchingService : CIM_Service {
+
+      [Description ( 
+          "A value that indicates the current supported Compression "
+          "Algorithm. The algorithm is used to compress the "
+          "fingerprint image to fingerprint template." ), 
+       ValueMap { "0", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "Unknown", "Uncompressed", "Compressed-Grayscale", 
+          "Compressed-Binary", "DMTF Reserved", "Vendor Specified" }, 
+       ModelCorrespondence { 
+          "CIM_FingerprintMatchingServiceCapabilities.CompressionAlgorithmsSupported" }]
+   uint16 CompressionAlgorithm;
+
+      [Description ( 
+          "A string that identifies the current selected matching "
+          "algorithm In order to ensure uniqueness within the "
+          "Namespace, each value defined by the vendor for use in "
+          "the MatchingAlgorithm property SHOULD be constructed "
+          "using the following \'preferred\' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon "
+          "\':\', and where <OrgID> MUST include a copyrighted, "
+          "trademarked or otherwise unique name that is owned by "
+          "the business entity creating/defining the InstanceID, or "
+          "is a registered ID that is assigned to the business "
+          "entity by a recognized global authority (This is similar "
+          "to the <Schema Name>_<Class Name> structure of Schema "
+          "class names.) In addition, to ensure uniqueness <OrdID> "
+          "MUST NOT contain a colon (\':\'). When using this "
+          "algorithm, the first colon to appear in InstanceID MUST "
+          "appear between <OrgID> and <LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHALL not "
+          "be re-used to identify different underlying (real-world) "
+          "elements." ), 
+       ModelCorrespondence { 
+          "CIM_FingerprintMatchingServiceCapabilities.MatchingAlgorithmsSupported" }]
+   string MatchingAlgorithm;
+
+      [Description ( 
+          "An integer that indicates the current Template Format "
+          "The value 3 represents ANSI/INCITS 377-2004 Finger "
+          "Pattern-Based Interchange Format. The value 4 represents "
+          "ANSI/INCITS 378-2004 Finger Minutiae Format for Data "
+          "Interchange. The value 5 represents ANSI/NIST-ITL 1-2000 "
+          "Data Format for the Interchange of Fingerprint, Facial, "
+          "& Scar Mark & Tattoo Information. The value 6 represents "
+          "ISO/IEC 19794-2:2005 Biometric Data Interchange Formats "
+          "Part 2: Finger Minutiae Data. The value 7 represents "
+          "ISO/IEC 19794-3:2006 Biometric Data Interchange Formats "
+          "Part 3: Finger Pattern Spectral Data. The value 8 "
+          "represents ISO/IEC 19794-8:2006 Biometric Data "
+          "Interchange Formats Part 8: Finger Pattern Skeletal "
+          "Data." ), 
+       ValueMap { "0", "1", "3", "4", "5", "6", "7", "8", "..", 
+          "32768..65535" }, 
+       Values { "Unknown", "Other", 
+          "Finger Pattern-Based Interchange Format", 
+          "Finger Minutiae Format for Data Interchange", 
+          "Data Format for the Interchange of Fingerprint, Facial, & Scar Mark & Tattoo Information", 
+          "Biometric Data Interchange Formats Part 2", 
+          "Biometric Data Interchange Formats Part 3", 
+          "Biometric Data Interchange Formats Part 8", 
+          "DMTF Reserved", "Vendor Specified" }, 
+       ModelCorrespondence { 
+          "CIM_FingerprintMatchingServiceCapabilities.TemplateFormatsSupported", 
+          "CIM_FingerprintTemplate.TemplateFormat", 
+          "CIM_FingerprintMatchingServiceCapabilities.OtherTemplateFormats", 
+          "CIM_FingerprintMatchingService.OtherTemplateFormat", 
+          "CIM_FingerprintTemplate.OtherTemplateFormat" }]
+   uint16 TemplateFormat;
+
+      [Description ( 
+          "A free-form string providing a description of the "
+          "TemplateFormat when 1, \"Other\", is specified for the "
+          "TemplateFormat." ), 
+       MaxLen ( 256 ), 
+       ModelCorrespondence { 
+          "CIM_FingerprintMatchingServiceCapabilities.TemplateFormatsSupported", 
+          "CIM_FingerprintMatchingService.TemplateFormat", 
+          "CIM_FingerprintMatchingServiceCapabilities.OtherTemplateFormats", 
+          "CIM_FingerprintTemplate.OtherTemplateFormat", 
+          "CIM_FingerprintTemplate.TemplateFormat" }]
+   string OtherTemplateFormat;
+
+      [Description ( 
+          "The rate of which the Fingerprint matcher fails a match "
+          "when there should be a match. In a less secure "
+          "environment, a low False Reject Rate is desirable. This "
+          "reflects the accuracy of the service. This rate is a "
+          "static value property that is tired to the "
+          "characteristic of FalseReject of a particular matching "
+          "service." ), 
+       ModelCorrespondence { 
+          "CIM_FingerprintMatchingService.MatchingAlgorithm" }, 
+       PUnit ( "percent" )]
+   uint32 FalseRejectRate;
+
+      [Description ( 
+          "The rate of which the Fingerprint matcher succeeds a "
+          "match when there should be a failure. In a more secure "
+          "environment, a low False Accept Rate is desirable. This "
+          "reflects the accuracy of the service. This rate is a "
+          "static value property that is tired to the "
+          "characteristic of FalseAccept of a particular matching "
+          "service." ), 
+       ModelCorrespondence { 
+          "CIM_FingerprintMatchingService.MatchingAlgorithm" }, 
+       PUnit ( "percent" )]
+   uint32 FalseAcceptRate;
+
+      [Description ( 
+          "The Crossover Error Rate is the rate at which the False "
+          "Accept Rate and the False Reject Rate become equal, as "
+          "the device increases in accuracy. As an identification "
+          "device becomes more sensitive or accurate, its False "
+          "Accept Rate decreases while its False Reject Rate "
+          "increases. The Crossover Error Rate is the point at "
+          "which these two rates are equal, or crossover. This rate "
+          "is a static value property that is tired to the "
+          "characteristic of CrossoverError of a particular "
+          "matching service." ), 
+       ModelCorrespondence { 
+          "CIM_FingerprintMatchingService.MatchingAlgorithm" }, 
+       PUnit ( "percent" )]
+   uint32 CrossoverErrorRate;
+
+      [Description ( "The number of Enrolled Users." )]
+   uint32 NumberOfEnrolledUsers;
+
+
+};

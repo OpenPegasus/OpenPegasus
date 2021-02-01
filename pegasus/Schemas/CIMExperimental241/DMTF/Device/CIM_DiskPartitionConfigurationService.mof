@@ -1,0 +1,134 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="DMTFCR01555.000" type ="change">Update class description
+// and descriptions for SetPartitionStyle and CreateOrModifyPartition.</
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_DiskPartitionConfigurationService
+// ==================================================================
+   [Experimental, Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageExtents" ), 
+    Description ( 
+       "DiskPartitionConfigurationService provides methods for clients \n"
+       "to configure DiskPartitions. \n"
+       "\n"
+       "The instrumentation MUST NOT instantiate instances of "
+       "partitions (such as hidden, maintenance, or zero-length "
+       "partitions) that are not intended for use by applications "
+       "(filesystems, databases, ...). There are two reasons for this "
+       "constraint. There are different system-specific ways to "
+       "indicate whether or not a partition is hidden, in some cases, "
+       "the starting/ending block information is invalid, but ignored. "
+       "If these properties are exposed, clients will not have a way "
+       "to determine which blocks are in use. The other reason is that "
+       "typically the number of partitions is fixed in the underlying "
+       "data structures (or grows by large, fixed-size chunks). Common "
+       "practice is to have a one (or a few) partition per disk with "
+       "many hidden partitions. Instantiating a lot of hidden "
+       "partitions clutters up the model without value add. The "
+       "methods of this service and the properties of "
+       "DiskPartitionConfigurationCapabilities provide a view of "
+       "partitions actually in use without requiring clients to "
+       "understand system-specific details." )]
+class CIM_DiskPartitionConfigurationService : CIM_Service {
+
+      [Description ( 
+          "Describes the partitioning schemes supported by the "
+          "platform. AIX and HP_UX do not allow partitions. Linux "
+          "allows volumes with and without partitions, Solaris "
+          "requires Partitions. No more than a single instance of "
+          "this class MAY be instantiated on a system. If set to "
+          "\'No partitions allowed\' then the methods of this "
+          "service are not available." ), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "No partitions allowed", 
+          "Volumes may be partitioned or treated as whole", 
+          "Volumes must be partitioned" }]
+   uint16 PartitioningSchemes;
+
+
+      [Description ( 
+          "This method installs a partition table on an extent of "
+          "the specified partition style; creating an association "
+          "between the extent and that capabilities instances "
+          "referenced as method parameters. As a side effect, the "
+          "consumable block size of the underlying extent is "
+          "reduced by the block size of the metadata reserved by "
+          "the partition table and associated metadata. This size "
+          "is in the PartitionTableSize property of the associated "
+          "DiskPartitionConfigurationCapabilities instance." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x1000", 
+          "0x1001", "0x1002", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "DMTF Reserved", 
+          "Extent already has partition table", 
+          "Requested Extent too large", 
+          "Style not supported by Service", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 SetPartitionStyle(
+         [IN, Description ( 
+             "A reference to the extent (volume or partition) "
+             "where this style (partition table) will be "
+             "installed." )]
+      CIM_StorageExtent REF Extent, 
+         [IN, Description ( 
+             "A reference to the "
+             "DiskPartitionConfigurationCapabilities instance "
+             "describing the desired partition style." )]
+      CIM_DiskPartitionConfigurationCapabilities REF PartitionStyle);
+
+      [Description ( 
+          "This method creates a new partition if the Partition "
+          "parameter is null or modifies the partition specified. "
+          "If the starting and ending address parameters are null, "
+          "the resulting partition will occupy the entire "
+          "underlying extent. If the starting address is non-null "
+          "and the ending address is null, the resulting partition "
+          "will extend to the end of the underlying extent. \n"
+          "\n"
+          "If a partition is being created, a LogicalDisk instance "
+          "is also created BasedOn the partition. The "
+          "NumberOfBlocks and ComsumableBlocks properties MUST be "
+          "the same value and MUST be common to the partition and "
+          "LogicalDisk (since partition metadata is part of the "
+          "partition table, not part of partitions). The "
+          "StartingAddress of the LogicalDisk MUST be 0, the "
+          "ConsumableBlocks of the LogicalDisk and partition MUST "
+          "be the same, and the difference between the "
+          "StartingAddress and EndingAddress of the partition and "
+          "LogicalDisk must be the same - one less than "
+          "ConsumableBlocks/NumberOfBlocks. \n"
+          "\n"
+          "The underlying extent MUST be associated to a "
+          "capabilities class describing the installed partition "
+          "style (partition table); this association is established "
+          "using SetPartitionStyle()." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x1000", 
+          "0x1001", "0x1002", "0x1003", "0x1004", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "DMTF Reserved", 
+          "Overlap Not Supported", "No Available Partitions", 
+          "Specified partition not on specified extent", 
+          "Device File Name not valid", 
+          "LogicalDisk with different DeviceFileName exists", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateOrModifyPartition(
+         [IN, Description ( 
+             "A reference to the underlying extent the partition is base on."
+              )]
+      CIM_StorageExtent REF extent, 
+         [IN, Description ( "The starting block number." )]
+      uint64 StartingAddress, 
+         [IN, Description ( "The ending block number." )]
+      uint64 EndingAddress, 
+         [IN, Description ( 
+             "The platform-specific special file name to be "
+             "assigned to the LogicalDisk instance BasedOn the "
+             "new DiskPartition instance." )]
+      string DeviceFileName, 
+         [IN, OUT, Description ( 
+             "A reference an existing partition instance to "
+             "modify or null to request a new partition." )]
+      CIM_GenericDiskPartition REF Partition);
+
+};

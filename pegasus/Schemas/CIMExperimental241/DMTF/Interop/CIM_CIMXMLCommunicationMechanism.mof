@@ -1,0 +1,116 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Deprecated { "CIM_CIMXMLCapabilities" }, 
+    Version ( "2.39.0" ), 
+    UMLPackagePath ( "CIM::Interop" ), 
+    Description ( 
+       "This class specializes ObjectManagerCommunicationMechanism, "
+       "adding properties specific to the CIM-XML protocol (XML "
+       "encoding and CIM Operations)." )]
+class CIM_CIMXMLCommunicationMechanism : CIM_ObjectManagerCommunicationMechanism {
+
+      [Deprecated { "CIM_ProtocolService.Protocol" }, 
+       Required, Override ( "CommunicationMechanism" ), 
+       Description ( 
+          "The only valid CommunicationMechanism for this subclass "
+          "is CIM-XML." ), 
+       ValueMap { "2" }, 
+       Values { "CIM-XML" }]
+   uint16 CommunicationMechanism = 2;
+
+      [Deprecated { 
+          "CIM_WBEMProtocolServiceCapabilities.WBEMProtocolVersionsSupported" }, 
+       Required, Override ( "Version" ), 
+       Description ( 
+          "Enumeration describing the CIM-XML protocol version "
+          "supported by the ObjectManager." ), 
+       ValueMap { "1.0", "1.1", "1.2" }]
+   string Version;
+
+      [Deprecated { "CIM_CIMXMLCommunicationMechanism.Version" }, 
+       Required, Description ( 
+          "Enumeration describing the CIM-XML protocol version "
+          "supported by the ObjectManager. It is deprecated in lieu "
+          "of a more general, inherited property (Version)." ), 
+       ValueMap { "0", "1" }, 
+       Values { "Unknown", "1.0" }]
+   uint16 CIMXMLProtocolVersion;
+
+      [Deprecated { "No value" }, 
+       Required, Description ( 
+          "Describes whether the CIM Server is strictly validating "
+          "(validates the XML document against the DTD) or not "
+          "(loosely validating)." )]
+   boolean CIMValidated;
+
+      [Experimental, Description ( 
+          "Indicates whether the ObjectManager supports closure of "
+          "Pulled Enumeration sessions based upon exceeding server "
+          "limits, as defined in DSP0200 (CIM Operations over "
+          "HTTP). This property MUST NOT be NULL if the \'Pulled "
+          "Read\' functional profile is supported by the "
+          "ObjectManager." ), 
+       ModelCorrespondence { 
+          "CIM_ObjectManagerCommunicationMechanism.FunctionalProfilesSupported" }]
+   boolean PulledEnumerationClosureOnExceedingServerLimitsSupported;
+
+      [Experimental, Description ( 
+          "Indicates whether the ObjectManager supports "
+          "continuation on error for Pulled Enumerations, as "
+          "defined in DSP0200 (CIM Operations over HTTP). This "
+          "property MUST NOT be NULL if the \'Pulled Read\' "
+          "functional profile is supported by the ObjectManager." ), 
+       ModelCorrespondence { 
+          "CIM_ObjectManagerCommunicationMechanism.FunctionalProfilesSupported" }]
+   boolean PulledEnumerationContinuationOnErrorSupported;
+
+      [Experimental, Description ( 
+          "Indicates whether it is allowed by the ObjectManager to "
+          "specify the special value 0 (indicating no timeout) for "
+          "the operation timeout for Pulled Enumerations. This "
+          "property takes precedence over the properties "
+          "PulledEnumerationMinimumOperationTimeout and "
+          "PulledEnumerationMaximumOperationTimeout. The concept of "
+          "an operation timeout for Pulled Enumerations is defined "
+          "in DSP0200 (CIM Operations over HTTP). This property "
+          "MUST NOT be NULL if the \'Pulled Read\' functional "
+          "profile is supported by the ObjectManager." ), 
+       ModelCorrespondence { 
+          "CIM_ObjectManagerCommunicationMechanism.FunctionalProfilesSupported", 
+          "CIM_CIMXMLCommunicationMechanism.PulledEnumerationMinimumOperationTimeout", 
+          "CIM_CIMXMLCommunicationMechanism.PulledEnumerationMaximumOperationTimeout" }]
+   boolean PulledEnumerationNoOperationTimeoutSupported;
+
+      [Experimental, Description ( 
+          "Indicates the minimum operation timeout allowed by the "
+          "ObjectManager to be specified for Pulled Enumerations, "
+          "in seconds. The minimum boundary is considered "
+          "inclusive, i.e. any actual value greater than or equal "
+          "to this property\'s value is allowed. The concept of an "
+          "operation timeout for Pulled Enumerations is defined in "
+          "DSP0200 (CIM Operations over HTTP). This property MUST "
+          "NOT be NULL if the \'Pulled Read\' functional profile is "
+          "supported by the ObjectManager." ), 
+       ModelCorrespondence { 
+          "CIM_ObjectManagerCommunicationMechanism.FunctionalProfilesSupported", 
+          "CIM_CIMXMLCommunicationMechanism.PulledEnumerationNoOperationTimeoutSupported", 
+          "CIM_CIMXMLCommunicationMechanism.PulledEnumerationMaximumOperationTimeout" }]
+   uint32 PulledEnumerationMinimumOperationTimeout;
+
+      [Experimental, Description ( 
+          "Indicates the maximum operation timeout allowed by the "
+          "ObjectManager to be specified for Pulled Enumerations, "
+          "in seconds. The maximum boundary is considered "
+          "inclusive, i.e. any actual value less than or equal to "
+          "this property\'s value is allowed. The concept of an "
+          "operation timeout for Pulled Enumerations is defined in "
+          "DSP0200 (CIM Operations over HTTP). This property MUST "
+          "NOT be NULL if the \'Pulled Read\' functional profile is "
+          "supported by the ObjectManager." ), 
+       ModelCorrespondence { 
+          "CIM_ObjectManagerCommunicationMechanism.FunctionalProfilesSupported", 
+          "CIM_CIMXMLCommunicationMechanism.PulledEnumerationNoOperationTimeoutSupported", 
+          "CIM_CIMXMLCommunicationMechanism.PulledEnumerationMinimumOperationTimeout" }]
+   uint32 PulledEnumerationMaximumOperationTimeout;
+
+
+};

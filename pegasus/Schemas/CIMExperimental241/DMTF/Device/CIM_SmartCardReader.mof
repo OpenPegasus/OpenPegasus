@@ -1,0 +1,44 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.21.0" ), 
+    UMLPackagePath ( "CIM::Device" ), 
+    Description ( 
+       "SmartCardReader is the logical representation of Smart Card "
+       "Reader Device. It includes the configuration, setup or "
+       "operation of aSmart Card Reader Device." )]
+class CIM_SmartCardReader : CIM_LogicalDevice {
+
+      [Description ( 
+          "A Boolean indicates whether the Smart Card is inserted. "
+          "True if card is detected and False if card is not "
+          "detected." )]
+   boolean IsCardDetected;
+
+      [Description ( 
+          "Specifies the maximum time (as a datetime interval) that "
+          "the smart card Reader will retain the information for a "
+          "contactless smart card." )]
+   datetime CacheTimeout;
+
+      [Description ( 
+          "An array of integer enumeration that indicates the "
+          "supported Smart Card Type" ), 
+       ValueMap { "0", "1", "3", "4", "..", "32768..65535" }, 
+       Values { "Unknown", "Other", "Contacted", "Contactless", 
+          "DMTF Reserved", "Vendor Specified" }, 
+       ModelCorrespondence { "CIM_SmartCard.SmartCardType", 
+          "CIM_SmartCard.OtherSmartCardType", 
+          "CIM_SmartCardReader.OtherSmartCardTypesSupported" }]
+   uint16 SmartCardTypesSupported[];
+
+      [Description ( 
+          "An array of the free-form string providing a description "
+          "of the SmartCardTypesSupported when 1,\"Other\", is "
+          "specified for the SmartCardTypesSupported." ), 
+       MaxLen ( 256 ), 
+       ModelCorrespondence { "CIM_SmartCard.OtherSmartCardType", 
+          "CIM_SmartCard.SmartCardType", 
+          "CIM_SmartCardReader.SmartCardTypesSupported" }]
+   string OtherSmartCardTypesSupported[];
+
+
+};

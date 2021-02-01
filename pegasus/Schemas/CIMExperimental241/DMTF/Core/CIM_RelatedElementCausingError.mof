@@ -1,0 +1,69 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Association, Experimental, Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Core::CoreElements" ), 
+    Description ( 
+       "This association defines the relationship between a failing "
+       "managed element and the managed element that is causing the "
+       "error. The cause and effect might be indirect. The cause might "
+       "be simply that the lack of functionality of one component "
+       "causes another component to be overworked. \n"
+       "The association instance must exist as long as the cause-and- "
+       "effect relationship exists." )]
+class CIM_RelatedElementCausingError : CIM_Dependency {
+
+      [Override ( "Dependent" ), 
+       Description ( 
+          "Dependent represents the object whose degradation or "
+          "failure is caused, in part, by the Antecedent." )]
+   CIM_ManagedElement REF Dependent;
+
+      [Override ( "Antecedent" ), 
+       Description ( 
+          "Antecedent represents the object causing the failure on "
+          "the Dependent." )]
+   CIM_ManagedElement REF Antecedent;
+
+      [Description ( 
+          "The time that this failure relationship was created. The "
+          "datetime should be provided because it is helpful to "
+          "know when the effect was initiated." )]
+   datetime FailureRelationshipInitiated;
+
+      [Required, Description ( 
+          "An enumeration that very generally describes the "
+          "correlation of the failure of the Antecedent to its "
+          "effect on the Dependent. It describes the weight of the "
+          "effect reported by an instance of this class. The effect "
+          "of the Antecedent element can have a strong or heavy "
+          "impact on the health of the Dependent element, or the "
+          "impact can be weak or light." ), 
+       ValueMap { "2", "10", ".." }, 
+       Values { "Strong Correlated", "Weakly Correlated", 
+          "DMTF Reserved" }]
+   uint16 EffectCorrelation = 10;
+
+      [Description ( 
+          "Because more than one errant Managed Element could cause "
+          "a Managed Element to fail, this ranking is used to "
+          "express the most significant cause. \n"
+          "The Rank attribute is used to declare the ranking of a "
+          "particular cause-and-effect relationship among all "
+          "cause- and-effect relationships that are defined by "
+          "instances of this association for a particular element. \n"
+          "1 is the highest ranking. A rank of 1 declares that this "
+          "cause-and-effect relationship is the most debilitating "
+          "and should be addressed with priority over all other "
+          "cause-and- effect relationships. As the rank increases, "
+          "the effect imposed on the Antecedent Managed Element "
+          "failure decreases. There should be only one instance of "
+          "this association with a particular ranking value per "
+          "Dependent instance. If there is more than one instance "
+          "of the same ranking per Dependent instance, then the "
+          "observer cannot determine from the model which "
+          "cause-and-effect relationship to resolve first. \n"
+          "The ranking of existing instances can change over time "
+          "based on the prevailing conditions of the device." )]
+   uint16 Ranking = 1;
+
+
+};

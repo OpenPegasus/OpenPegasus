@@ -1,0 +1,92 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.31.0" ), 
+    UMLPackagePath ( "CIM::System::Diagnostics" ), 
+    Description ( 
+       "This class define the additional settings to be used for disk "
+       "drive diagnostic tests." )]
+class CIM_DiskDriveDiagnosticSettingData : CIM_DiagnosticSettingData {
+
+      [Description ( 
+          "This property specifies the ending Logical Block Address "
+          "for disk diagnostics that test a specific region of the "
+          "disk. If NULL is specified, then the diagnostic ends "
+          "with the last disk sector. To specify the entire disk, "
+          "both LBAStart and LBAEnd must be NULL." ), 
+       ModelCorrespondence { 
+          "CIM_DiskDriveDiagnosticServiceCapabilities.Region" }]
+   uint64 LBAStart;
+
+      [Description ( 
+          "This property specifies the ending Logical Block Address "
+          "for disk diagnostics that test a specific region of the "
+          "disk. If NULL is specified, then the diagnostic ends "
+          "with the last disk sector. To specify the entire disk, "
+          "both LBAStart and LBAEnd must be NULL." ), 
+       ModelCorrespondence { 
+          "CIM_DiskDriveDiagnosticServiceCapabilities.Region" }]
+   uint64 LBAEnd;
+
+      [Description ( 
+          "This property specifies the seed that initiates the "
+          "random number sequence used by the test." ), 
+       ModelCorrespondence { 
+          "CIM_DiskDriveDiagnosticServiceCapabilities.Seed" }]
+   uint32 Seed;
+
+      [Description ( 
+          "This array property is used by a client for the tests "
+          "shown in Table 5 to specify the data buffer sizes to be "
+          "used for read or write operations by the diagnostic "
+          "test. If this property is NULL, then the default size of "
+          "512 bytes is used.\n"
+          "The vendor-defined default value(s) is optionally "
+          "advertised by the provider using the default instance of CIM_DiskDriveDiagnosticSettingData.\n"
+          "Test behavior depends upon the combination of values in "
+          "the DataPatterns and DataSizes array properties. The "
+          "client may choose to specify that one or both of these "
+          "array properties be NULL, have a single value, or have "
+          "multiple values. However, certain restrictions apply. "
+          "Both properties can be NULL but if one property has a "
+          "value then the other property must also have a value.\n"
+          "If both properties are NULL, then the vendor defined "
+          "combination of data patterns and data sizes are used by "
+          "the diagnostic test. \n"
+          "If both properties have values, then they shall have the "
+          "same number of values because the diagnostic test shall "
+          "treat them as value pairs. That is, the test is run "
+          "first using the first value in DataSizes and the first "
+          "value in DataPatterns, then the test is run a second "
+          "time using the second value in DataSizes and the second "
+          "value in DataPatterns, and so on. However, neither "
+          "element of the value pair can be NULL.\n"
+          "If CIM_DiskDriveDiagnosticServiceCapabilities.DataSizes "
+          "has values, a client can only specify one or more of "
+          "those values." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiskDriveDiagnosticSettingData.DataPatterns", 
+          "CIM_DiskDriveDiagnosticServiceCapabilities.DataSizes" }, 
+       PUnit ( "Bytes" )]
+   uint32 DataSizes[];
+
+      [Description ( 
+          "This array property specifies the data patterns written "
+          "by the disk diagnostic. If NULL, then the the "
+          "vendor-specific data pattern(s) is used. A data pattern "
+          "is a string interpreted as a 16-digit hex value. For "
+          "example, a data pattern of all ones would be "
+          "FFFFFFFFFFFFFFFF while alternating ones and zeros would "
+          "be 5555555555555555 or AAAAAAAAAAAAAAAA . The pattern "
+          "will be repeated as necessary to fill the data buffer.\n"
+          "If "
+          "CIM_DiskDriveDiagnosticServiceCapabilities.DataPatterns "
+          "has values, a client can only specify one or more of "
+          "those values." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiskDriveDiagnosticSettingData.DataSizes", 
+          "CIM_DiskDriveDiagnosticServiceCapabilities.DataPatterns" }]
+   string DataPatterns[];
+
+
+};

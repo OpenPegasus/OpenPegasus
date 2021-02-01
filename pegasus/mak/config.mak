@@ -255,7 +255,7 @@ endif
 ifneq (, $(findstring Prelim, $(CIM_SCHEMA_DIR)))
     ALLOW_EXPERIMENTAL = -aE
 else
-    ALLOW_EXPERIMENTAL =
+    ALLOW_EXPERIMENTAL = -aE
 endif
 
 LEX = flex

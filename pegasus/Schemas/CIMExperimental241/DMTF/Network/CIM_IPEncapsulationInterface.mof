@@ -1,0 +1,53 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.40.0" ), 
+    UMLPackagePath ( "CIM::Network::Protocol Endpoint(1)" ), 
+    Description ( 
+       "CIM_IPEncapsulationInterface specializes "
+       "CIM_IPProtocolEndpoint to provide the additional configuration "
+       "properties required for an IP tunnel interface. \n"
+       "The IPProtocolEndpoint properties represent the inner IP "
+       "address of the IP packet." )]
+class CIM_IPEncapsulationInterface : CIM_IPProtocolEndpoint {
+
+      [Description ( 
+          "1- sets the Encapsulation mode typeOther - should only "
+          "be used if there is not an enumerated value\r\r\r\r\r\r\r\r\r\n"
+          "2- GRE - generic Routing encapsulation" ), 
+       ValueMap { "1", "2", "3", "..", "0x8000..0xFFFF" }, 
+       Values { "Other", "GRE", "IP-in-IP", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_IPEncapsulationInterface.OtherEncapsulationMode" }]
+   uint16 EncapsulationMode;
+
+      [Description ( 
+          "if the EncapsulationMode has a value 1 - "
+          "OtherOtherEncapsulationMode should have a string "
+          "describing the tunne mode" ), 
+       ModelCorrespondence { 
+          "CIM_IPEncapsulationInterface.EncapsulationMode" }]
+   string OtherEncapsulationMode;
+
+      [Description ( 
+          "If the tunnel uses a VRF to look up the tunnel IP "
+          "destination address (outer IP address). Then then "
+          "VRFContext should contain contain the VRF name" )]
+   string VRFContext;
+
+      [Description ( 
+          "Optionally configures the destination IP address for "
+          "this tunnel. For example in IP in IP encapsulation this "
+          "would be the outer IP address." ), 
+       EmbeddedInstance ( "CIM_IPProtocolEndpoint" )]
+   string OuterlDestinationIPAddress;
+
+      [Description ( 
+          "Contains the identifier for the source interface, shall "
+          "be an instance of CIM_EthernetPort, for this IP Tunnel a "
+          "non-null value of theTunnelSourceInterface property "
+          "shall be formated as a URI per RFC3986. If this resource "
+          "is modeled then a value should be a WBEM URI (DSP0207)." )]
+   string TunnelSourceInterface;
+
+
+};

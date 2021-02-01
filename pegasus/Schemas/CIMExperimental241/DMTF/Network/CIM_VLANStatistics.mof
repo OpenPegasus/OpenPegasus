@@ -1,0 +1,67 @@
+// Copyright (c) 2005 DMTF.  All rights reserved
+// <change cr="NetworksCR00048" type ="change">
+// 1) Rename property Dot1qTpVlanPortHCInFrames to VLANPortInFrames
+// 2) Rename property Dot1qTpVlanPortHCOutFrames to VLANPortOutFrames
+// 3) Rename property Dot1qTpVlanPortHCInDiscards to
+// VlanPortInFrameDiscards
+// 4) Remove reference to AssociatedStatisticalData association in the
+// class description, since the association doesn't exist.</change>
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_VLANStatistics
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::VLAN" ), 
+    Description ( 
+       "Performance metrics for a either a VLAN or a port (endpoint). "
+       "Depending on the switch\'s ability to collect statistics, "
+       "these statistics may be associated with all endpoints on the "
+       "port (i.e. port level stats) or they may be per VLAN per port "
+       "stats. When a port (endpoint) is configured as an access port "
+       "then port stats are equivalent to the VLAN stats. The "
+       "AssociatedStatisticalData association is used to tie the VLAN "
+       "Network (NetworkVLAN)with its statistics." )]
+class CIM_VLANStatistics : CIM_StatisticalData {
+
+      [Description ( 
+          "The number of valid frames received by this "
+          "ProtocolEndpoint from its segment which were classified "
+          "as belonging to this VLAN. Note that a frame received on "
+          "this port is counted by this object if and only if it is "
+          "for a protocol being processed by the local forwarding "
+          "process for this VLAN. This object includes received "
+          "bridge management frames classified as belonging to this "
+          "VLAN (e.g. GMRP, but not GVRP or STP - RFC2674)." ), 
+       Counter, MappingStrings { 
+          "MIB.IETF|Q-BRIDGE-MIB.Dot1qTpVlanPortHCInFrames" }]
+   uint64 VLANPortInFrames;
+
+      [Description ( 
+          "The number of valid frames transmitted by this port to "
+          "its segment from the local forwarding process for this "
+          "VLAN. This includes bridge management frames originated "
+          "by this device which are classified as belonging to this "
+          "VLAN (e.g. GMRP, but not GVRP or STP - RFC2674)." ), 
+       Counter, MappingStrings { 
+          "MIB.IETF|Q-BRIDGE-MIB.Dot1qTpVlanPortHCOutFrames" }]
+   uint64 VLANPortOutFrames;
+
+      [Description ( 
+          "The number of valid frames received by this port from "
+          "its segment which were classified as belonging to this "
+          "VLAN which were discarded due to VLAN related reasons. "
+          "Specifically, the IEEE 802.1Q counters for Discard "
+          "Inbound and Discard on Ingress Filtering - RFC2674." ), 
+       Counter, MappingStrings { 
+          "MIB.IETF|Q-BRIDGE-MIB. Dot1qTpVlanPortHCInDiscards" }]
+   uint64 VLANPortInFrameDiscards;
+
+      [Description ( "A 12-bit VLAN ID used in the VLAN Tag header." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 4094 ), 
+       MappingStrings { "MIB.IETF|Q-BRIDGE-MIB.VlanId" }]
+   uint16 VLANId;
+
+
+};

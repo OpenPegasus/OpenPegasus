@@ -1,0 +1,252 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::System::FilesystemServices" ), 
+    Description ( 
+       "This service allows the active management of a NAS Head or "
+       "other FileSystem Server. It allows jobs to be started for the "
+       "creation, modification, and deletion of FileSystems (that "
+       "derive from CIM_LocalFileSystem)." )]
+class CIM_FileSystemConfigurationService : CIM_Service {
+
+
+      [Description ( 
+          "Start a job to create a FileSystem on a StorageExtent. "
+          "If the operation completes successfully and did not "
+          "require a long-running ConcreteJob, it will return 0. If "
+          "4096/0x1000 is returned, a ConcreteJob will be started "
+          "to create the element. A Reference to the ConcreteJob "
+          "will be returned in the output parameter Job. If any "
+          "other value is returned, the job will not be started, "
+          "and no action will be taken. \n"
+          "This method MUST return a CIM_Error representing that a "
+          "single named property of a setting (or other) parameter "
+          "(either reference or embedded object) has an invalid "
+          "value or that an invalid combination of named properties "
+          "of a setting (or other) parameter (either reference or "
+          "embedded object) has been requested. \n"
+          "The parameter TheElement will contain a Reference to the "
+          "FileSystem if this operation completed successfully. \n"
+          "The StorageExtent to use is specified by the InExtent "
+          "parameter. If this is NULL, a default StorageExtent will "
+          "be created in a vendor-specific way and used. One way to "
+          "create the default StorageExtent is to use one of the "
+          "canned settings supported by the "
+          "StorageConfigurationService hosted by the host hosting "
+          "the FileSystemConfigurationService. \n"
+          "The desired settings for the FileSystem are specified by "
+          "the Goal parameter. Goal is an element of class "
+          "CIM_FileSystemSetting, or a derived class, encoded as a "
+          "string-valued embedded object parameter; this allows the "
+          "client to specify the properties desired for the file "
+          "system. The Goal parameter includes information that can "
+          "be used by the vendor to compute the size of the "
+          "FileSystem. If the StorageExtent specified here cannot "
+          "support the goal size, an appropriate error value will "
+          "be returned, and no action will be taken. \n"
+          "A ResidesOnExtent association is created between the "
+          "created FileSystem and the StorageExtent used for it." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "4096", "4098..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "StorageExtent is not big enough to satisfy the request.", 
+          "StorageExtent specified by default cannot be created.", 
+          "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateFileSystem(
+         [IN, Description ( 
+             "A end user relevant name for the FileSystem being "
+             "created. If NULL, a system-supplied default name "
+             "can be used. The value will be stored in the "
+             "\'ElementName\' property for the created element." )]
+      string ElementName, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The requirements for the FileSystem element to "
+             "maintain. This is an element of class "
+             "CIM_FileSystemSetting, or a derived class, encoded "
+             "as a string-valued embedded instance parameter; "
+             "this allows the client to specify the properties "
+             "desired for the file system. If NULL or the empty "
+             "string, the FileSystemConfigurationService will "
+             "use a vendor-specific default Goal obtained by "
+             "using the FileSystemCapabilities element specified "
+             "by the DefaultElementCapabilities association to "
+             "obtain a default FileSystemSetting element." ), 
+          EmbeddedInstance ( "CIM_FileSystemSetting" )]
+      string Goal, 
+         [IN, Description ( 
+             "The StorageExtent on which the created FileSystem "
+             "will reside. If this is NULL, a default "
+             "StorageExtent will be created in a vendor-specific "
+             "way and used. One way to create the default "
+             "StorageExtent is to use one of the default "
+             "settings supported by the "
+             "StorageConfigurationService on the same hosting "
+             "ComputerSystem as the "
+             "FileSystemConfigurationService." )]
+      CIM_StorageExtent REF InExtent, 
+         [IN, OUT, Description ( "The newly created FileSystem." )]
+      CIM_FileSystem REF TheElement);
+
+      [Description ( 
+          "Start a job to modify a previously created FileSystem. "
+          "If the operation completes successfully and did not "
+          "require a long-running ConcreteJob, it will return 0. If "
+          "4096/0x1000 is returned, a ConcreteJob will be started "
+          "to modify the element. A Reference to the ConcreteJob "
+          "will be returned in the output parameter Job. If any "
+          "other value is returned, either the job will not be "
+          "started, or if started, no action will be taken. \n"
+          "This method MUST return a CIM_Error representing that a "
+          "single named property of a setting (or other) parameter "
+          "(either reference or embedded object) has an invalid "
+          "value or that an invalid combination of named properties "
+          "of a setting (or other) parameter (either reference or "
+          "embedded object) has been requested. \n"
+          "The parameter TheElement specifies the FileSystem to be "
+          "modified. This element MUST be associated via "
+          "ElementSettingData with a FileSystemSetting which is in "
+          "turn associated via SettingGeneratedByCapabilities to a "
+          "FileSystemCapabilities supported by this "
+          "FileSystemConfigurationService. \n"
+          "The desired settings for the FileSystem are specified by "
+          "the Goal parameter. Goal is an element of class "
+          "CIM_FileSystemSetting, or a derived class, encoded as a "
+          "string-valued embedded instance parameter; this allows "
+          "the client to specify the properties desired for the "
+          "file system. The Goal parameter includes information "
+          "that can be used by the vendor to compute the required "
+          "size of the FileSystem. If the operation would result in "
+          "a change in the size of the file system, the "
+          "StorageExtent identified by the ResidesOnExtent "
+          "association will be used to determine how to implement "
+          "the change. If the StorageExtent cannot be expanded to "
+          "support the goal size, an appropriate error value will "
+          "be returned, and no action will be taken. If the "
+          "operation succeeds, the ResidesOnExtent association "
+          "might reference a different StorageExtent." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "4096", "4098..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "FileSystem In Use, cannot Modify", 
+          "Cannot satisfy new Goal.", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ModifyFileSystem(
+         [IN, Description ( 
+             "A end user relevant name for the FileSystem being "
+             "modified. If NULL, then the name will not be "
+             "changed. If not NULL, this parameter will supply a "
+             "new name for the FileSystem element." )]
+      string ElementName, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The requirements for the FileSystem element to "
+             "maintain. This is an element of class "
+             "CIM_FileSystemSetting, or a derived class, encoded "
+             "as a string-valued embedded instance parameter; "
+             "this allows the client to specify the properties "
+             "desired for the file system. If NULL or the empty "
+             "string, the FileSystem service attributes will not "
+             "be changed. If not NULL, this parameter will "
+             "supply new settings that replace or are merged "
+             "with the current settings of the FileSystem "
+             "element." ), 
+          EmbeddedInstance ( "CIM_FileSystemSetting" )]
+      string Goal, 
+         [IN, Description ( "The FileSystem element to modify." )]
+      CIM_FileSystem REF TheElement, 
+         [IN, Description ( 
+             "An enumerated integer that specifies the action to "
+             "take if the FileSystem is still in use when this "
+             "request is made. This option is only relevant if "
+             "the FileSystem must be made unavailable while the "
+             "request is being executed." ), 
+          ValueMap { "2", "3", "4", "..", "0x1000..0xFFFF" }, 
+          Values { "Do Not Execute Request", 
+             "Wait for specified time, then Execute Request Immediately", 
+             "Try to Quiesce for specified time, then Execute Request Immediately", 
+             "DMTF Reserved", "Vendor Defined" }]
+      uint16 InUseOptions, 
+         [IN, Description ( 
+             "An integer that indicates the time (in seconds) "
+             "that the provider must wait before performing the "
+             "request on this FileSystem. If WaitTime is not "
+             "zero, the method will create a job, if supported "
+             "by the provider, and return immediately. If the "
+             "provider does not support asynchronous jobs, there "
+             "is a possibility that the client could time-out "
+             "before the job is completed. \n"
+             "The combination of InUseOptions = \'4\' and "
+             "WaitTime =\'0\' (the default) is interpreted as "
+             "\'Wait (forever) until Quiescence, then Execute "
+             "Request\' and will be performed asynchronously if "
+             "possible." ), 
+          Units ( "seconds" ), 
+          PUnit ( "second" )]
+      uint32 WaitTime);
+
+      [Description ( 
+          "Start a job to delete a FileSystem. If the FileSystem "
+          "cannot be deleted, no action will be taken, and the "
+          "Return Value will be 4097/0x1001. If the method "
+          "completed successfully and did not require a "
+          "long-running ConcreteJob, it will return 0. If "
+          "4096/0x1000 is returned, a ConcreteJob will be started "
+          "to delete the FileSystem. A Reference to the ConcreteJob "
+          "will be returned in the output parameter Job." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x1000", 
+          "0x1001..0x7FFF", "0x8000.." }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed, Unspecified Reasons", 
+          "Invalid Parameter", "FileSystem in use, Failed", 
+          "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 DeleteFileSystem(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "An element or association that uniquely identifies "
+             "the FileSystem to be deleted." )]
+      CIM_ManagedElement REF TheFileSystem, 
+         [IN, Description ( 
+             "An enumerated integer that specifies the action to "
+             "take if the FileSystem is still in use when this "
+             "request is made." ), 
+          ValueMap { "2", "3", "4", "..", "0x1000..0xFFFF" }, 
+          Values { "Do Not Delete", 
+             "Wait for specified time, then Delete Immediately", 
+             "Attempt Quiescence for specified time, then Delete Immediately", 
+             "DMTF Reserved", "Vendor Defined" }]
+      uint16 InUseOptions, 
+         [IN, Description ( 
+             "An integer that indicates the time (in seconds) "
+             "that the provider must wait before deleting this "
+             "FileSystem. If WaitTime is not zero, the method "
+             "will create a job, if supported by the provider, "
+             "and return immediately. If the provider does not "
+             "support asynchronous jobs, there is a possibility "
+             "that the client could time-out before the job is "
+             "completed. \n"
+             "The combination of InUseOptions = \'4\' and "
+             "WaitTime =\'0\' (the default) is interpreted as "
+             "\'Wait (forever) until Quiescence, then Delete "
+             "Filesystem\' and will be performed asynchronously "
+             "if possible." ), 
+          Units ( "seconds" ), 
+          PUnit ( "second" )]
+      uint32 WaitTime);
+
+};

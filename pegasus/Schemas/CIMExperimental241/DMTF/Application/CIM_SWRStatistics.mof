@@ -1,0 +1,207 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Application::SWResources" ), 
+    Description ( 
+       "This is base class for the software resource statistics. "
+       "Depending on the implementation it can be of six types that "
+       "identify the unit type (technical or domain-specific) and the "
+       "behavioral characteristic of the software resource "
+       "(allocation, input or output). The statistics is also the "
+       "place at which the corresponding operational settings of the "
+       "software resource appear. These parameters are changeable "
+       "on-the-fly (i.e., they are writable). They bear the same "
+       "constraints regarding their interdependencies between "
+       "technical and domain-specific units as SWRLimitSettings. \n"
+       "Point metrics apply to the point in time of end of the sample, "
+       "interval metrics apply to the sample interval. It is up to the "
+       "implementation of the statistcs whether the sample interval "
+       "ends at the point in time of the request of the instance of "
+       "this class (working with internal ring buffers) or whether the "
+       "underlying instrumentation autonomously determines the "
+       "beginning and the end of the sample interval. \n"
+       "SWRStatistics is associated to SoftwareResource via "
+       "ElementStatisticalData. In general, one software resource is "
+       "expected to have three statistics. The statistics type covers "
+       "each behavior characteristics at most once. I.e., the software "
+       "resource has at most one allocation statistcs, one input "
+       "statistics and one output statistics. Nevertheless, the "
+       "implementation of the software resource may exhibit more "
+       "statistics SWRStatistics instances that cover more "
+       "context-specific behavior characteristics." )]
+class CIM_SWRStatistics : CIM_StatisticalData {
+
+      [Write, Description ( 
+          "This is an operational lower limit parameter of the "
+          "software resource. The limit applies to input, output or "
+          "allocation according to the statistics type. The "
+          "corresponding unit is found at the property Unit. A null "
+          "value indicates that no lower limit exists. The property "
+          "value can be modified. Whether changes are persisted on "
+          "saving the modification depends on the implementation of "
+          "the software resource. The default behavior is no "
+          "persistence." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.LowerInputLimit", 
+          "CIM_SWRLimitSetting.LowerOutputLimit", 
+          "CIM_SWRLimitSetting.LowerAllocationLimit" }]
+   uint32 LowerLimit;
+
+      [Write, Description ( 
+          "This is an operational upper limit parameter of the "
+          "software resource. The limit applies to input, output or "
+          "allocation according to the statistics type. The "
+          "corresponding unit is found at the property Unit. A null "
+          "value indicates that no upper limit exists. The property "
+          "value can be modified. Whether changes are persisted on "
+          "saving the modification depends on the implementation of "
+          "the software resource. The default behavior is no "
+          "persistence." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.UpperInputLimit", 
+          "CIM_SWRLimitSetting.UpperOutputLimit", 
+          "CIM_SWRLimitSetting.UpperAllocationLimit" }]
+   uint32 UpperLimit;
+
+      [Description ( 
+          "This is the unit of the numeric metrics and the set of "
+          "upper and lower limits of the software resource. The "
+          "property should always have a value, null should not "
+          "appear.The property value is read-only and assumed to "
+          "correspond to the implementation of the software "
+          "resource to which the operational parameters and metrics "
+          "apply. The default value is of the technical domain "
+          "(Kilobytes)." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.InputUnit", 
+          "CIM_SWRLimitSetting.OutputUnit", 
+          "CIM_SWRLimitSetting.AllocationUnit" }]
+   string Unit = "kB";
+
+      [Description ( 
+          "This property is not null, if the operational lower "
+          "limit parameter of the software resource can be "
+          "calculated from the property LowerLimit. If LowerLimit "
+          "is described by technical units (i.e., InputUnit applies "
+          "to the technical domain), OtherLowerLimit is described "
+          "by domain-specific units." )]
+   uint32 OtherLowerLimit;
+
+      [Description ( 
+          "This property is not null, if the operational upper "
+          "limit parameter of the software resource can be "
+          "calculated from the property UpperLimit. If UpperLimit "
+          "is described by technical units (i.e., InputUnit applies "
+          "to the technical domain), OtherUpperLimit is described "
+          "by domain-specific units." )]
+   uint32 OtherUpperLimit;
+
+      [Description ( 
+          "This is the complementary unit of the operational limit "
+          "parameters. If Unit is a unit of the technical domain, "
+          "OtherUnit is a domain-specific unit." )]
+   string OtherUnit;
+
+      [Description ( 
+          "Characteristic allows for the distinction of the "
+          "software resource behavior characteristics. This is "
+          "either the allocation, input and output. \n"
+          "Values: \n"
+          "Allocation: Statistics about the size of the software "
+          "resource. \n"
+          "Input: Statistics about the data transfer into the "
+          "software resource. \n"
+          "Output: Statistics about the data transfer from the "
+          "software resource." ), 
+       ValueMap { "0", "2", "3", "4", "5..32767", "32768..65535" }, 
+       Values { "Unknown", "Allocation", "Input", "Output", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 Characteristic;
+
+      [Description ( 
+          "StatisticsType describes whether the statistics is "
+          "specified in terms of technical units or domain-specific "
+          "units. Domain-specific is meant to be the items unit or "
+          "\'business\' unit of the usage the software resource. It "
+          "may range from objects or tables (in a buffer) to orders "
+          "in a queue. It depends on the implementation and usage "
+          "context of the software resource. The default is the "
+          "technical domain. \n"
+          "Values: \n"
+          "Technical: The writable operational parameters and the "
+          "affected metrics are assigned a technical unit e.g "
+          "Kilobytes. \n"
+          "Domain-Specific: The writable operational parameters and "
+          "the affected metrics are assigned a business-like, "
+          "item-oriented unit e.g messages, objects, orders, etc.." ), 
+       ValueMap { "0", "2", "3", "4..32767", "32768..65535" }, 
+       Values { "Unknown", "Technical", "Domain-Specific", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 StatisticsType = 2;
+
+      [Description ( 
+          "This is the error code of the first error that occurs "
+          "during the sample interval. It is assumed that the first "
+          "error, detected throughout the sample interval, is the "
+          "first symptom of the root cause and therefore closer "
+          "than the last error. Unrelated, subsequent errors during "
+          "the sample interval of the statistics do not show up. "
+          "Such a behavior is tolerable compared to the relatively "
+          "short length of the sample interval. \n"
+          "Values: \n"
+          "Unspecified Error: No error code can be determined. \n"
+          "Violate Upper Limit: The upper limit of the behavior "
+          "characteristic (allocation, input, output) was exceeded. \n"
+          "Violate Lower Limit: The lower limit was underrun. \n"
+          "Erroneous Transfer: The transfer had to be aborted. This "
+          "message does not overlap with \'Erroneous Item\'. \n"
+          "Erroneous Item: The handling of at least one item was "
+          "problematic and the item had to be dropped, suspended or "
+          "rejected. \n"
+          "Access to Software Resource Denied: The access control "
+          "of software resource refused the use of the it." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7..32767", 
+          "32768..65535" }, 
+       Values { "Unspecified Error", "Violate Upper Limit", 
+          "Violate Lower Limit", "Erroneous Transfer", 
+          "Erroneous Item", "Access to Software Resource Denied", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 FirstError;
+
+      [Description ( 
+          "FirstErrorTimeStamp is the point in time at which "
+          "FirstError was detected." )]
+   datetime FirstErrorTimeStamp;
+
+      [Description ( 
+          "This is the error code of the last error that occured. "
+          "The value of LastError remains from one sample interval "
+          "to the next even if a sample interval is error-free. \n"
+          "Values: \n"
+          "Unspecified Error: No error code can be determined. \n"
+          "Violate Upper Limit: The upper limit of the behavior "
+          "characteristic (allocation, input, output) was exceeded. \n"
+          "Violate Lower Limit: The lower limit was underrun. \n"
+          "Erroneous Transfer: The transfer had to be aborted. This "
+          "message does not overlap with \'Erroneous Item\'. \n"
+          "Erroneous Item: The handling of at least one item was "
+          "problematic and the item had to be dropped, suspended or "
+          "rejected. \n"
+          "Access to Software Resource Denied: The access control "
+          "of software resource refused the use of the it." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7..32767", 
+          "32768..65535" }, 
+       Values { "Unspecified Error", "Violate Upper Limit", 
+          "Violate Lower Limit", "Erroneous Transfer", 
+          "Erroneous Item", "Access to Software Resource Denied", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 LastError;
+
+      [Description ( 
+          "LastErrorTimeStamp is the point in time at which "
+          "FirstError was detected." )]
+   datetime LastErrorTimeStamp;
+
+      [Description ( 
+          "ErrorCount is the count of errors that have been "
+          "detected throughout the sample interval." )]
+   uint32 ErrorCount;
+
+
+};

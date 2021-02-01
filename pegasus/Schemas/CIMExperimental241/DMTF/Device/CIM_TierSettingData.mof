@@ -1,0 +1,146 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.35.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "Contains various options for use by the TierService methods to "
+       "offer clients additional controls to manipulate a storage "
+       "tier. The values of this class\'s properties are used to set "
+       "the corresponding values of a storage tier properties." )]
+class CIM_TierSettingData : CIM_SettingData {
+
+      [Write, Description ( 
+          "A number starting from 0 to indicate the relative "
+          "performance characteristics of the storage tier. The "
+          "smaller the number, the higher the performance "
+          "characteristics." ), 
+       ModelCorrespondence { 
+          "CIM_TierSettingData.RelativePerformanceOrderMin", 
+          "CIM_TierSettingData.RelativePerformanceOrderMax", 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 RelativePerformanceOrderGoal;
+
+      [Write, Description ( 
+          "Indicates the minimum value for RelativePerformanceOrder "
+          "that this storage tier can have.\n"
+          "The minimum value for RelativePerformanceOrder that this "
+          "storage tier can have, which represents the highest "
+          "level of performance." ), 
+       ModelCorrespondence { 
+          "CIM_TierSettingData.RelativePerformanceOrderGoal", 
+          "CIM_TierSettingData.RelativePerformanceOrderMax", 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 RelativePerformanceOrderMin;
+
+      [Write, Description ( 
+          "Indicates the maxmimum value for "
+          "RelativePerformanceOrder that this storage tier can have.\n"
+          "The maximum value for RelativePerformanceOrder that this "
+          "storage tier can have, which represents the lowest level "
+          "of performance." ), 
+       ModelCorrespondence { 
+          "CIM_TierSettingData.RelativePerformanceOrderMin", 
+          "CIM_TierSettingData.RelativePerformanceOrderGoal", 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 RelativePerformanceOrderMax;
+
+      [Write, Description ( 
+          "This property indicates the type of storage objects "
+          "comprising a storage tier. ComponentsOfStoragePool: "
+          "Storage tier is comprised of ConcreteComponents of a "
+          "StoragePool. ElementsOfStoragePool: Storage tier is "
+          "comprised of elements, e.g. volumes, allocated from a "
+          "StoragePool." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "StorageVolume", "LogicalDisk", 
+          "StorageExtent", "StoragePool", "ComponentsOfStoragePool", 
+          "ElementsOfStoragePool", "External StoragePool", 
+          "Primordial StorageExtent", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_TierServiceCapabilities.SupportedStorageObjects" }]
+   uint16 StorageObjectType;
+
+      [Write, Description ( 
+          "Indicates the storage tier charateristics. Performance "
+          "generally relates to the underlying technology, for "
+          "example, Solid State versus Fibre Channel drives. QoS "
+          "refers to the Quality of Service, for example, RAID "
+          "protected versus unprotected." ), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "BasedOnPerformance Only", 
+          "BasedOnQOS Only", "BasedOnPerformance And BasedOnQOS", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 StorageTierCharacteristics[];
+
+      [Write, Description ( 
+          "The technology of the underlying disk drives used. Not "
+          "Applicable: Storage tier is not based on technology of "
+          "underlying components. \n"
+          "Mixed: a storage tier consists of a mix of different "
+          "disk drive technologies." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "..", 
+          "0x8000.." }, 
+       Values { "Unknown", "Other", "Not Applicable", 
+          "Solid State Drive", "Fibre Channel", "SATA", "SAS", 
+          "Mixed", "Hard Disk Drive", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_StorageTier.Technology" }]
+   uint16 Technology;
+
+      [Write, Description ( 
+          "This property indicates whether the storage tier is "
+          "actively being used or not." ), 
+       ValueMap { "0", "1", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "Enabled", "Disabled", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 InitialState = 2;
+
+      [Write, Description ( 
+          "If true any new objects added to the system that have a "
+          "similar performance characteristics (and QoS) to this "
+          "tier become part of this tier automatically. If false, "
+          "the new objects needs to be added to this tier manually." )]
+   boolean Dynamic = false;
+
+      [Write, Description ( 
+          "If true and empty storage tiers are allowed, the storage "
+          "tier will be deleted when the last component object is "
+          "removed from the storage tier. If empty storage tiers "
+          "are not allowed, the storage tier will be deleted "
+          "automatically when the last component object is removed "
+          "from the storage tier." )]
+   boolean DeleteOnEmptyStorageTier = false;
+
+      [Write, Description ( 
+          "A value between 0 to 100 to indicate the maximum "
+          "percentage of the underlying capacity that can be used "
+          "for storage tiering activities. For example, a value of "
+          "80 indicates no more than 80 percent of the storage tier "
+          "can be used for automated tiering. The remaining 20 "
+          "percent of the underlying storage is set aside for "
+          "elements that do not participate in automated storage "
+          "tiering." )]
+   uint16 Percentage;
+
+      [Experimental, Write, Description ( 
+          "Number of days data on a volume must be idle before the "
+          "Automated Storage Tiering subsystem starts compressing "
+          "the data. Valid interval must be in number of days "
+          "between 1 and 365." ), 
+       Units ( "Days" ), 
+       MinValue ( 1 ), 
+       MaxValue ( 365 ), 
+       PUnit ( "day" )]
+   datetime CompressionIdleInterval;
+
+      [Experimental, Write, Description ( 
+          "Indicates the rate at which the Automated Storage "
+          "Tiering subsystem compresses the data. The smaller the "
+          "number, the higher the rate of compression." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 10 )]
+   uint16 CompressionRate;
+
+
+};

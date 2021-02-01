@@ -1,0 +1,180 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.40.0" ), 
+    UMLPackagePath ( "CIM::Network" ), 
+    Description ( 
+       "CIM_VRFConfigurationService description contains a set of "
+       "extrinsic methods to manage Virtual Routing and Forwarding "
+       "tables. The methods include the creation and removal of the "
+       "VRFs and the managements of the services, port, interfaces and "
+       "routers, routes that are associated in VRF context." )]
+class CIM_VRFConfigurationService : CIM_Service {
+
+
+      [Experimental, Description ( "Creates and names a new VRF" ), 
+       ValueMap { "0", "4096", "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateVRF(
+         [Description ( 
+             "The TargetRouter is a reference to a CIM_System "
+             "instance that represents the host of the VRF. "
+             "Typically this would be the instance of "
+             "CIM_ComputerSystem representing the switch or an "
+             "instance of CIM_AutonomousSystem that represents a "
+             "router." )]
+      CIM_System REF TargetRouter, 
+         [Description ( 
+             "A string an containing an embedded instance of "
+             "class-subclass "
+             "CIM_VirtualRoutingAndForwardingTable a subclass of "
+             "CIM_Collection" ), 
+          EmbeddedInstance ( 
+             "CIM_VirtualRoutingAndForwardingTable" )]
+      string VRF, 
+         [In ( false ), Out, Description ( 
+             "If a the VRF creation is successfully, reference "
+             "to an instance of class "
+             "CIM_VirtualRoutingAndForwardingTable that "
+             "represents the newly created VRF is returned." )]
+      CIM_VirtualRoutingAndForwardingTable REF ResultingVRF, 
+         [In ( false ), Out, Description ( 
+             "If the operation is long running, then optionally "
+             "a job may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+      [Experimental, Description ( "Removes VRF" ), 
+       ValueMap { "0", "4096", "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RemoveVRF(
+         [Description ( 
+             "A reference to the instance of the VRF that should be removed"
+              )]
+      CIM_VirtualRoutingAndForwardingTable REF VRF, 
+         [In ( false ), Out, Description ( 
+             "If the operation is long running, then optionally "
+             "a job may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+      [Experimental, Description ( "Add an IP route to a VRF" ), 
+       ValueMap { "0", "4096", "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 AddRoute(
+         [Description ( 
+             "A reference to the instance of the VRF to which "
+             "the route should be added" )]
+      CIM_VirtualRoutingAndForwardingTable REF VRF, 
+         [Description ( 
+             "A string an containing an embedded instance of "
+             "class-subclass CIM_NextHopIPRoute providing "
+             "theproperty values for the new IP route." ), 
+          EmbeddedInstance ( "CIM_NextHopIPRoute" )]
+      string Route, 
+         [In ( false ), Out, Description ( 
+             "If a the Route creation is successfully, a "
+             "reference to an instance of class "
+             "CIM_NexHopIPRoute that represents the newly "
+             "created IP route is returned." )]
+      CIM_NextHopIPRoute REF ResultingRoute, 
+         [In ( false ), Out, Description ( 
+             "If the operation is long running, then optionally "
+             "a job may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+      [Experimental, Description ( "Removes an IP route" ), 
+       ValueMap { "0", "4096", "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RemoveRoute(
+         [Description ( 
+             "A reference to the instance of the VRF from which "
+             "the route is to be removed" )]
+      CIM_VirtualRoutingAndForwardingTable REF VRF, 
+         [Description ( 
+             "A reference to the instance of the route that should be removed"
+              )]
+      CIM_NextHopIPRoute REF Route, 
+         [In ( false ), Out, Description ( 
+             "If the operation is long running, then optionally "
+             "a job may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+      [Experimental, Description ( 
+          "Add an EthernetPort as a member of the VRF" ), 
+       ValueMap { "0", "4096", "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 AddPortMember(
+         [Description ( 
+             "A reference to the instance of the VRF that that "
+             "the interface is to be a member of" )]
+      CIM_VirtualRoutingAndForwardingTable REF VRF, 
+         [Description ( 
+             "A reference to the instance of the Port to which "
+             "the route should be added" )]
+      CIM_EthernetPort REF Port, 
+         [In ( false ), Out, Description ( 
+             "If the operation is long running, then optionally "
+             "a job may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+      [Experimental, Description ( "Removes a port from a VRF" ), 
+       ValueMap { "0", "4096", "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RemovePortMember(
+         [Description ( 
+             "A reference to the instance of the VRF from which "
+             "the port is being removed" )]
+      CIM_VirtualRoutingAndForwardingTable REF VRF, 
+         [Description ( 
+             "A reference to the instance of the Port being removed"
+              )]
+      CIM_EthernetPort REF Port, 
+         [In ( false ), Out, Description ( 
+             "If the operation is long running, then optionally "
+             "a job may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+      [Experimental, Description ( 
+          "Add  a Service ie. NTP, SNMP Server ... as a member of the VRF"
+           ), 
+       ValueMap { "0", "4096", "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 AddSAPMember(
+         [Description ( 
+             "A reference to the instance of the VRF that that "
+             "the interface is to be a member of" )]
+      CIM_VirtualRoutingAndForwardingTable REF VRF, 
+         [Description ( 
+             "A reference to the instance of the service access "
+             "point to which the route should be added. This "
+             "would include Remmote Service Access Points as "
+             "well as level 3 interfaces." )]
+      CIM_ServiceAccessPoint REF SAP, 
+         [In ( false ), Out, Description ( 
+             "If the operation is long running, then optionally "
+             "a job may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+      [Experimental, Description ( "Removes a service from a VRF" ), 
+       ValueMap { "0", "4096", "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RemoveSAPMember(
+         [Description ( 
+             "A reference to the instance of the VRF from which "
+             "the port is being removed" )]
+      CIM_VirtualRoutingAndForwardingTable REF VRF, 
+         [Description ( 
+             "A reference to the instance of the Service Access "
+             "Point being removed" )]
+      CIM_ServiceAccessPoint REF SAPMember, 
+         [In ( false ), Out, Description ( 
+             "If the operation is long running, then optionally "
+             "a job may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+};

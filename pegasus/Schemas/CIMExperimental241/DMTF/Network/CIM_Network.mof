@@ -1,0 +1,110 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Version ( "2.39.0" ), 
+    UMLPackagePath ( "CIM::Network::Systems" ), 
+    Description ( 
+       "Network is a subclass of AdminDomain that groups "
+       "interconnected networking and computing objects capable of "
+       "exchanging information. Instances of CIM_Network can represent "
+       "an enterprise\'s global network or specific connectivity "
+       "domains within the global network. These concepts are similar "
+       "to those defined for the Network object in ITU\'s M.3100 "
+       "specification." ), 
+    MappingStrings { "Recommendation.ITU|M3100.Network" }]
+class CIM_Network : CIM_AdminDomain {
+
+      [Description ( 
+          "A string that describes the type of the network when the "
+          "Type[] property contains value 1 (\"Other\"). This "
+          "property shall be set to null when Type[] property does "
+          "not contain value 1 (\"Other\")." ), 
+       ModelCorrespondence { "CIM_Network.Type" }]
+   string OtherTypeDescription;
+
+      [Description ( 
+          "This property describes the type of the network." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12" }, 
+       Values { "Other", "Local Area Network (LAN)", 
+          "Wireless Local Area Network (WLAN)", 
+          "Wide Area Network (WAN)", 
+          "Metropolitan Area Network (MAN)", 
+          "Storage Area Network (SAN)", 
+          "Virtual Local Area Network (VLAN)", "Ethernet Network", 
+          "IP Network", "IPv4 Network", "IPv6 Network", 
+          "Overlay Network" }]
+   uint16 Type[];
+
+
+      [Experimental, Description ( 
+          "This method creates one or more NetworkPipes each "
+          "representing a connection between a pair of "
+          "ServiceAccessPoints. \n"
+          "If Success (0) is returned, the method completed "
+          "successfully. \n"
+          "\n"
+          "A return value of Not Supported (1) indicates the method "
+          "is not supported. \n"
+          "\n"
+          "All other values indicate some type of error condition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", 
+          "0x8000..0xFFFF" }, 
+       Values { "Success", "Not Supported", 
+          "Unknown/Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "DMTF Reserved", "Vendor Specific" }]
+   uint32 CreateNetworkPipes(
+         [IN, Description ( 
+             "Directionality indicates whether the pipe is "
+             "bi-directional (value = 2) or unidirectional "
+             "(value = 3). For unidirectional pipes, the "
+             "appropriate ServiceAccessPoint must be referenced "
+             "for the source and sink." ), 
+          ValueMap { "2", "3" }, 
+          Values { "Bi-Directional", "Unidirectional" }, 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_Network.CreateNetworkPipes.SourceSAP", 
+             "CIM_Network.CreateNetworkPipes.SinkSAP", 
+             "CIM_Network.CreateNetworkPipes.NetworkPipe" }]
+      uint16 Directionality[], 
+         [Required, IN, Description ( 
+             "The endpoints of the NetworkPipes. Pass the source "
+             "SAP to this parameter when creating unidirectional "
+             "NetworkPipes. When creating bi-directional "
+             "NetworkPipes, it does not matter which SAP "
+             "reference is passed to this parameter." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_Network.CreateNetworkPipes.Directionality", 
+             "CIM_Network.CreateNetworkPipes.SinkSAP", 
+             "CIM_Network.CreateNetworkPipes.NetworkPipe" }]
+      CIM_ServiceAccessPoint REF SourceSAP[], 
+         [Required, IN, Description ( 
+             "The endpoints of the NetworkPipe. Pass the sink "
+             "SAP to this parameter when creating unidirectional "
+             "NetworkPipes. When creating bi-directional "
+             "NetworkPipes, it does not matter which SAP "
+             "reference is passed to this parameter." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_Network.CreateNetworkPipes.Directionality", 
+             "CIM_Network.CreateNetworkPipes.SourceSAP", 
+             "CIM_Network.CreateNetworkPipes.NetworkPipe" }]
+      CIM_ServiceAccessPoint REF SinkSAP[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (can be null if the task is completed)."
+              ), 
+          ModelCorrespondence { 
+             "CIM_Network.CreateNetworkPipes.SourceSAP", 
+             "CIM_Network.CreateNetworkPipes.Directionality", 
+             "CIM_Network.CreateNetworkPipes.NetworkPipe" }]
+      CIM_ConcreteJob REF Job, 
+         [IN, OUT, Description ( 
+             "A reference to the newly created NetworkPipes." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_Network.CreateNetworkPipes.SourceSAP", 
+             "CIM_Network.CreateNetworkPipes.SinkSAP", 
+             "CIM_Network.CreateNetworkPipes.Directionality" }]
+      CIM_NetworkPipe REF NetworkPipe[]);
+
+};

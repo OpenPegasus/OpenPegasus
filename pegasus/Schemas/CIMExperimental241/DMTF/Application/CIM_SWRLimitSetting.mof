@@ -1,0 +1,235 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Application::SWResources" ), 
+    Description ( 
+       "SWRLimitSetting describes the limits of the software resource. "
+       "In essence it is possible to define 6 different types of "
+       "limits in groups of three. Each group consists of allocation, "
+       "input and output limits. One group is always expressed by "
+       "technical units (the default) and the other group in "
+       "domain-specific units (e.g., items per second as the input "
+       "limit). Thus, they are of different types. In order to avoid "
+       "inconsistencies, only one group of settings is writable. The "
+       "other one is derived from the writable limits. I.e., if "
+       "technical limits are specifiable by the user (the type of the "
+       "settings is technical) then the other set of limits (the "
+       "non-writeable and derived settings) are domain-specific. \n"
+       "SWRLimitSetting is associated to SoftwareResource via "
+       "ElementSettingData. One software resource can have multiple "
+       "limit settings. Only one of the settings is the default and "
+       "one (potentially another one) is operational (current). "
+       "Settings can be shared by software resources." )]
+class CIM_SWRLimitSetting : CIM_SettingData {
+
+      [Write, Description ( 
+          "This is the lower limit of the input of the software "
+          "resource. In general, the limit is a rate (i.e., items "
+          "per second or Bytes per second). The corresponding unit "
+          "is found at the property InputUnit. A null value "
+          "indicates that no lower limit exists. The property value "
+          "can be modified and is persisted on saving the "
+          "modification." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.InputUnit" }]
+   uint32 LowerInputLimit;
+
+      [Write, Description ( 
+          "This is the upper limit of the input of the software "
+          "resource. In general, the limit is a rate (i.e., items "
+          "per second or Bytes per second). The corresponding unit "
+          "is found at the property InputUnit. A null value "
+          "indicates that no upper limit exists. The property value "
+          "can be modified and is persisted on saving the "
+          "modification." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.InputUnit" }]
+   uint32 UpperInputLimit;
+
+      [Description ( 
+          "This is the unit of the input limits of the software "
+          "resource. In general, the unit describes a rate (i.e., "
+          "items per second or Bytes per second). A null value is "
+          "only allowed if neither upper nor lower limit exist. "
+          "Otherwise, the property value is read-only and assumed "
+          "to be correspond to the implementation of the software "
+          "resource to which the settings have to apply." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.OtherInputUnit", 
+          "CIM_SWRLimitSetting.LimitSettingType" }]
+   string InputUnit;
+
+      [Write, Description ( 
+          "This is the lower limit of the output of the software "
+          "resource. In general, the limit is a rate (i.e., items "
+          "per second or Bytes per second). The corresponding unit "
+          "is found at the property OutputUnit. A null value "
+          "indicates that no lower limit exists. The property value "
+          "can be modified and is persisted on saving the "
+          "modification." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.OutputUnit" }]
+   uint32 LowerOutputLimit;
+
+      [Write, Description ( 
+          "This is the upper limit of the output of the software "
+          "resource. In general, the limit is a rate (i.e., items "
+          "per second or Bytes per second). The corresponding unit "
+          "is found at the property OutputUnit. A null value "
+          "indicates that no upper limit exists. The property value "
+          "can be modified and is persisted on saving the "
+          "modification." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.OutputUnit" }]
+   uint32 UpperOutputLimit;
+
+      [Description ( 
+          "This is the unit of the output limits of the software "
+          "resource. In general, the unit describes a rate (i.e., "
+          "items per second or Bytes per second). A null value is "
+          "only allowed if neither upper nor lower limit exist. "
+          "Otherwise, the property value is read-only and assumed "
+          "to be correspond to the implementation of the software "
+          "resource to which the settings have to apply." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.OtherOutputUnit", 
+          "CIM_SWRLimitSetting.LimitSettingType" }]
+   string OutputUnit;
+
+      [Write, Description ( 
+          "This is the lower limit of the allocation (i.e., size) "
+          "of the software resource. In general, the limit is a "
+          "quantity (i.e., items or Megabytes). The corresponding "
+          "unit is found at the property AllocationUnit. A null "
+          "value indicates that no allocation limit exists. The "
+          "property value can be modified and is persisted on "
+          "saving the modification." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.AllocationUnit" }]
+   uint32 LowerAllocationLimit;
+
+      [Write, Description ( 
+          "This is the upper limit of the allocation (i.e., size) "
+          "of the software resource. In general, the limit is a "
+          "quantity (i.e., items or Megabytes). The corresponding "
+          "unit is found at the property AllocationUnit. A null "
+          "value indicates that no allocation limit exists. The "
+          "property value can be modified and is persisted on "
+          "saving the modification." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.AllocationUnit" }]
+   uint32 UpperAllocationLimit;
+
+      [Description ( 
+          "This is the unit of the allocation limits of the "
+          "software resource. In general, the unit describes a "
+          "quantity (i.e., items MegyBytes). A null value is only "
+          "allowed if neither upper nor lower limit exist. "
+          "Otherwise, the property value is read-only and assumed "
+          "to correspond to the implementation of the software "
+          "resource to which the settings have to apply. The "
+          "default value is of the technical domain (kB per "
+          "second)." ), 
+       ModelCorrespondence { 
+          "CIM_SWRLimitSetting.OtherAllocationUnit", 
+          "CIM_SWRLimitSetting.LimitSettingType" }]
+   string AllocationUnit = "MB";
+
+      [Description ( 
+          "This property is not null, if the lower input limit of "
+          "the software resource can be calculated from the "
+          "property LowerInputLimit. If LowerInputLimit is "
+          "described by technical units (i.e., InputUnit applies to "
+          "the technical domain), OtherLowerInputLimit is described "
+          "by domain-specific units." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.OtherInputUnit" }]
+   uint32 OtherLowerInputLimit;
+
+      [Description ( 
+          "This property is not null, if the upper input limit of "
+          "the software resource can be calculated from the "
+          "property UpperInputLimit. If UpperInputLimit is "
+          "described by technical units (i.e., InputUnit applies to "
+          "the technical domain), OtherUpperInputLimit is described "
+          "by domain-specific units." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.OtherInputUnit" }]
+   uint32 OtherUpperInputLimit;
+
+      [Description ( 
+          "This is the complementary unit of the input limits. If "
+          "InputUnit is a unit of the technical domain, "
+          "OtherInputUnit is a domain-specific unit." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.InputUnit" }]
+   string OtherInputUnit;
+
+      [Description ( 
+          "This property is not null, if the lower output limit of "
+          "the software resource can be calculated from the "
+          "property LowerOutputLimit. If LowerOutputLimit is "
+          "described by technical units (i.e., OutputUnit applies "
+          "to the technical domain), OtherLowerOutputLimit is "
+          "described by domain-specific units." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.OtherOutputUnit" }]
+   uint32 OtherLowerOutputLimit;
+
+      [Description ( 
+          "This property is not null, if the upper output limit of "
+          "the software resource can be calculated from the "
+          "property UpperOutputLimit. If UpperOutputLimit is "
+          "described by technical units (i.e., OutputUnit applies "
+          "to the technical domain), OtherUpperOutputLimit is "
+          "described by domain-specific units." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.OtherOutputUnit" }]
+   uint32 OtherUpperOutputLimit;
+
+      [Description ( 
+          "This is the complementary unit of the output limits. If "
+          "OutputUnit is a unit of the technical domain, "
+          "OtherOutputUnit is a domain-specific unit." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.OutputUnit" }]
+   string OtherOutputUnit;
+
+      [Description ( 
+          "This property is not null, if the lower allocation limit "
+          "of the software resource can be calculated from the "
+          "property LowerAllocationLimit. If LowerAllocationLimit "
+          "is described by technical units (i.e., AllocationUnit "
+          "applies to the technical domain), "
+          "OtherLowerAllocationLimit is described by "
+          "domain-specific units." ), 
+       ModelCorrespondence { 
+          "CIM_SWRLimitSetting.OtherAllocationUnit" }]
+   uint32 OtherLowerAllocationLimit;
+
+      [Description ( 
+          "This property is not null, if the upper allocation limit "
+          "of the software resource can be calculated from the "
+          "property UpperAllocationLimit. If UpperAllocationLimit "
+          "is described by technical units (i.e., AllocationUnit "
+          "applies to the technical domain), "
+          "OtherUpperAllocationLimit is described by "
+          "domain-specific units." ), 
+       ModelCorrespondence { 
+          "CIM_SWRLimitSetting.OtherAllocationUnit" }]
+   uint32 OtherUpperAllocationLimit;
+
+      [Description ( 
+          "This is the complementary unit of the output limits. If "
+          "OutputUnit is a unit of the technical domain, "
+          "OtherOutputUnit is a domain-specific unit." ), 
+       ModelCorrespondence { "CIM_SWRLimitSetting.AllocationUnit" }]
+   string OtherAllocationUnit;
+
+      [Description ( 
+          "LimitSettingType describes whether the limits are "
+          "specified in terms of technical units or domain-specific "
+          "units. Domain-specific is meant to be the items unit or "
+          "\'business\' unit of the usage the software resource. It "
+          "may range from objects or tables (in a buffer) to orders "
+          "in a queue. It depends on the implementation and usage "
+          "context of the software resource. The default is the "
+          "technical domain. \n"
+          "Values: \n"
+          "Technical: The writable setting properties are assigned "
+          "a technical unit e.g Kilobytes. \n"
+          "Domain-Specific: The writable setting properties are "
+          "assigned a business-like, item-oriented unit e.g "
+          "messages, objects, orders, etc.." ), 
+       ValueMap { "0", "2", "3", "4..32767", "32768..65535" }, 
+       Values { "Unknown", "Technical", "Domain-Specific", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 LimitSettingType = 2;
+
+
+};

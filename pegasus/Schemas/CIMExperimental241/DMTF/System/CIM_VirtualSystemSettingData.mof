@@ -1,0 +1,249 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Version ( "2.38.0" ), 
+    UMLPackagePath ( "CIM::System::SystemElements" ), 
+    Description ( 
+       "CIM_VirtualSystemSettingData defines the virtual aspects of a "
+       "virtual system through a set of virtualization specific "
+       "properties. CIM_VirtualSystemSettingData is also used as the "
+       "top level class of virtual system configurations. Virtual "
+       "system configurations model configuration information about "
+       "virtual systems and their components. A virtual system "
+       "configuration consists of one top-level instance of class "
+       "CIM_VirtualSystemSettingData that aggregates a number of "
+       "instances of class CIM_ResourceAllocationSettingData, using "
+       "association CIM_ConcreteComponent. \n"
+       "Virtual system configurations may for example be used to "
+       "reflect configurations of \n"
+       "- virtual systems that are defined at a virtualization "
+       "platform, \n"
+       "- virtual systems that are currently active, \n"
+       "- input requests to create new virtual systems, \n"
+       "- input requests to modify existing virtual systems, or \n"
+       "- snapshots of virtual systems." )]
+class CIM_VirtualSystemSettingData : CIM_SettingData {
+
+      [Description ( 
+          "VirtualSystemIdentifier shall reflect a unique name for "
+          "the system as it is used within the virtualization "
+          "platform. Note that the VirtualSystemIdentifier is not "
+          "the hostname assigned to the operating system instance "
+          "running within the virtual system, nor is it an IP "
+          "address or MAC address assigned to any of its network "
+          "ports. \n"
+          "On create requests VirtualSystemIdentifier may contain "
+          "implementation specific rules (like simple patterns or "
+          "regular expresssion) that may be interpreted by the "
+          "implementation when assigning a VirtualSystemIdentifier." )]
+   string VirtualSystemIdentifier;
+
+      [Description ( 
+          "VirtualSystemType shall reflect a particular type of "
+          "virtual system.\n"
+          "The property value shall conform to this format (in "
+          "ABNF): vs-type = dmtf-value / other-org-value / "
+          "legacy-value; dmtf-value = \"DMTF:\" defining-org \":\" "
+          "org-vs-type; other-org-value = defining-org \":\" org-vs-type;\n"
+          "Where: \n"
+          "dmtf-value: is a property value defined by DMTF and is "
+          "defined in the description of this property. \n"
+          "other-org-value: is a property value defined by a "
+          "business entity other than DMTF and is not defined in "
+          "the description of this property. \n"
+          "legacy-value: is a property value defined by a business "
+          "entity other than DMTF and is not defined in the "
+          "description of this property. These values are permitted "
+          "but recommended to be deprecated over time. \n"
+          "defining-org: is an identifier for the business entity "
+          "that defines the virtual system type. It shall include a "
+          "copyrighted, trademarked, or otherwise unique name that "
+          "is owned by that business entity. It shall not be \"DMTF\" "
+          "and shall not contain a colon (:).\n"
+          "org-vs-type: is an identifier for the virtual system "
+          "type within the defining business entity. It shall be "
+          "unique within the defining-org. It may use any character "
+          "allowed for CIM strings, except for the following: "
+          "U+0000-U+001F (Unicode C0 controls) U+0020 (space), note "
+          "that the reason is that OVF allows for multiple "
+          "space-separated vs-type values in this property. U+007F "
+          "(Unicode C0 controls) U+0080-U+009F (Unicode C1 controls)\n"
+          "\n"
+          "If there is a need to structure the value into segments, "
+          "the segments should be separated with a single colon (:).\n"
+          "The values of this property shall be processed case "
+          "sensitively. They are intended to be processed "
+          "programmatically (instead of being a display name) and "
+          "should be short.\n"
+          "\n"
+          "The following DMTF values are defined: \n"
+          "DMTF:unknown - the virtual system type is unknown or "
+          "cannot be determined\n"
+          "DMTF:XEN:PV -- Para Virtualized Machine (tuned for XEN, "
+          "not able to migrate to another virtualization platform)\n"
+          "DMTF:XEN:HVM -- Hardware Virtualized Machine (able to "
+          "migrate to another virtualization platform)\n"
+          "DMTF:HP:HPVM -- HP Integrity Virtualization Technology\n"
+          "DMTF:HP:Servers -- Physical servers, including blades\n"
+          "DMTF:Huawei:UVP -- Huawei Unified Virtulization Platform\n"
+          "DMTF:IBM:z/Arch:LPAR:ESA/390 -- IBM z/Architecture "
+          "capable LPAR in ESA/390 mode\n"
+          "DMTF:IBM:z/Arch:LPAR:ESA/TPFvIBM z/Architecture capable "
+          "LPAR in ESA/390 TPF mode\n"
+          "DMTF:IBM:z/Arch:LPAR:LINUX -- IBM z/Architecture capable "
+          "LPAR in LINUX mode\n"
+          "DMTF:IBM:z/Arch:LPAR:VM -- IBM z/Architecture capable "
+          "LPAR in z/VM mode\n"
+          "DMTF:IBM:z/Arch:LPAR:CF -- IBM z/Architecture capable "
+          "LPAR in Coupling Facility mode\n"
+          "DMTF:IBM:z/Arch:z/VM:ESA/390 -- IBM z/Architecture "
+          "capable z/VM guest in ESA/390 virtual config mode\n"
+          "DMTF:IBM:z/Arch:z/VM:LINUX -- IBM z/Architecture capable "
+          "z/VM guest in LINUX virtual config mode\n"
+          "DMTF:IBM:z/Arch:z/VM:VM -- IBM z/Architecture capable "
+          "z/VM guest in VM virtual config mode\n"
+          "DMTF:IBM:z/Arch:z/VM:CF -- IBM z/Architecture capable "
+          "z/VM guest in CF virtual config mode\n"
+          "DMTF:IBM:POWER:AIXLINUX -- IBM POWER LPAR of AIXLINUX "
+          "typeDMTF:IBM:POWER:VIOS -- IBM POWER LPAR of VIOS type\n"
+          "DMTF:IBM:POWER:i5/OS -- IBM POWER LPAR of i5/OS type\n"
+          "DMTF:KVM -- KVM guest\n"
+          "DMTF:Microsoft:Hyper-V\n"
+          "DMTF:Microsoft:Virtual PC\n"
+          "DMTF:Oracle:X86:OracleVM_Xen:PVM_Linux -- OracleVM "
+          "capable Linux guest in Xen Para Virtualization mode\n"
+          "DMTF:Oracle:X86:OracleVM_Xen:HVM_Linux -- OracleVM "
+          "capable Linux guest in Xen Full Virtualization mode\n"
+          "DMTF:Oracle:X86:OracleVM_Xen:Windows -- OracleVM capable "
+          "Windows guest in Xen Full Virtualization mode\n"
+          "DMTF:Oracle:X86:OracleVM_Xen:Solaris -- OracleVM capable "
+          "Solaris guest in Xen Full Virtualization mode\n"
+          "DMTF:Oracle:X86:OracleVM_VirtualBox:Linux -- OracleVM "
+          "capable Linux guest in VirtualBox Full Virtualization mode\n"
+          "DMTF:Oracle:X86:OracleVM_VirtualBox:Windows -- OracleVM "
+          "capable Windows guest in VirtualBox Full Virtualization mode\n"
+          "DMTF:Oracle:X86:OracleVM_VirtualBox:Solaris -- OracleVM "
+          "capable Solaris guest in VirtualBox Full Virtualization mode\n"
+          "DMTF:Oracle:Sparc:OracleVM_LDoms:Solaris -- OracleVM "
+          "capable Solaris guest in LDoms mode\n"
+          "DMTF:Oracle:X86:OracleVM_Xen:PVHVM_Linux -- OracleVM "
+          "capable Linux guest in Xen Full Virtualization with PV "
+          "driver mode\n"
+          "DMTF:Oracle:X86:OracleVM_Xen:PVHVM_Windows -- OracleVM "
+          "capable Windows guest in Xen Full Virtualization with PV "
+          "driver mode\n"
+          "DMTF:VMware:vmx-04 -- ESX 3.0 and greater, Workstation "
+          "5.0 and greater, Server 1.0 and greater\n"
+          "DMTF:VMware:vmx-07 -- ESX 4.0 and greater, Workstation "
+          "7.0 and greater, Server 2.0 and greater, Fusion 2.0 and greater\n"
+          "DMTF:VMware:vmx-08 -- vSphere 5.0 and greater, "
+          "Workstation 8.0 and greater, Fusion 4.0 and greater\n"
+          "DMTF:VMware:vmx-09 -- vSphere 5.1 and greater, "
+          "Workstation 9.0 and greater, Fusion 5.0 and greater" )]
+   string VirtualSystemType;
+
+      [Description ( 
+          "End-user supplied notes that are related to the virtual system."
+           )]
+   string Notes[];
+
+      [Description ( 
+          "Time when the virtual system configuration was created." )]
+   datetime CreationTime;
+
+      [Description ( 
+          "Unique id of the virtual system configuration. Note that "
+          "the ConfigurationID is different from the InstanceID as "
+          "it is assigned by the implementation to a virtual system "
+          "or a virtual system configuration. It is not a key, and "
+          "the same value may occur within more than one instance." )]
+   string ConfigurationID;
+
+      [Description ( 
+          "Filepath of a directory where information about the "
+          "virtual system configuration is stored.Format shall be "
+          "URI based on RFC 2079." )]
+   string ConfigurationDataRoot;
+
+      [Description ( 
+          "Filepath of a file where information about the virtual "
+          "system configuration is stored. A relative path appends "
+          "to the value of the ConfigurationDataRoot "
+          "property.Format shall be URI based on RFC 2079." )]
+   string ConfigurationFile;
+
+      [Description ( 
+          "Filepath of a directory where information about virtual "
+          "system snapshots is stored. A relative path appends to "
+          "the value of the ConfigurationDataRoot property.Format "
+          "shall be URI based on RFC 2079." )]
+   string SnapshotDataRoot;
+
+      [Description ( 
+          "Filepath of a directory where suspend related "
+          "information about the virtual system is stored. A "
+          "relative path appends to the value of the "
+          "ConfigurationDataRoot property.Format shall be URI based "
+          "on RFC 2079." )]
+   string SuspendDataRoot;
+
+      [Description ( 
+          "Filepath of a directory where swapfiles of the virtual "
+          "system are stored. A relative path appends to the value "
+          "of the ConfigurationDataRoot property.Format shall be "
+          "URI based on RFC 2079." )]
+   string SwapFileDataRoot;
+
+      [Description ( 
+          "Filepath of a directory where log information about the "
+          "virtual system is stored. A relative path appends to the "
+          "value of the ConfigurationDataRoot property.Format shall "
+          "be URI based on RFC 2079." )]
+   string LogDataRoot;
+
+      [Description ( 
+          "Action to take for the virtual system when the host is started."
+           ), 
+       ValueMap { "2", "3", "4", ".." }, 
+       Values { "None", "Restart if previously active", 
+          "Always startup", "DMTF Reserved" }]
+   uint16 AutomaticStartupAction;
+
+      [Description ( 
+          "Delay applicable to startup action. The value shall be "
+          "in the interval variant of the datetime datatype." )]
+   datetime AutomaticStartupActionDelay;
+
+      [Description ( 
+          "Number indicating the relative sequence of virtual "
+          "system activation when the host system is started. A "
+          "lower number indicates earlier activation. If one or "
+          "more configurations show the same value, the sequence is "
+          "implementation dependent. A value of 0 indicates that "
+          "the sequence is implementation dependent." )]
+   uint16 AutomaticStartupActionSequenceNumber;
+
+      [Description ( 
+          "Action to take for the virtual system when the host is shut down."
+           ), 
+       ValueMap { "2", "3", "4", ".." }, 
+       Values { "Turn Off", "Save state", "Shutdown", "DMTF Reserved" }]
+   uint16 AutomaticShutdownAction;
+
+      [Description ( 
+          "Action to take for the virtual system when the software "
+          "executed by the virtual system fails. Failures in this "
+          "case means a failure that is detectable by the host "
+          "platform, such as a non-interuptable wait state "
+          "condition." ), 
+       ValueMap { "2", "3", "4", ".." }, 
+       Values { "None", "Restart", "Revert to snapshot", 
+          "DMTF Reserved" }]
+   uint16 AutomaticRecoveryAction;
+
+      [Description ( 
+          "Filepath of a file where recovery relateded information "
+          "of the virtual system is stored.Format shall be URI "
+          "based on RFC 2079." )]
+   string RecoveryFile;
+
+
+};

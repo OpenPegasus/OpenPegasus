@@ -1,0 +1,45 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="CIMCoreCR00736.001" type ="change">Update of
+// descriptions based on Tech Edit review.</
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_SCSIArbitraryLogicalUnit
+// ==================================================================
+   [Experimental, Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Device::DeviceElements" ), 
+    Description ( 
+       "SCSIArbitraryLogicalUnit represents an element that is "
+       "addressed as a device, but is not accurately modeled by some "
+       "other LogicalDevice subclass (such as TapeDrive or "
+       "StorageVolume). One common use is \'control devices\' that "
+       "provide management rather than I/O functionality. For example, "
+       "SCSI defines this behavior for Enclosure Services and SCSI "
+       "Controller devices." )]
+class CIM_SCSIArbitraryLogicalUnit : CIM_LogicalDevice {
+
+      [Required, Description ( 
+          "The type of the device. For SCSI devices, this property "
+          "is related to the peripheral device type that is "
+          "returned in bits 0 to 4 of byte 0 of the inquiry "
+          "response. Note that \'Direct Access\' is included to "
+          "model the common behavior of using a zero-length volume "
+          "for in-band management of RAID arrays." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "Other", "Direct Access", 
+          "SCSI SCC Device", "SCSI SES", "SCSI ADI", 
+          "SCSI Well Known Logical Unit" }, 
+       MappingStrings { "ANSI|T10|SCSI SPC|Peripheral Device Type" }, 
+       ModelCorrespondence { 
+          "CIM_SCSIArbitraryLogicalUnit.OtherDeviceType" }]
+   uint16 DeviceType;
+
+      [Description ( 
+          "A string that describes the device type if DeviceType is "
+          "set to 1 (\"Other\")." ), 
+       ModelCorrespondence { 
+          "CIM_SCSIArbitraryLogicalUnit.DeviceType" }]
+   string OtherDeviceType;
+
+
+};

@@ -1,0 +1,101 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="CIMCoreCR00735.001" type ="change">Update of
+// descriptions based on Tech Edit review.</
+// <change cr="SMWGCR00026.003" type = "add"> Add
+// ControlModesSupported, ControlMode, and DesiredControlMode.</change>
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// <change cr="ArchCR00089.003" type="add">Add PUnit qualifier values
+// to Units qualifier values.</change>
+// ==================================================================
+//  CIM_Fan
+// ==================================================================
+   [Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Device::CoolingAndPower" ), 
+    Description ( "Capabilities and management of a Fan CoolingDevice." )]
+class CIM_Fan : CIM_CoolingDevice {
+
+      [Description ( 
+          "Indication of whether the fan supports variable speeds." )]
+   boolean VariableSpeed;
+
+      [Description ( 
+          "DesiredSpeed is the currently requested fan speed, "
+          "defined in revolutions per minute, when a variable speed "
+          "fan is supported (VariableSpeed Boolean = TRUE). The "
+          "current speed is determined using a sensor "
+          "(CIM_Tachometer) that is associated with the Fan using "
+          "the CIM_AssociatedSensor relationship." ), 
+       Units ( "Revolutions per Minute" ), 
+       PUnit ( "revolution / minute" )]
+   uint64 DesiredSpeed;
+
+      [Experimental, Description ( 
+          "ControlModesSupported indicates the supported control "
+          "modes of the Fan: automatic or manual. In Automatic mode "
+          "the Fan is controlled automatically in management "
+          "function below the CIM. In Manual mode, the fan speed "
+          "may be controlled by the CIM user by the SetSpeed "
+          "method. Changing from Automatic to Manual, would not "
+          "generally cause the speed to change. Changing from "
+          "Manual to Automatic may cause the fan speed to change "
+          "depending on the Thermal conditions of the system and "
+          "the thermal management function." ), 
+       ValueMap { "0", "2", "3", "4..32767", "32768..65535" }, 
+       Values { "Unknown", "Automatic", "Manual", "DMTF Reserved", 
+          "Vendor Specified" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Fan.ControlMode", 
+          "CIM_Fan.DesiredControlMode" }]
+   uint16 ControlModesSupported[];
+
+      [Experimental, Description ( 
+          "ControlMode indicates the mode in which management of "
+          "the Fan is operating. When in Manual mode, the SetSpeed "
+          "method can be used to control the fan speed." ), 
+       ValueMap { "0", "2", "3", "4..32767", "32768..65535" }, 
+       Values { "Unknown", "Automatic", "Manual", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Fan.ControlModesSupported", 
+          "CIM_Fan.DesiredControlMode" }]
+   uint16 ControlMode;
+
+      [Experimental, Write, Description ( 
+          "DesiredControlMode is an integer enumeration indicating "
+          "the last requested or desired control mode for the fan. "
+          "The actual control mode is represented by ControlMode. "
+          "The property is provided to compare the last requested "
+          "and the current control mode. Refer to the ControlMode "
+          "property Description for explanations of the values in "
+          "the DesiredControlMode enumeration." ), 
+       ValueMap { "0", "2", "3", "4..32767", "32768..65535" }, 
+       Values { "Unknown", "Automatic", "Manual", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Fan.ControlModesSupported" }]
+   uint16 DesiredControlMode;
+
+
+      [Description ( 
+          "Method that requests that the Fan speed be set to the "
+          "value specified in the input parameter of the method. "
+          "The return value should be: \n"
+          "0 if the request was successfully executed \n"
+          "1 if the request is not supported \n"
+          "2 if the request is not valid for the current mode \n"
+          "3 if the requested speed is not currently valid \n"
+          "Some other value if an error occurred. In a subclass, "
+          "the set of possible return codes could be specified, "
+          "using a ValueMap qualifier on the method. The strings to "
+          "which the ValueMap contents are \'translated\' can also "
+          "be specified in the subclass as a Values array "
+          "qualifier." ), 
+       ValueMap { "0", "1", "2", "3", "4..32767", "32768..65535" }, 
+       Values { "Completed with No Errors", "Not Supported", 
+          "Invalid ControlMode for Setting Speed", "Invalid Speed", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Fan.DesiredSpeed" }]
+   uint32 SetSpeed(
+         [IN, Description ( "The desired speed for the fan." )]
+      uint64 DesiredSpeed);
+
+};

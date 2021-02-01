@@ -1,0 +1,110 @@
+// Copyright (c) 2006 DMTF.  All rights reserved.
+// <change cr="DBCR00030" type ="add">Add top level relational model
+// support to the database model.</change>
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ===================================================================
+// CIM_SqlTrigger
+// ===================================================================
+   [Experimental, Version ( "2.12.0" ), 
+    UMLPackagePath ( "CIM::Database::Sql" ), 
+    Description ( 
+       "A trigger is defined by a <trigger definition>. A <trigger "
+       "definition> specifies a trigger that is described by a trigger "
+       "descriptor. A trigger descriptor includes: \n"
+       "- The name of the trigger. \n"
+       "- The name of the base table that is the subject table. \n"
+       "- The trigger action time (BEFORE or AFTER ). \n"
+       "- The trigger event (INSERT, DELETE, or UPDATE). \n"
+       "- Whether the trigger is a statement-level trigger or a row "
+       "-level trigger. \n"
+       "- Any old transition variable name, new transition variable "
+       "name, old transition table name, new transition table name. \n"
+       "- The triggered action. \n"
+       "- The trigger column list (possibly empty) for the trigger "
+       "event. \n"
+       "- The triggered action column set of the triggered action. \n"
+       "- The timestamp of creation of the trigger. \n"
+       "\n"
+       "The order of execution of a set of triggers is ascending by "
+       "value of their timestamp of creation in their descriptors, "
+       "such that the oldest trigger executes first. If one or more "
+       "triggers have the same timestamp value, then their relative "
+       "order of execution is implementation-defined. \n"
+       "\n"
+       "A schema might include one or more trigger descriptors, each "
+       "of which includes the definition of a triggered action "
+       "specifying a <triggered SQL statement> that is to be executed "
+       "(either once for each affected row, in the case of a row-level "
+       "trigger, or once for the whole triggering INSERT, DELETE, "
+       "MERGE, or UPDATE statement, in the case of a statement-level "
+       "trigger) before or after rows are inserted into a table, rows "
+       "are deleted from a table, or one or more columns are updated "
+       "in rows of a table. The execution of such a triggered action "
+       "resulting from the insertion, deletion, or updating of a table "
+       "may cause the triggering of further triggered actions. \n"
+       "\n"
+       "The <triggered SQL statement> of a triggered action is "
+       "effectively executed either immediately before or immediately "
+       "after the trigger event, as determined by the specified "
+       "trigger action time. \n"
+       "\n"
+       "OCL rules are derived from these syntax rules: \n"
+       "4) The schema identified by the explicit or implicit <schema "
+       "name> of a <trigger name> TRN shall not include a trigger "
+       "descriptor whose trigger name is TRN. \n"
+       "5) T shall be a base table that is not a declared local "
+       "temporary table. \n"
+       "6) If a <trigger column list> is specified, then: \n"
+       "a) No <column name> shall appear more than once in the "
+       "<trigger column list>. \n"
+       "b) The <column name> s of the <trigger column list> shall "
+       "identify columns of T. \n"
+       "9) If OR or NR is specified, then FOR EACH ROW shall be "
+       "specified. \n"
+       "12) If BEFORE is specified, then: \n"
+       "b) Neither OLD TABLE nor NEW TABLE shall be specified." )]
+class CIM_SqlTrigger : CIM_SqlObject {
+
+      [Description ( 
+          "Shows whether the trigger is a statement-level trigger "
+          "or a row-level trigger." ), 
+       ValueMap { "2", "3" }, 
+       Values { "STATEMENT", "ROW" }]
+   uint16 ActionGranularityType;
+
+      [Description ( 
+          "The <triggered SQL statement> of a triggered action." )]
+   string ActionStatement;
+
+      [Description ( 
+          "Contains the trigger action time (BEFORE or AFTER)." ), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "AFTER", "BEFORE", "INSTEADOF" }]
+   uint16 ActionTime;
+
+      [Description ( 
+          "Contains the trigger event (INSERT , DELETE , or UPDATE)." ), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "INSERT", "UPDATE", "DELETE" }]
+   uint16 EventType;
+
+      [Description ( "A row in the new transition table." )]
+   string NewRow;
+
+      [Description ( "New transition table name." )]
+   string NewTable;
+
+      [Description ( "A row in the old transition table." )]
+   string OldRow;
+
+      [Description ( "Old transition table name." )]
+   string OldTable;
+
+      [Description ( 
+          "The value of special conditions, if any, under which the "
+          "trigger is activated." )]
+   string WhenCondition;
+
+
+};

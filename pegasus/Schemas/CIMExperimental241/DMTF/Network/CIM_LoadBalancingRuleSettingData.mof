@@ -1,0 +1,106 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.32.0" ), 
+    UMLPackagePath ( "CIM::Network" ), 
+    Description ( 
+       "This class describes the configuration of a load balancing "
+       "network policy rule." )]
+class CIM_LoadBalancingRuleSettingData : CIM_NetworkPolicyRuleSettingData {
+
+      [Description ( 
+          "The user-friendly name of the server pool that is being "
+          "load balanced." )]
+   string ServerPoolName;
+
+      [Description ( 
+          "This property describes the virtual IP address from "
+          "which the server pool is accessed from." )]
+   string VirtualIPAddress;
+
+      [Description ( 
+          "This property describes the application port from which "
+          "the server pool is accessed from." )]
+   uint16 VirtualPortNumber;
+
+      [Description ( 
+          "This array identifies the members of the pool by their "
+          "IP addresses." ), 
+       ArrayType ( "Indexed" )]
+   string ServerPoolMemberIPAddresses[];
+
+      [Description ( 
+          "This array identifies the application port within each "
+          "one of the members of the pool." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_LoadBalancingRuleSettingData.ServerPoolMemberIPAddresses" }]
+   uint16 ServerPoolMemberPortNumbers[];
+
+      [Description ( "Enter Description" ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_LoadBalancingRuleSettingData.ServerPoolMemberIPAddresses", 
+          "CIM_LoadBalancingRuleSettingData.ServerPoolMemberPortNumbers" }]
+   uint16 ServerPoolMemberWeights[];
+
+      [Description ( 
+          "This property identifies the network from which the "
+          "server pool is accessed from. This is a user-friendly "
+          "name." )]
+   string InputNetworkName;
+
+      [Description ( 
+          "This property specifies the load balancing algorithm used.\n"
+          "\n"
+          "SourceAddressHash: this method uses a hash of the source "
+          "IP address to determine which address to use from the "
+          "pool. \n"
+          "DestinationAddressHash: this method uses a hash of the "
+          "destination IP address to determine which address to use "
+          "from the pool. \n"
+          "HTTPContentHash: this method uses a hash of the HTTP "
+          "content to determine which address to use from the pool. \n"
+          "URLHash: this method uses a hash of the URL of the "
+          "request to determine which address to use from the pool. \n"
+          "Layer4PayloadHash: this method uses a hash of the "
+          "payload of the request to determine which address to use "
+          "from the pool. \n"
+          "CookieHash: this method uses a hash of a cookie of the "
+          "request to determine which address to use from the pool. \n"
+          "HTTPHeaderHash: this method uses a hash of a header of "
+          "the request to determine which address to use from the "
+          "pool. \n"
+          "LeastLoadedServer: this method chooses, every time, the "
+          "server with least load of all the active servers. \n"
+          "LeastResponseTime: this method : chooses, every time, "
+          "the server with the fastest response of all the active "
+          "servers. \n"
+          "LeastConnections: this method chooses, every time, the "
+          "server with least number of current connections. \n"
+          "LeastBandwidth: this method chooses, every time, the "
+          "server that is currently serving the least amount of "
+          "traffic. \n"
+          "RoundRobin: this method can be described as a Weighted "
+          "Round-Robin that uses the equal weights in every server, "
+          "so each server takes a turn. \n"
+          "WeightedRoundRobin: this method is based on the "
+          "assignment of different weights to each of the balanced "
+          "servers. This weight represents the server capacity in "
+          "relation to the capacity of the other servers." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "11", "12", "13", "14", "..", "32767..65535" }, 
+       Values { "Unknown", "Other", "SourceAddressHash", 
+          "DestinationAddressHash", "HTTPContentHash", "URLHash", 
+          "Layer4PayLoadHash", "CookieHash", "HTTPHeaderHash", 
+          "LeastLoadedServer", "LeastResponseTime", 
+          "LeastConnections", "LeastBandwidth", "RoundRobin", 
+          "WeightedRoundRobin", "DMTF Reserved", "Vendor Reserved" }]
+   uint16 Algorithm;
+
+      [Description ( "The load balanced protocol." ), 
+       ValueMap { "2", "3", "4", "5", "6", "..", "32768..65535" }, 
+       Values { "TCP", "UDP", "GRE", "IPsec AH", "IPsec ESP", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 Protocols[];
+
+
+};

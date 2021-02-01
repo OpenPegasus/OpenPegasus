@@ -1,0 +1,262 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Version ( "2.39.0" ), 
+    UMLPackagePath ( "CIM::System::FilesystemServices" ), 
+    Description ( 
+       "FileSystemCapabilities specifies the combination of properties "
+       "that a FileSystemService can support when creating or "
+       "maintaining FileSystems. Each supported combination of "
+       "properties is specified by a FileSystemSetting that is "
+       "associated with the FileSystemCapabilities element via "
+       "ElementSettingData. \n"
+       "A FileSystemCapabilities element specifies the properties "
+       "supported when using it. \n"
+       "This class provides a CreateGoal method that can be used to "
+       "create a FileSystemSetting element that can be used as a goal "
+       "for creating or modifying a filesystem. This class also "
+       "supports persistence and recoverability of a FileSystem and "
+       "its contained elements as defined in CIM 2.8 for the use of "
+       "DatabaseStorageArea." )]
+class CIM_FileSystemCapabilities : CIM_Capabilities {
+
+      [Deprecated { "CIM_FileSystemSetting.PersistenceTypes" }, 
+       Description ( 
+          "An array of enumerated values representing the "
+          "persistence capabilities of the FileSystem. A value of "
+          "\"Persistent\" indicates that the FileSystem supports "
+          "persistence, can be preserved through an orderly "
+          "shutdown and could be protected. A value of \"Temporary\" "
+          "indicates that the FileSystem supports non-persistence, "
+          "may not be protected and may not survive a shutdown. A "
+          "value of \"External\" indicates that the FileSystem "
+          "could controlled outside of the operating environment "
+          "and may need to be protected by specialized means. A "
+          "value of \"Other\" is provided to allow for additional "
+          "persistence types, to be described in the "
+          "OtherPersistenceType attribute, and is expected to be "
+          "rarely, if ever, used." ), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "Persistent", "Temporary", "External" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_FileSystemCapabilities.SupportedPersistenceTypes", 
+          "CIM_FileSystem.PersistenceType" }]
+   uint16 SupportedPersistenceTypes[];
+
+      [Deprecated { "CIM_FileSystemSetting.OtherPersistenceTypes" }, 
+       Description ( 
+          "An array of strings describing the persistence "
+          "capabilities where the corresponding entry in "
+          "SupportedPersistenceTypes has a value of \"Other\". This "
+          "value is ignored in all other cases." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_FileSystemCapabilities.SupportedPersistenceTypes", 
+          "CIM_FileSystem.OtherPersistenceType" }]
+   string SupportedOtherPersistenceTypes[];
+
+      [Experimental, Description ( 
+          "An enumerated value that indicates the file system "
+          "implementation type supported by this Capabilities." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "..", "0x8000.." }, 
+       Values { "Unknown", "UFS", "HFS", "FAT", "FAT16", "FAT32", 
+          "NTFS4", "NTFS5", "XFS", "AFS", "EXT2", "EXT3", 
+          "REISERFS", "DMTF Reserved", "Vendor Defined" }, 
+       Read, ModelCorrespondence { 
+          "CIM_FileSystemSetting.ActualFileSystemType" }]
+   uint16 ActualFileSystemType = 0;
+
+      [Experimental, Description ( 
+          "An array of property names of the Setting that this "
+          "Capabilities element supports. The Object-related "
+          "parameters are not specified because they must always be "
+          "supported even if not used." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "..", "0x8000.." }, 
+       Values { "DataExtentsSharing", "CopyTarget", 
+          "FilenameCaseAttributes", "FilenameStreamFormats", 
+          "FilenameFormats", "LockingSemantics", 
+          "AuthorizationProtocols", "AuthenticationProtocols", 
+          "Persistence", "DMTF Reserved", "Vendor Defined" }, 
+       Read]
+   uint16 SupportedProperties[];
+
+      [Experimental, Description ( 
+          "An array of enumerated values representing the "
+          "operations to files and directories on the file system. "
+          "Set of supported operations depends on the file system "
+          "type. The operation information is used as the action "
+          "type in the access control management." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Read", "Write", "Execute", "Create", "Rename", 
+          "Delete", "Change Attribute", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint16 SupportedOperations[];
+
+
+      [Experimental, Description ( 
+          "Start a job to create a supported FileSystemSetting from "
+          "a FileSystemSetting provided by the caller. If the "
+          "operation completes successfully and did not require a "
+          "long-running ConcreteJob, it will return 0. If "
+          "4096/0x1000 is returned, a ConcreteJob will be started "
+          "to create the element. A Reference to the ConcreteJob "
+          "will be returned in the output parameter Job. \n"
+          "This method MAY return a CIM_Error representing that a "
+          "single named property of a setting (or other) parameter "
+          "(either reference or embedded object) has an invalid "
+          "value or that an invalid combination of named properties "
+          "of a setting (or other) parameter (either reference or "
+          "embedded object) has been requested. \n"
+          "If the input TemplateGoal is NULL or the empty string, "
+          "this method returns a default FileSystemSetting that is "
+          "supported by this FileSystemCapabilities. \n"
+          "The output is returned as the SupportedGoal parameter. "
+          "Both TemplateGoal and SupportedGoal are embedded objects "
+          "and do not exist in the provider but are maintained by "
+          "the client. \n"
+          "If the TemplateGoal specifies values that cannot be "
+          "supported this method MUST return an appropriate error "
+          "and should return a best match for a SupportedGoal." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "..", "4097", "4098..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "TemplateGoal is not well-formed", 
+          "TemplateGoal cannot be satisfied exactly", 
+          "StorageSetting cannot be used with ActualFileSystemType", 
+          "StorageSetting cannot be used with CopyTarget", 
+          "StorageSetting cannot be used with ObjectType", 
+          "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint16 CreateGoal(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "TemplateGoal is an element of class "
+             "CIM_FileSystemSetting, or a derived class, encoded "
+             "as a string-valued embedded object parameter, that "
+             "is used as the template to be matched ." ), 
+          EmbeddedInstance ( "CIM_FileSystemSetting" )]
+      string TemplateGoal, 
+         [IN ( false ), OUT, Description ( 
+             "SupportedGoal is an element of class "
+             "CIM_FileSystemSetting, or a derived class, encoded "
+             "as a string-valued embedded object parameter, that "
+             "is used to return the best supported match to the "
+             "TemplateGoal." ), 
+          EmbeddedInstance ( "CIM_FileSystemSetting" )]
+      string SupportedGoal);
+
+      [Experimental, Description ( 
+          "This method returns the \"expected\" size of "
+          "StorageExtent that would support a file system specified "
+          "by the input FileSystemGoal parameter assuming that the "
+          "other settings for the StorageExtent are specified by "
+          "the ExtentSetting parameter. \n"
+          "If the input FileSystemGoal or the ExtentSetting are "
+          "NULL, this method returns a value computed by using the "
+          "default FileSystemSetting or some vendor-specific canned "
+          "StorageSetting. \n"
+          "A value of 0 is returned if this method is not able to "
+          "determine a reasonable size or does not restrict sizes "
+          "based on setting information." ), 
+       Units ( "Bytes" ), 
+       PUnit ( "byte" )]
+   uint64 GetRequiredStorageSize(
+         [IN, Description ( 
+             "FileSystemGoal is an element of class "
+             "CIM_FileSystemSetting, or a derived class, encoded "
+             "as a string-valued embedded object parameter, that "
+             "is used to specify the settings for the FileSystem "
+             "to be created." ), 
+          EmbeddedInstance ( "CIM_FileSystemSetting" )]
+      string FileSystemGoal, 
+         [IN, Description ( 
+             "ExtentSetting is an element of class "
+             "CIM_StorageSetting, or a derived class, encoded as "
+             "a string-valued embedded object parameter, that is "
+             "used to specify the settings of the StorageExtent "
+             "to be used for this FileSystem." ), 
+          EmbeddedInstance ( "CIM_StorageSetting" )]
+      string ExtentSetting, 
+         [OUT, Description ( 
+             "A number that indicates the size of the storage "
+             "extent that this FileSystem is expected to need. A "
+             "value of 0 indicates that there is no expected "
+             "size." ), 
+          Units ( "Bytes" ), 
+          PUnit ( "byte" )]
+      uint64 ExpectedSize, 
+         [OUT, Description ( 
+             "A number that indicates the size of the smallest "
+             "storage extent that would support the specified "
+             "FileSystem. A value of 0 indicates that there is "
+             "no minimum size." ), 
+          Units ( "Bytes" ), 
+          PUnit ( "byte" )]
+      uint64 MinimumSizeAcceptable, 
+         [OUT, Description ( 
+             "A number that indicates the size of the largest "
+             "storage extent that would be usable for the "
+             "specified FileSystem. A value of 0 indicates that "
+             "there is no maximum size." ), 
+          Units ( "Bytes" ), 
+          PUnit ( "byte" )]
+      uint64 MaximumSizeUsable);
+
+      [Experimental, Description ( 
+          "This returns the restrictions on the ElementName in the "
+          "related \"OUT\" parameters." ), 
+       ValueMap { "0", "4", "..", "0x8000.." }, 
+       Values { "Success", "Failed", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetElementNameCapabilities(
+         [Out, Description ( 
+             "Enumeration indicating what methods can accept the "
+             "element name for creation or modification of a "
+             "storage element. \n"
+             "CreateFileSystem is an example of an InvokeMethod. "
+             "ModifyInstance and SetProperty are examples of "
+             "intrinsic methods.\n"
+             "An empty array indicates ElementNaming for "
+             "ElementType is not supported, in which case the "
+             "other OUT parameters are null." ), 
+          ValueMap { "2", "3", "4", "..", "32768..65535" }, 
+          Values { "ElementName can be supplied during creation", 
+             "ElementName can be modified with InvokeMethod", 
+             "ElementName can be modified with intrinsic method", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint32 SupportedFeatures[], 
+         [Out, Description ( 
+             "This string expresses the restrictions on "
+             "ElementName. The mask is expressed as a regular "
+             "expression. See DMTF standard ABNF with the "
+             "Management Profile Specification Usage Guide, "
+             "appendix C for the regular expression syntax "
+             "permitted. \n"
+             "Since the ElementNameMask can describe the maximum "
+             "length of the ElementName,any length defined in "
+             "the regexp is in addition to the restriction "
+             "defined in MaxElementNameLen (causing the smaller "
+             "value to be the maximum length). The ElementName "
+             "value satisfies the restriction, if and only if it "
+             "matches the regular expression. \n"
+             "If NULL, it indicates no restrictions on the "
+             "ElementName." ), 
+          ModelCorrespondence { 
+             "CIM_EnabledLogicalElementCapabilities.ElementNameMask" }]
+      string ElementNameMask, 
+         [Out, Description ( 
+             "Maximum supported ElementName length in characters." ), 
+          MaxValue ( 256 ), 
+          MappingStrings { 
+             "FC-SWAPI.INCITS-T11|SWAPI_UNIT_CONFIG_CAPS_T|MaxNameChars" }, 
+          ModelCorrespondence { 
+             "CIM_EnabledLogicalElementCapabilities.MaxElementNameLen" }]
+      uint16 MaxElementNameLen);
+
+};

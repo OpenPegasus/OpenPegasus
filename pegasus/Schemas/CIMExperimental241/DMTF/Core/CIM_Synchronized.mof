@@ -1,0 +1,263 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Association, Version ( "2.41.0" ), 
+    UMLPackagePath ( "CIM::Core::CoreElements" ), 
+    Description ( 
+       "Indicates that two ManagedElements were aligned or made to be "
+       "equivalent at the specified point in time. If the Boolean "
+       "property SyncMaintained is true, then synchronization of the "
+       "Elements is preserved. Both like and unlike objects can be "
+       "synchronized. For example, two WatchDog timers can be aligned, "
+       "or the contents of a LogicalFile can be synchronized with the "
+       "contents of a StorageExtent." )]
+class CIM_Synchronized {
+
+      [Key, Description ( 
+          "SystemElement represents one ManagedElement that is "
+          "synchronized with the entity referenced as "
+          "SyncedElement." )]
+   CIM_ManagedElement REF SystemElement;
+
+      [Key, Description ( 
+          "SyncedElement represents another ManagedElement that is "
+          "synchronized with the entity referenced as "
+          "SystemElement." )]
+   CIM_ManagedElement REF SyncedElement;
+
+      [Description ( 
+          "The point in time that the Elements were synchronized." )]
+   datetime WhenSynced;
+
+      [Description ( 
+          "Boolean indicating whether synchronization is maintained." )]
+   boolean SyncMaintained;
+
+      [Experimental, Description ( 
+          "CopyState describes the state of the association with "
+          "respect to Replication activity. Values are: \n"
+          "Initialized: The link to enable replication is "
+          "established and source/replica elements are associated, "
+          "but the data flow has not started. \n"
+          "Unsynchronized: Not all the source element data has been "
+          "copied to the target element. \n"
+          "Synchronized: For the Mirror, Snapshot, or Clone "
+          "replication, the target represents a copy of the source. \n"
+          "Broken: The relationship is non-functional due to errors "
+          "in the source, the target, the path between the two or "
+          "space constraints. \n"
+          "Fractured: Target is split from the source. \n"
+          "Split: The target element was gracefully (or "
+          "systematically) split from its source element -- "
+          "consistency is guaranteed. \n"
+          "Inactive: Data flow has stopped, writes to source "
+          "element will not be sent to target element. \n"
+          "Suspended: Data flow between the source and target "
+          "elements has stopped. Writes to source element are held "
+          "until the association is Resumed. \n"
+          "Failedover: Reads and writes to/from the target element. "
+          "Source element is not reachable. \n"
+          "Prepared: Initialization is completed, the data flow has "
+          "started, however, the data flow has not started. \n"
+          "Aborted: The copy operation is aborted with the Abort "
+          "operation. Use the Resync Replica operation to restart "
+          "the copy operation. \n"
+          "Skewed: The target has been modified and is no longer "
+          "synchronized with the source element or the "
+          "point-in-time view. \n"
+          "Mixed: Applies to the CopyState of GroupSynchronized. It "
+          "indicates the StorageSynchronized associations of the "
+          "elements in the groups have different CopyState values.\n"
+          "Partitioned: State of replication relationship can not "
+          "be determined, for example, due to a connection problem.\n"
+          "Invalid: The array is unable to determine the state of "
+          "the replication relationship, for example, after the "
+          "connection is restored; however, either source or target "
+          "elements have an unknown status. \n"
+          "Restored: It indicates the source element was restored "
+          "from the target element." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "..", 
+          "0x8000.." }, 
+       Values { "Initialized", "Unsynchronized", "Synchronized", 
+          "Broken", "Fractured", "Split", "Inactive", "Suspended", 
+          "Failedover", "Prepared", "Aborted", "Skewed", "Mixed", 
+          "Not Applicable", "Partitioned", "Invalid", "Restored", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 CopyState;
+
+      [Experimental, Description ( 
+          "Mode describes whether the target elements will be "
+          "updated synchronously or asynchronously. \n"
+          "Adaptive: Allows implementation to switch between "
+          "synchronous and asynchronous modes. \n"
+          "If NULL, implementation decides the mode." ), 
+       ValueMap { "0", "2", "3", "4", "..", "32768..65535" }, 
+       Values { "Unknown", "Synchronous", "Asynchronous", 
+          "Adaptive", "DMTF Reserved", "Vendor Specific" }]
+   uint16 Mode;
+
+      [Experimental, Description ( 
+          "Specifies the percent of the work completed to reach "
+          "synchronization. Must be set to NULL if implementation "
+          "is not capable of providing this information." )]
+   uint16 PercentSynced;
+
+      [Experimental, Description ( 
+          "ProgressStatus describes the status of the association "
+          "with respect to Replication activity. Values are: "
+          "Completed: The request is completed. Data flow is idle. \n"
+          "Dormant: Indicates that the data flow is inactive "
+          "suspended or quiesced. \n"
+          "Initializing: In the process of establishing "
+          "source/replica association and the data flow has not "
+          "started. \n"
+          "Preparing: preparation-in-progress. \n"
+          "Synchronizing: sync-in-progress. \n"
+          "Resyncing: resync-in-progess. \n"
+          "Restoring: restore-in-progress. \n"
+          "Fracturing: fracture-in-progress. \n"
+          "Splitting: split-in-progress. \n"
+          "Failing over: in the process of switching source and "
+          "target. \n"
+          "Failing back: Undoing the result of failover. \n"
+          "Detaching: detach-in-progress. \n"
+          "Aborting: abort-in-progress. \n"
+          "Mixed: Applies to groups with element pairs with "
+          "different statuses. Generally, the individual statuses "
+          "need to be examined.Suspending: The copy operation is in "
+          "the process of being suspended. \n"
+          "Requires fracture: The requested operation has "
+          "completed, however, the synchronization relationship "
+          "needs to be fractured before further copy operations can "
+          "be issued. \n"
+          "Requires resync: The requested operation has completed, "
+          "however, the synchronization relationship needs to be "
+          "resynced before further copy operations can be issued. \n"
+          "Requires activate: The requested operation has "
+          "completed, however, the synchronization relationship "
+          "needs to be activated before further copy operations can "
+          "be issued. \n"
+          "Pending: The flow of data has stopped momentarily due to "
+          "limited bandwidth or busy system. \n"
+          "Requires detach: The requested operation has completed, "
+          "however, the synchronization relationship needs to be "
+          "detached before further copy operations can be issued. \n"
+          "Terminating: The association is in the process of "
+          "terminating. \n"
+          "Requires split: The requested operation has completed, "
+          "however, the synchronization relationship needs to be "
+          "split before further copy operations can be issued. \n"
+          "Requires resume: The requested operation has completed, "
+          "however, the synchronization relationship needs to be "
+          "resumed before further copy operations can be issued." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "21", "22", "23", "24", "25", "..", "0x8000.." }, 
+       Values { "Unknown", "Completed", "Dormant", "Initializing", 
+          "Preparing", "Synchronizing", "Resyncing", "Restoring", 
+          "Fracturing", "Splitting", "Failing over", "Failing back", 
+          "Aborting", "Mixed", "Not Applicable", "Suspending", 
+          "Requires fracture", "Requires resync", 
+          "Requires activate", "Pending", "Detaching", 
+          "Requires detach", "Terminating", "Requires split", 
+          "Requires resume", "DMTF Reserved", "Vendor Specific" }]
+   uint16 ProgressStatus;
+
+      [Experimental, Description ( 
+          "RequestedCopyState is an integer enumeration that "
+          "indicates the last requested or desired state for the "
+          "association. The actual state of the association is "
+          "represented by CopyState. Note that when CopyState "
+          "reaches the requested state, this property will be set "
+          "to \'Not Applicable." ), 
+       ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+   uint16 RequestedCopyState = 15;
+
+      [Experimental, Description ( 
+          "SyncType describes the intended outcome of the "
+          "replication.Values are: \n"
+          "Mirror: create and maintain a copy of the source. \n"
+          "Snapshot: create a PIT, virtual copy of the source. \n"
+          "Clone: create a PIT, full copy the source. \n"
+          "TokenizedClone: create a token based clone." ), 
+       ValueMap { "..", "6", "7", "8", "9", "..", "0x8000.." }, 
+       Values { "DMTF Reserved", "Mirror", "Snapshot", "Clone", 
+          "TokenizedClone", "DMTF Reserved", "Vendor Specific" }]
+   uint16 SyncType;
+
+      [Experimental, Description ( 
+          "Specifies when point-in-time was taken or when the "
+          "replication association is activated, reactivated, "
+          "resumed or re-established. Must be set to NULL if "
+          "implementation is not capable of providing this "
+          "information. A value of 0 indicates the information is "
+          "not known." )]
+   datetime WhenActivated;
+
+      [Experimental, Description ( 
+          "Specifies when the association was deactivated. A "
+          "deactivated association is reactivated.Must be set to "
+          "NULL if implementation is not capable of providing this "
+          "information. A value of 0 indicates the information is "
+          "not known." )]
+   datetime WhenDeactivated;
+
+      [Experimental, Description ( 
+          "Specifies when the association was established. Must be "
+          "set to NULL if implementation is not capable of "
+          "providing this information. A value of 0 indicates the "
+          "information is not known." )]
+   datetime WhenEstablished;
+
+      [Experimental, Description ( 
+          "Specifies when the association was suspended. A "
+          "suspended association is resumed.Must be set to NULL if "
+          "implementation is not capable of providing this "
+          "information. A value of 0 indicates the information is "
+          "not known." )]
+   datetime WhenSuspended;
+
+      [Experimental, Description ( 
+          "Specifies when the CopyState has a value of "
+          "Synchronized. Must be set to NULL if implementation is "
+          "not capable of providing this information. A value of 0 "
+          "indicates the information is not known." )]
+   datetime WhenSynchronized;
+
+      [Experimental, Description ( 
+          "Describes whether the copy operation continues after a "
+          "broken link is restored.\n"
+          "Automatic: copy operation resumes automatically.\n"
+          "Manual: CopyState is set to Suspended after the link is "
+          "restored. It is required to issue the Resume operation "
+          "to continue." ), 
+       ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+       Values { "Unknown", "Automatic", "Manual", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 CopyRecoveryMode;
+
+      [Experimental, Description ( 
+          "If true, the storage array tells host to stop sending "
+          "data to source element if copying to a remote element "
+          "fails." )]
+   boolean FailedCopyStopsHostIO = false;
+
+      [Experimental, Description ( 
+          "Recovery Point Objective indicates the maximum interval "
+          "in which data might be lost. For synchronous copy "
+          "operations, RPO is 0. For asynchronous copy operations "
+          "RPO represents the interval since the most recent "
+          "transmission of data to the SyncedElement (target). \n"
+          "For example, to indicate 15 seconds, the value would be "
+          "00000000000015.000000:000, using the CIM interval "
+          "format. If NULL, RPO is not applicable." )]
+   datetime RPO;
+
+      [Experimental, Description ( 
+          "Applies to Adaptive mode and it describes maximum number "
+          "of bytes the SyncedElement (target) can be out of sync. "
+          "If the number of out-of-sync bytes exceeds the skew "
+          "value, mode is switched to synchronous." )]
+   uint64 Skew;
+
+
+};

@@ -1,0 +1,329 @@
+//Copyright (c) 2007 DMTF. All Rights Reserved.
+   [Experimental, Version ( "2.17.0" ), 
+    UMLPackagePath ( "CIM::System::Virtualization" ), 
+    Description ( 
+       "Service to control the migration of virtual systems between "
+       "host systems, including pre-checking to determine if an "
+       "intended migration operation is likely to succeed." )]
+class CIM_VirtualSystemMigrationService : CIM_Service {
+
+
+      [Description ( 
+          "Method to move, migrate or relocate a virtual system to "
+          "a target host specified by a network name or IP address.\n"
+          "Return code description:\n"
+          "0: Success: Virtual system was migrated.\n"
+          "1: Error: Method not supported by implementation.\n"
+          "2: Error: Virtual system migration failed for "
+          "unspecified reasons.\n"
+          "3: Error: Virtual system migration time out; the virtual "
+          "system state is unknown.\n"
+          "4: Error: One or more parameters are formally invalid. "
+          "For example, the value of the DestinationHost parameter "
+          "could have been specified in an unsupported format.\n"
+          "5: Error: The source virtual system, the source host "
+          "system or the target host system are in a state that "
+          "does allow initiation of the requested virtual system "
+          "migration; this may be a temporary condition.\n"
+          "6: Error: One or more input parameters are incompatible "
+          "as a set, or with respect to the target host. For "
+          "example the value of the MigrationNewSettingData "
+          "parameter contains properties that are not supported by "
+          "the target host system identified by the value of the "
+          "DestinationHost parameter. Note: The "
+          "MigrateVirtualSystemToHost( ) methods is intended as a "
+          "transitional solution only until modelling of cluster "
+          "support is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Timeout", "Invalid Parameter", "Invalid State", 
+          "Incompatible Parameters", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 MigrateVirtualSystemToHost(
+         [In, Description ( 
+             "Source virtual computer system to be migrated." )]
+      CIM_ComputerSystem REF ComputerSystem, 
+         [In, Description ( 
+             "Target host system for the migration.\n"
+             "Acceptable formats for this parameter are conveyed "
+             "through values of elements of the "
+             "DestinationHostFormatsSupported[ ] array property "
+             "in the instance of the "
+             "CIM_VirtualSystemMigrationCapabilities that is "
+             "associated through the CIM_ElementCapabilities "
+             "assocation." ), 
+          ModelCorrespondence { 
+             "CIM_VirtualSystemMigrationCapabilities.DestinationHostFormatsSupported" }]
+      string DestinationHost, 
+         [In, Description ( 
+             "String containing an embedded instance of the "
+             "CIM_VirtualSystemMigrationSettingData class "
+             "representing migration settings applicable to the "
+             "migration operation." ), 
+          EmbeddedInstance ( 
+             "CIM_VirtualSystemMigrationSettingData" )]
+      string MigrationSettingData, 
+         [In, Description ( 
+             "String containing an embedded instance of the "
+             "CIM_VirtualSystemSettingData class representing "
+             "new properties applicable to the virtual system "
+             "after it is migrated." ), 
+          EmbeddedInstance ( "CIM_VirtualSystemSettingData" )]
+      string NewSystemSettingData, 
+         [In, Description ( 
+             "Array of strings each containing an embedded "
+             "instance of the CIM_ResourceAllocationSettingData "
+             "class representing new properties applicable to "
+             "virtual resources in the scope of the virtual "
+             "system after it is migrated." ), 
+          EmbeddedInstance ( "CIM_ResourceAllocationSettingData" ), 
+          ArrayType ( "Indexed" )]
+      string NewResourceSettingData[], 
+         [In ( false ), Out, Description ( 
+             "If operation is long running then optionally a job "
+             "may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "Method to move, migrate or relocate a virtual system to "
+          "a target system.\n"
+          "Return code description:\n"
+          "0: Success: Virtual system was migrated\n"
+          "1: Error: Method not supported by implementation\n"
+          "2: Error: Virtual system migration failed for "
+          "unspecified reasons\n"
+          "3: Error: Virtual system migration time out; the virtual "
+          "system state is unknown\n"
+          "4: Error: One or more parameters are formally invalid "
+          "For example, the value of the Destination System "
+          "parameter does not contain a valid object path\n"
+          "5: Error: The source virtual system, the source host "
+          "system or the target host system are in a state that "
+          "does allow initiation of the requested virtual system "
+          "migration; this may be a temporary condition.\n"
+          "6: Error: One or more input parameters are incompatible "
+          "as a set, or with respect to the target host. For "
+          "example the value of the MigrationNewSettingData "
+          "parameter contains properties that are not supported by "
+          "the target host system identified by the value of the "
+          "DestinationSystem parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Timeout", "Invalid Parameter", "Invalid State", 
+          "Incompatible Parameters", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 MigrateVirtualSystemToSystem(
+         [In, Description ( 
+             "Source virtual computer system to be migrated." )]
+      CIM_ComputerSystem REF ComputerSystem, 
+         [In, Description ( 
+             "Destination host system whereto migrate the virtual system."
+              )]
+      CIM_System REF DestinationSystem, 
+         [In, Description ( 
+             "String containing an embedded instance of the "
+             "CIM_VirtualSystemMigrationSettingData class "
+             "representing migration settings applicable to the "
+             "migration operation." ), 
+          EmbeddedInstance ( 
+             "CIM_VirtualSystemMigrationSettingData" )]
+      string MigrationSettingData, 
+         [In, Description ( 
+             "String containing an embedded instance of the "
+             "CIM_VirtualSystemSettingData class representing "
+             "new properties applicable to the virtual system "
+             "after it is migrated." ), 
+          EmbeddedInstance ( "CIM_VirtualSystemSettingData" )]
+      string NewSystemSettingData, 
+         [In, Description ( 
+             "Array of strings each containing an embedded "
+             "instance of the CIM_ResourceAllocationSettingData "
+             "class representing new properties applicable to "
+             "virtual resources in the scope of the virtual "
+             "system after it is migrated." ), 
+          EmbeddedInstance ( "CIM_ResourceAllocationSettingData" ), 
+          ArrayType ( "Indexed" )]
+      string NewResourceSettingData[], 
+         [In ( false ), Out, Description ( 
+             "Reference to an instance of the CIM_ComputerSystem "
+             "class representing the virtual computer system "
+             "after it has been migrated." )]
+      CIM_ComputerSystem REF NewComputerSystem, 
+         [In ( false ), Out, Description ( 
+             "If operation is long running then optionally a job "
+             "may be returned." )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "Method to perform a pre-check to determine whether a "
+          "virtual system is likely to be successfully migrated to "
+          "a target host specified by a network name or IP address. "
+          "This method does not guarantee that a subsequent "
+          "migration will always succeed, due to dynamic resource availability.\n"
+          "Return code description:\n"
+          "0: Success: Check performed; result reported through the "
+          "value of the [Out] IsMigratable parameter.\n"
+          "1: Error: Method not supported by implementation. No "
+          "result reported through the value of the [Out] "
+          "IsMigratable parameter.\n"
+          "2: Error: Check failed for unspecified reasons. No "
+          "result reported through the value of the [Out] "
+          "IsMigratable parameter.\n"
+          "3: Error: Check timed out. No result reported through "
+          "the value of the [Out] IsMigratable parameter.\n"
+          "4: Error: One or more parameters are formally invalid. "
+          "For example, the value of the DestinationHost parameter "
+          "could have been specified in an unsupported format.\n"
+          "No result reported through the value of the [Out] "
+          "IsMigratable parameter.\n"
+          "5: Error: The source virtual system, the source host "
+          "system or the target host system are in a state that "
+          "does allow initiation of the requested virtual system "
+          "migration; this may be a temporary condition. No result "
+          "reported reported through the value of the [Out] "
+          "IsMigratable parameter.\n"
+          "6: Error: One or more input parameters are incompatible "
+          "as a set, or with respect to the target host. For "
+          "example the value of the MigrationNewSettingData "
+          "parameter contains properties that are not supported by "
+          "the target host system identified by the value of the "
+          "DestinationHost parameter. No result reported through "
+          "the value of the [Out] IsMigratable parameter.\n"
+          "Note: The CheckVirtualSystemIsMigratableToHost( ) method "
+          "is intended as a transitional solution only until "
+          "modelling of cluster support is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Timeout", "Invalid Parameter", "Invalid State", 
+          "Incompatible Parameters", "DMTF Reserved", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CheckVirtualSystemIsMigratableToHost(
+         [In, Description ( 
+             "Source virtual computer system to be migrated." )]
+      CIM_ComputerSystem REF ComputerSystem, 
+         [In, Description ( 
+             "Target host system for the migration.\n"
+             "Acceptable formats for this parameter are conveyed "
+             "through values of elements of the "
+             "DestinationHostFormatsSupported[ ] array property "
+             "in the instance of the "
+             "CIM_VirtualSystemMigrationCapabilities that is "
+             "associated through the CIM_ElementCapabilities "
+             "assocation." ), 
+          ModelCorrespondence { 
+             "CIM_VirtualSystemMigrationCapabilities.DestinationHostFormatsSupported" }]
+      string DestinationHost, 
+         [In, Description ( 
+             "String containing an embedded instance of the "
+             "CIM_VirtualSystemMigrationSettingData class "
+             "representing migration settings applicable to the "
+             "migration operation." ), 
+          EmbeddedInstance ( 
+             "CIM_VirtualSystemMigrationSettingData" )]
+      string MigrationSettingData, 
+         [In, Description ( 
+             "String containing an embedded instance of the "
+             "CIM_VirtualSystemSettingData class representing "
+             "new properties applicable to the virtual system "
+             "after it is migrated." ), 
+          EmbeddedInstance ( "CIM_VirtualSystemSettingData" )]
+      string NewSystemSettingData, 
+         [In, Description ( 
+             "Array of strings each containing an embedded "
+             "instance of the CIM_ResourceAllocationSettingData "
+             "class representing new properties applicable to "
+             "virtual resources in the scope of the virtual "
+             "system after it is migrated." ), 
+          EmbeddedInstance ( "CIM_ResourceAllocationSettingData" ), 
+          ArrayType ( "Indexed" )]
+      string NewResourceSettingData[], 
+         [In ( false ), Out, Description ( 
+             "The migration check result indicating whether or "
+             "not the virtual system can be successfully "
+             "migrated." )]
+      boolean IsMigratable);
+
+      [Description ( 
+          "Method to perform a pre-check to determine whether a "
+          "virtual system is likely to be successfully migrated to "
+          "a target system. This method does not guarantee that a "
+          "subsequent migration will always succeed, due to dynamic "
+          "resource availability. Return code description:\n"
+          "0: Success: Check performed; result reported through the "
+          "value of the [Out] IsMigratable parameter.\n"
+          "1: Error: Method not supported by implementation. No "
+          "result reported through the value of the [Out] "
+          "IsMigratable parameter.\n"
+          "2: Error: Check failed for unspecified reasons. No "
+          "result reported through the value of the [Out] "
+          "IsMigratable parameter.\n"
+          "3: Error: Check timed out. No result reported through "
+          "the value of the [Out] IsMigratable parameter.\n"
+          "4: Error: One or more parameters are formally invalid. "
+          "For example, the value of the DestinationSystem "
+          "parameter does not comprise a valid object path. No "
+          "result reported through the value of the [Out] "
+          "IsMigratable parameter.\n"
+          "5: Error: The source virtual system, the source host "
+          "system or the target host system are in a state that "
+          "does allow initiation of the requested virtual system "
+          "migration; this may be a temporary condition. No result "
+          "reported reported through the value of the [Out] "
+          "IsMigratable parameter.\n"
+          "6: Error: One or more input parameters are incompatible "
+          "as a set, or with respect to the target host. For "
+          "example the value of the NewSettingData parameter "
+          "contains properties that are not supported by the target "
+          "host system identified by the value of the "
+          "DestinationSystem parameter. No result reported through "
+          "the value of the [Out] IsMigratable parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Timeout", "Invalid Parameter", "Invalid State", 
+          "Incompatible Parameters", "DMTF Reserved", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CheckVirtualSystemIsMigratableToSystem(
+         [In, Description ( 
+             "Source virtual computer system to be migrated." )]
+      CIM_ComputerSystem REF ComputerSystem, 
+         [In, Description ( 
+             "Destination system onto which to migrate the virtual system."
+              )]
+      CIM_System REF DestinationSystem, 
+         [In, Description ( 
+             "String containing an embedded instance of the "
+             "CIM_VirtualSystemMigrationSettingData class "
+             "representing migration settings applicable to the "
+             "migration operation." ), 
+          EmbeddedInstance ( 
+             "CIM_VirtualSystemMigrationSettingData" )]
+      string MigrationSettingData, 
+         [In, Description ( 
+             "String containing an embedded instance of the "
+             "CIM_VirtualSystemSettingData class representing "
+             "new properties applicable to the virtual system "
+             "after it is migrated." ), 
+          EmbeddedInstance ( "CIM_VirtualSystemSettingData" )]
+      string NewSystemSettingData, 
+         [In, Description ( 
+             "Array of strings each containing an embedded "
+             "instance of the CIM_ResourceAllocationSettingData "
+             "class representing new properties applicable to "
+             "virtual resources in the scope of the virtual "
+             "system after it is migrated." ), 
+          EmbeddedInstance ( "CIM_ResourceAllocationSettingData" ), 
+          ArrayType ( "Indexed" )]
+      string NewResourceSettingData[], 
+         [In ( false ), Out, Description ( 
+             "The migration check result indicating whether or "
+             "not the virtual system can be successfully "
+             "migrated." )]
+      boolean IsMigratable);
+
+};

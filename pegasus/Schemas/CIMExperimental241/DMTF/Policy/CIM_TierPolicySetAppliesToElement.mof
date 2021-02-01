@@ -1,0 +1,40 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Association, Experimental, Version ( "2.35.0" ), 
+    UMLPackagePath ( "CIM::Policy" ), 
+    Description ( 
+       "This class is inherited from PolicySetAppliesToElement and "
+       "includes properties used in tiering." )]
+class CIM_TierPolicySetAppliesToElement : CIM_PolicySetAppliesToElement {
+
+      [Key, Override ( "PolicySet" ), 
+       Description ( 
+          "The PolicyRules and/or groups of rules that are "
+          "currently applied to an Element." )]
+   CIM_PolicySet REF PolicySet;
+
+      [Key, Override ( "ManagedElement" ), 
+       Description ( 
+          "The ManagedElement to which the PolicySet applies." )]
+   CIM_ManagedElement REF ManagedElement;
+
+      [Write, Description ( 
+          "In situations where more than one PolicySet is "
+          "associated to the ManagedElement, this property "
+          "indicates which policy has higher priority. The lower "
+          "the number, the higher the priority. A value of 0 "
+          "indicates the implementation decides the priority of the "
+          "rule." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 )]
+   uint32 RulePriority;
+
+      [Experimental, Write, Description ( 
+          "If true, the automated tiering subsystem will coordinate "
+          "with the remote site while considering tiering of "
+          "elements involved in replication." ), 
+       ModelCorrespondence { 
+          "CIM_TierPolicySettingData.RemoteTieringCoordinationEnabled" }]
+   boolean RemoteTieringCoordinationEnabled;
+
+
+};

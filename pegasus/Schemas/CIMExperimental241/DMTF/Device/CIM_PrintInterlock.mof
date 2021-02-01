@@ -1,0 +1,63 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.18.0" ), 
+    UMLPackagePath ( "CIM::Device::Printing" ), 
+    Description ( 
+       "This class represents the PrintInterlock (cover, access panel, "
+       "or other interlock) component of a Printer (print device). It "
+       "contains properties that describe the PrintInterlock component "
+       "and the component status. Note: A PrintInterlock shall be "
+       "associated with exactly one Printer via an instance of the "
+       "ConcreteComponent class. See: Model in section 2 of Printer "
+       "MIB (RFC 3805)." ), 
+    MappingStrings { "MIB.IETF|Printer-MIB.prtCoverEntry" }]
+class CIM_PrintInterlock : CIM_PrinterElement {
+
+      [Description ( 
+          "A free-form text description of this PrintInterlock "
+          "(cover, access panel, or other interlock) in the "
+          "localization specified by "
+          "CIM_Printer.CurrentNaturalLanguage." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtCoverDescription", 
+          "MIB.IETF|Printer-MIB.PrtLocalizedDescriptionStringTC" }]
+   string LocalizedDescription;
+
+      [Description ( 
+          "This property contains detailed status information for "
+          "this PrintInterlock (cover, access panel, or other "
+          "interlock), as follows: 1 (Other) means other detailed "
+          "status information for this PrintInterlock is present in "
+          "the OtherInterlockStatus property. 2 (Unknown) means "
+          "detailed status information for this PrintInterlock is "
+          "unknown. 3 (CoverOpen) means this PrintInterlock is a "
+          "cover that is open (typically an exception condition). 4 "
+          "(CoverClosed) means this PrintInterlock is a cover that "
+          "is closed (typically a normal condition). 5 "
+          "(InterlockOpen) means this PrintInterlock is an access "
+          "panel or other interlock that is open (typically an "
+          "exception condition). 6 (InterlockClosed) means this "
+          "PrintInterlock is an access panel or other interlock "
+          "that is closed (typically a normal condition)." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", ".." }, 
+       Values { "Other", "Unknown", "CoverOpen", "CoverClosed", 
+          "InterlockOpen", "InterlockClosed", "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtCoverStatus", 
+          "MIB.IETF|IANA-PRINTER-MIB.PrtCoverStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.DetailedStatus", 
+          "CIM_PrintInterlock.OtherInterlockStatus" }]
+   uint32 InterlockStatus;
+
+      [Description ( 
+          "A free-form string that describes the detailed status of "
+          "this PrintInterlock (cover, access panel, or other "
+          "interlock) when the value of the InterlockStatus "
+          "property is equal to 1 (Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       ModelCorrespondence { "CIM_PrintInterlock.InterlockStatus" }]
+   string OtherInterlockStatus;
+
+
+};

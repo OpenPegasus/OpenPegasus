@@ -1,0 +1,281 @@
+// Copyright (c) 2010 DMTF.  All rights reserved.
+   [Abstract, Version ( "2.25.0" ), 
+    UMLPackagePath ( "CIM::Device::UserDevices" ), 
+    Description ( 
+       "Display is a superclass for grouping the miscellaneous display "
+       "devices that exist. Most of the properties are derived from "
+       "analogous command codes in the Monitor Command and Control Set "
+       "(MCCS) specifications Version 2.2 from VESA." )]
+class CIM_Display : CIM_UserDevice {
+
+      [Experimental, Description ( 
+          "This property represents the contrast of the video "
+          "output. The property value shall be from 0 to the "
+          "MaxContrast property value. If the Contrast property is "
+          "implemented but the contrast is unknown at the time, the "
+          "property shall have a value 0x80000000." ), 
+       ModelCorrespondence { "CIM_Display.MaxContrast" }]
+   uint32 Contrast;
+
+      [Experimental, Description ( 
+          "This array property represents various characteristics "
+          "of a video output device. StandbyModeSupported: the "
+          "video output device can go into a stand by mode, "
+          "SuspendModeSupported: the video output device can go "
+          "into a suspend mode, VeryLowPowerSupported: the video "
+          "output go into a very low power mode. If "
+          "DisplayCharacteristics is implemented but the value is "
+          "unknown, the property shall have Unknown value." ), 
+       ValueMap { "0", "2", "3", "4", "..", "32768..65535" }, 
+       Values { "Unknown", "StandbyModeSupported", 
+          "SuspendModeSupported", "VeryLowPowerSupported", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 DisplayCharacteristics[];
+
+      [Experimental, Write, Description ( 
+          "This property represents the maximum value of contrast "
+          "of the video output device. Different manufacturers may "
+          "have different values." ), 
+       ModelCorrespondence { "CIM_Display.Contrast" }]
+   uint32 MaxContrast;
+
+      [Experimental, Write, Description ( 
+          "This property represents the brightness/Luminance of the "
+          "video output. The property value shall be from 0 to the "
+          "MaxBrightness property value. If the Brightness property "
+          "is implemented but the brightness is unknown at the "
+          "time, the property shall have a value 0x80000000." ), 
+       ModelCorrespondence { "CIM_Display.MaxBrightness" }]
+   uint32 Brightness;
+
+      [Experimental, Write, Description ( 
+          "This property defines a specified color temperature of "
+          "the display." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "..", "32768..65535" }, 
+       Values { "Unknown", "sRGB", "Display Native", "4000K", 
+          "5000K", "6500K", "7500K", "8200K", "9300K", "10000K", 
+          "11500K", "User 1", "User 2", "User 3", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_Display.ColorModePresetCapabilities" }]
+   uint16 ColorModePreset;
+
+      [Experimental, Description ( 
+          "This property lists the allowed values for ColorModePreset."
+           ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "..", "32768..65535" }, 
+       Values { "Unknown", "sRGB", "Display Native", "4000K", 
+          "5000K", "6500K", "7500K", "8200K", "9300K", "10000K", 
+          "11500K", "User 1", "User 2", "User 3", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Display.ColorModePreset" }]
+   uint16 ColorModePresetCapabilities[];
+
+      [Experimental, Description ( 
+          "This property indicated the current horizontal "
+          "resolution in pixels." ), 
+       PUnit ( "Pixels" )]
+   uint16 CurrentResolutionH;
+
+      [Experimental, Description ( 
+          "This property indicated the current vertical resolution in pixels."
+           ), 
+       PUnit ( "Pixels" )]
+   uint16 CurrentResolutionV;
+
+      [Experimental, Write, Description ( 
+          "This property permits the selection of a preset "
+          "optimized by manufacturer for an application type or the "
+          "selection of a user defined setting." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "..", "32768..65535" }, 
+       Values { "Standard/default mode", "Productivity", "Mixed", 
+          "Movie", "User defined", "Games", "Sports", 
+          "Professional", "Standard (intermediate power)", 
+          "Standard(low power)", "demonstration", 
+          "Dynamic contrast", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Display.DisplayModeCapabilities" }]
+   uint16 DisplayMode;
+
+      [Experimental, Description ( 
+          "This property lists the allowed values for DisplayMode." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "..", "32768..65535" }, 
+       Values { "Standard/default mode", "Productivity", "Mixed", 
+          "Movie", "User defined", "Games", "Sports", 
+          "Professional", "Standard (intermediate power)", 
+          "Standard(low power)", "demonstration", 
+          "Dynamic contrast", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Display.DisplayMode" }]
+   uint16 DisplayModeCapabilities[];
+
+      [Experimental, Description ( 
+          "This property represents the base technology type of the display."
+           ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "..", 
+          "32768..65535" }, 
+       Values { "Unknown", "CRT", "LCD", "Lcos", "Plasma", "OLED", 
+          "EL", "Dynamic MEM", "Static MEM", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint16 DisplayTechnologyType;
+
+      [Experimental, Description ( 
+          "This property is a horizontal synchronization signal "
+          "frequency in Hz as determined by the display.." ), 
+       PUnit ( "Hertz" )]
+   uint32 FrequencyH;
+
+      [Experimental, Description ( 
+          "This property is a vertical synchronization signal "
+          "frequency in Hz as determined by the display.." ), 
+       PUnit ( "Hertz" )]
+   uint32 FrequencyV;
+
+      [Experimental, Write, Description ( 
+          "An enumerated value identifying the current input "
+          "source. Writing a new value into this property changes "
+          "the device\'s input source to the specified value, if "
+          "the value is supported as specified in "
+          "InputSourceCapabilities. If the requested value is not "
+          "in InputSourceCapabilities, then the current value of "
+          "InputSource is unchanged." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "..", 
+          "32768..65535" }, 
+       Values { "Unknown", "Analog Video (R/G/B) #1", 
+          "Analog Video (R/G/B) #2", "Digital Video (TMDS) #1", 
+          "Digital Video (TMDS) #2", "Composite Video #1", 
+          "Composite Video #2", "S-video #1", "S-video #2", 
+          "Tuner - Analog #1", "Tuner - Analog #2", 
+          "Tuner - Digital #1", "Tuner - Digital #2", 
+          "Component Video #1", "Component Video #2", 
+          "Component Video #3", "Digital Video (DisplayPort) #1", 
+          "Digital Video (DisplayPort) #2", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Display.InputSourceCapabilities" }]
+   uint16 InputSource;
+
+      [Experimental, Description ( 
+          "This property lists the allowed values for InputSource." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "..", 
+          "32768..65535" }, 
+       Values { "Unknown", "Analog Video (R/G/B) #1", 
+          "Analog Video (R/G/B) #2", "Digital Video (TMDS) #1", 
+          "Digital Video (TMDS) #2", "Composite Video #1", 
+          "Composite Video #2", "S-video #1", "S-video #2", 
+          "Tuner - Analog #1", "Tuner - Analog #2", 
+          "Tuner - Digital #1", "Tuner - Digital #2", 
+          "Component Video #1", "Component Video #2", 
+          "Component Video #3", "Digital Video (DisplayPort) #1", 
+          "Digital Video (DisplayPort) #2", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Display.InputSource" }]
+   uint16 InputSourceCapabilities[];
+
+      [Experimental, Description ( 
+          "This property represents the version number of the "
+          "Monitor Command and Control Set (MCCS) standard "
+          "recognized by the display." )]
+   string MCCSVersionNumber;
+
+      [Experimental, Description ( 
+          "This property defines the maximum value of brightness of "
+          "the video output device. Different manufacturers may "
+          "have different values." ), 
+       ModelCorrespondence { "CIM_Display.Brightness" }]
+   uint32 MaxBrightness;
+
+      [Experimental, Description ( 
+          "Name of the manufacturer when ScalerManufacturer is Other type."
+           ), 
+       ModelCorrespondence { "CIM_Display.ScalerManufacturer" }]
+   string OtherScalerManufacturerDescription;
+
+      [Experimental, Write, Description ( 
+          "Writing a non-zero value into this property initiates "
+          "the display\'s auto-setup function, which typically "
+          "adjusts the H/V positions, clock frequency and phase, "
+          "etc. The value of the property always reads zero." )]
+   uint16 PerformAutoSetup;
+
+      [Experimental, Description ( 
+          "The name of the manufacturer of the controller chip used "
+          "in a particular display." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "..", "32768..65535" }, 
+       Values { "Other", "Conexant", "Genesis", "Macronix", "MRT", 
+          "Mstar", "Myson", "Philips", "Pixelworks", "RealTek", 
+          "Sage", "SiliconImage", "SmartASIC", "STMicroelectronics", 
+          "Topro", "Trumpion", "WellTrend", "Samsung", "Novatek", 
+          "STK", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_Display.OtherScalerManufacturerDescription" }]
+   uint16 ScalerManufacturer;
+
+
+      [Description ( 
+          "Sets and indicates the current operational state of the "
+          "display OSD and buttons." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098", "4099", "4100..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown or Unspecified Error", 
+          "Cannot complete within Timeout Period", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Invalid State Transition", 
+          "Use of Timeout Parameter Not Supported", "Busy", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ButtonLock(
+         [IN, Description ( 
+             "Performs functions with On Screen Display (OSD)." ), 
+          ValueMap { "2", "3", "4", "5", "..", "32768..65535" }, 
+          Values { "Host control not supported", 
+             "Sink OSD/display control disabled/Host OSD events enabled", 
+             "Sink OSD/display control enabled/Host OSD events enabled", 
+             "Sink OSD/display control disabled/Host OSD events disabled", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 OSDParam, 
+         [IN, Description ( 
+             "Performs functions with Power Button." ), 
+          ValueMap { "2", "3", "4", "5", "..", "32768..65535" }, 
+          Values { "Host control not supported", 
+             "Power button disabled/power button events enabled", 
+             "Power button enabled/power button events enabled", 
+             "Power button disabled/power button events disbled", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 PowerButtonParam);
+
+      [Description ( 
+          "Restores all factory presets including "
+          "luminance/contrast, geometry, color and TV defaults." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098", "4099", "..", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown or Unspecified Error", 
+          "Cannot complete within Timeout Period", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Invalid State Transition", 
+          "Use of Timeout Parameter Not Supported", "Busy", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RestoreFactoryDefault(
+         [IN, Description ( 
+             "RestoreMode indicates what needs to be restored. "
+             "The possible values are as follows: \n"
+             "All (2) restores all settings to factory defaults. \n"
+             "Video (3) restores video settings only, other "
+             "settings remain \n"
+             "unchanged. Color (4) restores color settings only, "
+             "other settings remain unchanged. Other values of "
+             "RestoreMode are ignored." ), 
+          ValueMap { "2", "3", "4", "..", "32768..65535" }, 
+          Values { "All", "Video", "Color", "DMTF Reserved", 
+             "Vendor Reserved" }]
+      uint16 RestoreMode);
+
+};

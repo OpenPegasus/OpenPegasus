@@ -1,0 +1,219 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.32.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "The TierPolicyService class provides methods to allow a client "
+       "to manage policies used in storage tiering." )]
+class CIM_TierPolicyService : CIM_TierService {
+
+
+      [Description ( "Create a new storage tiering policy." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateStorageTierPolicyRule(
+         [IN, Description ( 
+             "A end user relevant name for the created policy "
+             "rule. If null, then a system supplied default name "
+             "may be used." )]
+      string PolicyRuleName, 
+         [IN, Description ( 
+             "Indicates the purpose of the policy rule. Data "
+             "movement: Rule to be applied for data movement. "
+             "Workload statistics collection: Rule is in effect "
+             "for collecting statistics about the managed "
+             "element. If null, defaults to Data movement." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Data movement", 
+             "Workload statistics collection", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Activity, 
+         [IN, Description ( 
+             "Indicates whether the created policy is set to "
+             "Enabled or Disabled. If null, the policy is set to "
+             "Enabled." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Enabled", "Disabled", "DMTF Reserved", 
+             "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_TierPolicyRule.Enabled" }]
+      uint16 PolicyState, 
+         [IN, Description ( 
+             "List of storage tiers to associate to this policy. "
+             "If null, no tiers will be associated to this "
+             "policy." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CreateStorageTierPolicyRule.MaxPercentAllocated" }]
+      CIM_StorageTier REF Tiers[], 
+         [IN, Description ( 
+             "The percentage of the capacity that is allocated "
+             "from the corresponding storage tier. This array is "
+             "index-correlated with the array Tiers." ), 
+          Units ( "Percent" ), 
+          ArrayType ( "Indexed" ), 
+          MinValue ( 0 ), 
+          MaxValue ( 100 ), 
+          ModelCorrespondence { 
+             "CreateStorageTierPolicyRule.Tiers" }, 
+          PUnit ( "percent" )]
+      uint16 MaxPercentAllocated[], 
+         [IN, Description ( 
+             "Associate these elements to the created policy." )]
+      CIM_ManagedElement REF InElements[], 
+         [IN, Description ( 
+             "If provided, it supplies additional information to "
+             "incorporate in a policy rule. For example, the "
+             "RulePriority." ), 
+          EmbeddedInstance ( "CIM_TierPolicySettingData" )]
+      string TierPolicySettingData, 
+         [IN, Description ( 
+             "If provided, it represents the time periods during "
+             "which the policy is active. If not provided, the "
+             "implementation decides." ), 
+          EmbeddedInstance ( "CIM_PolicyTimePeriodCondition" )]
+      string PolicyTimePeriodCondition, 
+         [IN, Description ( 
+             "If true, the supplied PolicyTimePeriodCondition "
+             "should be negated -- the time period the rule "
+             "shall not be in effect. If false, it specifies the "
+             "time period the rule shall be in effect. If NULL, "
+             "the property shall have the value of false." ), 
+          ModelCorrespondence { 
+             "CreateStorageTierPolicyRule.PolicyTimePeriodCondition" }]
+      boolean ConditionNegated, 
+         [IN, Description ( 
+             "If provided, sets "
+             "TierPolicyRule.TimePeriodCondition. If not "
+             "provided, the implementation sets the value based "
+             "on whether the parameter PolicyTimePeriodCondition "
+             "is supplied." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "..", 
+             "0x8000.." }, 
+          Values { "Implementation Decides", "Not Available", 
+             "All The Time", "Associated Time Period", "Global", 
+             "None", "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { 
+             "TierPolicyRule.TimePeriodCondition", 
+             "CreateStorageTierPolicyRule.PolicyTimePeriodCondition" }]
+      uint16 TimePeriodCondition, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created PolicyRule." )]
+      CIM_PolicyRule REF PolicyRule);
+
+      [Description ( "Delete a storage tiering policy." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 DeleteStorageTierPolicyRule(
+         [Required, IN, Description ( 
+             "Storage policy rule to delete." )]
+      CIM_PolicyRule REF PolicyRule, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "If the policy is actively being used, the system "
+             "may prevent the policy to be deleted. By passing "
+             "true for this parameter, the system will attempt "
+             "to delete an active policy." )]
+      boolean Force);
+
+      [Description ( 
+          "Modify a storage tiering policy. The parameter "
+          "\"Operation\" specifies the modification to be "
+          "performed. Only the applicable parameters for the "
+          "requested operation are necessary to be supplied. For "
+          "example, to update the associated "
+          "PolicyTimePeriodCondition to a policy rule, only the "
+          "parameters PolicyTimePeriodCondition and PolicyRule are "
+          "necessary. Adding or removing PolicyTimePeriodCondition "
+          "also updates the TimePeriodCondition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ModifyStorageTierPolicyRule(
+         [IN, Description ( "The Operations to perform." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "..", "0x8000.." }, 
+          Values { "Rename PolicyRuleName", 
+             "Add Tiers to Policy", "Remove Tiers from Policy", 
+             "Add InElements to Policy", 
+             "Remove InElements from Policy", 
+             "Update MaxPercentAllocated", 
+             "Add PolicyTimePeriodCondition", 
+             "Remove PolicyTimePeriodCondition", 
+             "Modify PolicyTimePeriodCondition", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Operation, 
+         [IN, Description ( 
+             "A new name for the policy rule. Effectively, "
+             "renaming the policy rule." )]
+      string PolicyRuleName, 
+         [IN, Description ( 
+             "List of storage tiers to associate to this policy." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "ModifyStorageTierPolicyRule.MaxPercentAllocated" }]
+      CIM_StorageTier REF Tiers[], 
+         [IN, Description ( 
+             "The percentage of the capacity that is allocated "
+             "from the corresponding storage tier. This array is "
+             "index-correlated with the array Tiers." ), 
+          Units ( "Percent" ), 
+          ArrayType ( "Indexed" ), 
+          MinValue ( 0 ), 
+          MaxValue ( 100 ), 
+          ModelCorrespondence { 
+             "ModifyStorageTierPolicyRule.Tiers" }, 
+          PUnit ( "percent" )]
+      uint16 MaxPercentAllocated[], 
+         [IN, Description ( 
+             "Associate the elements to the policy." )]
+      CIM_ManagedElement REF InElements[], 
+         [IN, Description ( 
+             "If provided, it supplies additional information to "
+             "incorporate in a policy rule. For example, the "
+             "RulePriority." ), 
+          EmbeddedInstance ( "CIM_TierPolicySettingData" )]
+      string TierPolicySettingData, 
+         [IN, Description ( 
+             "If provided, it represents the time periods during "
+             "which the policy is active. If not provided, the "
+             "implementation decides." ), 
+          EmbeddedInstance ( "CIM_PolicyTimePeriodCondition" )]
+      string PolicyTimePeriodCondition, 
+         [IN, Description ( 
+             "If true, the supplied PolicyTimePeriodCondition "
+             "should be negated -- the time period the rule "
+             "shall not be in effect. If false, it specifies the "
+             "time period the rule shall be in effect. If NULL, "
+             "the property shall have the value of false." ), 
+          ModelCorrespondence { 
+             "ModifyStorageTierPolicyRule.PolicyTimePeriodCondition" }]
+      boolean ConditionNegated, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [Required, IN, Description ( 
+             "Reference to the PolicyRule to be modified." )]
+      CIM_PolicyRule REF PolicyRule);
+
+};

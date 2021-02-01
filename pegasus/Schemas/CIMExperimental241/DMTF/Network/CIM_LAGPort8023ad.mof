@@ -1,0 +1,124 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_LAGPort8023ad
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::8023LAG" ), 
+    Description ( 
+       "LAGPort8023ad contains the configuration information for a "
+       "port (LANEndpoint) which is a member of a link aggregation. "
+       "This port aspect is associated to LANEndpoint using the "
+       "ConcreteIdentity relationship. A port may be attached to an "
+       "instance of LinkAggregator8023ad. This is described using the "
+       "BindsTo association. The latter is described in the IEEE "
+       "802.3ad document, Subclause 30.7.2.1.13, and maps the "
+       "information in "
+       "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortAttachedAggID." )]
+class CIM_LAGPort8023ad : CIM_ProtocolEndpoint {
+
+      [Description ( 
+          "A 6-octet MAC address value that defines the value of "
+          "the System ID for the System that contains this "
+          "Aggregation Port. For more information, refer to the "
+          "IEEE 802.3 document, Subclause 30.7.2.1.3. Note that the "
+          "MAC address is formatted as twelve hexadecimal digits "
+          "(e.g., \"010203040506\"), with each pair representing "
+          "one of the six octets of the MAC address in \"canonical\" "
+          "bit order according to RFC 2469." ), 
+       MaxLen ( 12 ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortActorSystemID" }, 
+       ModelCorrespondence { "CIM_LAGPort8023ad.ActorSystemPriority" }]
+   string ActorSystemID;
+
+      [Write, Description ( 
+          "A 2-octet value used to define the priority value "
+          "associated with the Actor\'s System ID. For more "
+          "information, refer to the IEEE 802.3 document, Subclause "
+          "30.7.2.1.2." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortActorSystemPriority" }, 
+       ModelCorrespondence { "CIM_LAGPort8023ad.ActorSystemID" }]
+   uint16 ActorSystemPriority;
+
+      [Description ( 
+          "The port number locally assigned to the Aggregation "
+          "Port. The port number is communicated in LACPDUs as the "
+          "Actor_Port. For more information, refer to the IEEE "
+          "802.3 document, Subclause 30.7.2.1.14." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortActorPort" }]
+   uint16 ActorPort;
+
+      [Write, Description ( 
+          "The priority value locally assigned to this Aggregation "
+          "Port. For more information, refer to the IEEE 802.3 "
+          "document, Subclause 30.7.2.1.15." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortActorPortPriority" }]
+   uint16 ActorPortPriority;
+
+      [Description ( 
+          "The current operational value of the 16-bit Key for the "
+          "Aggregation Port. The meaning of particular Key values "
+          "is of local significance. For more information, refer to "
+          "the IEEE 802.3 document, Subclause 30.7.2.1.5." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortActorOperKey" }]
+   uint16 ActorOperKey;
+
+      [Description ( 
+          "An enumerated array corresponding to the "
+          "currentoperational values of Actor_State as transmitted "
+          "by the Actor in LACPDUs and described in the IEEE "
+          "802.3ad document, Subclause 30.7.2.1.21." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Unknown/Undefined", "LACP_Activity", 
+          "LACP_Timeout", "Aggregation", "Synchronization", 
+          "Collecting", "Distributing", "Defaulted", "Expired" }, 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortActorOperState" }, 
+       ModelCorrespondence { "CIM_LAGPort8023ad.ActorAdminState" }]
+   uint16 ActorOperState[];
+
+      [Write, Description ( 
+          "An enumerated array allowing administrator control of "
+          "the Port\'s state (described in the IEEE 802.3ad "
+          "document, Subclause 30.7.2.1.20, and transmitted by the "
+          "Actor in LACPDUs)." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Unknown/Undefined", "LACP_Activity", 
+          "LACP_Timeout", "Aggregation", "Synchronization", 
+          "Collecting", "Distributing", "Defaulted", "Expired" }, 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortActorAdminState" }, 
+       ModelCorrespondence { "CIM_LAGPort8023ad.ActorOperState" }]
+   uint16 ActorAdminState[];
+
+      [Description ( 
+          "A Boolean value indicating whether the Aggregation Port "
+          "is able to Aggregate (`TRUE\') or is only able to "
+          "operate as an Individual link (\'FALSE\'). For more "
+          "information, refer to the IEEE 802.3 document, Subclause "
+          "30.7.2.1.24." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortAggregateOrIndividual" }]
+   boolean RepresentsAggregate;
+
+      [Description ( 
+          "The identifier value of the Aggregator that this "
+          "Aggregation Port has currently selected. Zero indicates "
+          "that the Aggregation Port has not selected an "
+          "Aggregator, either because it is in the process of "
+          "detaching from an Aggregator or because there is no "
+          "suitable Aggregator available for it to select. For more "
+          "information, refer to the IEEE 802.3ad document, "
+          "Subclause 30.7.2.1.12." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPortSelectedAggID" }]
+   uint32 SelectedAggID;
+
+
+};

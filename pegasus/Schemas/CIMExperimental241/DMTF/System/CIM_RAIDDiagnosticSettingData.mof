@@ -1,0 +1,54 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.30.0" ), 
+    UMLPackagePath ( "CIM::System::Diagnostics" ), 
+    Description ( 
+       "This class defines the permissible settings that can be used "
+       "for RAID controller diagnostic tests." )]
+class CIM_RAIDDiagnosticSettingData : CIM_DiagnosticSettingData {
+
+      [Description ( 
+          "This property is used by a client to specify the seed "
+          "that initiates the random number sequence used by the "
+          "test. In order to replicate the same random number "
+          "sequence for successive tests, one should use the same "
+          "seed value. If this property is NULL, then the "
+          "diagnostic randomly selects its own seed using a "
+          "vendor-specific algorithm. If multiple target HDDs are "
+          "selected, then the same seed is used for each." ), 
+       ModelCorrespondence { 
+          "CIM_RAIDDiagnosticServiceCapabilities.SeedSupported" }]
+   uint32 Seed;
+
+      [Description ( 
+          "This property is used by a client to specify the start "
+          "of a region to be tested. If LBAStart is NULL, then the "
+          "default value of 0 is used. If multiple target HDDs are "
+          "selected, then the same start address is used for each." ), 
+       ModelCorrespondence { 
+          "CIM_RAIDDiagnosticServiceCapabilities.RegionSupported" }]
+   uint64 LBAStart;
+
+      [Description ( 
+          "This property is used by a client to specify the end of "
+          "a region to be tested. If LBAEnd is NULL, then the "
+          "default value is the number of the last disk sector. If "
+          "multiple target HDDs are selected, then the same end "
+          "address is used for each." ), 
+       ModelCorrespondence { 
+          "CIM_RAIDDiagnosticServiceCapabilities.RegionSupported" }]
+   uint64 LBAEnd;
+
+      [Description ( 
+          "This array property is used by a client to specify the "
+          "HDDs managed by the RAID controller to be tested. If "
+          "this property is NULL, then all HDDs are tested. "
+          "Otherwise, the value of each array entry shall be the "
+          "value of the DeviceID property for the corresponding "
+          "CIM_DiskDrive instance to be tested." ), 
+       ModelCorrespondence { 
+          "CIM_RAIDDiagnosticServiceCapabilities.TargetHDDsSupported", 
+          "CIM_DiskDrive.DeviceID" }]
+   string TargetHDDs[];
+
+
+};

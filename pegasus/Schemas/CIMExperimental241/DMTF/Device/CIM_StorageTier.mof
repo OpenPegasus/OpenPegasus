@@ -1,0 +1,79 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.29.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "This class represents a collection of storage objects, such as "
+       "a collection of StorageExtents identified as a storage tier." )]
+class CIM_StorageTier : CIM_SystemSpecificCollection {
+
+      [Description ( 
+          "A number starting from 0 to indicate the relative "
+          "performance characteristics of the storage tier. The "
+          "smaller the number, the higher the performance "
+          "characteristics." )]
+   uint16 RelativePerformanceOrder;
+
+      [Description ( 
+          "This property indicates the type of storage objects "
+          "comprising a storage tier." ), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "StorageExtent", "StoragePool", 
+          "StorageVolume", "DMTF Reserved", "Vendor Specific" }]
+   uint16 StorageObjectType;
+
+      [Description ( 
+          "The technology of the underlying disk drives used. Not "
+          "Applicable: Storage tier is not based on technology of "
+          "underlying components. \n"
+          "Mixed: a storage tier consists of a mix of different "
+          "disk drive technologies." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "..", 
+          "0x8000.." }, 
+       Values { "Unknown", "Other", "Not Applicable", 
+          "Solid State Drive", "Fibre Channel", "SATA", "SAS", 
+          "Mixed", "Hard Disk Drive", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 Technology;
+
+      [Write, Description ( 
+          "This property indicates whether the storage tier is "
+          "actively being used or not." ), 
+       ValueMap { "0", "1", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "Enabled", "Disabled", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 State;
+
+      [Write, Description ( 
+          "If true any new objects added to the system that have a "
+          "similar performance characteristics (and QoS) to this "
+          "tier become part of this tier automatically. If false, "
+          "the new objects needs to be added to this tier manually." )]
+   boolean Dynamic = false;
+
+      [Write, Description ( 
+          "If true and empty storage tiers are allowed, the storage "
+          "tier will be deleted when the last component object is "
+          "removed from the storage tier. If empty storage tiers "
+          "are not allowed, the storage tier will be deleted "
+          "automatically when the last component object is removed "
+          "from the storage tier." )]
+   boolean DeleteOnEmptyStorageTier = false;
+
+      [Write, Description ( 
+          "A value between 0 to 100 to indicate the maximum "
+          "percentage of the underlying capacity that can be used "
+          "for storage tiering activities. For example, a value of "
+          "80 indicates no more than 80 percent of the storage tier "
+          "can be used for automated tiering. The remaining 20 "
+          "percent of the underlying storage is set aside for "
+          "elements that do not participate in automated storage "
+          "tiering." )]
+   uint16 Percentage;
+
+      [Description ( 
+          "The total capacity of the storage tier in bytes." ), 
+       PUnit ( "byte" )]
+   uint64 TotalCapacity;
+
+
+};

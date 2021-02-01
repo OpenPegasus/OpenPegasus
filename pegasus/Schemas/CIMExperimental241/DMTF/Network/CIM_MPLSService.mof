@@ -1,0 +1,62 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// <change cr="ArchCR00089.003" type="add">Add PUnit qualifier values
+// to Units qualifier values.</change>
+// ==================================================================
+//  CIM_MPLSService
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::MPLS" ), 
+    Description ( 
+       "This object class contains properties relating to the overall "
+       "operation of MPLS on a router. This service is weak to the "
+       "router (modeled as a ComputerSystem) via the association "
+       "CIM_HostedService." )]
+class CIM_MPLSService : CIM_Service {
+
+      [Description ( 
+          "Path computation may be configured to be more or less "
+          "reactive to network state. It may be desirable to have "
+          "different values on different LSRs. Also, certain "
+          "tunnels may not be re-optimized. This property specifies "
+          "the re-optimization frequency for the LSR, in seconds. "
+          "Default is 3600 (1 hour). The maximum interval is 604800 "
+          "seconds (1 week). A value of 0 disables re- "
+          "optimization." ), 
+       Units ( "Seconds" ), 
+       MaxValue ( 604800 ), 
+       PUnit ( "second" )]
+   uint32 ReoptimizationFreq = 3600;
+
+      [Description ( 
+          "Specifies the time interval in seconds at which traffic "
+          "engineering information is flooded. Shorter intervals "
+          "lead to more control overhead, more traffic in the "
+          "network and more cycles wasted in processing this "
+          "information at the routers. On the other hand longer "
+          "intervals, make the route chosen for the tunnels to be "
+          "less optimal with respect to the state of the network." ), 
+       Units ( "Seconds" ), 
+       PUnit ( "second" )]
+   uint16 FloodingInterval;
+
+      [Description ( 
+          "This property describes what happens when the "
+          "MPLSTEService obtains knowledge about a new link coming "
+          "into operation. The value \'OnLinkUp\' (1) denotes that "
+          "immediately after detecting the new link, a "
+          "re-optimization step is performed. \'NextTimeInSchedule\' "
+          "(2) waits until the next time a re- optimization needs "
+          "to take place. The frequency is defined by the "
+          "ReoptimizationFreq property. And, \'Manual Trigger\' (3) "
+          "means the re-optimization MUST be triggered by manual "
+          "interaction such as a human operator triggering the "
+          "re-optimization." ), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "OnLinkUp", "NextTimeInSchedule", 
+          "ManualTrigger" }]
+   uint16 ReoptimizationLinkUp;
+
+
+};

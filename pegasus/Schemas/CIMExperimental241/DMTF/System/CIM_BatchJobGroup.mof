@@ -1,0 +1,83 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.19.0" ), 
+    UMLPackagePath ( "CIM::System::Processing" ), 
+    Description ( 
+       "BatchJobGroup describes a collection of BatchJobs that are "
+       "logically grouped. Two grouping/scheduling concepts are "
+       "modeled: (1) User grouping: Jobs are logically grouped by the "
+       "user of the batch system to capture common characteristics. "
+       "There is no sequencing relationship between the jobs belonging "
+       "to the Group. The jobs are grouped using the "
+       "MemberOfCollection association. (2) Job sequencing: An ordered "
+       "collection of jobs is defined where the jobs are executed in "
+       "sequence. This captures a simple sequencing relationship for a "
+       "set of jobs, where the order is defined using the "
+       "AssignedSequence property of the OrderedMemberOfCollection "
+       "association. An individual BacthJob can belong to multiple "
+       "BatchJobGroups. \n"
+       "\n"
+       "If possible, an instance of OwningCollectionElement SHOULD be "
+       "created for this JobGroup. However, this association might not "
+       "exist, given that collections of jobs can move between systems "
+       "as they execute, and the lifecycle of the owning/controlling "
+       "entity is not necessarily persisted for the total duration of "
+       "the collection. However, this can be very useful information "
+       "when available." )]
+class CIM_BatchJobGroup : CIM_Collection {
+
+      [Key, Override ( "InstanceID" ), 
+       Description ( 
+          "Within the scope of the instantiating Namespace, "
+          "InstanceID opaquely and uniquely identifies an instance "
+          "of this class. In order to ensure uniqueness within the "
+          "NameSpace, the value of InstanceID SHOULD be constructed "
+          "using the following \'preferred\' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon "
+          "\':\', and where <OrgID> MUST include a copyrighted, "
+          "trademarked or otherwise unique name that is owned by "
+          "the business entity creating/defining the InstanceID, or "
+          "is a registered ID that is assigned to the business "
+          "entity by a recognized global authority. (This is "
+          "similar to the <Schema Name>_<Class Name> structure of "
+          "Schema class names.) In addition, to ensure uniqueness "
+          "<OrgID> MUST NOT contain a colon (\':\'). When using "
+          "this algorithm, the first colon to appear in InstanceID "
+          "MUST appear between <OrgID> and <LocalID>. \n"
+          "\n"
+          "<LocalID> is chosen by the business entity and SHOULD "
+          "not be re-used to identify different underlying "
+          "(real-world) elements. If the above \'preferred\' "
+          "algorithm is not used, the defining entity MUST assure "
+          "that the resultant InstanceID is not re-used across any "
+          "InstanceIDs produced by this or other providers for this "
+          "instance\'s NameSpace." )]
+   string InstanceID;
+
+      [Description ( 
+          "Describes the current status of this BatchJobGroup, "
+          "based on the statuses of the jobs contained in the "
+          "Group. The values of GroupStatus are more general than "
+          "those of the individual jobs. The possible values are: \n"
+          "0 = Unknown \n"
+          "1 = Other \n"
+          "2 = All jobs pending \n"
+          "3 = Jobs in mixed states \n"
+          "4 = All jobs completed \n"
+          "Additional information MAY be specified in the Group "
+          "StatusDescription property." ), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "All Jobs Pending", 
+          "Jobs in Mixed States", "All Jobs Completed" }, 
+       ModelCorrespondence { "CIM_BatchJob.JobState", 
+          "CIM_BatchJobGroup.GroupStatusDescription" }]
+   uint16 GroupStatus;
+
+      [Description ( 
+          "GroupStatusDescription provides additional information "
+          "regarding the GroupStatus property." ), 
+       ModelCorrespondence { "CIM_BatchJobGroup.GroupStatus" }]
+   string GroupStatusDescription;
+
+
+};

@@ -1,0 +1,231 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.20.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "This service allows the active management of spares in a "
+       "Storage Server. It allows jobs to be started for the adding "
+       "and removing of spares, replacing a failed storage extent with "
+       "a spare and rebuilding a storage extent in a "
+       "StorageRedundancySet." )]
+class CIM_SpareConfigurationService : CIM_Service {
+
+
+      [Description ( 
+          "This method assigns one or more primordial "
+          "StorageExtents as spares. Once a spare is assigned, the "
+          "storage system can use it to spare a failed "
+          "StorageExtent associated to a StorageRedundancySet. "
+          "Depending on the capabilities of the storage system, the "
+          "spare may failover the failed extent or may remain a "
+          "spare. \n"
+          "The spare extents may be designated to spare for a "
+          "specific StorageRedundancySet (dedicated) or may be used "
+          "to spare for any compatible StorageRedundancySet "
+          "(global)." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098", "4099", "4100..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Multiple StoragePools", "Spares Are Not Compatible", 
+          "StorageExtent is in use", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 AssignSpares(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, OUT ( false ), Description ( 
+             "The primordial StoragePool that contains the "
+             "StorageExtents. This parameter does not need to be "
+             "specified if there is only one primordial "
+             "StoragePool." )]
+      CIM_StoragePool REF InPool, 
+         [Required, IN, OUT ( false ), Description ( 
+             "An array of references to StorageExtents that are "
+             "to be assigned as spares." )]
+      CIM_StorageExtent REF InExtents[], 
+         [IN, OUT ( false ), Description ( 
+             "If specified, the spares will only spare for "
+             "StorageExtents in this StorageRedundancySet "
+             "(dedicated). If no reference is specified, the "
+             "spares can spare for any compatible "
+             "StorageRedundancySet (global)." )]
+      CIM_StorageRedundancySet REF RedundancySet);
+
+      [Description ( 
+          "This method unassigns spares and returns the "
+          "StorageExtents to the primordial StoragePool." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098", "4099", "4100..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Multiple Primordial StoragePools", 
+          "StorageExtent is in use", "Spares Are Not Compatible", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 UnassignSpares(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, OUT ( false ), Description ( 
+             "The primordial StoragePool to which the unassigned "
+             "StorageExtents are to be returned. This parameter "
+             "does not need to be specified if there is only one "
+             "primordial StoragePool." )]
+      CIM_StoragePool REF InPool, 
+         [Required, IN, OUT ( false ), Description ( 
+             "An array of references to StorageExtents that are spares."
+              )]
+      CIM_StorageExtent REF InExtents[]);
+
+      [Description ( 
+          "This method causes the data in the StorageExtent to be "
+          "rebuilt from the other members of the "
+          "StorageRedundancySet." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098", "4099..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Target is Not a Member of a StorageRedundancySet", 
+          "Rebuild already in Progress", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 RebuildStorageExtent(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [Required, IN, OUT ( false ), Description ( 
+             "The StorageExtent that will be rebuilt." )]
+      CIM_StorageExtent REF Target);
+
+      [Description ( 
+          "This method checks the parity data in the "
+          "StorageRedundancySet to ensure that it is consistent "
+          "with the real data. \n"
+          "If no StorageRedundancySet is specified, all "
+          "StorageRedundancySets are checked." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098", "4099..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Consistency Check Already in Progress", 
+          "No Parity to Check", "Method Reserved", "Vendor Specific" }]
+   uint32 CheckParityConsistency(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [Required, IN, OUT ( false ), Description ( 
+             "The StorageExtent that will be rebuilt." )]
+      CIM_StorageExtent REF Target);
+
+      [Description ( 
+          "This method repairs parity consistency problems found by "
+          "the CheckParityConsistency method." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RepairParity(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [Required, IN, OUT ( false ), Description ( 
+             "The StorageExtent that will be checked." )]
+      CIM_StorageExtent REF Target);
+
+      [Description ( 
+          "This method can be used to retrieve a list of available "
+          "Extents that may be used in sparing the passed "
+          "Redundancy set. The returned Extents are available at "
+          "the time the method returns. There is no guarantee that "
+          "the same Extents will be available later. This method "
+          "MUST return the Extents that are not being used as "
+          "supporting capacity for any other Pools, Volumes, or "
+          "LogicalDisks. The extents returned from this method "
+          "shall be compatible with all restrictions imposed by the "
+          "AssignSpares() method. The implementor and consumer of "
+          "this method must be aware of what is the allowable "
+          "source pools and returned extents as specified by the "
+          "AssignSpares() method." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", 
+          "4098..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 GetAvailableSpareExtents(
+         [IN, Description ( 
+             "The Storage pool that is the source of the extents "
+             "that can be used for sparing. This may be a NULL "
+             "value in which case the method shall not be "
+             "restricted to return a set of extents from a "
+             "particular storage pool." )]
+      CIM_StoragePool REF InPool, 
+         [IN, Description ( 
+             "A list of redundancy sets which the returned list "
+             "of extents must spare." )]
+      CIM_StorageRedundancySet REF RedundancySet, 
+         [OUT, Description ( 
+             "List of references to available StorageExtents." )]
+      CIM_StorageExtent REF AvailableExtents[]);
+
+      [Description ( 
+          "The method performs a check of the StorageElement in "
+          "accordance to the specified CheckType . If the Job "
+          "execution fails or the job completes with error, then "
+          "use concreteJob.GetError() to get the Error that "
+          "indicates what caused the failure. In this case, the "
+          "storage elements affected by the error shall report the "
+          "appropriate, non OK, OperationalStatus." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4099..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Storage Element Check Already in Progress", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CheckStorageElement(
+         [IN, Description ( 
+             "Default - Perform any data check the storage "
+             "element is capable of \n"
+             "Parity - Check that the parity distribution across "
+             "the storage element is consistent \n"
+             "Bad Block - Check for any bad blocks across the "
+             "element where data may be stored. \n"
+             "Replication - Check that replicated data on the "
+             "element is consistent." ), 
+          ValueMap { "1", "2", "3", "4", "..", "32768..65535" }, 
+          Values { "Default", "Parity", "Bad Block", 
+             "Replication", "DMTF Reserved", "Vendor Specific" }]
+      uint16 CheckType, 
+         [IN, Description ( 
+             "RunOneTime - Perform the check one time. \n"
+             "Continuous - Perform the check continuously. "
+             "Operation Stops when job is terminated." ), 
+          ValueMap { "1", "2", "..", "32768..65535" }, 
+          Values { "Run One Time", "Continuous", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 CheckMode, 
+         [Required, IN, Description ( 
+             "The target storage object of the operation." )]
+      CIM_LogicalElement REF TargetElement, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if the task completed)."
+              )]
+      CIM_ConcreteJob REF Job);
+
+};

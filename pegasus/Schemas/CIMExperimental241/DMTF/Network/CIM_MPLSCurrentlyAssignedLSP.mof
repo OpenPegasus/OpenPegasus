@@ -1,0 +1,59 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// <change cr="ArchCR00089.003" type="add">Add PUnit qualifier values
+// to Units qualifier values.</change>
+// ==================================================================
+//  CIM_MPLSCurrentlyAssignedLSP
+// ==================================================================
+   [Association, Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::MPLS" ), 
+    Description ( 
+       "Associates a traffic trunk with an LSP that is currently "
+       "carrying its traffic." )]
+class CIM_MPLSCurrentlyAssignedLSP : CIM_Dependency {
+
+      [Override ( "Antecedent" ), 
+       Description ( "The LSP carrying the traffic of the trunk." )]
+   CIM_MPLSLSP REF Antecedent;
+
+      [Override ( "Dependent" ), 
+       Description ( 
+          "The MPLSTrafficTrunk which is signaling using the LSP." )]
+   CIM_MPLSTunnel REF Dependent;
+
+      [Description ( 
+          "The preference for the use of the LSP, if more than one "
+          "LSP is available to a trunk. Possible values are 0 to 7, "
+          "with 7 indicating the highest preference." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 7 )]
+   uint16 Preference;
+
+      [Write, Description ( 
+          "This property is used to indicate the relative "
+          "proportion of traffic to be carried by parallel LSPs, "
+          "specified as a percentage from 0 to 100. The value is "
+          "defined by the network user/administrator to indicate "
+          "how a LSPtunnel\'s bandwidth should be set on a router. "
+          "It allows load distribution across multiple parallel LSP "
+          "tunnels, between two nodes. Quoting from RFC2702, \'In "
+          "many practical situations, the aggregate traffic between "
+          "two nodes may be such that no single link can carry the "
+          "load. In this case, the only feasible solution is to "
+          "appropriately divide the aggregate traffic into "
+          "sub-streams and route the sub-streams through multiple "
+          "paths between the two nodes. This problem can be "
+          "addressed by instantiating multiple LSP tunnels between "
+          "the two nodes, such that each traffic trunk carries a "
+          "proportion of the aggregate traffic.\' The proportion of "
+          "traffic carried by each such LSP tunnel is specified by "
+          "the TrafficProportion property." ), 
+       Units ( "Percent" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       PUnit ( "percent" )]
+   uint8 TrafficProportion;
+
+
+};

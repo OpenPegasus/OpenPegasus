@@ -1,0 +1,63 @@
+// Copyright c 2007 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.16.0" ), 
+    UMLPackagePath ( "CIM::Device::PowerMgmt" ), 
+    Description ( 
+       "This class extends CIM_Service to provide interface for "
+       "information about the power topology of the system." )]
+class CIM_PowerTopologyService : CIM_Service {
+
+
+      [Description ( 
+          "This method is used by client to provide information "
+          "about external power node redundancy in the case the "
+          "underlying instrumentation is unable to detect the "
+          "external power node redundancy and depends on the client "
+          "input for its configuration. The power source referenced "
+          "by an index of IP parameter receives power from the "
+          "power source referenced by the corresponding index in "
+          "the EP parameter array. \n"
+          "If the InternalPowerSources parameter array is not of "
+          "the same length as ExternalPowerSources parameter array, "
+          "or one of the array parameters are of zero length, the "
+          "implementation shall return a value of \"Error Occured\". "
+          "Upon the successful execution each CIM_PowerSource "
+          "instance referenced in the InternalPowerSources "
+          "paremeter array shall be associated with the instance of "
+          "CIM_PowerSource referenced in the corresponding index of "
+          "the ExternalPowerSources parameter through the "
+          "CIM_SuppliesPower association where the Antecedent "
+          "references the CIM_PowerSource instance representing the "
+          "external power source." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7..32767", 
+          "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Error Occured", "Busy", "Invalid Reference", 
+          "Invalid Parameter", "Access Denied", "DMTF Reserved", 
+          "Vendor Specified" }]
+   uint32 ConfigureExternalPowerSources(
+         [IN, Description ( 
+             "Reference to the instance of CIM_ComputerSystem "
+             "that the internal and external power sources and "
+             "their redundancies belong to." )]
+      CIM_ComputerSystem REF OwningComputerSystem, 
+         [IN, Description ( 
+             "An array of CIM_PowerSource instances representing "
+             "internal power sources." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_PowerTopologyService.ConfigureExternalPowerSources.ExternalPowerSources" }]
+      CIM_PowerSource REF InternalPowerSources[], 
+         [IN, Description ( 
+             "An array of CIM_PowerSource instances representing "
+             "external power sources" ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_PowerTopologyService.ConfigureExternalPowerSources.InternalPowerSources" }]
+      CIM_PowerSource REF ExternalPowerSources[], 
+         [IN, OUT, Description ( 
+             "Reference to the job spawned if the operation "
+             "continues after the method returns. (May be null "
+             "if the task is completed)." )]
+      CIM_ConcreteJob REF Job);
+
+};

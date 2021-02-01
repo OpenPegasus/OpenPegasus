@@ -1,0 +1,289 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Version ( "2.31.0" ), 
+    UMLPackagePath ( "CIM::Device::FC" ), 
+    Description ( 
+       "Capabilities and management of a Fibre Channel Port Device." )]
+class CIM_FCPort : CIM_NetworkPort {
+
+      [Override ( "PortType" ), 
+       Description ( 
+          "The specific mode currently enabled for the Port. If the "
+          "port is logged in, this will be the negotiated port "
+          "type, otherwise the configured port type will be "
+          "reported. \n"
+          "The values: \"N\" = Node Port, \"NL\" = Node Port "
+          "supporting FC arbitrated loop, \"NX\" = Port may "
+          "negotiate to become either a node port (N) or a node "
+          "port supporting FC arbitrated loop (NL), \"E\" = "
+          "Expansion Port connecting fabric elements (for example, "
+          "FC switches), \"F\" = Fabric (element) Port, \"FL\" = "
+          "Fabric (element) Port supporting FC arbitrated loop, "
+          "\"FX\" = Port may negotiate to become a fabric port (F), "
+          "or a fabric port supporting FC arbitrated loop (FL). \"B\" "
+          "= Bridge port, and \"G\" = Port may negotiate to become "
+          "either an expansion port (E), or a fabric port (F), \"GL\" "
+          "= Port may negotiate to become an expansion port (E), a "
+          "fabric port (F), or a fabric port supporting FC "
+          "arbitrated loop (FL). \n"
+          "PortTypes are defined in the ANSI X3 standards. When set "
+          "to 1 (\"Other\"), the related property OtherPortType "
+          "contains a string description of the type of port." ), 
+       ValueMap { "0", "1", "10", "11", "12", "13", "14", "15", 
+          "16", "17", "18", "16000..65535" }, 
+       Values { "Unknown", "Other", "N", "NL", "F/NL", "Nx", "E", 
+          "F", "FL", "B", "G", "Vendor Reserved" }]
+   uint16 PortType;
+
+      [Description ( 
+          "An array of integers that indicates the Fibre Channel "
+          "Classes of Service that are supported. The active COS "
+          "are indicated in ActiveCOS." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "1", "2", "3", "4", "5", "6", "F" }]
+   uint16 SupportedCOS[];
+
+      [Description ( 
+          "An array of integers that indicates the Classes of "
+          "Service that are active. The Active COS is indicated in "
+          "ActiveCOS." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "1", "2", "3", "4", "5", "6", "F" }, 
+       ModelCorrespondence { "CIM_FCPort.SupportedCOS" }]
+   uint16 ActiveCOS[];
+
+      [Description ( 
+          "An array of integers that indicates the Fibre Channel "
+          "FC-4 protocols supported. The protocols that are active "
+          "and running are indicated in the ActiveFC4Types "
+          "property." ), 
+       ValueMap { "0", "1", "4", "5", "8", "9", "17", "18", "19", 
+          "21", "22", "23", "25", "26", "27", "28", "32", "34", 
+          "36", "64", "80", "81", "82", "88", "96", "255.." }, 
+       Values { "Unknown", "Other", "ISO/IEC 8802 - 2 LLC", 
+          "IP over FC", "SCSI - FCP", "SCSI - GPP", 
+          "IPI - 3 Master", "IPI - 3 Slave", "IPI - 3 Peer", 
+          "CP IPI - 3 Master", "CP IPI - 3 Slave", 
+          "CP IPI - 3 Peer", "SBCCS Channel", "SBCCS Control Unit", 
+          "FC-SB-2 Channel", "FC-SB-2 Control Unit", 
+          "Fibre Channel Services (FC-GS, FC-GS-2, FC-GS-3)", 
+          "FC-SW", "FC - SNMP", "HIPPI - FP", "BBL Control", 
+          "BBL FDDI Encapsulated LAN PDU", 
+          "BBL 802.3 Encapsulated LAN PDU", "FC - VI", "FC - AV", 
+          "Vendor Unique" }]
+   uint16 SupportedFC4Types[];
+
+      [Description ( 
+          "An array of integers that indicates the Fibre Channel "
+          "FC-4 protocols currently running. A list of all "
+          "supported protocols is indicated in the "
+          "SupportedFC4Types property." ), 
+       ValueMap { "0", "1", "4", "5", "8", "9", "17", "18", "19", 
+          "21", "22", "23", "25", "26", "27", "28", "32", "34", 
+          "36", "64", "80", "81", "82", "88", "96", "255.." }, 
+       Values { "Unknown", "Other", "ISO/IEC 8802 - 2 LLC", 
+          "IP over FC", "SCSI - FCP", "SCSI - GPP", 
+          "IPI - 3 Master", "IPI - 3 Slave", "IPI - 3 Peer", 
+          "CP IPI - 3 Master", "CP IPI - 3 Slave", 
+          "CP IPI - 3 Peer", "SBCCS Channel", "SBCCS Control Unit", 
+          "FC-SB-2 Channel", "FC-SB-2 Control Unit", 
+          "Fibre Channel Services (FC-GS, FC-GS-2, FC-GS-3)", 
+          "FC-SW", "FC - SNMP", "HIPPI - FP", "BBL Control", 
+          "BBL FDDI Encapsulated LAN PDU", 
+          "BBL 802.3 Encapsulated LAN PDU", "FC - VI", "FC - AV", 
+          "Vendor Unique" }, 
+       ModelCorrespondence { "CIM_FCPort.SupportedFC4Types" }]
+   uint16 ActiveFC4Types[];
+
+      [Experimental, Description ( 
+          "Additional port state/status information for the FCPort "
+          "beyond that provided in OperationalStatus and EnabledState.\n"
+          "The following detailed port states may occur when "
+          "OperationStatus is set to OK: Transceiver Validation(2) "
+          "indicates that the transceiver is being validated. "
+          "Locking To Reference Signal(3) indicates that the port "
+          "is locking to the reference signal. Sync (4) indicates "
+          "the port is receiving light and is synchronized with the "
+          "other port. \n"
+          "\n"
+          "The following detailed port states may occur when "
+          "OperationStatus is set to Error: \n"
+          "Invalid Transceiver (5) indicates the port has detected "
+          "an invalid transceiver. \n"
+          "No Light (6) indicates transciever is not receiving "
+          "light. \n"
+          "No Sync (7) indicates that port is receiving light but "
+          "cannot synchronize. \n"
+          "Laser Fault (8) indicates the transceiver is reporting "
+          "the laser is not working or the transceiver is not "
+          "reporting data for the laser, or software detected the "
+          "error by polling the transceiver and shut the port down "
+          "Port Fault (9) indicates the port encountered errors "
+          "beyond the transceiver including excessive low level "
+          "link initializations. \n"
+          "Diagnostic Fault (10) indicates that diagnoistic tests "
+          "running various traffic types." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "Transceiver Validation", 
+          "Locking To Reference Signal", "Sync", 
+          "Invalid Transceiver", "No Light", "No Sync", 
+          "Laser Fault", "Port Fault", "Diagnostic Fault", 
+          "Vendor Reserved", "DMTF Reserved" }]
+   uint16 DetailedPortState;
+
+      [Experimental, Description ( 
+          "The port number used for domain id and physical port zone members."
+           )]
+   uint16 DomainPortNumber;
+
+      [Experimental, Description ( 
+          "The port number labeled for an administrative purposes "
+          "relative to the logical module." )]
+   uint16 LogicalModulePortNumber;
+
+      [Experimental, Description ( 
+          "The availability of the port for a client to determine "
+          "whether the port can be made operational. The values: "
+          "Available (2) indicates that the port can be made "
+          "operational, Not Installed (3) indicates some aspect of "
+          "the port has not been installed preventing it from being "
+          "operational but is discoverable through instrumentation, "
+          "No Transceiver (4) indicates that the transceiver is not "
+          "installed to allow the port to become operational, Not "
+          "Licensed (5) indicates that the port cannot be made "
+          "operational due to a license not existing for the port." ), 
+       ValueMap { "0", "2", "3", "4", "5", ".." }, 
+       Values { "Unknown", "Available", "Not Installed", 
+          "No Transceiver", "Not Licensed", "DMTF Reserved" }]
+   uint16 PortAvailability = 2;
+
+      [Override ( "PortNumber" ), 
+       Description ( 
+          "The labeled port number for administrative purposes. "
+          "This is typically what is exposed through the devices "
+          "element manager or CLI." )]
+   uint16 PortNumber;
+
+      [Experimental, Description ( 
+          "An enumeration used to discriminate the context in which "
+          "this FCPort is instantiated: \n"
+          "Not Applicable (2) indicates that this FCPort was not "
+          "instantiated in any special context.\n"
+          "VF (3) indicates this FCPort was instantiated in the "
+          "context of Virtual Fabrics (VF).\n"
+          "FCIP (4) indicates that this FCport was instantiated in "
+          "the context of FC over IP (FCIP).\n"
+          "IFR (5) indicates that this FCPort was instantiated in "
+          "the context of Inter-Fabric Routing (IFR).\n"
+          "IFR (Virtual) (6) indicates that this FCPort was "
+          "instantiated in the context of Inter-Fabric Routing "
+          "(IFR) and has no physical representation.\n"
+          "NPIV (7) indicates that this FCPort was instantiated in "
+          "the context of N Port Virtualization (NPIV).\n"
+          "Internal (8) indicates that this FCPort is not "
+          "externally visible and is represented physically \n"
+          "internally in the hardware (unlike VF).\n"
+          "Chassis (9) indicates that this FCPort is externally "
+          "visible but is not supported by a traditional \n"
+          "fibre channel connector (for example a chassis to "
+          "chassis connection).\n"
+          "FCoE (10) indicates that this FCPort is instantiated for "
+          "Fibre Channel over Ethernet (FCoE).\n"
+          "FC (Native) (11) indicates that this FCPort represents a "
+          "native FCPort.\n"
+          "HBA (12) indicates that this FCPort is instantiated in a "
+          "Host Bus Adapter (HBA) context.\n"
+          "Storage (13) indicates that this FCPort in instantiated "
+          "in a storage (e.g., disk array) context." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", ".." }, 
+       Values { "Unknown", "Not Applicable", "VF", "FCIP", "IFR", 
+          "IFR (Virtual)", "NPIV", "Internal", "Chassis", "FCoE", 
+          "FC (Native)", "HBA", "Storage", "DMTF Reserved" }]
+   uint16 PortDiscriminator[];
+
+
+      [Experimental, Description ( 
+          "Requests the fibre channel port represented by an "
+          "instance of this class to be taken into the "
+          "decommissioned state.\n"
+          "The decommissioned state is an intended offline state, "
+          "so the system does not attempt to take the port back "
+          "online as part of any automated recovery actions.\n"
+          "This method supports a normal mode of operation and a "
+          "forceful mode of operation. In the normal mode of "
+          "operation, it behaves gracefully by not decommissioning "
+          "the port if this would cause any functional disruption. "
+          "In the forceful mode of operation, it decommissions the "
+          "port even if this causes functional disruptions.\n"
+          "This method shall return one of the following return values:\n"
+          "0 (Success): The port was decommissioned.\n"
+          "1 (Other error): The port was not decommissioned because "
+          "some other error occurred.\n"
+          "2 (Denied: Port is in use): The port was not "
+          "decommissioned because it is currently in use. This "
+          "reason for denying the decommissioning request shall be "
+          "used only in the normal mode of operation.\n"
+          "3 (Denied: Port is last path to device): The port was "
+          "not decommissioned because it is the last path to a "
+          "device. This reason for denying the decommissioning "
+          "request shall be used only in the normal mode of "
+          "operation." ), 
+       ValueMap { "0", "1", "2", "3", "..", "0x8000.." }, 
+       Values { "Success", "Other error", "Denied Port is in use", 
+          "Denied Port is last path to device", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint32 Decommission(
+         [In, Description ( 
+             "Indicates that the forceful mode of operation "
+             "shall be used, as follows:\n"
+             "A value of True indicates that the forceful mode "
+             "of operation shall be used. A value of False or "
+             "Null indicates that the normal mode of operation "
+             "shall be used." )]
+      boolean Force, 
+         [In ( false ), Out, Description ( 
+             "When the decommissioning request has failed "
+             "(denied or error), this parameter shall return one "
+             "ore more DMTF standard messages describing the "
+             "reason for the failure.\n"
+             "When the decommissioning request has succeeded, "
+             "this parameter may return one or more DMTF "
+             "standard messages providing additional information "
+             "on the actions that have been performed when the "
+             "request was processed." ), 
+          EmbeddedInstance ( "CIM_Message" ), 
+          ArrayType ( "Indexed" )]
+      string Messages[]);
+
+      [Experimental, Description ( 
+          "Requests the fibre channel port represented by an "
+          "instance of this class to be taken online after it was "
+          "previously decommissioned.\n"
+          "This method shall return one of the following return values:\n"
+          "0 (Success): The port was taken online.\n"
+          "1 (Other error): The port was not taken online because "
+          "some other error occurred.\n"
+          "2 (Denied: Port not decommissioned): The port was not "
+          "taken online because the port is not currently in the "
+          "decommissioned state." ), 
+       ValueMap { "0", "1", "2", "..", "0x8000.." }, 
+       Values { "Success", "Other error", 
+          "Denied Port not decommissioned", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint32 Recommission(
+         [In ( false ), Out, Description ( 
+             "When the recommissioning request has failed "
+             "(denied or error), this parameter shall return one "
+             "ore more DMTF standard messages describing the "
+             "reason for the failure.\n"
+             "When the recommissioning request has succeeded, "
+             "this parameter may return one or more DMTF "
+             "standard messages providing additional information "
+             "on the actions that have been performed when the "
+             "request was processed." ), 
+          EmbeddedInstance ( "CIM_Message" ), 
+          ArrayType ( "Indexed" )]
+      string Messages[]);
+
+};

@@ -1,0 +1,333 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.41.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "Contains various options for use by the Replication Services "
+       "methods to offer clients additional control in copy "
+       "operations." )]
+class CIM_ReplicationSettingData : CIM_SettingData {
+
+      [Write, Description ( 
+          "Controls how source and target elements are paired. \n"
+          "Exact order: Parallel elements of source and target \n"
+          "groups paired in the order as they appear in the group. "
+          "Optimum: If possible source and target elements on "
+          "different data path or adapters." ), 
+       ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Instrumentation decides", "Exact order", "Optimum", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 Pairing;
+
+      [Write, Description ( 
+          "Indicates what should happen if the number of elements "
+          "in source and target groups are not the same. The "
+          "default is to return an error, unless one-to-many "
+          "replication is supported and there is only one source "
+          "and more than one target." ), 
+       ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Return an error", 
+          "Allow source group to be larger", 
+          "Allow target group to be larger", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 UnequalGroupsAction;
+
+      [Write, Description ( 
+          "Control what copy methodology the service should use. "
+          "For the most part, the service decides the best "
+          "methodology based on the SyncType. However, an "
+          "implementation may allow the client to suggest a "
+          "different methodology. \n"
+          "Full-Copy: The entire source data is copied to target. \n"
+          "Incremental-Copy: Only changed data from source element "
+          "is copied to target element. \n"
+          "Differential-Copy: Only the new writes to source element "
+          "are copied to the target element. \n"
+          "Copy-On-Write: Affected data is copied on the first "
+          "write to the source or to the target elements. \n"
+          "Copy-On-Access: Affected data is copied on the first "
+          "access to the source element. \n"
+          "Delta-Update: Difference based replication where after "
+          "the initial copy, only updates to source are copied to "
+          "target. \n"
+          "Snap-And-Clone: The service creates a snapshot of the "
+          "source element first, then uses the snapshot as the "
+          "source of the copy operation to the target element. \n"
+          "Copy-before-Activation: Start copying data in the "
+          "background before activation." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "..", "0x8000.." }, 
+       Values { "Other", "Instrumentation decides", "Full-Copy", 
+          "Incremental-Copy", "Differential-Copy", "Copy-On-Write", 
+          "Copy-On-Access", "Delta-Update", "Snap-And-Clone", 
+          "Copy-before-Activation", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 DesiredCopyMethodology;
+
+      [Write, Description ( 
+          "If target elements are not supplied, this property "
+          "indicates where the target elements should come from. "
+          "Possible values are: \n"
+          "Use existing ones: Use existing elements only. If "
+          "appropriate elements are not available, return an error. \n"
+          "Create new ones: Create new target elements only. Use "
+          "existing and create new ones: If appropriate elements "
+          "are not available, create new target elements. \n"
+          "Instrumentation decides: Vendor specific action.\n"
+          "Client must supply: Client must supply target element." ), 
+       ValueMap { "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "Use existing", "Create new", "Use and create", 
+          "Instrumentation decides", "Client must supply", 
+          "DMTF Reserved", "Vendor specific" }]
+   uint16 TargetElementSupplier = 4;
+
+      [Write, Description ( 
+          "If the target element is not supplied, this property "
+          "specifies the provisioning of the target element. \n"
+          "Copy thin source to thin target: Thin source gets copied "
+          "to thin target. \n"
+          "Copy thin source to full target: Thin source gets copied "
+          "to full target. \n"
+          "Copy full source to thin target: Full source gets copied "
+          "to thin target. \n"
+          "Provisioning of target same as source: Provisioning of "
+          "target will be the same as source. \n"
+          "Target pool decides provisioning of target element: The "
+          "pool where the target is allocated from determines the "
+          "provisioning of the target element. \n"
+          "Implementation decides provisioning of target: The "
+          "implementation decides the provisioning of the created "
+          "target elements." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Copy thin source to thin target", 
+          "Copy thin source to full target", 
+          "Copy full source to thin target", 
+          "Provisioning of target same as source", 
+          "Target pool decides provisioning of target element", 
+          "Implementation decides provisioning of target", 
+          "DMTF Reserved", "Vendor specific" }]
+   uint16 ThinProvisioningPolicy = 7;
+
+      [Write, Description ( 
+          "This property applies to a group of elements. If it is "
+          "true, it means the point-in-time to be created at an "
+          "exact time with no I/O activities in such a way the data "
+          "is consistent among all the elements of the group." )]
+   boolean ConsistentPointInTime = false;
+
+      [Write, Description ( 
+          "This property applies to Delta-Update copy methodology. "
+          "It specifies the interval between the snapshots of "
+          "source element, for example, every 23 minutes will have "
+          "the value of 00000000002300.000000:000, using the CIM "
+          "interval format. If NULL or 0, the implementation "
+          "decides the interval." )]
+   datetime DeltaUpdateInterval;
+
+      [Write, Description ( 
+          "This property applies to multihop copy operation. It "
+          "specifies the number of hops the starting source (or "
+          "group) element is expected to be copied." )]
+   uint16 Multihop = 1;
+
+      [Write, Description ( 
+          "This property applies to group or list operations. It "
+          "specifies what the implementation should do if an error "
+          "is encountered before all entries in the group or list "
+          "are processed." ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "Continue", "Stop", "DMTF Reserved", 
+          "Vendor specific" }]
+   uint16 OnGroupOrListError = 3;
+
+      [Write, Description ( 
+          "This property sets the StorageSynchronized.CopyPriority "
+          "property. CopyPriority allows the priority of background "
+          "copy operation to be managed relative to host I/O "
+          "operations during a sequential background copy "
+          "operation. \n"
+          "Values are: Low: copy operation lower priority than host "
+          "I/O. Same: copy operation has the same priority as host "
+          "I/O. High: copy operation has higher priority than host "
+          "I/O. Urgent: copy operation to be performed." ), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Not Managed", "Low", "Same", "High", "Urgent", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 CopyPriority;
+
+      [Experimental, Write, Description ( 
+          "If set to Automatic, the copy operation to continue "
+          "after a broken link is restored. Automatic: copy "
+          "operation to resume automatically. \n"
+          "Manual: CopyState is to be set to Suspended after the "
+          "link is restored. It is required to issue the Resume "
+          "operation to continue. \n"
+          "If not specified, the implementation decides." ), 
+       ValueMap { "0", "2", "3", "4", "..", "32768..65535" }, 
+       Values { "Unknown", "Automatic", "Manual", 
+          "Implementation decides", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 CopyRecoveryMode = 4;
+
+      [Experimental, Write, Description ( 
+          "This property applies to Delta-Update copy methodology. "
+          "If non-zero, it specifies the snapshots of source "
+          "element should be created after this number of blocks "
+          "have been modified. If both DeltaUpdateBlocks and "
+          "DeltaUpdateInterval are specified the snapshot is "
+          "created based on which criterion occurs first. If NULL "
+          "or 0, the implementation decides the number of blocks." )]
+   uint64 DeltaUpdateBlocks;
+
+      [Experimental, Write, Description ( 
+          "If true, the storage array tells host to stop sending "
+          "data to source element if copying to a remote element "
+          "fails." )]
+   boolean FailedCopyStopsHostIO = false;
+
+      [Experimental, Write, Description ( 
+          "Indicates what should happen if number of elements in "
+          "source and target lists are not the same. The default is "
+          "to return an error." ), 
+       ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Return an error", "Allow source list to be larger", 
+          "Allow target list to be larger", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 UnequalListsAction = 2;
+
+      [Experimental, Write, Description ( 
+          "This property specifies whether the source, the target, "
+          "or both elements should be \"read only\" to the "
+          "host.SystemElement: The source element. \n"
+          "SyncedElement: The target element. \n"
+          "Both: Both the source and the target elements.should be "
+          "read only to the host." ), 
+       ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+       Values { "SystemElement", "SyncedElement", "Both", 
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_StorageSynchronized.ReadOnly" }]
+   uint16 ReadOnly;
+
+      [Write, Description ( 
+          "If the target element is not supplied, this property "
+          "specifies the compression of the target element. \n"
+          "Compressed source to compressed target: Compressed "
+          "source gets copied to compressed target. \n"
+          "Compressed source to uncompressed target: Compressed "
+          "source gets copied to uncompressed target. \n"
+          "Uncompressed source to compressed target: Uncompressed "
+          "source gets copied to compressed target. \n"
+          "Compression of target same as source: Compression of "
+          "target will be the same as source. \n"
+          "Target pool decides compression of target element: The "
+          "pool where the target is allocated from determines the "
+          "compression of the target element. \n"
+          "Implementation decides compression of target: The "
+          "implementation decides the compression of the created "
+          "target elements." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Compressed source to compressed target", 
+          "Compressed source to uncompressed target", 
+          "Uncompressed source to compressed target", 
+          "Compression of target same as source", 
+          "Target pool decides compression of target element", 
+          "Implementation decides compression of target", 
+          "DMTF Reserved", "Vendor specific" }]
+   uint16 StorageCompressionPolicy = 7;
+
+      [Write, Description ( 
+          "The created element can be deleted if system resources "
+          "are running low.If TimeBeforeRemoval is specified, this "
+          "property is ignored, even if it is set to true." ), 
+       ModelCorrespondence { "CIM_SynchronizationAspect.AutoDelete" }]
+   boolean AutoDelete = false;
+
+      [Write, Description ( 
+          "The property indicates if hardware compression is "
+          "enabled -- the transmitted/received data is compressed "
+          "by hardware." ), 
+       ModelCorrespondence { 
+          "CIM_RemoteReplicationCollection.HardwareCompressionEnabled" }]
+   boolean RRCHardwareCompressionEnabled = false;
+
+      [Write, Description ( 
+          "The property indicates if software compression is "
+          "enabled -- the transmitted/received data is compressed "
+          "by software." ), 
+       ModelCorrespondence { 
+          "CIM_RemoteReplicationCollection.SoftwareCompressionEnabled" }]
+   boolean RRCSoftwareCompressionEnabled = false;
+
+      [Write, Description ( 
+          "If the target element goal is not supplied and the "
+          "implementation is expected to create the target element, "
+          "the instrumentation selects the goal based on this "
+          "property." ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "Implementation decides", "Same as source element", 
+          "DMTF Reserved", "Vendor specific" }]
+   uint16 TargetElementGoal = 2;
+
+      [Write, Description ( 
+          "If the target element resource pool is not supplied and "
+          "the implementation is expected to create or locate the "
+          "target element, the instrumentation selects the resource "
+          "pool based on this property. \n"
+          "Same as source element: Can only apply to target "
+          "elements that do not require specialized resource pools. "
+          "For example, snapshots may require a specialized "
+          "resource pool." ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "Implementation decides", "Same as source element", 
+          "DMTF Reserved", "Vendor specific" }]
+   uint16 TargetElementResourcePool = 2;
+
+      [Write, Description ( 
+          "The amount of time that the element is retained. If "
+          "non-null, The AutoDelete property is ignored. If null, "
+          "there is no time limit, however, the element may be "
+          "removed if AutoDelete is set to true." ), 
+       ModelCorrespondence { 
+          "CIM_SynchronizationAspect.TimeBeforeRemoval" }]
+   datetime TimeBeforeRemoval;
+
+      [Write, Description ( 
+          "If true, it indicates the new elements being added to a "
+          "group of replication relationships -- for example, by "
+          "the AddSyncPair operation -- do not participate in the "
+          "consistency collection. Useful for a group of volumes "
+          "belonging to an application, however, not all volumes of "
+          "the application need to be part of the consistency set." )]
+   boolean ConsistencyExempt = false;
+
+      [Write, Description ( 
+          "If true, it indicates consistency to be requested for a "
+          "single source and target volumes (not necessarily in "
+          "replication groups). This is useful for implementations "
+          "that use an intermediate snapshot of the source element, "
+          "and then, asynchronously copy the data from the snapshot "
+          "to the target element." )]
+   boolean ConsistentAsyncCopy = false;
+
+      [Write, Description ( 
+          "Recovery Point Objective indicates the maximum interval "
+          "in which data might be lost. For synchronous copy "
+          "operations, RPO is 0. For asynchronous copy operations "
+          "RPO represents the interval since the most recent "
+          "transmission of data to the target element. \n"
+          "For example, to indicate 15 seconds, the value would be "
+          "00000000000015.000000:000, using the CIM interval "
+          "format. If NULL, the implementation decides the interval "
+          "if RPO is applicable." ), 
+       ModelCorrespondence { "CIM_Synchronized.RPO" }]
+   datetime DesiredRPO;
+
+      [Experimental, Description ( 
+          "Applies to Adaptive mode and it describes maximum number "
+          "of bytes the SyncedElement (target) can be out of sync. "
+          "If the number of out-of-sync bytes exceeds the skew "
+          "value, mode is switched to synchronous." ), 
+       ModelCorrespondence { "CIM_Synchronized.Skew" }]
+   uint64 MaximumSkew;
+
+
+};

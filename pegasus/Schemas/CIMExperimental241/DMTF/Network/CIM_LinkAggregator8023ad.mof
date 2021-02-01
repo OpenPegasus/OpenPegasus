@@ -1,0 +1,130 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="DMTFCR01485.000" type ="change"> Correct ValueMaps for
+// ProtocolIfType</
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_LinkAggregator8023ad
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::8023LAG" ), 
+    Description ( 
+       "The LinkAggregator8023ad class represents an instance of an "
+       "802.3ad aggregator in a system. The word actor is used in "
+       "property names to refer to the local entity of an aggregation." )]
+class CIM_LinkAggregator8023ad : CIM_ProtocolEndpoint {
+
+      [Write, Description ( 
+          "A 6-octet MAC address value used as a unique identifier "
+          "for the System that contains this Aggregator. NOTE: From "
+          "the perspective of the Link Aggregation mechanisms "
+          "described in Clause 43 (IEEE 802.3ad), only a single "
+          "combination of Actor\'s System ID and System Priority "
+          "are considered, and no distinction is made between the "
+          "values of these parameters for an Aggregator and the "
+          "port(s) that are associated with it; i.e., the protocol "
+          "is described in terms of the operation of aggregation "
+          "within a single System. However, the managed objects "
+          "provided for the Aggregator and the port both allow "
+          "management of these parameters. The result of this is to "
+          "permit a single piece of equipment to be configured by "
+          "management to contain more than one System from the "
+          "point of view of the operation of Link Aggregation. This "
+          "may be of particular use in the configuration of "
+          "equipment that has limited aggregation capability. Note "
+          "that the MAC address is formatted as twelve hexadecimal "
+          "digits (e.g., \"010203040506\"), with each pair "
+          "representing one of the six octets of the MAC address in "
+          "\"canonical\" bit order according to RFC 2469." ), 
+       MaxLen ( 12 ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggActorSystemID" }, 
+       ModelCorrespondence { 
+          "CIM_LinkAggregator8023ad.ActorSystemPriority" }]
+   string ActorSystemID;
+
+      [Write, Description ( 
+          "A 2-octet value indicating the priority value associated "
+          "with the Actor\'s System ID. The system with the lower "
+          "value has the higher priority. Guidelines for the use of "
+          "system and port priorities is given in IEEE 802.3ad "
+          "document, Section 43.6." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggActorSystemPriority" }, 
+       ModelCorrespondence { "CIM_LinkAggregator8023ad.ActorSystemID" }]
+   uint16 ActorSystemPriority;
+
+      [Description ( 
+          "This object indicates the time of the most recent change "
+          "to this aggregator, its list of aggregated ports, or "
+          "configuration of a aggregation port member." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adTimeOfLastOperChange" }]
+   datetime TimeOfLastOperChange;
+
+      [Description ( 
+          "A Boolean value indicating whether the Aggregator "
+          "represents an Aggregate (TRUE) or an Individual link "
+          "(FALSE)." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggAggregateOrIndividual" }]
+   boolean RepresentsAggregate;
+
+      [Description ( 
+          "A 6-octet value carrying the individual MAC address "
+          "assigned to the Aggregator. Note that the MAC address is "
+          "formatted as twelve hexadecimal digits (e.g., "
+          "\"010203040506\"), with each pair representing one of "
+          "the six octets of the MAC address in \"canonical\" bit "
+          "order according to RFC 2469." ), 
+       MaxLen ( 12 ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggMACAddress" }]
+   string MACAddress;
+
+      [Description ( 
+          "The current operational value of the 16-bit Key forthe "
+          "Aggregator (Actor). The administrative Key value may "
+          "differ from the operational Key value for reasons "
+          "discussed in the IEEE 802.3ad document, Section 43.6.2. "
+          "The meaning of particular Key values is of local "
+          "significance." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggActorOperKey" }, 
+       ModelCorrespondence { "CIM_LinkAggregator8023ad.ActorAdminKey" }]
+   uint16 ActorOperKey;
+
+      [Write, Description ( 
+          "The current administrative value of the 16-bit Key for "
+          "the Aggregator (Actor). The administrative Key value may "
+          "differ from the operational Key value for reasons "
+          "discussed in the IEEE 802.3ad document, Section 43.6.2. "
+          "The meaning of particular Key values is of local "
+          "significance." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggActorAdminKey" }, 
+       ModelCorrespondence { "CIM_LinkAggregator8023ad.ActorOperKey" }]
+   uint16 ActorAdminKey;
+
+      [Write, Description ( 
+          "The value of this datetime property (expressed using an "
+          "interval format) defines the maximum delay that may be "
+          "imposed by the Frame Collector between receiving a frame "
+          "from an Aggregator Parser, and either delivering the "
+          "frame to its MAC Client or discarding the frame." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggCollectorMaxDelay" }]
+   datetime CollectorMaxDelay;
+
+      [Experimental, Override ( "ProtocolIFType" ), 
+       Description ( 
+          "ProtocolIFType\'s enumeration is limited to 802.3 "
+          "LinkAggregation and reserved values for this subclass of "
+          "ProtocolEndpoint." ), 
+       ValueMap { "1", "161", "225..4095", "4301..32767", "32768.." }, 
+       Values { "Other", "IEEE8023adLAG", "IANA Reserved", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 ProtocolIFType = 161;
+
+
+};

@@ -1,0 +1,209 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.19.0" ), 
+    UMLPackagePath ( "CIM::Device::Printing" ), 
+    Description ( 
+       "This class represents the PrintFinisher component of a Printer "
+       "(print device). It contains properties that describe the "
+       "PrintFinisher type, capabilities, and status. Note: A "
+       "PrintFinisher shall be associated with exactly one Printer via "
+       "an instance of the ConcreteComponent class. See: Model in "
+       "section 2 of Printer MIB (RFC 3805) and section 3 of Finisher "
+       "MIB (RFC 3806)." ), 
+    MappingStrings { "MIB.IETF|Finisher-MIB.finDeviceEntry" }]
+class CIM_PrintFinisher : CIM_PrinterElement {
+
+      [Description ( 
+          "A free-form text description of this PrintFinisher in "
+          "the localization specified by "
+          "CIM_Printer.CurrentNaturalLanguage." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       MappingStrings { 
+          "MIB.IETF|Finisher-MIB.finDeviceDescription", 
+          "MIB.IETF|Printer-MIB.PrtLocalizedDescriptionStringTC" }, 
+       ModelCorrespondence { "CIM_Printer.CurrentNaturalLanguage" }]
+   string LocalizedDescription;
+
+      [Description ( 
+          "Defines the type of finishing process associated with "
+          "this PrintFinisher." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", ".." }, 
+       Values { "Other", "Unknown", "Stitcher", "Folder", "Binder", 
+          "Trimmer", "DieCutter", "Puncher", "Perforater", 
+          "Slitter", "SeparationCutter", "Imprinter", "Wrapper", 
+          "Bander", "MakeEnvelope", "Stacker", "SheetRotator", 
+          "Inserter", "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Finisher-MIB.finDeviceType", 
+          "MIB.IETF|IANA-PRINTER-MIB.PrtMarkerMarkTechTC" }, 
+       ModelCorrespondence { "CIM_PrintFinisher.OtherTypeDescription" }]
+   uint32 Type;
+
+      [Description ( 
+          "A free-form string that describes the type of "
+          "PrintFinisher when the value of the Type property is "
+          "equal to 1 (Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       ModelCorrespondence { "CIM_PrintFinisher.Type" }]
+   string OtherTypeDescription;
+
+      [Description ( 
+          "Denotes whether this PrintFinisher is present "
+          "(configured) and whether the PrintFinisher is enabled." ), 
+       ValueMap { "1", "2", "3", "4", "5", ".." }, 
+       Values { "Other", "Unknown", "On", "Off", "NotPresent", 
+          "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Finisher-MIB.finDevicePresentOnOff", 
+          "MIB.IETF|Printer-MIB.PresentOnOff" }]
+   uint32 PresentOnOff;
+
+      [Description ( 
+          "The unit of measure for specifying the capacity of this "
+          "PrintFinisher." ), 
+       ValueMap { "1", "2", "3", "4", "8", "16", "17", "18", "19", 
+          ".." }, 
+       Values { "Other", "Unknown", "TenThousandthsOfInches", 
+          "Micrometers", "Sheets", "Feet", "Meters", "Items", 
+          "Percent", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Finisher-MIB.finDeviceCapacityUnit", 
+          "MIB.IETF|Printer-MIB.PrtCapacityUnitTC" }, 
+       ModelCorrespondence { "CIM_PrintFinisher.OtherCapacityUnit" }]
+   uint32 CapacityUnit;
+
+      [Description ( 
+          "A free-form string that describes the capacity unit when "
+          "the value of the CapacityUnit property is equal to 1 "
+          "(Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       ModelCorrespondence { "CIM_PrintFinisher.CapacityUnit" }]
+   string OtherCapacityUnit;
+
+      [Description ( 
+          "The basis for the limit property MaxCapacity, that "
+          "specifies whether a meaningful value is available. 1 "
+          "(Other) means the PrintFinisher places no restrictions "
+          "on capacity and MaxCapacity shall be null. 2 (Unknown) "
+          "means the PrintFinisher cannot sense a meaningful value "
+          "and MaxCapacity shall be null. 3 (Actual) means the "
+          "PrintFinisher can sense a meaningful value and "
+          "MaxCapacity shall be present." ), 
+       ValueMap { "1", "2", "3", ".." }, 
+       Values { "Other", "Unknown", "Actual", "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Finisher-MIB.finDeviceMaxCapacity" }, 
+       ModelCorrespondence { "CIM_PrintFinisher.MaxCapacity" }]
+   uint16 MaxCapacityBasis;
+
+      [Description ( 
+          "The maximum capacity of the PrintFinisher in units "
+          "specified by CIM_PrintFinisher.CapacityUnit. If this "
+          "PrintFinisher can reliably sense this value, the value "
+          "is sensed by the PrintFinisher and cannot be changed by "
+          "the system administrator; otherwise, the value may be "
+          "changed out-of-band by the system administrator." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 2147483647 ), 
+       MappingStrings { 
+          "MIB.IETF|Finisher-MIB.finDeviceMaxCapacity", 
+          "MIB.IETF|Finisher-MIB.finDeviceCapacityUnit", 
+          "MIB.IETF|Printer-MIB.PrtCapacityUnitTC" }, 
+       ModelCorrespondence { "CIM_PrintFinisher.MaxCapacityBasis" }]
+   uint32 MaxCapacity;
+
+      [Description ( 
+          "The basis for the gauge property CurrentCapacity, that "
+          "specifies whether a meaningful value is available. 1 "
+          "(Other) means the PrintFinisher places no restrictions "
+          "on capacity and CurrentCapacity shall be null. 2 "
+          "(Unknown) means the PrintFinisher cannot sense a "
+          "meaningful value and CurrentCapacity shall be null. 3 "
+          "(Actual) means the PrintFinisher can sense a meaningful "
+          "value and CurrentCapacity shall be present. 4 "
+          "(AtLeastOne) means that the PrintFinisher can only sense "
+          "that at least one capacity unit remains (i.e., not full) "
+          "and CurrentCapacity shall be present and shall contain "
+          "the value zero or one." ), 
+       ValueMap { "1", "2", "3", "4", ".." }, 
+       Values { "Other", "Unknown", "Actual", "AtLeastOne", 
+          "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Finisher-MIB.finDeviceCurrentCapacity" }, 
+       ModelCorrespondence { "CIM_PrintFinisher.CurrentCapacity" }]
+   uint16 CurrentCapacityBasis;
+
+      [Description ( 
+          "The current capacity of the PrintFinisher in units "
+          "specified by CIM_PrintFinisher.CapacityUnit. If this "
+          "PrintFinisher can reliably sense this value, the value "
+          "is sensed by the PrintFinisher and cannot be changed by "
+          "the system administrator; otherwise, the value may be "
+          "changed out-of-band by the system administrator." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 2147483647 ), 
+       MappingStrings { 
+          "MIB.IETF|Finisher-MIB.finDeviceCurrentCapacity", 
+          "MIB.IETF|Finisher-MIB.finDeviceCapacityUnit", 
+          "MIB.IETF|Printer-MIB.PrtCapacityUnitTC" }, 
+       ModelCorrespondence { "CIM_PrintFinisher.CurrentCapacityBasis" }]
+   uint32 CurrentCapacity;
+
+      [Description ( 
+          "This property contains detailed availability information "
+          "for this PrintFinisher, as follows: 1 (Other) means "
+          "other detailed availability information is present in "
+          "the OtherAvailabilityStatus property. 2 (Unknown) means "
+          "detailed availability information for this PrintFinisher "
+          "is unknown. 3 (AvailableIdle) means this PrintFinisher "
+          "is available and idle, i.e., not currently in use. 4 "
+          "(AvailableStandy) means this PrintFinisher is available "
+          "but on standby, e.g., in a power saving mode. 5 "
+          "(AvailableActive) means this PrintFinisher is available "
+          "and active, i.e., currently in use. 6 (AvailableBusy) "
+          "means this PrintFinisher is available but busy, i.e., "
+          "not immediately available for its primary function. 7 "
+          "(UnavailableOnRequest) means this PrintFinisher is not "
+          "available and is on request, i.e., needs human "
+          "intervention. 8 (UnavailableBroken) means this "
+          "PrintFinisher is not available and is broken, e.g., "
+          "needs repair/replacement." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", ".." }, 
+       Values { "Other", "Unknown", "AvailableIdle", 
+          "AvailableStandby", "AvailableActive", "AvailableBusy", 
+          "UnavailableOnRequest", "UnavailableBroken", 
+          "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.PrtSubUnitStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.OperatingStatus", 
+          "CIM_PrintFinisher.OtherAvailabilityStatus" }]
+   uint32 AvailabilityStatus;
+
+      [Description ( 
+          "A free-form string that describes the detailed "
+          "availability of this PrintFinisher when the value of the "
+          "AvailabilityStatus property is equal to 1 (Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       ModelCorrespondence { "CIM_PrintFinisher.AvailabilityStatus" }]
+   string OtherAvailabilityStatus;
+
+      [Description ( 
+          "If true, there are currently non-critical alerts on this "
+          "PrintFinisher." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.PrtSubUnitStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.DetailedStatus" }]
+   boolean NonCriticalAlertsPresent;
+
+      [Description ( 
+          "If true, there are currently critical alerts on this "
+          "PrintFinisher." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.PrtSubUnitStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.DetailedStatus" }]
+   boolean CriticalAlertsPresent;
+
+
+};

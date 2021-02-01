@@ -1,0 +1,298 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.19.0" ), 
+    UMLPackagePath ( "CIM::Network::MPLS" ), 
+    Description ( 
+       "This class represents an MPLS traffic engineering tunnel as "
+       "defined in RFC 3031." )]
+class CIM_MPLSTunnel : CIM_EnabledLogicalElement {
+
+      [Key, Override ( "InstanceID" ), 
+       Description ( 
+          "InstanceID opaquely identifies a unique instance of "
+          "SettingData. The InstanceID must be unique within a "
+          "namespace. In order to ensure uniqueness, the value of "
+          "InstanceID SHOULD be constructed in the following "
+          "manner: \n"
+          "<Vendor ID><ID> \n"
+          "<Vendor ID> MUST include a copyrighted, trademarked or "
+          "otherwise unique name that is owned by the business "
+          "entity or a registered ID that is assigned to the "
+          "business entity that is defining the InstanceID. (This "
+          "is similar to the <Schema Name>_<Class Name> structure "
+          "of Schema class names). The purpose of <Vendor ID> is to "
+          "ensure that <ID> is truly unique across multiple vendor "
+          "implementations. If such a name is not used, the "
+          "defining entity MUST assure that the <ID> portion of the "
+          "Instance ID is unique when compared with other instance "
+          "providers. For DMTF defined instances, the <Vendor ID> "
+          "is \'CIM\'. \n"
+          "<ID> MUST include a vendor specified unique identifier." )]
+   string InstanceID;
+
+      [Write, Description ( 
+          "Boolean indicating whether or not the tunnel is "
+          "currently signaled. Note that if the tunnel is not "
+          "established, then the OperationalStatus properties "
+          "inherited from Managed SystemElement have no meaning." )]
+   boolean Established;
+
+      [Description ( 
+          "The IsResilient property indicates the recovery "
+          "procedure to be applied to tunnels whose paths are "
+          "impacted by faults. More specifically, it contains a "
+          "boolean value that determines whether the tunnel is to "
+          "be rerouted or not, when segments of its path fail. If "
+          "set to true, the tunnel should be rerouted in case of "
+          "failure; if false, it should not (which means that other "
+          "means are applied, e.g. lower layer technologies for "
+          "rerouting.)" )]
+   boolean IsResilient;
+
+      [Description ( 
+          "The bandwidth property denotes the complete bandwidth "
+          "(in kilobits per second) required to be transported by "
+          "the tunnel. Note, that the bandwidth is not directly "
+          "implemented/ configured in a router, but the "
+          "MPLSTunnel\'s Reserved Bandwidth property might be "
+          "derived from this information." ), 
+       Units ( "KiloBits per Second" ), 
+       PUnit ( "bit / second * 10^3" )]
+   uint32 Bandwidth;
+
+      [Description ( 
+          "Reserved bandwidth for this tunnel in kilobits per "
+          "second. In a load sharing environment, the bandwidth on "
+          "each tunnel is set to be proportional to how traffic "
+          "should be balanced. An LSR then load-shares into the "
+          "tunnels based on the aggregate bandwidth. Note that it "
+          "is possible to signal 0 bandwidth for a pure best-effort "
+          "tunnel." ), 
+       Units ( "KiloBits per Second" ), 
+       PUnit ( "bit / second * 10^3" )]
+   uint32 ReservedBandwidth;
+
+      [Description ( 
+          "Active bandwidth for this tunnel in kilobits per second. "
+          "If the tunnel is not yet Established, then this property "
+          "has no meaning. Knowing current Bandwidth is important "
+          "because several path options may be configured for the "
+          "tunnel. Note that it is possible to signal 0 bandwidth "
+          "for a pure best- effort tunnel." ), 
+       Units ( "KiloBits per Second" ), 
+       PUnit ( "bit / second * 10^3" )]
+   uint32 ActiveBandwidth;
+
+      [Description ( 
+          "Due to changes in network and traffic characteristics, "
+          "there may be a need to periodically change the paths of "
+          "tunnels for optimization purposes. This should not be "
+          "done too frequently as it could adversely affect the "
+          "stability of the network. This property indicates how "
+          "often such reoptimization should be performed for a "
+          "specific tunnel. Note that the class, CIM_MPLSTEService, "
+          "also has a reoptimization frequency property. The "
+          "frequency specified in this class is specific to a "
+          "particular tunnel, whereas the MPLSTEService\'s "
+          "frequency is per service, on a Label Switched Router." ), 
+       Units ( "Seconds" ), 
+       MaxValue ( 604800 ), 
+       PUnit ( "second" )]
+   uint32 ReoptimizationFreq = 3600;
+
+      [Description ( 
+          "Indicates whether the tunnel is a candidate for "
+          "re-optimization at all. If true the ReoptimizationFreq "
+          "property should be taken into account. By default, a "
+          "tunnel is re-optimized periodically." )]
+   boolean Lockdown = true;
+
+      [Description ( 
+          "Resource classes and resource class affinities are "
+          "described in [RFC2702]. Resource classes can be "
+          "associated with links and advertised in routing "
+          "protocols. Resource class affinities are used by RSVP-TE "
+          "[RFC3209]. In order to be used, a link MUST pass three "
+          "tests. One of them is against this property. \n"
+          "\n"
+          "ExcludeAllAffinity is one type of resource class "
+          "affinity. It specifies a set of attribute filters for "
+          "the tunnel, and a match on any of the filters renders a "
+          "link unacceptable (it is excluded for consideration). "
+          "This test takes the form, \n"
+          "(MPLSProtocolEndpoint.ResourceClass & "
+          "ExcludeAllAffinity) == 0." ), 
+       MappingStrings { 
+          "MIB.IETF|MPLS-TE-MIB.MPLSTunnelExcludeAllAffinity" }]
+   uint32 ExcludeAllAffinity;
+
+      [Description ( 
+          "Resource classes and resource class affinities are "
+          "described in [RFC2702]. Resource classes can be "
+          "associated with links and advertised in routing "
+          "protocols. Resource class affinities are used by RSVP-TE "
+          "[RFC3209]. In order to be used, a link MUST pass three "
+          "tests. One of them against this property. \n"
+          "\n"
+          "IncludeAllAffinity is one type of resource class "
+          "affinity. It specifies a set of attribute filters for "
+          "the tunnel, and all of the filters must match for a link "
+          "to be acceptable (i.e., pass this test). If "
+          "IncludeAllAffinity is zero, then the test automatically "
+          "passes. The test takes the form, \n"
+          "(IncludeAllAffinity == 0) || "
+          "(((MPLSProtocolEndpoint.ResourceClass & "
+          "IncludeAllAffinity) ^ IncludeAllAffinity) == 0)" ), 
+       MappingStrings { 
+          "MIB.IETF|MPLS-TE-MIB.MPLSTunnelIncludeAllAffinity" }]
+   uint32 IncludeAllAffinity;
+
+      [Description ( 
+          "Resource classes and resource class affinities are "
+          "described in [RFC2702]. Resource classes can be "
+          "associated with links and advertised in routing "
+          "protocols. Resource class affinities are used by RSVP-TE "
+          "[RFC3209]. In order to be used, a link MUST pass three "
+          "tests. One of them against this property. \n"
+          "\n"
+          "IncludeAnyAffinity is one type of resource class "
+          "affinity. It specifies a set of attribute filters for "
+          "the tunnel, and any of the filters must match for a link "
+          "to be acceptable (i.e., pass this test). If "
+          "IncludeAllAffinity is zero, then the test automatically "
+          "passes. The test takes the form, \n"
+          "(IncludeAnyAffinity == 0) || "
+          "((MPLSProtocolEndpoint.ResourceClass & "
+          "IncludeAnyAffinity) != 0)" ), 
+       MappingStrings { 
+          "MIB.IETF|MPLS-TE-MIB.MPLSTunnelIncludeAnyAffinity" }]
+   uint32 IncludeAnyAffinity;
+
+      [Description ( 
+          "Property to indicate the holding priority of an "
+          "established tunnel. If the tunnel is not yet "
+          "established, this property has no meaning. A new tunnel "
+          "is allowed to preempt the resources of this tunnel only "
+          "if its SetupPriority is smaller than the HoldingPriority "
+          "of the established one. (See RFC3209 for additional "
+          "information.) The value 0 is the highest priority." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 7 ), 
+       MappingStrings { "MIB.IETF|MPLS-TE-MIB.mplsTunnelHoldingPrio" }]
+   uint8 HoldingPriority;
+
+      [Description ( 
+          "Guaranteed bandwidth tunnels can have setup and "
+          "preemption priorities associated with them. These "
+          "priorities determine if an existing tunnel can be "
+          "preempted by a new one. The SetupPriority of the new "
+          "tunnel is compared to the Holding Priority of the "
+          "established one, to determine if the new tunnel can "
+          "preempt the existing one. It does preempt if the "
+          "SetupPriority in smaller than the HoldingPriority. Note "
+          "that the value 0 is the highest priority." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 7 ), 
+       MappingStrings { "MIB.IETF|MPLS-TE-MIB.mplsTunnelSetupPrio" }]
+   uint8 SetupPriority;
+
+      [Description ( 
+          "Flag to indicate that this tunnel should be restored "
+          "automatically after a failure occurs." )]
+   boolean IsPersistent;
+
+      [Description ( 
+          "Flag to indicate whether the loosely-routed hops of this "
+          "tunnel are to be pinned." )]
+   boolean IsPinned;
+
+      [Description ( 
+          "Flag to indicate that transit routers are permitted to "
+          "use a local repair mechanism which may result in "
+          "violation of the explicit routing of this tunnel. When a "
+          "fault is detected on an adjacent downstream link or "
+          "node, a transit router can reroute traffic for fast "
+          "service restoration." )]
+   boolean LocalProtectionAvailable;
+
+      [Description ( 
+          "In some situations, it is necessary to reroute a tunnel "
+          "without disrupting traffic. This flag indicates whether "
+          "the tunnel\'s route is adaptive." )]
+   boolean IsAdaptive;
+
+      [Description ( 
+          "Flag to indicate whether the route for the tunnel is "
+          "selected dynamically based on routing protocols - as "
+          "opposed to being specified \'statically\' via "
+          "configuration, where a network operator or other "
+          "external entity specifies the path of the tunnel hop by "
+          "hop." )]
+   boolean IsDynamicallyRouted;
+
+      [Description ( 
+          "Flag to indicate that the tunnel ingress node may choose "
+          "to reroute this tunnel without tearing it down." )]
+   boolean IngressMayReroute;
+
+      [Description ( 
+          "The purpose of this object is to uniquely identity a "
+          "tunnel within a network. When the MPLS signaling "
+          "protocol is rsvp(3), this value SHOULD mimic the "
+          "Extended Tunnel Id field in the SESSION object. When the "
+          "MPLS signaling protoocol is crldp(4), this value SHOULD "
+          "mimic the Ingress LSR Router ID field in the LSPID TLV "
+          "object." ), 
+       ModelCorrespondence { "CIM_MPLSTunnel.TunnelSignalingProtocol" }]
+   uint32 IngressLSRId;
+
+      [Description ( "ID of egress LSR." )]
+   uint32 EgressLSRId;
+
+      [Override ( "ElementName" ), 
+       Description ( 
+          "The canonical name assigned to the tunnel. This name can "
+          "be used to refer to the tunnel on the LSR\'s console "
+          "port." )]
+   string ElementName;
+
+      [Description ( 
+          "The signaling protocol, if any, which was used to setup "
+          "this tunnel." ), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Unknown", "Other", "None", "RSVP", "CRLDP" }]
+   uint8 TunnelSignalingProtocol;
+
+      [Description ( 
+          "Indicates which protocol created and is responsible for "
+          "managing this tunnel. Values rsvp(3) and crldp(4) should "
+          "NOT be used at the head-end of an MPLS tunnel." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Admin", "RSVP", "CRDLP", 
+          "Policy Agent" }]
+   uint8 TunnelManagementOwner;
+
+      [Description ( 
+          "This value represents the priority for a tunnel in "
+          "descending order, with 0 indicating the lowest priority, "
+          "within a group of tunnels used for redundancy/load "
+          "sharing. Tunnel group priorities are used to denote the "
+          "priority at which a particular tunnel instance will "
+          "supercede another. Instances of tunnels containing the "
+          "same TunnelInstancePriority will be used for load "
+          "sharing." )]
+   uint32 TunnelInstancePriority;
+
+      [Description ( 
+          "This property signifies the role that this tunnel "
+          "entry/instance represents. The value MUST be set to "
+          "head(2) at the originating point of the tunnel, to "
+          "transit(3) at transit points along the tunnel (if "
+          "transit points are supported), and to tail(4) at the "
+          "terminating point of the tunnel (if tunnel tails are "
+          "supported)." ), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Head", "Transit", "Tail" }]
+   uint16 TunnelRole;
+
+
+};

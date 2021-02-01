@@ -1,0 +1,256 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.29.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageStatistics" ), 
+    Description ( 
+       "The CIM_VTLResourceUsage class provides the ability to track "
+       "the current resource usage of the device in order to detect "
+       "when the device resources are approaching their limits (and "
+       "thus further device hardware is needed or some backups needs "
+       "to be moved to another device). All these device resources "
+       "need to be tracked at both the whole-device level but also at "
+       "the virtual library level. Tracking resource usage at the "
+       "library level is critical because the VLS can be partitioned "
+       "into multiple logical libraries that use physically separate "
+       "resources (e.g. different front-end FC ports, different "
+       "storage pools) so if the device shows 50% full this could mean "
+       "one library is 100% full and another library is 0% full. It "
+       "contains data representing used capacity, compression ratios "
+       "and deduplication ratios at VTL or VLS level.also support the "
+       "ability to set resource thresholds so that alerts are "
+       "generated when the device approaches a warning or critical "
+       "resource threshold (to alert the user they may need to add "
+       "hardware or reduce workload)" )]
+class CIM_VTLResourceUsage : CIM_StatisticalData {
+
+      [Description ( 
+          "Performance in Kbytes per second (byte * 10^3 / second)" ), 
+       Read, PUnit ( "byte * 10^3 / second" )]
+   uint64 Throughput;
+
+      [Description ( 
+          "Performance in percentage of the maximum performance "
+          "allowed for this VTL or VLS. Must be an integer value "
+          "between 0 and 100." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       Read, PUnit ( "percent" )]
+   uint16 RelativeThroughput;
+
+      [Description ( 
+          "Used physical capacity in Mbytes. Physical capacity is "
+          "the amount of data actually stored on the disk, whether "
+          "or not deduplicated." ), 
+       Units ( "MegaBytes" ), 
+       Read, PUnit ( "byte * 10^6" )]
+   real64 UsedPhysicalCapacity;
+
+      [Description ( 
+          "Used logical capacity in Mbytes. Logical capacity is the "
+          "amount of data the backup application wrote (before "
+          "deduplication and compression), while the physical "
+          "capacity is the amount of data actually stored on the "
+          "disk." ), 
+       Units ( "MegaBytes" ), 
+       Read, PUnit ( "byte * 10^6" )]
+   real64 UsedLogicalCapacity;
+
+      [Description ( 
+          "Used physical disk capacity as a proportion of the "
+          "maximum physical disk capacity available for this VTL or "
+          "VLS. Must be a floating point value between 0 and 1." ), 
+       Units ( "Proportion" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 1 ), 
+       Read, PUnit ( "byte / byte" )]
+   real32 UsedPhysicalCapacityOfMax;
+
+      [Description ( 
+          "Used logical disk capacity as a proportion of the "
+          "maximum physical disk capacity available for this VTL or "
+          "VLS. Must be a floating point value between 0 and 1." ), 
+       Units ( "Proportion" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 1 ), 
+       Read, PUnit ( "byte / byte" )]
+   real32 UsedLogicalCapacityOfMax;
+
+      [Description ( 
+          "Compression ratio for this VTL or VLS.The ratio of the "
+          "Logical Data divided by the Used Capacity" ), 
+       Read]
+   real32 SystemRatio;
+
+      [Description ( 
+          "Deduplication ratio for this VTL or VLS. The storage "
+          "capacity saved by deduplication , where the sum of all "
+          "pre-deduplicated backup data is compared with the actual "
+          "amount of storage the deduplicated data requires. For "
+          "example, a value 10 means that ten times more data is "
+          "being stored than the actual physical space it would "
+          "require." ), 
+       Read]
+   real32 DeduplicationRatio;
+
+      [Description ( 
+          "Incoming replication traffic in Kbytes/second (byte * "
+          "10^3 / second)." ), 
+       Read, PUnit ( "byte * 10^3 / second" )]
+   uint64 InReplicationThroughput;
+
+      [Description ( 
+          "Outgoing replication traffic in Kbytes/second (byte * "
+          "10^3 / second)." ), 
+       Read, PUnit ( "byte * 10^3 / second" )]
+   uint64 OutReplicationThroughput;
+
+      [Description ( 
+          "This property indicates the frequency in seconds used to "
+          "compare threshold to actual values" ), 
+       Units ( "Seconds" ), 
+       Read, PUnit ( "second" )]
+   uint32 ThresholdCheckInterval;
+
+      [Description ( 
+          "This field indicates if Threshold enabled or not." ), 
+       Read]
+   boolean ThresholdEnabled;
+
+      [Description ( 
+          "A true value indicates that throughput alerts governed "
+          "by ThroughputWarningAlertThreshold and "
+          "ThroughputCriticalAlertThreshold will be issued." ), 
+       Read]
+   boolean ThroughputAlertsEnabled;
+
+      [Description ( 
+          "Throughput threshold after which a warning alert will be "
+          "triggered. Readable and writable. Must be an integer "
+          "value between 0 and 100." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       PUnit ( "percent" )]
+   uint16 ThroughputWarningAlertThreshold;
+
+      [Description ( 
+          "Throughput threshold after which a critical alert will "
+          "be triggered.Readable and writable. Must be an integer "
+          "value between 0 and 100." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       Read, PUnit ( "percent" )]
+   uint16 ThroughputCriticalAlertThreshold;
+
+      [Description ( 
+          "A true value indicates that physical capacity alerts "
+          "governed by PhysicalCapacityWarningAlertThreshold and "
+          "PhysicalCapacityCriticalAlertThreshold will be issued." ), 
+       Read]
+   boolean PhysicalCapacityAlertsEnabled;
+
+      [Description ( 
+          "Physical capacity threshold after which a warning alert "
+          "will be triggered. Readable and writable. Must be an "
+          "integer value between 0 and 100." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       PUnit ( "percent" )]
+   uint16 PhysicalCapacityWarningAlertThreshold;
+
+      [Description ( 
+          "Physical capacity threshold after which a critical alert "
+          "will be triggered. Readable and writable. Must be an "
+          "integer value between 0 and 100." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       Read, PUnit ( "percent" )]
+   uint16 PhysicalCapacityCriticalAlertThreshold;
+
+      [Description ( 
+          "A true value indicates that logical capacity alerts "
+          "governed by LogicalCapacityWarningAlertThreshold and "
+          "LogicalCapacityCriticalAlertThreshold will be issued." ), 
+       Read]
+   boolean LogicalCapacityAlertsEnabled;
+
+      [Description ( 
+          "Logical capacity threshold after which a warning alert "
+          "will betriggered. Readable and writable. Must be an "
+          "integer value between 0 and 100." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       PUnit ( "percent" )]
+   uint16 LogicalCapacityWarningAlertThreshold;
+
+      [Description ( 
+          "Logical capacity threshold after which a critical alert "
+          "will betriggered. Readable and writable. Must be an "
+          "integer value between 0 and 100." )]
+   uint16 LogicalCapacityCriticalAlertThreshold;
+
+      [Description ( 
+          "A true value indicates that system ratio alerts governed "
+          "by SystemRatioWarningAlertThreshold and "
+          "SystemRatioCriticalAlertThreshold will be issued." ), 
+       Read]
+   boolean SystemRatioAlertsEnabled;
+
+      [Description ( 
+          "A warning-level alert will be issued if the system ratio "
+          "falls below the specified threshold. This must be an "
+          "integer value between 0 and 100." )]
+   real32 SystemRatioWarningAlertThreshold;
+
+      [Description ( 
+          "A critical-level alert will be issued if the system "
+          "ratio falls below the specified threshold. This must be "
+          "an integer value between 0 and 100." )]
+   real32 SystemRatioCriticalAlertThreshold;
+
+      [Description ( 
+          "A true value indicates that deduplication ratio alerts "
+          "governed by DeduplicationRatioWarningAlertThreshold and "
+          "DeduplicationRatioPhysicalCapacityCriticalAlertThreshold "
+          "will be issued." ), 
+       Read]
+   boolean DeduplicationRatioAlertsEnabled;
+
+      [Description ( 
+          "A warning-level alert will be issued if the "
+          "deduplication ratio falls below the specified threshold" )]
+   real32 DeduplicationRatioWarningAlertThreshold;
+
+      [Description ( 
+          "A critical-level alert will be issued if the "
+          "deduplication ratio falls below the specified threshold" )]
+   real32 DeduplicationRatioCriticalAlertThreshold;
+
+      [Description ( 
+          "A true value indicates that replication traffic alerts "
+          "governed by ReplicationTrafficWarningAlertThresholdand "
+          "ReplicationTrafficCriticalAlertThreshold will be issued" ), 
+       Read]
+   boolean ReplicationTrafficAlertsEnabled;
+
+      [Description ( 
+          "A warning-level alert will be issued if the replication "
+          "traffic is beyond the specified threshold. This is "
+          "expressed in terms of kilo bytes per second (byte * 10^3 "
+          "/ second)." ), 
+       PUnit ( "byte * 10^3 / second" )]
+   uint64 ReplicationTrafficWarningAlertThreshold;
+
+      [Description ( 
+          "A critical-level alert will be issued if the replication "
+          "traffic is beyond the specified threshold. This is in "
+          "terms of kilo bytes per second (byte * 10^3 / second)." ), 
+       PUnit ( "byte * 10^3 / second" )]
+   uint64 ReplicationTrafficCriticalAlertThreshold;
+
+
+};

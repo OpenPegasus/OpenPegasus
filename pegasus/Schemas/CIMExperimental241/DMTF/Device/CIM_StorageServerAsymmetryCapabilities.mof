@@ -1,0 +1,89 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.18.1" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "This class defines the asymmetric characteristics and "
+       "capabilites of a redundant storage server. The properties in "
+       "this class guide client algorithms in the interpretation of "
+       "the instances of StorageResourceLoadGroup, TargetPortGroup, "
+       "StorageProcessorAffinity, and AsymmetricAccessibility, and "
+       "also determining support for methods that affect assignment of "
+       "storage resources to storage processors." )]
+class CIM_StorageServerAsymmetryCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "If this property is set to Symmetric it indicates that "
+          "the StoragePools or StorageVolumes are processed in a "
+          "distributed load-balanced manner between storage "
+          "processors. If this property is set to Asymmetric it "
+          "indicates that the StoragePools or StorageVolumes are "
+          "have a primary affinity for one storage processor." ), 
+       ValueMap { "2", "3" }, 
+       Values { "Symmetric", "Asymmetric" }]
+   uint16 StorageResourceSymmetryCapability;
+
+      [Description ( 
+          "If this property is set to StorageVolume it indicates "
+          "that the StoragePools have symmetric behavior(or no "
+          "affinity) and that the Volumes have affintiy for one "
+          "storage processor or the other. If this property is set "
+          "to StoragePool it indicates that a StoragePool as well "
+          "as the Volumes allocated from it have affinity for one "
+          "storage processor or the other." ), 
+       ValueMap { "2", "3" }, 
+       Values { "StorageVolume", "StoragePool" }]
+   uint16 StorageResourceType;
+
+      [Description ( 
+          "Set to true if this storage system allows the client to "
+          "specify which storage processor a storage resource is "
+          "assigned to, either using one of the CreateOrModify "
+          "methods or the AssignStorageResourceAffinity method on "
+          "StorageConfigurationService." )]
+   boolean StorageResourceAffinityAssignable;
+
+      [Description ( 
+          "This property specifies whether a storage server "
+          "supports transparent or non-transparent failover of "
+          "TargetPortGroups. If this value is 2(Port Group Fails), "
+          "a TargetPortGroup will have a single "
+          "StorageProcessorAffinity association to the storage "
+          "processor it belongs to and will fail with. If this "
+          "property has a value of 3, the TargetPortGroup will have "
+          "a StorageProcessorAffinity association to each storage "
+          "processor that can host it\'s function, and the "
+          "properties on the association will indicate both which "
+          "processor is primary and which is currently hosting the "
+          "ports in the group." ), 
+       ValueMap { "2", "3" }, 
+       Values { "Port Group Fails", 
+          "Port Group Fails Over Transparently" }]
+   uint16 PortGroupFailoverBehavior;
+
+      [Description ( 
+          "This property indicates the normal(healthy) state "
+          "accessibility to volumes both in the "
+          "StorageResourceLoadGroup on the same storage processor "
+          "as a TargetPortGroup, and to volumes in "
+          "StorageResourceLoadGroups on \'other\' storage "
+          "processors in the redundant server. If this values is "
+          "2(Symmetric): There is equal bandwidth access to volumes "
+          "on all storage processors through target ports on this "
+          "storage processor. If this value is 3(Asymmetric "
+          "Non-Optimized): There is full bandwidth access to "
+          "volumes in the StorageResourceLoadGroup on the same "
+          "storage processor as the TargetPortGroup and degraded "
+          "bandwidth access to volumes in the "
+          "StorageResourceLoadGroups on the \'other\' storage "
+          "processors. If this value is 4(Asymmetric No Access): "
+          "There is full bandwidth access to volumes in the "
+          "StorageResourceLoadGroup on the same storage processor "
+          "as the TargetPortGroup and no access to volumes on "
+          "\'other\' storage processors." ), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Symmetric", "Asymmetric Non-Optimized", 
+          "Asymmetric No Access" }]
+   uint16 TargetPortSymmetryCapability;
+
+
+};

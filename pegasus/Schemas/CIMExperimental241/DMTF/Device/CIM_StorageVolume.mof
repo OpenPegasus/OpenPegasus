@@ -1,0 +1,141 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Version ( "2.28.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageExtents" ), 
+    Description ( 
+       "A StorageVolume is a StorageExtent that is published for use "
+       "outside of the scoping System. For SCSI storage target "
+       "devices, StorageVolumes are used to represent target Block "
+       "devices, (peripheral device type codes 0h (i.e, "
+       "direct-access), 4h (i.e., write-once), 5h (i.e., CD/DVD), 7h "
+       "(i.e., optical memory), and Eh (i.e., simplified "
+       "direct-access).); \n"
+       "Stream devices, (peripheral device type codes 1h (i.e., \n"
+       "sequential-access) and 3h (i.e., processor).). \n"
+       "In these case, StorageVolume.Name will be derived from SCSI "
+       "volume as documented in StorageExtent.Nameformat and "
+       "NameNamespace Descriptions. \n"
+       "\n"
+       "The \'Exported\' value from StorageExtent.ExtentStatus[] MUST "
+       "be in all instances of StorageVolume to maintain the semantic "
+       "of \'published\' described above." )]
+class CIM_StorageVolume : CIM_StorageExtent {
+
+      [Override ( "Name" ), 
+       Description ( "A unique identifier for the Volume." ), 
+       MappingStrings { "ANSI|T10|SCSI SPC-3|8.6" }, 
+       ModelCorrespondence { "CIM_StorageVolume.NameFormat" }]
+   string Name;
+
+      [Override ( "NameFormat" ), 
+       Description ( 
+          "A subset of StorageExtent name formats apply to StorageVolumes."
+           ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "11" }, 
+       Values { "Unknown", "Other", "VPD83NAA6", "VPD83NAA5", 
+          "VPD83Type2", "VPD83Type1", "VPD83Type0", "SNVM", 
+          "NodeWWN", "NAA", "EUI64", "T10VID" }]
+   uint16 NameFormat;
+
+      [Override ( "NameNamespace" ), 
+       Description ( 
+          "A subset of StorageExtent name spaces apply to StorageVolume."
+           ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "VPD83Type3", "VPD83Type2", 
+          "VPD83Type1", "VPD80", "NodeWWN", "SNVM" }]
+   uint16 NameNamespace;
+
+      [Experimental, Override ( "Usage" ), 
+       Description ( 
+          "Indicates the intended usage or any restrictions that "
+          "may have been imposed on the usage of this component. "
+          "All ValueMap/Values entries are defined in "
+          "CIM_StorageExtent. To promote interoperability across "
+          "subclasses, all new entries for this class shall be "
+          "defined there." ), 
+       ModelCorrespondence { 
+          "CIM_StorageVolume.OtherUsageDescription" }]
+   uint16 Usage;
+
+      [Experimental, Override ( "OtherUsageDescription" ), 
+       Description ( 
+          "Populated when \"Usage\" has the value of \"Other\"." ), 
+       ModelCorrespondence { "CIM_StorageVolume.Usage" }]
+   string OtherUsageDescription;
+
+      [Experimental, Override ( "ClientSettableUsage" ), 
+       Description ( 
+          "Indicates which values from the \"Usage\" valuemapcan be "
+          "manipulated by a client using the "
+          "method\"StorageConfigurationService.RequestUsageChange\"." ), 
+       ModelCorrespondence { "CIM_StorageVolume.Usage" }]
+   uint16 ClientSettableUsage[];
+
+      [Experimental, Description ( 
+          "This property is the Node Element Descriptor of the "
+          "Control Unit Image (this property is required for CKD "
+          "StorageVolumes)." )]
+   string CUImage;
+
+      [Experimental, Description ( 
+          "Indicates if the volume is able to be deleted by a "
+          "client application. True means the volume may be deleted "
+          "by a client application." )]
+   boolean CanDelete = true;
+
+      [Experimental, Description ( 
+          "Specifies the specific device (e.g., 3380 or 3390) that "
+          "is emulated by the volume." )]
+   string EmulatedDevice;
+
+      [Experimental, Description ( 
+          "The number of extents in the process of migrating for "
+          "this storage volume when the volume relocation is on "
+          "going." )]
+   uint64 NumExtentsMigrating;
+
+      [Experimental, Description ( 
+          "This property is the Subsystem ID if the array or "
+          "virtualizer supports Subsystem IDs." )]
+   string SubsystemID;
+
+      [Experimental, Description ( 
+          "True if the volume is thinly provisioned." )]
+   boolean ThinlyProvisioned = false;
+
+      [Experimental, Description ( 
+          "A storage volume can be associated with one or more "
+          "storage tiers with equal or smaller "
+          "StorageTier.RelativePerformanceOrder. The smaller the "
+          "RelativePerformanceOrder, the more \"performant\" the "
+          "tier." ), 
+       ModelCorrespondence { 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 RelativePerformanceOrder;
+
+      [Experimental, Description ( 
+          "A set of RelativePerformanceOrder values. The volume can "
+          "only be associated with storage tiers that have a "
+          "RelativePerformanceOrder value included in this set." ), 
+       ModelCorrespondence { 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 RelativePerformanceOrderSet[];
+
+      [Experimental, Description ( 
+          "Storage tiering examines this property to determine "
+          "whether to use RelativePerformanceOrder or "
+          "RelativePerformanceOrderSet for selecting an appropriate "
+          "storage tier. A value of 0 or null indicates the "
+          "associated element is not subject to storage tiering." ), 
+       ValueMap { "0", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "Use RelativePerformanceOrder", 
+          "Use RelativePerformanceOrderSet", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_StorageVolume.RelativePerformanceOrder", 
+          "CIM_StorageVolume.RelativePerformanceOrderSet" }]
+   uint16 StorageTieringSelection = 0;
+
+
+};

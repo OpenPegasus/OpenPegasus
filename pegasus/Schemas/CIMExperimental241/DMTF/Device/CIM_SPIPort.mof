@@ -1,0 +1,52 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="CIMCoreCR00752.000" type ="change">Update of
+// descriptions based on Tech Edit review.</
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// <change cr="ArchCR00089.003" type="add">Add PUnit qualifier values
+// to Units qualifier values.</change>
+// <change cr="DMTFCR01790" type="add">Corrected PortType range.</change>
+// ==================================================================
+//  CIM_SPIPort
+// ==================================================================
+   [Experimental, Version ( "2.16.0" ), 
+    UMLPackagePath ( "CIM::Device::Ports" ), 
+    Description ( 
+       "Represents the port of a SCSI bus to a device or system." )]
+class CIM_SPIPort : CIM_LogicalPort {
+
+      [Override ( "PortType" ), 
+       Description ( "The type of port." ), 
+       ValueMap { "0", "1", "140", "16000.." }, 
+       Values { "Unknown", "Other", "SCSI Parallel", 
+          "Vendor Reserved" }]
+   uint16 PortType;
+
+      [Description ( 
+          "Maximum data width (in bits) supported by the port." ), 
+       Units ( "Bits" ), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.7" }, 
+       PUnit ( "bit" )]
+   uint32 MaxDataWidth;
+
+      [Description ( 
+          "Maximum transfer rate (in Bits per Second) supported by the port."
+           ), 
+       Units ( "Bits per Second" ), 
+       MappingStrings { "MIF.DMTF|Bus Port|004.8" }, 
+       PUnit ( "bit / second" )]
+   uint64 MaxTransferRate;
+
+      [Description ( 
+          "Signal capabilities that can be supported by the port. "
+          "For example, the bus might support \"Single Ended\" and "
+          "\"Differential\". In this case, the values 3 and 4 would "
+          "be written to the Signal Capabilities array." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6" }, 
+       Values { "Other", "Unknown", "Single Ended", "Differential", 
+          "Low Voltage Differential", "Optical" }, 
+       ModelCorrespondence { "CIM_SCSIInterface.SCSISignal" }]
+   uint16 SignalCapabilities[];
+
+
+};

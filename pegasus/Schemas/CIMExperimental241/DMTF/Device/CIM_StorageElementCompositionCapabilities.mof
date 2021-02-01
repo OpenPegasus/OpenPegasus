@@ -1,0 +1,139 @@
+// Copyright (c) 2009 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.22.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "Configuration settings for Storage Element Composition service." )]
+class CIM_StorageElementCompositionCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "Indicates if instrumentation supports composite elements." )]
+   boolean SupportsComposites = false;
+
+      [Description ( 
+          "Indicates the Largest composite element that can be "
+          "created in bytes. Set to 0 if this information is not "
+          "known, or MaxCompositeSize is unlimited." ), 
+       PUNIT ( "byte" )]
+   uint64 MaxCompositeSize;
+
+      [Description ( 
+          "Indicates the most elements that can be combined into a "
+          "composite element. Set to 0 if this information is not "
+          "known, or MaxCompositeElements is unlimited." )]
+   uint64 MaxCompositeElements;
+
+      [Description ( 
+          "Composition characteristics supported by this system. \n"
+          "Description of values: \n"
+          "- CompositionIsDestructive - any data that exists on the "
+          "elements will be destroyed when the composite is created \n"
+          "- CanCompositeComposites - it is possible to use an "
+          "existing composite as an element to a new composite \n"
+          "- CanModifyComposite - An existing composite can be "
+          "modified by adding or removing one or more elements \n"
+          "- CompositeElementsMustBeSameSize - all elements used to "
+          "create/modify a composite must be the same size \n"
+          "- CompositeElementsMustBeSameRAID/QoS - all elements "
+          "used to create/modify a composite must have the same "
+          "RAID or QoS level \n"
+          "- DecompositionDeletesElements - When the composite is "
+          "dissolved the component elments (e.g. StorageVolumes) "
+          "are deleted \n"
+          "- CanAddToComposite - Elements can be added to a "
+          "composite in any position \n"
+          "- CanAppendToComposite - Elements can only be added at "
+          "the end of a composite \n"
+          "- CanRemoveFromComposite - Elements can be removed from "
+          "a composite \n"
+          "- CompositeAdditionIsDestructive - Adding elements to a "
+          "composite results in loss of data \n"
+          "- CompositeRemovalIsDestructive - Removing elements from "
+          "a composite results in loss of data." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "..", "32768..65535" }, 
+       Values { "CompositionIsDestructive", 
+          "CanCompositeComposites", "CanModifyComposite", 
+          "CompositeElementsMustBeSameSize", 
+          "CompositeElementsMustBeSameRAID/QoS", 
+          "DecompositionDeletesElements", "CanAddToComposite", 
+          "CanAppendToComposite", "CanRemoveFromComposite", 
+          "CompositeAdditionIsDestructive", 
+          "CompositeRemovalIsDestructive", "DMTF reserved", 
+          "Vendor Reserved" }]
+   uint16 CompositionCharacteristics[];
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "as asynchronous jobs. If an operation is included in "
+          "both this and SupportedSynchronousActions then the "
+          "underlying implementation is indicating that it may or "
+          "may not create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "..", "32768..65535" }, 
+       Values { "CreateOrModifyCompositeElement", 
+          "ReturnElementToElements", "GetAvailableElements", 
+          "GetCompositeElements", "RemoveElementsFromElement", 
+          "GetSupportedStripeLengths", 
+          "GetSupportedStripeLengthRange", 
+          "GetSupportedStripeDepths", 
+          "GetSupportedStripeDepthRange", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint16 SupportedAsynchronousActions[];
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "without the creation of a job. If an operation is "
+          "included in both this and SupportedAsynchronousActions "
+          "then the underlying instrumentation is indicating that "
+          "it may or may not create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "..", "32768..65535" }, 
+       Values { "CreateOrModifyCompositeElement", 
+          "ReturnElementToElements", "GetAvailableElements", 
+          "GetCompositeElements", "RemoveElementsFromElement", 
+          "GetSupportedStripeLengths", 
+          "GetSupportedStripeLengthRange", 
+          "GetSupportedStripeDepths", 
+          "GetSupportedStripeDepthRange", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint16 SupportedSynchronousActions[];
+
+      [Description ( "Managed element types that can be composited." ), 
+       ValueMap { "2", "3", "..", "32768..65535" }, 
+       Values { "StorageVolume", "LogicalDisk", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint16 SupportedStorageElements[];
+
+      [Description ( 
+          "Indicates which composition methods are supported. "
+          "Possible values are Concatenate, Stripe, "
+          "Concatenate+Stripe, Vendor specific." ), 
+       ValueMap { "2", "3", "4", "..", "32768..65535" }, 
+       Values { "Concatenate elements", "Stripe elements", 
+          "Concatenate and stripe elements", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint16 CompositionMethodsSupported[];
+
+      [Description ( 
+          "Indicates which sources for elements are supported. "
+          "Possible values are: 1. Use existing elements only 2. "
+          "Create new elements only 3. Can use existing or create "
+          "new or both 4. Instrumentation decides." ), 
+       ValueMap { "2", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "Use existing", "Create new", "Use and create", 
+          "Instrumentation decides", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint16 CompositeSourcesSupported[];
+
+      [Description ( 
+          "Does the instrumentation support naming the composite element."
+           )]
+   boolean SupportsCompositeNaming = false;
+
+      [Description ( 
+          "Does the instrumentation allow the user to specify the "
+          "RepresentativeElement in CreateOrModifyComposite." )]
+   boolean SupportsRepresentativeElement;
+
+
+};

@@ -1,0 +1,61 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.41.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "This class represents a collection of storage objects, such as "
+       "a group of StorageVolumes." )]
+class CIM_ReplicationGroup : CIM_SystemSpecificCollection {
+
+      [Write, Description ( 
+          "If false, the group, not the elements associated with "
+          "the group, may be deleted at the completion of a copy "
+          "operation." )]
+   boolean Persistent = true;
+
+      [Write, Description ( 
+          "If true and empty groups are allowed, the group will be "
+          "deleted when the last element is removed from the group. "
+          "If empty groups are not allowed, the group will be "
+          "deleted automatically when the group becomes empty." )]
+   boolean DeleteOnEmptyElement = false;
+
+      [Write, Description ( 
+          "If true, the group will be deleted when the group is no "
+          "longer associated with another group. This can happen if "
+          "all synchronization associations to the individual "
+          "elements of the group are dissolved." )]
+   boolean DeleteOnUnassociated = false;
+
+      [Description ( 
+          "This property applies to a group of elements. If it is "
+          "true, it means the point-in-time was created at an exact "
+          "time with no I/O activities in such a way the data is "
+          "consistent among all the elements of the group. This "
+          "property is only valid when the group is a target of a "
+          "copy operation." )]
+   boolean ConsistentPointInTime = false;
+
+      [Write, Description ( 
+          "Indicates the group is reserved to be used only as the "
+          "source, or as the target, or as either the source or the "
+          "target of a copy operation. \n"
+          "If NULL, the group can be either the source or the "
+          "target." ), 
+       ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Source Only", "Target Only", "Source or Target", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 ReservedAs;
+
+      [Description ( 
+          "Indicates replication group can be used for which "
+          "SyncTypes. \n"
+          "If NULL, the replication group can be used for all "
+          "SyncTypes the implementation supports." ), 
+       ValueMap { "6", "7", "8", "9", "..", "0x8000.." }, 
+       Values { "Mirror", "Snapshot", "Clone", "TokenizedClone", 
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+   uint16 SupportedSyncTypes[];
+
+
+};
