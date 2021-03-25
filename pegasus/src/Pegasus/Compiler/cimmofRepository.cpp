@@ -159,6 +159,12 @@ CIMClass cimmofRepository::getClass(const CIMNamespaceName &nameSpace,
         throw CIMException(
             e.getCode(), TraceableCIMException(e).getDescription());
     }
+    catch(Exception &e)
+    {
+	// TODO: We need to do something here other than just throw
+        //       This is really diagnostic support, not production
+        throw;
+    }
 }
 
 int cimmofRepository::modifyClass(const CIMNamespaceName &nameSpace,

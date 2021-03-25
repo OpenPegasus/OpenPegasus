@@ -846,21 +846,27 @@ CIMClass CIMRepository::_getClass(
     {
         // Not in cache so load from disk:
 #endif
+        // printf("DEBUG CIMRepository:_getClass L 850\n");
 
         CIMNamespaceName actualNameSpaceName;
         CIMName superClassName;
         _rep->_nameSpaceManager.locateClass(
             nameSpace, className, actualNameSpaceName, superClassName);
-
         cimClass = _rep->_persistentStore->getClass(
             actualNameSpaceName, className, superClassName);
         classIncludesPropagatedElements = _rep->_storeCompleteClassDefinitions;
 
         if (!localOnly && !classIncludesPropagatedElements)
         {
-            // Propagate the superclass elements to this class.
-            Resolver::resolveClass(cimClass, _rep->_context, nameSpace);
-            classIncludesPropagatedElements = true;
+            try
+            {
+                Resolver::resolveClass(cimClass, _rep->_context, nameSpace);
+                classIncludesPropagatedElements = true;
+            }            
+            catch (const Exception &e)
+            {
+                throw;
+            }
         }
 
 #ifdef PEGASUS_USE_CLASS_CACHE
