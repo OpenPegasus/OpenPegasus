@@ -1,1 +1,93 @@
 Source File: cim_schema_2.41.0Experimental-MOFs.zip
+
+To generate the OpenPegasus specific mofs used to load CIM server specific
+namespaces the script  pegasus/mak/CreateDmtfSchema was used.
+
+NOTE: The script CreateDmtfSchema creates the directory Schemas/CIM241 which
+must then be renamed to CIMExperimental241 to correctly maintain the naming
+scheme.
+
+Several manual updates needed to be made in the generated OpenPegasus mofs after
+running the script to properly include the prerequisite classes for the
+compiler.
+
+The following diff statements define the changes made.
+
+CIM_Core.mof DIFFS
+
+42a43,46
+> 
+> // inserted manually but may not be correct
+> #pragma include("DMTF/Interop/CIM_Message.mof")
+> #pragma include( "DMTF/Interop/CIM_Error.mof")
+150a155,160
+> 
+> // Manual addition ks. Following lines
+> #pragma include ("DMTF/User/CIM_Identity.mof")
+> #pragma include ("DMTF/User/CIM_StorageHardwareID.mof")
+> 
+> #pragma include ("DMTF/User/CIM_StorageHardwareID.mof")
+155a166,168
+> 
+> // Manual addition line CIM_VirtualEthernetSwitchSettingData ks
+> #pragma include ("DMTF/System/CIM_VirtualSystemSettingData.mof")
+194a208,212
+> // KS inserted for moment. Moved some elements
+> #pragma include ("DMTF/Core/CIM_AllocatedLogicalElement.mof")
+> #pragma include ("DMTF/Core/CIM_LogicalDevice.mof")
+> #pragma include ("DMTF/Core/CIM_Realizes.mof")
+> 
+207c225
+< #pragma include ("DMTF/Core/CIM_AllocatedLogicalElement.mof")
+---
+> // moved #pragma include ("DMTF/Core/CIM_AllocatedLogicalElement.mof")
+209c227
+< #pragma include ("DMTF/Core/CIM_LogicalDevice.mof")
+---
+> // moved #pragma include ("DMTF/Core/CIM_LogicalDevice.mof")
+214c232,233
+< #pragma include ("DMTF/Core/CIM_Realizes.mof")
+---
+> 
+> // #pragma include ("DMTF/Core/CIM_Realizes.mof")
+234a254
+> #pragma include ("DMTF/System/CIM_ComputerSystem.mof")
+244a265
+> #pragma include ("DMTF/Network/CIM_IPProtocolEndpoint.mof")
+259a281,286
+> #pragma include ("DMTF/Device/CIM_ProtocolController.mof")
+> #pragma include ("DMTF/Device/CIM_SCSIProtocolController.mof")
+> #pragma include ("DMTF/User/CIM_SecurityService.mof")
+> #pragma include ("DMTF/User/CIM_AuthenticationService.mof")
+> #pragma include ("DMTF/User/CIM_IdentityManagementService.mof")
+> #pragma include ("DMTF/User/CIM_StorageHardwareIDManagementService.mof")
+265a293,295
+> #pragma include ("DMTF/Device/CIM_LogicalPort.mof")
+> #pragma include ("DMTF/Device/CIM_NetworkPort.mof")
+> #pragma include ("DMTF/Device/CIM_FCPort.mof")
+
+CIM_Event.diff
+
+75a76
+> #pragma include ("DMTF/System/CIM_Log.mof")
+
+CIM_Interop.diff
+
+59a60
+> #pragma include ("DMTF/Network/CIM_ProtocolServiceCapabilities.mof")
+
+
+CIM_System.diff
+
+88a89
+> #pragma include ("DMTF/Device/CIM_StatisticsCapabilities.mof")
+90a92
+> #pragma include ("DMTF/User/CIM_Privilege.mof")
+132a135
+> #pragma include ("DMTF/User/CIM_Credential.mof")
+144a148
+> #pragma include ("DMTF/Device/CIM_StorageSetting.mof")
+145a150
+> #pragma include ("DMTF/Device/CIM_StatisticsService.mof")
+
+
