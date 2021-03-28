@@ -1,0 +1,84 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// <change cr="ArchCR00089.003" type="add">Add PUnit qualifier values
+// to Units qualifier values.</change>
+// ==================================================================
+//  CIM_IBPort 
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Device::IB" ), 
+    Description ( 
+       "Management information and capabilities of an InfiniBand Port "
+       "and Channel Adapter. Each port of an IB Channel Adapter "
+       "independently provides the physical, link and network protocol "
+       "layers of its container IBA Device. Multiple ports of a "
+       "container IBA Device share the transport layer functionality "
+       "among the ports. An IBA Port represents attributes of \"link "
+       "port\" and/or \"end port\"." )]
+class CIM_IBPort : CIM_NetworkPort {
+
+      [Override ( "Speed" ), 
+       Description ( 
+          "The Speed property is derived from the product of "
+          "LinkWidthActive and LinkSpeedActive. This is the actual "
+          "speed of the connection." )]
+   uint64 Speed;
+
+      [Override ( "MaxSpeed" ), 
+       Description ( 
+          "The Max speed of the connection is derived from the "
+          "product of LinkSpeedEnabled and LinkWidthAvailable." )]
+   uint64 MaxSpeed;
+
+      [Override ( "PermanentAddress" ), 
+       Description ( "The GUID of this port." )]
+   string PermanentAddress;
+
+      [Override ( "NetworkAddresses" ), 
+       Description ( 
+          "The LIDs of this port. The first entry should always "
+          "contain the base LID." )]
+   string NetworkAddresses[];
+
+      [Write, Description ( 
+          "The LID Mask Control value provides a way to have "
+          "multiple addresses for a single path. The number of LIDs "
+          "assigned to a port range from 1 to 128 unicast LIDs. The "
+          "LIDMask can be set to define the LID assignments of the "
+          "port." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 128 ), 
+       MappingStrings { "MAD.IBTA | PortInfo | LMC" }]
+   uint8 LIDMask;
+
+      [Override ( "PortType" ), 
+       Description ( 
+          "The type of port; e.g. switch, router, channel adapter." ), 
+       ValueMap { "0", "60", "61", "62", "16000.." }, 
+       Values { "Unknown", "Switch", "Router", "Channel Adapter", 
+          "Vendor Specific" }]
+   uint16 PortType;
+
+      [Description ( 
+          "Currently active link width. Only one width should be "
+          "selected. Therefore, the only valid values are 1 (1x), 2 "
+          "(4x), and 8 (12x)." ), 
+       BitMap { "0", "1", "3" }, 
+       BitValues { "1x", "4x", "12x" }, 
+       MappingStrings { "MAD.IBTA | PortInfo | LinkWidthActive" }]
+   uint16 LinkWidthActive;
+
+      [Description ( 
+          "Current active link speed. It is a component of the "
+          "ports actual speed. Actual speed is calculated by the "
+          "product of LinkSpeedActive times LinkWidthActive." ), 
+       Units ( "GigaBits" ), 
+       BitMap { "0" }, 
+       BitValues { "2.5" }, 
+       MappingStrings { "MAD.IBTA | PortInfo | LinkSpeedActive" }, 
+       PUnit ( "bit * 10^9" )]
+   uint8 LinkSpeedActive;
+
+
+};

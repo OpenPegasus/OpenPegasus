@@ -1,0 +1,316 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+// SecurityIndication
+// ==================================================================
+   [Indication, Experimental, Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Event" ), 
+    Description ( 
+       "SecurityIndication provides a common superclass for the CIM "
+       "Security Events schema. SecurityIndications are messages "
+       "produced by Detectors that watch for and report on events that "
+       "have security implications. Detectors may include, but are not "
+       "limited to intrusion detection systems, antivirus scanners, "
+       "firewalls, vulnerability scanners, or operating system "
+       "sentries and subsystems. \n"
+       "Although often due to attacks or probes, security events can "
+       "also reflect normal activity, such as host or network login, "
+       "firewall connections, etc. Messages include information about "
+       "the Effect of the event, the Mechanism or method by which the "
+       "event occurred, and the Resource affected by the event. \n"
+       "Properties from the base class CIM_Indication that MUST be "
+       "populated are: IndicationIdentifier and IndicationTime. A "
+       "property from the superclass CIM_AlertIndication that MUST be "
+       "populated is: AlertType which MUST be set to \"Security\". "
+       "EventID, ProviderName and AlertingManagedElement in some "
+       "combination SHOULD be populated in a way that identifies the "
+       "device type and its source in an unambiguous way from the "
+       "Detector\'s point of view." )]
+class CIM_SecurityIndication : CIM_AlertIndication {
+
+      [Required, Override ( "IndicationIdentifier" ), 
+       Description ( 
+          "An identifier for the Indication. This property is "
+          "similar to a key value in that it can be used for "
+          "identification, when correlating Indications (see the "
+          "CorrelatedIndications array). Its value SHOULD be unique "
+          "as long as Alert correlations are reported, but MAY be "
+          "reused or left NULL if no future Indications will "
+          "reference it in their CorrelatedIndications array." ), 
+       MappingStrings { 
+          "Recommendation.ITU|X733.Notification identifier" }]
+   string IndicationIdentifier;
+
+      [Required, Override ( "AlertType" ), 
+       Description ( 
+          "Primary classification of the Indication. The following "
+          "value is the only value permitted from AlertIndication: \n"
+          "8 - Security Alert. An Indication of this type is "
+          "associated with security violations, detection of "
+          "viruses, and similar issues." ), 
+       ValueMap { "8" }, 
+       Values { "Security Alert" }, 
+       MappingStrings { "Recommendation.ITU|X733.Event type" }]
+   uint16 AlertType = 8;
+
+      [Required, Description ( 
+          "MessageType is an identifier distinguishing the instance "
+          "of a SecurityIndication semantically. Instances of this "
+          "class or its subclasses have different meaning depending "
+          "upon the value of MessageType. For example, overrides of "
+          "this property in subclasses can define new MethodTypes, "
+          "such as \"Virus Found\" or \"Vulnerability Detected\". A "
+          "range of values, DMTF_Reserved, and Vendor Reserved, has "
+          "been defined that allows subclasses to override and "
+          "define their specific event message types. \n"
+          "Note that MessageType does not correspond to the "
+          "CIM_AlertIndication \"Message\" property, which holds a "
+          "formatted string for general AlertIndications. "
+          "CIM_AlertIndication.Message MAY be used to contain "
+          "message text sent by the Detector, but in addition to, "
+          "rather than in lieu of SecurityIndication specific "
+          "properties." ), 
+       ValueMap { "0", "..", "2", "16000.." }, 
+       Values { "Unknown", "DMTF Reserved", "Not Applicable", 
+          "Vendor Reserved" }]
+   uint16 MessageType;
+
+      [Required, Override ( "IndicationTime" ), 
+       Description ( 
+          "The time and date of creation of the Indication. The "
+          "property may be set to NULL if the entity creating the "
+          "Indication is not capable of determining this "
+          "information. Note that IndicationTime may be the same "
+          "for two Indications that are generated in rapid "
+          "succession." ), 
+       ModelCorrespondence { 
+          "CIM_SecurityIndication.IndicationStartCountTime" }]
+   datetime IndicationTime;
+
+      [Description ( 
+          "The start time and date of a range of events represented "
+          "by the Indication whose current event time is specified "
+          "by IndicationTime. If the Indication represents a single "
+          "event, this property MUST be set to NULL. If the "
+          "Indication represents multiple events over time, the "
+          "EventCount property MUST be greater than 1 and this "
+          "property MUST be less than or equal to the "
+          "IndicationTime value. In this case, the Indication "
+          "represents an event aggregate with the aggregate "
+          "amplitude being the EventCount property. The time range "
+          "or EventCount does not imply a threshold in and of "
+          "itself, but a time or amplitude threshold MAY be used in "
+          "determining how a Detector populates this property." ), 
+       ModelCorrespondence { "CIM_SecurityIndication.EventCount", 
+          "CIM_SecurityIndication.IndicationTime" }]
+   datetime IndicationStartCountTime;
+
+      [Description ( 
+          "The number of events represented by this Indication. If "
+          "IndicationStartCountTime is not NULL, EventCount MUST be "
+          "greater than 1 which means that the Indication "
+          "represents an event aggregate." ), 
+       Counter, MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_SecurityIndication.IndicationStartCountTime" }]
+   uint16 EventCount = 1;
+
+      [Required, Description ( 
+          "An array of enumerated values that describes the "
+          "effect(s) of an event from the Detector\'s point of "
+          "view. Some security devices such as simple packet "
+          "filters may not be able to detect the notion of an "
+          "event\'s Effect. In these cases, the Effect is "
+          "\"Unknown\". Although in many cases the Effect of an "
+          "attack is intended, not all attacks have a known intent, "
+          "such as viruses or other malicious code, which may have "
+          "multiple varied Effects. If there is more than one "
+          "Effect, the first element in the array SHOULD represent "
+          "the most significant or most severe Effect, from the "
+          "Detector\'s point of view. The following values are "
+          "defined: \n"
+          "0 - Unknown means the Effect of the event is purely "
+          "unknown. \n"
+          "2 - Degradation. The message indicates that an attempt "
+          "was made to damage or impair usability, performance, "
+          "service availability, etc. \n"
+          "3 - Reconnaissance. The message indicates that there was "
+          "an attempt to gather information useful for attacks, or "
+          "probe for vulnerabilities without necessarily exploiting "
+          "them. \n"
+          "4 - Access. The message indicates that access has been "
+          "attempted or made to data or services. \n"
+          "5 - Integrity. The message indicates that there was an "
+          "attempt to modify or delete data. \n"
+          "6 - System Compromised. The message indicates that an "
+          "attacker succeeded in gaining complete access to the "
+          "system." ), 
+       ValueMap { "0", "..", "2", "3", "4", "5", "6", "16000.." }, 
+       Values { "Unknown", "DMTF Reserved", "Degradation", 
+          "Reconnaissance", "Access", "Integrity", 
+          "System Compromised", "Vendor Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SecurityIndication.MoreSpecificEffects" }]
+   uint16 Effects[];
+
+      [Description ( 
+          "If more details are known about the effect of an attack "
+          "or probe, this property can contain that information. "
+          "For example, if one of the values of Effects is Access, "
+          "a more specific Effect might be HostCompromised. Or, if "
+          "the Effect is Degradation, a more specific effect might "
+          "be DistributedDoS. \n"
+          "String values for this property are vendor or Detector "
+          "specific and as such, the property "
+          "CIM_AlertIndication.OwningEntity SHOULD be populated to "
+          "identify the business entity or standards body defining "
+          "the possible values." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_SecurityIndication.Effects", 
+          "CIM_AlertIndication.OwningEntity" }]
+   string MoreSpecificEffects[];
+
+      [Required, Description ( 
+          "An array of integers indicating the method(s) used in an "
+          "attack, probe, or other action. When more than one value "
+          "is used there MAY be a parent/child or hierarchical "
+          "relationship between values where the more general or "
+          "parent value is at the lowest index and the more "
+          "specific or child value(s) are at increasing indices. "
+          "Values with a parent/child relationship are: \n"
+          "\n"
+          "Parent - NetworkProtocol \n"
+          "Children - NetworkICMP, NetworkTCP, NetworkUDP, "
+          "NetworkHTTP \n"
+          "\n"
+          "Parent - Overloading \n"
+          "Children - Congestion, Saturation \n"
+          "\n"
+          "Mechanisms values can be used with any of the Effects "
+          "values, depending on the method(s) employed in an attack "
+          "or probe. For example, a DoS attack using ICMP packets, "
+          "Effects would contain Degradation, and Mechanisms would "
+          "contain NetworkProtocol and NetworkICMP in that order. "
+          "For a port scan, Effects contains Reconnaissance and "
+          "Mechanisms would contain PortScan." ), 
+       ValueMap { "0", "..", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", 
+          "19", "20", "21", "22", "23", "24", "25", "26", "27", 
+          "28", "29", "30", "31", "32", "33", "34", "35", "36", 
+          "37", "16000.." }, 
+       Values { "Unknown", "DMTF Reserved", "ArpPoisoning", 
+          "Backdoor", "Rootkit", "Trojan", "BufferOverflow", 
+          "GuessPassword", "ReplayAttack", "SQLInjection", 
+          "SpoofIdentity", "PortSweep", "HostSweep", "NetworkSweep", 
+          "NetworkICMP", "NetworkTCP", "NetworkUDP", "Worm", 
+          "Virus", "Non-viral Malicious", "Spyware", "Adware", 
+          "Login", "Logout", "Application Exploitation", 
+          "Script Injection", "Stale-data Scan", "Congestion", 
+          "Saturation", "Overloading", "Port Scan", 
+          "Network Protocol", "Network HTTP", "Phishing", 
+          "Redirection", "RemoteExecution", "DataManipulation", 
+          "Cross-site Scripting", "Vendor Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SecurityIndication.MoreSpecificMechanisms" }]
+   uint16 Mechanisms[];
+
+      [Description ( 
+          "Specifies a more specific mechanism based on a value "
+          "specified in the Mechanisms property. For example, if "
+          "one of the values of Mechanisms is Trojan, then a "
+          "MoreSpecificMechanisms might be Connect for a trojan "
+          "that opens a port and listens for connections. A "
+          "different method might be Response if the trojan sends "
+          "information. \n"
+          "String values for this property are vendor or Detector "
+          "specific and as such, the property "
+          "CIM_AlertIndication.OwningEntity SHOULD be populated to "
+          "identify the business entity or standards body defining "
+          "the possible values." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_SecurityIndication.Mechanisms", 
+          "CIM_AlertIndication.OwningEntity" }]
+   string MoreSpecificMechanisms[];
+
+      [Required, Description ( 
+          "An integer indicating the type(s) of resource affected "
+          "by an attack or probe. When more than one value is used "
+          "there MAY be a parent/child or hierarchical relationship "
+          "between values where the more general or parent value is "
+          "at the lowest index and the more specific or child "
+          "value(s) are at increasing indices. Values with a "
+          "parent/child relationship are: \n"
+          "\n"
+          "Parent - Remote Service \n"
+          "Children - Remote Share, Naming Service, DB, FTP, Mail, "
+          "RPC, Web \n"
+          "\n"
+          "Parent - Remote Share \n"
+          "Children - NFS, SMB, CIFS \n"
+          "\n"
+          "Parent - Naming Service \n"
+          "Children - DNS, LDAP \n"
+          "\n"
+          "Parent - Application \n"
+          "Children - Application Data, Application Configuration \n"
+          "\n"
+          "Parent - OS \n"
+          "Children - OS Kernel, OS Configuration, OS Session, File "
+          "System, Process, Service, User Account, Privileges, User "
+          "Policy, Group, Registry, File \n"
+          "\n"
+          "Parent - Network Device \n"
+          "Children - Firewall, Router, Switch \n"
+          "\n"
+          "For example, DB indicates that an attack was made "
+          "against a database server, where Mail indicates that "
+          "some type of email server is affected. DB, DNS, and "
+          "other values can mean a server or service, e.g. there is "
+          "no distinction between a DNS server resource and a DNS "
+          "service resource. Web means a web server/service but "
+          "more specific resources of this type can be specified "
+          "using the MoreSpecificResources property, e.g. IIS, "
+          "Apache, iPlanet, etc." ), 
+       ValueMap { "0", "..", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "11", "12", "13", "14", "15", "16", "17", "18", 
+          "19", "20", "21", "22", "23", "24", "25", "26", "27", 
+          "28", "29", "30", "31", "32", "33", "34", "35", "36", 
+          "37", "38", "39", "40", "41", "42", "16000.." }, 
+       Values { "Unknown", "DMTF Reserved", "DB", "DNS", "FTP", 
+          "Mail", "Web", "Host", "Firewall", "Registry", 
+          "Network Device", "Hardware", "User Activity", "Cookies", 
+          "Network Data", "Application Data", 
+          "Application Configuration", "OS Kernel", 
+          "OS Configuration", "OS Session", "File System", 
+          "Process", "Service", "Network Session", "URL", 
+          "User Account", "Privileges", "User Policy", "Group", 
+          "RPC", "SNMP", "Remote Service", "Remote Share", 
+          "Naming Service", "Application", "OS", "NFS", "SMB", 
+          "CIFS", "CPU", "Router", "Switch", "LDAP", 
+          "Vendor Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_SecurityIndication.MoreSpecificResources" }]
+   uint16 Resources[];
+
+      [Description ( 
+          "Specifies a more specific resource based on a value "
+          "specified in the Resources property. For example, if one "
+          "of the values of Resources is Web, then a "
+          "MoreSpecificResource might be Apache for an attack or "
+          "probe against an Apache web server. \n"
+          "String values for this property are vendor or Detector "
+          "specific and as such, the property "
+          "CIM_AlertIndication.OwningEntity SHOULD be populated to "
+          "identify the business entity or standards body defining "
+          "the possible values." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_SecurityIndication.Resources", 
+          "CIM_AlertIndication.OwningEntity" }]
+   string MoreSpecificResources[];
+
+
+};

@@ -1,0 +1,67 @@
+// Copyright (c) 2006 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.14.0" ), 
+    UMLPackagePath ( "CIM::Core::Redundancy" ), 
+    Description ( 
+       "A class derived from Capabilities that describes the "
+       "capabilities of a RedundancySet." )]
+class CIM_RedundancySetCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "SupportedTypesOfSets lists the types of redundancy "
+          "supported. N+1 (=2) indicates all members are active, "
+          "are unaware and function independent of one another. "
+          "However, there exists at least one extra member to "
+          "achieve functionality. \'Sparing\' is implied (i.e. each "
+          "member can be a spare for the other(s). An example of "
+          "N+1 is a system that has 2 power supplies, but needs "
+          "only 1 power supply to function properly. \n"
+          "- Load Balanced (=3) indicates all members are active. "
+          "However, there functionality is not independent of each "
+          "other. Their functioning is determined by some sort of "
+          "load balancing algrothim (implemented in hardware and/or "
+          "software). \'Sparing\' is implied (i.e. each member can "
+          "be a spare for the other(s). \n"
+          "- Sparing (=4) indicates that all members are active and "
+          "are aware of each others. However, their functionality "
+          "is independent until failover. Each member can be a "
+          "spare for the other(s). \n"
+          "- Limited Sparing (=5) indicates that all members are "
+          "active, and they may or may not be aware of each and "
+          "they are not spares for each other. Instead, their "
+          "redundancy is indicated by the IsSpare relationship." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "N+1", "Load Balanced", 
+          "Sparing", "Limited Sparing", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_RedundancySet.TypeOfSet" }]
+   uint16 SupportedTypesOfSets[];
+
+      [Description ( 
+          "MaxNumberSupported indicates the largest number of "
+          "elements that can participate in the RedundancySet. A "
+          "value of 0 indicates there is no limit on the number of "
+          "elements." )]
+   uint32 MaxNumberSupported;
+
+      [Description ( 
+          "The load balancing algorithms supported by the "
+          "RedundancySet. \n"
+          "Least Blocks, Least IO, and Address Region are used in "
+          "storage device path redundancy drivers to optimize load "
+          "balancing by routing requests to a path with the least "
+          "queued blocks or IO requests, or based on locality of "
+          "reference. \n"
+          "\'Product Specific\' indicates that the algorithm is "
+          "optimized for a particular type of product. Information "
+          "about that product SHOULD be provided in an associated "
+          "CIM_Product instance." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "No Load Balancing", 
+          "Round Robin", "Least Blocks", "Least IO", 
+          "Address Region", "Product Specific" }, 
+       ModelCorrespondence { "CIM_RedundancySet.LoadBalanceAlgorithm" }]
+   uint16 SupportedLoadBalanceAlgorithms[];
+
+
+};

@@ -1,0 +1,70 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_LinkAggregatorPartnerConnection
+// ==================================================================
+   [Association, Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::8023LAG" ), 
+    Description ( 
+       "LinkAggregatorPartnerConnection contains the configuration "
+       "information for an instance of a Link Aggregator\'s partner. "
+       "The partner is defined as a RemoteServiceAccessPoint and it "
+       "represents the actor\'s view of the connection. This sub-class "
+       "of ActiveConnection represents a connection which is "
+       "configured to communicate or it is actively communicating. If "
+       "there is no known partner, then this association will not be "
+       "defined for an instance of LinkAggregator8023ad." )]
+class CIM_LinkAggregatorPartnerConnection : CIM_ActiveConnection {
+
+      [Override ( "Antecedent" ), 
+       Max ( 1 ), 
+       Description ( "The Link Aggregator on the local system." )]
+   CIM_LinkAggregator8023ad REF Antecedent;
+
+      [Override ( "Dependent" ), 
+       Max ( 1 ), 
+       Description ( 
+          "The remote entity/partner of the referenced LinkAggregator8023ad."
+           )]
+   CIM_RemoteServiceAccessPoint REF Dependent;
+
+      [Description ( 
+          "A 6-octet MAC address value consisting of the unique "
+          "identifier for the current protocol Partner of the "
+          "referenced Aggregator. If the aggregation is manually "
+          "configured, this System ID value will be a value "
+          "assigned by the local System. Note that the MAC address "
+          "is formatted as twelve hexadecimal digits (e.g., "
+          "\"010203040506\"), with each pair representing one of "
+          "the six octets of the MAC address in \"canonical\" bit "
+          "order according to RFC 2469." ), 
+       MaxLen ( 12 ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPartnerSystemID" }, 
+       ModelCorrespondence { 
+          "CIM_LinkAggregatorPartnerConnection.PartnerSystemPriority" }]
+   string PartnerSystemID;
+
+      [Description ( 
+          "A 2-octet value that indicates the priority value "
+          "associated with the Partner\'s System ID. If the "
+          "aggregation is manually configured, this System Priority "
+          "value will be a value assigned by the local System." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPartnerSystemPriority" }, 
+       ModelCorrespondence { 
+          "CIM_LinkAggregatorPartnerConnection.PartnerSystemID" }]
+   uint16 PartnerSystemPriority;
+
+      [Description ( 
+          "The current operational value of the 16-bit Key for the "
+          "Aggregator\'s current protocol Partner. If the "
+          "aggregation is manually configured, this Key value will "
+          "be a value assigned by the local System." ), 
+       MappingStrings { 
+          "MIB.IEEE|IEEE8023-LAG-MIB.dot3adAggPartnerOperKey" }]
+   uint16 PartnerOperKey;
+
+
+};

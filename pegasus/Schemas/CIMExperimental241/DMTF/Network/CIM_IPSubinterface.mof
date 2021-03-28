@@ -1,0 +1,61 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.40.0" ), 
+    UMLPackagePath ( "CIM::Network" ), 
+    Description ( 
+       "Configuration properties for an Ethernet switch or router "
+       "subinterface. A IPSubinterface allows the router to route "
+       "traffic on a single port as if it were part of multiple "
+       "separate IP subnets. The parent Interface is configured as a "
+       "trunk port and the connection is is divided by encapsulating "
+       "each frame with VLAN information." )]
+class CIM_IPSubinterface : CIM_IPProtocolEndpoint {
+
+      [Description ( 
+          "1- Other, If other there should be a description or type "
+          "set in the OtherEncapsulationType property.\r\r\r\n"
+          "2- Dot1Q Configures IEEE 802.1Q VLAN encapsulation on "
+          "the IPSubinterface (VLANId), if selected the the "
+          "EncapsulationValue property should be set to a value "
+          "between 2 and 4093." ), 
+       ValueMap { "0", "1", "2", "..", "32767..65535" }, 
+       Values { "Unknown", "Other", "Dot1Q", "DMTF reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_IPSubinterface.EncapsulationValue" }]
+   uint16 EncapsulationType;
+
+      [Description ( 
+          "This property contains a reference to the port (instance "
+          "of CIM_EthernetPort) that this IPSubinterface is "
+          "associated with. Each non-null value of the "
+          "ParentInterfaceID property shall be formated as a URI "
+          "per RFC3986 and should be a WBEM URI (DSP0207)." ), 
+       Reference ( "CIM_EthernetPort" )]
+   string ParentInterface;
+
+      [Description ( 
+          "Depending on the value of EncapsulationType property "
+          "this EncapsulationValue should contain the configuration "
+          "value for the encapsulation." ), 
+       ModelCorrespondence { "CIM_IPSubinterface.EncapsulationType" }]
+   string EncapsulationValue;
+
+      [Description ( 
+          "A string that describes the encapsulation type when a "
+          "well defined value is not available and "
+          "EncapsulationType has the value \"Other\"." ), 
+       ModelCorrespondence { "CIM_IPSubinterface.EncapsulationType" }]
+   string OtherEncapsulationType;
+
+      [Override ( "ElementName" ), 
+       Description ( 
+          "The Interface name for the IPSubinterface. This property "
+          "allows each instance to define a user-friendly name in "
+          "addition to the Name property which is a key properties "
+          "in this class. Element Name may be a copy of the Name "
+          "property but the class provider may add additional "
+          "indentifing information to the Name property to assure "
+          "it is a unique instance when forming the key." )]
+   string ElementName;
+
+
+};

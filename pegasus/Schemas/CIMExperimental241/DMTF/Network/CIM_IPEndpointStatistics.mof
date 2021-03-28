@@ -1,0 +1,158 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_IPEndpointStatistics
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::ChannelExtender" ), 
+    Description ( 
+       "CIM_IPEndpointStatistics records the statistics for an "
+       "associated CIM_IPProtocolEndpoint." )]
+class CIM_IPEndpointStatistics : CIM_ProtocolEndpointStatistics {
+
+      [Override ( "ReceivedPDUs" ), 
+       Description ( 
+          "The total number of input datagrams received from "
+          "interfaces, including those received in error." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipInReceives" }]
+   uint32 ReceivedPDUs;
+
+      [Override ( "ReceivedPDUHeaderErrors" ), 
+       Description ( 
+          "The number of input datagrams discarded due to errors in "
+          "their IP headers, including bad checksums, version "
+          "number mismatch, other format errors, time-to-live "
+          "exceeded, errors discovered in processing their IP "
+          "options, etc." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipInHdrErrors" }]
+   uint32 ReceivedPDUHeaderErrors;
+
+      [Override ( "ReceivedPDUAddressErrors" ), 
+       Description ( 
+          "The number of input datagrams discarded because the IP "
+          "address in their IP header\'s destination field was not "
+          "a valid address to be received at this entity. This "
+          "count includes invalid addresses (e.g., 0.0.0.0) and "
+          "addresses of unsupported Classes (e.g., Class E). For "
+          "entities which are not IP routers and therefore do not "
+          "forward datagrams, this counter includes datagrams "
+          "discarded because the destination address was not a "
+          "local address." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipInAddrErrors" }]
+   uint32 ReceivedPDUAddressErrors;
+
+      [Description ( 
+          "The number of input datagrams for which this entity was "
+          "not their final IP destination, as a result of which an "
+          "attempt was made to find a route to forward them to that "
+          "final destination. In entities which do not act as IP "
+          "routers, this counter will include only those packets "
+          "which were Source-Routed via this entity, and the "
+          "Source-Route option processing was successful." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipForwDatagrams" }]
+   uint32 ReceivedPDUForwards;
+
+      [Description ( 
+          "The number of locally-addressed datagrams received "
+          "successfully but discarded because of an unknown or "
+          "unsupported protocol." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipInUnknownProtos" }]
+   uint32 ReceivedPDUUnknownProtocolErrors;
+
+      [Description ( 
+          "The number of input IP datagrams for which no problems "
+          "were encountered to prevent their continued processing, "
+          "but which were discarded (e.g., for lack of buffer "
+          "space). Note that this counter does not include any "
+          "datagrams discarded while awaiting re-assembly." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipInDiscards" }]
+   uint32 ReceivedPDUDiscards;
+
+      [Description ( 
+          "The total number of input datagrams successfully "
+          "delivered to IP user-protocols (including ICMP)." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipInDelivers" }]
+   uint32 PDUDelivers;
+
+      [Override ( "SentPDUs" ), 
+       Description ( 
+          "The total number of IP datagrams which local IP "
+          "user-protocols (including ICMP) supplied to IP in "
+          "requests for transmission. Note that this counter does "
+          "not include any datagrams counted in ipForwDatagrams." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipOutRequests" }]
+   uint32 SentPDUs;
+
+      [Description ( 
+          "The number of output IP datagrams for which no problem "
+          "was encountered to prevent their transmission to their "
+          "destination, but which were discarded (e.g., for lack of "
+          "buffer space). Note that this counter would include "
+          "datagrams counted in ipForwDatagrams if any such packets "
+          "met this (discretionary) discard criterion." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipOutDiscards" }]
+   uint32 SentPDUDiscards;
+
+      [Description ( 
+          "The number of IP datagrams discarded because no route "
+          "could be found to transmit them to their destination. "
+          "Note that this counter includes any packets counted in "
+          "ipForwDatagrams which meet this \'no-route\' criterion. "
+          "Note that this includes any datagrams which a host "
+          "cannot route because all of its default routers are "
+          "down." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipOutNoRoutes" }]
+   uint32 SentPDUNoRouteErrors;
+
+      [Description ( 
+          "The number of IP fragments received which needed to be "
+          "reassembled at this entity." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipReasmReqds" }]
+   uint32 ReassemblyRequired;
+
+      [Description ( 
+          "The number of IP datagrams successfully re-assembled." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipReasmOKs" }]
+   uint32 ReassembledPackets;
+
+      [Description ( 
+          "The number of failures detected by the IP re-assembly "
+          "algorithm (for whatever reason: timed out, errors, etc). "
+          "Note that this is not necessarily a count of discarded "
+          "IP fragments since some algorithms (notably the "
+          "algorithm in RFC 815) can lose track of the number of "
+          "fragments by combining them as they are received." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipReasmFails" }]
+   uint32 ReassemblyFailed;
+
+      [Description ( 
+          "The number of IP datagrams that have been successfully "
+          "fragmented at this entity." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipFragOKs" }]
+   uint32 Fragmentation;
+
+      [Description ( 
+          "The number of IP datagrams that have been discarded "
+          "because they needed to be fragmented at this entity but "
+          "could not be, e.g., because their Don\'t Fragment flag "
+          "was set." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipFragFails" }]
+   uint32 FragmentationFails;
+
+      [Description ( 
+          "The number of IP datagram fragments that have been "
+          "generated as a result of fragmentation at this entity." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipFragCreates" }]
+   uint32 FragmentedPDUsCreates;
+
+      [Description ( 
+          "The number of routing entries which were chosen to be "
+          "discarded even though they are valid. One possible "
+          "reason for discarding such an entry could be to free-up "
+          "buffer space for other routing entries." ), 
+       Counter, MappingStrings { "MIB.IETF|IP-MIB.ipRoutingDiscards" }]
+   uint32 RouteEntriesDiscards;
+
+
+};

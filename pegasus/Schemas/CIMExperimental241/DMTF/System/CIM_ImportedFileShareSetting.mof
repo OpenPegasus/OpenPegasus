@@ -1,0 +1,482 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::System::FileServices" ), 
+    Description ( 
+       "The ImportedFileShareSetting describes the attribute values "
+       "that were set when a FileShare was created for a LogicalFile "
+       "by a FileImportService. These settings are associated with the "
+       "created Share via the ElementSettingData association. These "
+       "settings can also be associated with an "
+       "ImportedFileShareCapabilities element via "
+       "SettingAssociatedToCapabilities. If the setting is associated "
+       "with a FileShare, it cannot have undefined or NULL properties. "
+       "If it is associated with an ImportedFileShareCapabilities, a "
+       "null property indicates that the property is not supported or "
+       "that the value is a vendor-specific context-dependent default "
+       "that may not be set." )]
+class CIM_ImportedFileShareSetting : CIM_SettingData {
+
+      [Description ( 
+          "An enumerated integer indicating the share protocol that "
+          "this share can support. This property must exist and "
+          "have a value. The version of the protocol must be "
+          "specified in the corresponding ProtocolVersions "
+          "property." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Unknown", "NFS", "CIFS", "DAFS", "WebDAV", "HTTP", 
+          "FTP", "DMTF Reserved", "Vendor Defined" }, 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareCapabilities.FileSharingProtocol", 
+          "CIM_ExportedFileShareSetting.FileSharingProtocol", 
+          "CIM_ImportedFileShareSetting.ProtocolVersions" }]
+   uint16 FileSharingProtocol;
+
+      [Description ( 
+          "An array of strings listing the versions of the file "
+          "sharing protocol that this share can support. This "
+          "property must exist and have at least one entry." ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareCapabilities.ProtocolVersions", 
+          "CIM_ExportedFileShareSetting.ProtocolVersions", 
+          "CIM_ImportedFileShareSetting.FileSharingProtocol" }]
+   string ProtocolVersions[];
+
+      [Description ( 
+          "InitialEnabledState is an integer enumeration that "
+          "indicates the enabled/disabled states initially set for "
+          "a file share element. Unlike FileShare.EnabledState it "
+          "cannot indicate transitions between requested states "
+          "because those states cannot be requested. The following "
+          "text briefly summarizes the various enabled/disabled "
+          "initial states: \n"
+          "Enabled (2) indicates that the element will execute "
+          "commands, will process any queued commands, and will "
+          "queue new requests. \n"
+          "Disabled (3) indicates that the element will not execute "
+          "commands and will drop any new requests. \n"
+          "In Test (7) indicates that the element will be in a test "
+          "state. \n"
+          "Deferred (8) indicates that the element will not process "
+          "any commands but will queue new requests. \n"
+          "Quiesce (9) indicates that the element is enabled but in "
+          "a restricted mode. The element\'s behavior is similar to "
+          "the Enabled state, but it only processes a restricted "
+          "set of commands. All other requests are queued." ), 
+       ValueMap { "0", "1", "2", "3", "7", "8", "9", "11..32767", 
+          "32768..65535" }, 
+       Values { "Unknown", "Other", "Enabled", "Disabled", 
+          "In Test", "Deferred", "Quiesce", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.OtherEnabledState", 
+          "CIM_EnabledLogicalElement.EnabledState" }]
+   uint16 InitialEnabledState = 8;
+
+      [Description ( 
+          "A string describing the element\'s initial "
+          "enabled/disabled state when the InitialEnabledState "
+          "property is set to 1 (\"Other\"). This property MUST be "
+          "set to NULL when InitialEnabledState is any value other "
+          "than 1." ), 
+       ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.InitialEnabledState", 
+          "CIM_FileShare.OtherEnabledState" }]
+   string OtherEnabledState;
+
+      [Description ( 
+          "An enumerated value representing the policy that is "
+          "supported by the FileImportService on the FileShare. The "
+          "value specifies whether/how the FileImportService should "
+          "retry a request that either failed or left the system "
+          "hanging. If the request is being performed in the "
+          "foreground, the options are to try once and fail if a "
+          "timeout happens, or, to try repeatedly. If the request "
+          "can be performed in the background, the returned Job "
+          "will try repeatedly until stopped." ), 
+       ValueMap { "0", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "Try Once", "Try Again", 
+          "Try in Background", "DMTF Reserved", "Vendor Defined" }, 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.TransmissionRetriesMax", 
+          "CIM_ImportedFileShareSetting.RetransmissionTimeoutMin" }]
+   uint16 RequestRetryPolicy = 0;
+
+      [Description ( 
+          "An integer specifying the maximum number of "
+          "retransmission attempts to be made when the transmission "
+          "of a request fails or makes the system hang. A value of "
+          "\'0\' specifies an implementation-specific default." ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.RequestRetryPolicy", 
+          "CIM_ImportedFileShareSetting.RetransmissionTimeoutMin" }]
+   uint32 TransmissionRetriesMax = 0;
+
+      [Description ( 
+          "An integer specifying the minimum number of milliseconds "
+          "that the provider must wait before assuming that a "
+          "transmission has failed. \'0\' indicates an "
+          "implementation-specific default." ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.TransmissionRetriesMax", 
+          "CIM_ImportedFileShareSetting.RequestRetryPolicy" }]
+   uint32 RetransmissionTimeoutMin = 0;
+
+      [Description ( 
+          "An enumerated value that specifies if the import "
+          "operation should be attempted one or more times in the "
+          "foreground or tried repeatedly in the background until "
+          "it succeeds. The number of attempts would be limited by "
+          "the corresponding ImportRetriesMax property of the "
+          "setting." ), 
+       ValueMap { "0", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "Foreground", "Background", 
+          "DMTF Reserved", "Vendor Defined" }, 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.ImportRetriesMax" }]
+   uint16 ImportFailurePolicy = 0;
+
+      [Description ( 
+          "An integer specifying the maximum number of attempts "
+          "that should be made to import an FileShare using this "
+          "element as the proxy. A value of \'0\' specifies an "
+          "implementation-specific default." ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.ImportFailurePolicy" }]
+   uint32 ImportRetriesMax = 0;
+
+      [Description ( 
+          "An integer specifying the minimum number of bytes that "
+          "must be allocated to each buffer used for reading. A "
+          "value of \'0\' specifies an implementation-specific "
+          "default." ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.ReadBufferSizeMax" }]
+   uint32 ReadBufferSizeMin = 0;
+
+      [Description ( 
+          "An integer specifying the maximum number of bytes that "
+          "may be allocated to each buffer used for reading. A "
+          "value of \'0\' specifies an implementation-specific "
+          "default." ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.ReadBufferSizeMin" }]
+   uint32 ReadBufferSizeMax = 0;
+
+      [Description ( 
+          "An integer specifying the minimum number of bytes that "
+          "must be allocated to each buffer used for writing. A "
+          "value of \'0\' specifies an implementation-specific "
+          "default." ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.WriteBufferSizeMax" }]
+   uint32 WriteBufferSizeMin = 0;
+
+      [Description ( 
+          "An integer specifying the maximum number of bytes that "
+          "may be allocated to each buffer used for writing. A "
+          "value of \'0\' specifies an implementation-specific "
+          "default." ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.WriteBufferSizeMin" }]
+   uint32 WriteBufferSizeMax = 0;
+
+      [Description ( 
+          "An array of enumerated values that specify whether "
+          "attribute caching is (or is not) supported for some "
+          "object. The object class and the support parameters are "
+          "specified in the corresponding AttributeCachingObjects, "
+          "AttributeCachingTimeMin, and AttributeCachingTimeMax "
+          "properties. \n"
+          "FileShare object types that can be imported by this "
+          "FileImportService are represented by an entry in these "
+          "arrays. The entry in the AttributeCaching array can be "
+          "\'On\', \'Off\', or \'Unknown\'. Implementation of this "
+          "feature requires support from other system components, "
+          "so it is quite possible that specifying \'On\' may still "
+          "not result in caching behavior. \'Unknown\' indicates "
+          "that the FileImportService will try to work with "
+          "whatever options the host system can support. In all "
+          "cases, AttributeCachingTimeMin and "
+          "AttributeCachingTimeMax provide the minimum and maximum "
+          "time for which the attributes can be cached. When this "
+          "Setting is used as a Goal, the client may specify "
+          "\'Unknown\', but the Setting in the created object "
+          "should contain the supported setting, whether \'On\' or "
+          "\'Off\'." ), 
+       ValueMap { "0", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "On", "Off", "DMTF Reserved", 
+          "Vendor Defined" }, 
+       ArrayType ( "Indexed" ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.AttributeCachingObjects", 
+          "CIM_ImportedFileShareSetting.AttributeCachingTimeMin", 
+          "CIM_ImportedFileShareSetting.AttributeCachingTimeMax" }]
+   uint16 AttributeCaching[] = {0};
+
+      [Description ( 
+          "An array of enumerated values that specify the attribute "
+          "caching support provided to various object classes. "
+          "These classes represent types of shareable objects "
+          "stored in a LocalFileSystem -- files and directories as "
+          "well as others that may be defined in the future. The "
+          "corresponding properties, AttributeCaching, "
+          "AttributeCachingTimeMin, and provide "
+          "AttributeCachingTimeMax the supported features for the "
+          "type of object. \'None\' and \'All\' cannot both be "
+          "specified; if either one is specified, it must be the "
+          "first entry in the array and the entry is interpreted as "
+          "the default setting for all objects. If neither \'None\' "
+          "or \'All\' are specified, the caching settings for other "
+          "objects are defaulted by the implementation. If \'Rest\' "
+          "is specified, the entry applies to all known object "
+          "types other than the named ones. If \'Unknown\' is "
+          "specified it applies to object types not known to this "
+          "application (this can happen when foreign file systems "
+          "are mounted." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "Unknown", "None", "All", "Rest", "File", 
+          "Directory", "DMTF Reserved", "Vendor Defined" }, 
+       ArrayType ( "Indexed" ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.AttributeCaching", 
+          "CIM_ImportedFileShareSetting.AttributeCachingTimeMin", 
+          "CIM_ImportedFileShareSetting.AttributeCachingTimeMax" }]
+   uint16 AttributeCachingObjects[] = {2};
+
+      [Description ( 
+          "An array of integers specifying, in milliseconds, the "
+          "minimum time for which an object of the type specified "
+          "by the corresponding AttributeCaching property must be "
+          "retained in the attribute cache. When used as a Goal, a "
+          "value of \'0\' indicates an implementation-specific "
+          "default." ), 
+       ArrayType ( "Indexed" ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.AttributeCaching" }]
+   uint32 AttributeCachingTimeMin[] = {0};
+
+      [Description ( 
+          "An array of integers specifying, in milliseconds, the "
+          "maximum time for which an object of the type specified "
+          "by the corresponding AttributeCaching property must be "
+          "retained in the attribute cache. When used as a Goal, a "
+          "value of \'0\' indicates an implementation-specific "
+          "default." ), 
+       ArrayType ( "Indexed" ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.AttributeCaching" }]
+   uint32 AttributeCachingTimeMax[] = {0};
+
+      [Description ( 
+          "An enumerated value that specifies the Service Access "
+          "Points on the exporting system that may be used to "
+          "access the remote Share. This does not specify either "
+          "the actual availability of these ServiceAccessPoints or "
+          "the right to use them.; rather, these are the points "
+          "that the FileImportService will attempt to use.to access "
+          "the share. \n"
+          "If this property is NULL or empty, it indicates that "
+          "there will be no change to the current set of access "
+          "points. \'Service-Default\' indicates that it should "
+          "include the default Service Access points of the remote "
+          "FileExportService. \'All\' indicates that it should "
+          "include all the supported Service Access points of the "
+          "remote FileExportService. \'None\' indicates that the "
+          "set of access points is to be reset to the empty set. "
+          "\'Named Points\' indicates that the Service Access "
+          "Points that will be used may be specified as the "
+          "AccessPoints parameter of the CreateImportedShare or "
+          "ModifyImportedShare methods. As a Setting for a "
+          "FileShare, this property cannot be undefined or NULL." ), 
+       ValueMap { "0", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "Unknown", "None", "Service Default", "All", 
+          "Named Points", "DMTF Reserved", "Vendor Defined" }, 
+       Read]
+   uint16 AccessPoints;
+
+      [Description ( 
+          "An enumerated value that specifies the Read-Write policy "
+          "set on the ImportedShare association and supported by "
+          "the FileImportService servicing this FileShare. \'Read "
+          "Only\' specifies that the FileShare is set up solely for "
+          "reading. \'Read/Write\' specifies that the FileShare is "
+          "set up for \'read\' and \'write\' operations. \'Force "
+          "Read/Write\' specifies that \'Read-Only\' has been "
+          "over-ridden by a client with write access to the "
+          "FileShare. This option is intended for use when the "
+          "associated FileShare has been made \'Read Only\' by "
+          "default, as might happen if it were created to be the "
+          "target of a Synchronization or Mirror operation." ), 
+       ValueMap { "0", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "Read Only", "Read/Write", 
+          "Force Read/Write", "DMTF Reserved", "Vendor Defined" }, 
+       Read]
+   uint16 ReadWritePolicy;
+
+      [Description ( 
+          "An array of enumerated values that specify the policies "
+          "that are supported via a newly created imported "
+          "FileShare for CIFS-style opportunistic locks. \'No\' "
+          "specifies that CIFS-style oplocks are not supported, and "
+          "is exclusive of the other options. \'Type 1 oplocks "
+          "supported\' specifies that CIFS-style Type 1 oplocks are "
+          "supported. \'Type 2 oplocks supported\' specifies that "
+          "CIFS-style Type 2 oplocks are supported. If defaulted, "
+          "this is \'No\' if the FileSharingProtocol is NFS; this "
+          "is \'Type 1 oplocks supported\' if the "
+          "FileSharingProtocol is CIFS. The defaults for other "
+          "FileSharingProtocols are not currently specified. \n"
+          "No matter what is requested as a Goal: If the "
+          "FileSharingProtocol is NFS, only \'No\' will be "
+          "supported (i.e., the same as the default). If the "
+          "FileSharingProtocol is CIFS, \'No\' cannot be selected; "
+          "the supported default will be vendor-specified. \n"
+          "The reference to CIFS-style locking here is not intended "
+          "to indicate required support for CIFS, but as an "
+          "abbreviation for the functionality specified by CIFS." ), 
+       ValueMap { "0", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "No", "Type 1 oplocks supported", 
+          "Type 2 oplocks supported", "DMTF Reserved", 
+          "Vendor Defined" }, 
+       ArrayType ( "Indexed" ), 
+       Read]
+   uint16 CIFSLocksSupportPolicy[] = {0};
+
+      [Description ( 
+          "An array of enumerated values that specify the "
+          "CIFS-style notifications that will generated by the "
+          "FileImportService for the newly created imported "
+          "FileShare. \'No\' specifies that no notifications will "
+          "be made. \'Yes\' specifies that a notification will be "
+          "generated. This property is specified as an array, so "
+          "that a vendor can specify supported notifications at a "
+          "finer grain. No matter what is requested as a Goal: If "
+          "the FileSharingProtocol is NFS, only \'No\' will be "
+          "supported. Other FileSharingProtocol values may impose "
+          "different constraints." ), 
+       ValueMap { "0", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "No", "Yes", "DMTF Reserved", 
+          "Vendor Defined" }, 
+       ArrayType ( "Indexed" ), 
+       Read]
+   uint16 CifsNotificationPolicy[] = {0};
+
+      [Description ( 
+          "An array of enumerated values that specify the policies "
+          "that are supported by the FileImportService via the "
+          "created FileShare for accessing elements of the target "
+          "FileShare. \'Unknown\' is the default and specifies that "
+          "the policy will come from the FileShare target (for a "
+          "LogicalFile or other File element, this would be the "
+          "FileSystem containing the element). \'CIFS\' specifies "
+          "that CIFS-style access policies are supported. \'NFS\' "
+          "specifies that NFS-style access policies are supported. "
+          "\'Other\' specifies vendor-implemented or proprietary "
+          "mechanisms. Parameters for these mechanisms are "
+          "specified in the corresponding "
+          "OtherAccessPoliciesParameter. More than one policy can "
+          "be specified, in which case all are supported. More than "
+          "one \'Other\' policy entry can exist. As a Goal, more "
+          "than one policy can be requested. The privileges "
+          "established by this property would be surfaced by the "
+          "provider using the CIM_Privilege model." ), 
+       ValueMap { "0", "1", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "CIFS", "NFS", "DMTF Reserved", 
+          "Vendor Defined" }, 
+       ArrayType ( "Indexed" ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.OtherAccessPoliciesParameters" }]
+   uint16 AccessPolicies[] = {0};
+
+      [Description ( 
+          "An array of strings that specify parameters to use with "
+          "the corresponding AccessPolicies entry -- if that entry "
+          "is set to \'Other\', the entry here MUST not be null, "
+          "but it could be null otherwise." ), 
+       ArrayType ( "Indexed" ), 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.AccessPolicies" }]
+   string OtherAccessPoliciesParameters[] = {""};
+
+      [Description ( 
+          "An enumerated value that specifies the CIFS Locking that "
+          "will be enforced on the target of the ImportedShare by "
+          "the supporting FileImportService if the \'AccessPolicies\' "
+          "property array includes \'CIFS\'. \n"
+          "\'Enforce None\' does not enforce CIFS locks. \'Enforce "
+          "Write\' does not allow writes to CIFS-locked files. "
+          "\'Enforce Read/Write\' does not allow reads or writes to "
+          "CIFS-locked files." ), 
+       ValueMap { "0", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "Enforce None", "Enforce Write", 
+          "Enforce Read/Write", "DMTF Reserved", "Vendor Defined" }, 
+       Read]
+   uint16 CifsLockPolicy = 0;
+
+      [Description ( 
+          "An enumerated value that specifies the client\'s "
+          "preferences for local caching support. This property "
+          "might be an appropriate setting on the FileShare "
+          "element." ), 
+       ValueMap { "0", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "Asynchronized", "Synchronized", 
+          "Write-Through", "DMTF Reserved", "Vendor Defined" }, 
+       Read]
+   uint16 CachingOptions = 0;
+
+      [Description ( 
+          "An enumerated value that specifies if this FileShare "
+          "should be enabled when the operational FileImportService "
+          "is started. This property might be an appropriate "
+          "setting for the FileShare element." ), 
+       ValueMap { "0", "1", "2", "..", "0x8000.." }, 
+       Values { "Vendor-specific Default", "Automatic", "Manual", 
+          "DMTF Reserved", "Vendor Defined" }, 
+       Read]
+   uint16 ImportOnServiceStart = 0;
+
+      [Description ( 
+          "An instance of a CIM_Privilege, encoded as a string, "
+          "that expresses the client\'s expectations about access "
+          "to elements of the exported FileShare. The provider is "
+          "expected to surface this access using the privilege "
+          "model." ), 
+       EmbeddedInstance ( "CIM_Privilege" ), 
+       Read]
+   string ReadWritePref;
+
+      [Description ( 
+          "An enumerated value that specifies if support should be "
+          "provided on the local host for executing elements "
+          "accessed through this FileShare. This may require "
+          "setting up specialized paging or execution buffers "
+          "either on the client or on the server side (as "
+          "appropriate for the implementation). Note that this does "
+          "not provide any rights to actually execute any element "
+          "but only specifies support for such execution, if "
+          "permitted." ), 
+       ValueMap { "0", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "Execution Supported", 
+          "Execution Not Supported", "DMTF Reserved", 
+          "Vendor Defined" }, 
+       Read]
+   uint16 ExecutePref = 0;
+
+      [Description ( 
+          "An instance of a CIM_Privilege, encoded as a string, "
+          "that expresses the client\'s expectations about "
+          "privileged access by appropriately privileged System "
+          "Administrative users on the local host (\'root\' or "
+          "\'superuser\') to the exported FileShare and its "
+          "elements. The provider is expected to surface this "
+          "access using the privilege model. \n"
+          "Support for the privileged access might require setup at "
+          "both the exported FileShare and imported FileShare "
+          "hosts, so there is no guarantee that the request can be "
+          "satisfied." ), 
+       EmbeddedInstance ( "CIM_Privilege" ), 
+       Read]
+   string RootAccessPref;
+
+
+};

@@ -1,0 +1,163 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.21" ), 
+    UMLPackagePath ( "CIM::Device::Printing" ), 
+    Description ( 
+       "This class represents an alert (warning or critical event) on "
+       "a Printer (print device). A critical alert is one that stops "
+       "the Printer from printing immediately and printing cannot "
+       "continue until the critical alert condition is eliminated. "
+       "Non-critical alerts are those alerts that do not stop printing "
+       "immediately, but may do so at some future time. A "
+       "PrintAlertRecord is a snapshot of the state of the device at "
+       "the time an alert condition occurs. It is preserved in a "
+       "format that is suitable for offline processing, when the "
+       "device may have changed or may not be available for "
+       "interrogation. A PrintAlertRecord shall be associated with "
+       "exactly one Printer via an instance of the PrintAlertLog "
+       "class. See: Model in section 2 of Printer MIB (RFC 3805) and "
+       "section 3 of Finisher MIB (RFC 3806)." ), 
+    MappingStrings { "MIB.IETF|Printer-MIB.prtAlertEntry" }]
+class CIM_PrintAlertRecord : CIM_LogEntry {
+
+      [Override ( "CreationTimeStamp" ), 
+       Description ( 
+          "The time that this PrintAlertRecord was generated." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtAlertTime", 
+          "MIB.IETF|SNMPv2-MIB.sysUpTime", 
+          "MIB.IETF|HOST-RESOURCES-MIB.hrSystemUptime", 
+          "MIB.IETF|HOST-RESOURCES-MIB.hrSystemDate" }, 
+       ModelCorrespondence { "CIM_OperatingSystem.LocalDateTime" }]
+   datetime CreationTimeStamp;
+
+      [Override ( "RecordData" ), 
+       Description ( 
+          "Note: For SNMP Proxy implementations, this property "
+          "shall contain every integer object in the corresponding "
+          "prtAlertEntry row in the Printer MIB v2 (RFC 3805). \n"
+          "The string object prtAlertDescription in the "
+          "corresponding prtAlertEntry row shall not be encoded in "
+          "this RecordData property, but shall instead be "
+          "transcoded (if necessary) into Unicode and stored in the "
+          "LocalizedDescription property below." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtAlertEntry" }]
+   string RecordData;
+
+      [Description ( 
+          "A free-form text description of this alert in the "
+          "localization specified by "
+          "CIM_Printer.CurrentNaturalLanguage." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtAlertDescription", 
+          "MIB.IETF|Printer-MIB.PrtLocalizedDescriptionStringTC" }]
+   string LocalizedDescription;
+
+      [Description ( 
+          "The code name that describes the type of alert. The code "
+          "name shall be the IANA-registered label for this alert, "
+          "taken from the PrtAlertCodeTC textual convention in the "
+          "IANA Printer MIB (originally published in RFC 3805), "
+          "e.g., \'coverOpen\' or \'inputMediaSupplyLow\'. A binary "
+          "change alert describes the state of the component, while "
+          "a unary change alert describes a single event. The same "
+          "code name can be used for a binary change alert or a "
+          "unary change alert, depending on implementation. Also, "
+          "the same code name can be used to indicate a critical or "
+          "non-critical (warning) alert, depending on "
+          "implementation. The value of the SeverityLevel property "
+          "specifies binary versus unary and critical versus "
+          "non-critical for each alert for this particular Printer "
+          "implementation." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtAlertCode", 
+          "MIB.IETF|IANA-PRINTER-MIB.PrtAlertCodeTC" }, 
+       ModelCorrespondence { "CIM_PrintAlertRecord.OtherCodeName", 
+          "CIM_PrintAlertRecord.SeverityLevel" }]
+   string CodeName;
+
+      [Description ( 
+          "A free-form string that describes the type of alert when "
+          "the value of the CodeName property is equal to \'other\'." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       ModelCorrespondence { "CIM_PrintAlertRecord.CodeName" }]
+   string OtherCodeName;
+
+      [Description ( 
+          "The level of severity of this alert in this Printer "
+          "implementation as follows: 1 (Other) means a "
+          "non-standard severity level is present in "
+          "OtherSeverityLevel property. 2 (Unknown) means severity "
+          "level is unknown for this alert. 3 (Critical) means that "
+          "this alert on this component has stopped printing on "
+          "this Printer. 4 (Warning) means that this alert has not "
+          "stopped printing on this Printer. 5 "
+          "(WarningBinaryChangeEvent) means that a previous "
+          "critical alert condition has been cleared." ), 
+       ValueMap { "1", "2", "3", "4", "5", ".." }, 
+       Values { "Other", "Unknown", "Critical", "Warning", 
+          "WarningBinaryChangeEvent", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtAlertSeverityLevel", 
+          "MIB.IETF|Printer-MIB.PrtAlertSeverityLevelTC" }, 
+       ModelCorrespondence { "CIM_PrintAlertRecord.CodeName" }]
+   uint32 SeverityLevel;
+
+      [Description ( 
+          "A free-form string that describes the severity level "
+          "when the value of the SeverityLevel property is equal to "
+          "1 (Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       ModelCorrespondence { "CIM_PrintAlertRecord.SeverityLevel" }]
+   string OtherSeverityLevel;
+
+      [Description ( 
+          "The lowest inheritance class name with a schema name of "
+          "\'CIM\' (e.g., \'CIM_PrintMarker\') of the particular "
+          "component of a Printer with which this alert is "
+          "associated. When used with the value of "
+          "ComponentElementName, this property allows all instances "
+          "of this component to be uniquely identified. If the "
+          "component class name is unknown or not applicable, then "
+          "this property shall be null. Note: This property is "
+          "necessary (rather than the use of an association class), "
+          "because this log entry is static and records a past "
+          "event for offline processing. See: Section 2 of the "
+          "Printer MIB v2 (RFC 3805) and section 3 of Finisher MIB "
+          "(RFC 3806). Note: This property is necessary to "
+          "correlate status and event (alert) information between "
+          "CIM and SNMP interfaces." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtAlertGroup", 
+          "MIB.IETF|IANA-PRINTER-MIB.PrtAlertGroupTC" }, 
+       ModelCorrespondence { 
+          "CIM_PrintAlertRecord.ComponentElementName" }]
+   string ComponentClassName;
+
+      [Description ( 
+          "The value of the ManagedSystemElement.Name property of "
+          "the particular component of a Printer with which this "
+          "alert is associated. When used with the value of "
+          "ComponentClassName, this property allows all instances "
+          "of this component to be uniquely identified. If the "
+          "component element name is unknown or not applicable, "
+          "then this property shall be null. Note: This property is "
+          "necessary (rather than the use of an association class), "
+          "because this log entry is static and records a past "
+          "event for offline processing. See: Section 2 of the "
+          "Printer MIB v2 (RFC 3805) and section 3 of Finisher MIB "
+          "(RFC 3806). Note: This property is necessary to "
+          "correlate status and event (alert) information between "
+          "CIM and SNMP interfaces." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtAlertGroupIndex" }, 
+       ModelCorrespondence { "CIM_ManagedSystemElement.Name", 
+          "CIM_PrintAlertRecord.ComponentClassName" }]
+   string ComponentElementName;
+
+
+};

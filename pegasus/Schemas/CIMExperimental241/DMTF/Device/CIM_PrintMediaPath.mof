@@ -1,0 +1,208 @@
+//Copyright (c) 2007 DMTF. All Rights Reserved.
+   [Experimental, Version ( "2.17.0" ), 
+    UMLPackagePath ( "CIM::Device::Printing" ), 
+    Description ( 
+       "This class represents the PrintMediaPath component of a "
+       "Printer (print device). It contains properties that describe "
+       "the PrintMediaPath, including type, speed, and status. Note: A "
+       "PrintMediaPath shall be associated with exactly one Printer "
+       "via an instance of the PrinterComponent class. See: Model in "
+       "section 2 of Printer MIB (RFC 3805)." ), 
+    MappingStrings { "MIB.IETF|Printer-MIB.prtMediaPathEntry" }]
+class CIM_PrintMediaPath : CIM_PrinterElement {
+
+      [Description ( 
+          "Denotes whether or not this PrintMediaPath is the "
+          "default PrintMediaPath for this Printer. If the default "
+          "PrintMediaPath feature is not sPrintMediaPathupported "
+          "for this Printer, then this property shall be null. If "
+          "the default PrintMediaPath feature is supported for this "
+          "Printer, then this property shall be true for at most "
+          "one instance of CIM_PrintMediaPath on this Printer, "
+          "i.e., the default may not be currently configured." ), 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtMediaPathDefaultIndex" }]
+   boolean IsDefault;
+
+      [Description ( 
+          "A free-form text description of this PrintMediaPath "
+          "PrintMediaPath in the localization specified by "
+          "CIM_Printer.CurrentNaturalLanguage." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtMediaPathDescription", 
+          "MIB.IETF|Printer-MIB.PrtLocalizedDescriptionStringTC" }]
+   string LocalizedDescription;
+
+      [Description ( "The type of this PrintMediaPath." ), 
+       ValueMap { "1", "2", "3", "4", "5", ".." }, 
+       Values { "Other", "Unknown", "LongEdgeBindingDuplex", 
+          "ShortEdgeBindingDuplex", "Simplex", "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtMediaPathType", 
+          "MIB.IETF|IANA-PRINTER-MIB.PrtMediaPathTypeTC" }]
+   uint32 Type;
+
+      [Description ( 
+          "A free-form string that describes the type of "
+          "PrintMediaPath when the value of the Type property is "
+          "equal to 1 (Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 )]
+   string OtherTypeDescription;
+
+      [Description ( 
+          "The unit of measure used in specifying the speed of this "
+          "PrintMediaPath." ), 
+       ValueMap { "3", "4", "5", "6", "7", "8", "9", "16", "17", ".." }, 
+       Values { "TenThousandthsOfInchesPerHour", 
+          "MicrometersPerHour", "CharactersPerHour", "LinesPerHour", 
+          "ImpressionsPerHour", "SheetsPerHour", "DotRowPerHour", 
+          "FeetPerHour", "MetersPerHour", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtMediaPathMaxSpeedPrintUnit", 
+          "MIB.IETF|Printer-MIB.PrtMediaPathMaxSpeedPrintUnitTC" }]
+   uint32 MaxSpeedUnit;
+
+      [Description ( 
+          "The basis for the limit property MaxSpeed, that "
+          "specifies whether a meaningful value is available. 1 "
+          "(Other) means the PrintMediaPath places no restrictions "
+          "on speed and MaxSpeed shall be null. 2 (Unknown) means "
+          "the PrintMediaPath does not have a meaningful value and "
+          "MaxSpeed shall be null. 3 (Actual) means the "
+          "PrintMediaPath does have a meaningful value and MaxSpeed "
+          "shall be present." ), 
+       ValueMap { "1", "2", "3", ".." }, 
+       Values { "Other", "Unknown", "Actual", "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtMediaPathMaxSpeed" }]
+   uint16 MaxSpeedBasis;
+
+      [Description ( 
+          "The maximum printing speed of this PrintMediaPath." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 2147483647 ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtMediaPathMaxSpeed", 
+          "MIB.IETF|Printer-MIB.prtMediaPathMaxSpeedPrintUnit", 
+          "MIB.IETF|Printer-MIB.PrtMediaPathMaxSpeedPrintUnitTC" }]
+   uint32 MaxSpeed;
+
+      [Description ( 
+          "The basis for the limit property MaxMediaSizeName, that "
+          "specifies whether a meaningful value is available. 1 "
+          "(Other) means the PrintMediaPath places no restrictions "
+          "on maximum size and MaxMediaSizeName shall be null. 2 "
+          "(Unknown) means the PrintMediaPath does not have a "
+          "meaningful value and MaxMediaSizeName shall be null. 3 "
+          "(Actual) means the PrintMediaPath does have a meaningful "
+          "value and MaxMediaSizeName shall be present." ), 
+       ValueMap { "1", "2", "3", ".." }, 
+       Values { "Other", "Unknown", "Actual", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtMediaPathMaxMediaFeedDir", 
+          "MIB.IETF|Printer-MIB.prtMediaPathMaxMediaXFeedDir" }]
+   uint16 MaxMediaSizeNameBasis;
+
+      [Description ( 
+          "This property provides the value of the PWG standard or, "
+          "custom media size name of the media that is the maximum "
+          "media size supported by this PrintMediaPath. The values "
+          "of this property shall conform to the requirements of "
+          "the PWG Media Standardized Names specification "
+          "[PWG5101.1], which defines the normative values for this "
+          "property." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 63 ), 
+       MappingStrings { "PWG5101-1.PWG|Media Standardized Names", 
+          "MIB.IETF|Printer-MIB.prtMediaPathMaxMediaFeedDir", 
+          "MIB.IETF|Printer-MIB.prtMediaPathMaxMediaXFeedDir" }]
+   string MaxMediaSizeName;
+
+      [Description ( 
+          "The basis for the limit property MinMediaSizeName, that "
+          "specifies whether a meaningful value is available. 1 "
+          "(Other) means the PrintMediaPath places no restrictions "
+          "on minimum size and MinMediaSizeName shall be null. 2 "
+          "(Unknown) means the PrintMediaPath does not have a "
+          "meaningful value and MinMediaSizeName shall be null. 3 "
+          "(Actual) means the PrintMediaPath does have a meaningful "
+          "value and MinMediaSizeName shall be present." ), 
+       ValueMap { "1", "2", "3", ".." }, 
+       Values { "Other", "Unknown", "Actual", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtMediaPathMinMediaFeedDir", 
+          "MIB.IETF|Printer-MIB.prtMediaPathMinMediaXFeedDir" }]
+   uint16 MinMediaSizeNameBasis;
+
+      [Description ( 
+          "This property provides the value of the PWG standard or, "
+          "custom media size name of the media that is the maximum "
+          "media size supported by this PrintMediaPath. The values "
+          "of this property shall conform to the requirements of "
+          "the PWG Media Standardized Names specification "
+          "[PWG5101.1], which defines the normative values for this "
+          "property." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 63 ), 
+       MappingStrings { "PWG5101-1.PWG|Media Standardized Names", 
+          "MIB.IETF|Printer-MIB.prtMediaPathMinMediaFeedDir", 
+          "MIB.IETF|Printer-MIB.prtMediaPathMinMediaXFeedDir" }]
+   string MinMediaSizeName;
+
+      [Description ( 
+          "This property contains detailed availability information "
+          "for this PrintMediaPath, as follows: 1 (Other) means "
+          "other detailed availability information is present in "
+          "the OtherAvailabilityStatus property. 2 (Unknown) means "
+          "detailed availability information for this "
+          "PrintMediaPath is unknown. 3 (AvailableIdle) means this "
+          "PrintMediaPath is available and idle, i.e., not "
+          "currently in use. 4 (AvailableStandy) means this "
+          "PrintMediaPath is available but on standby, e.g., in a "
+          "power saving mode. 5 (AvailableActive) means this "
+          "PrintMediaPath is available and active, i.e., currently "
+          "in use. 6 (AvailableBusy) means this PrintMediaPath is "
+          "available but busy, i.e., not immediately available for "
+          "its primary function. 7 (UnavailableOnRequest) means "
+          "this PrintMediaPath is not available and is on request, "
+          "i.e., needs human intervention. 8 (UnavailableBroken) "
+          "means this PrintMediaPath is not available and is "
+          "broken, e.g., needs repair/replacement." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", ".." }, 
+       Values { "Other", "Unknown", "AvailableIdle", 
+          "AvailableStandby", "AvailableActive", "AvailableBusy", 
+          "UnavailableOnRequest", "UnavailableBroken", 
+          "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.PrtSubUnitStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.OperatingStatus", 
+          "CIM_PrintMediaPath.OtherAvailabilityStatus" }]
+   uint32 AvailabilityStatus;
+
+      [Description ( 
+          "A free-form string that describes the detailed "
+          "availability of this PrintMediaPath when the value of "
+          "the AvailabilityStatus property is equal to 1 (Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       ModelCorrespondence { "CIM_PrintMediaPath.AvailabilityStatus" }]
+   string OtherAvailabilityStatus;
+
+      [Description ( 
+          "If true, there are currently non-critical alerts on this "
+          "PrintMediaPath." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.PrtSubUnitStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.DetailedStatus" }]
+   boolean NonCriticalAlertsPresent;
+
+      [Description ( 
+          "If true, there are currently critical alerts on this "
+          "PrintMediaPath." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.PrtSubUnitStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.DetailedStatus" }]
+   boolean CriticalAlertsPresent;
+
+
+};

@@ -1,0 +1,286 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.35.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "The TierService class provides methods to allow a client to "
+       "manage storage tiers." )]
+class CIM_TierService : CIM_Service {
+
+
+      [Description ( 
+          "Create a new storage tier based on supplied storage "
+          "objects. For example, a storage tier based on all "
+          "storage extents of a storage pool, i.e. "
+          "ConcreteComponents, that utilize solid state technology. "
+          "The more parameters specified, the narrower the criteria "
+          "for selecting the storage objects." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateStorageTier(
+         [IN, Description ( 
+             "A end user relevant name for created storage tier. "
+             "If null, then a system supplied default name may "
+             "be used." )]
+      string ElementName, 
+         [IN, Description ( 
+             "List of elements to use to create a storage tier. "
+             "If null, other specified parameters are "
+             "considered, such as TierSettingData and Goal." )]
+      CIM_LogicalElement REF Members[], 
+         [IN, Description ( 
+             "If provided, it overrides the default tier setting "
+             "data that is used. For example, create a storage "
+             "tier based on performance of underlying technology "
+             "of components considered." ), 
+          EmbeddedInstance ( "CIM_TierSettingData" )]
+      string TierSettingData, 
+         [IN, Description ( 
+             "The Quality of Service per the properties of "
+             "supplied StorageSetting." )]
+      CIM_ManagedElement REF Goal, 
+         [IN, OUT, Description ( 
+             "Input: The created StorageTier to be associated to "
+             "given array of TierDomains. If null, system "
+             "associates created storage tier to a TierDomain "
+             "and returns a reference to the TierDomain the "
+             "system used." )]
+      CIM_AdminDomain REF TierDomain[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created StorageTier." )]
+      CIM_StorageTier REF StorageTier);
+
+      [Description ( 
+          "Delete a storage tier. The storage objects associated to "
+          "the storage tier are unaffected." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 DeleteStorageTier(
+         [IN, Description ( 
+             "If provided, it overrides the default tier setting "
+             "data that is used." ), 
+          EmbeddedInstance ( "CIM_TierSettingData" )]
+      string TierSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( "Reference to StorageTier to delete." )]
+      CIM_StorageTier REF StorageTier, 
+         [Experimental, IN, Description ( 
+             "The implementation may not allow a storage tier to "
+             "be deleted if the storage tier is associated with "
+             "underlying storage elements. In such situations "
+             "specify \"True\" to force the deletion of the "
+             "storage tier." )]
+      boolean Force);
+
+      [Description ( 
+          "Add members, i.e. components, to a storage tier to "
+          "expand the capacity of storage tier." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 AddToStorageTier(
+         [IN, Description ( 
+             "List of elements to add to storage tier." )]
+      CIM_LogicalElement REF Members[], 
+         [IN, Description ( 
+             "If provided, it overrides the default tier setting "
+             "data that is used." ), 
+          EmbeddedInstance ( "CIM_TierSettingData" )]
+      string TierSettingData, 
+         [IN, Description ( 
+             "The Quality of Service per the properties of "
+             "supplied StorageSetting." )]
+      CIM_ManagedElement REF Goal, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( "Reference to StorageTier to add to." )]
+      CIM_StorageTier REF StorageTier);
+
+      [Description ( 
+          "Remove members, i.e. components, from a storage tier to "
+          "reduce the capacity of storage tier." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "..", 
+          "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RemoveFromStorageTier(
+         [IN, Description ( 
+             "List of elements to remove from storage tier." )]
+      CIM_LogicalElement REF Members[], 
+         [IN, Description ( 
+             "If provided, it overrides the default tier setting "
+             "data that is used." ), 
+          EmbeddedInstance ( "CIM_TierSettingData" )]
+      string TierSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "Reference to the StorageTier to remove from." )]
+      CIM_StorageTier REF StorageTier);
+
+      [Description ( 
+          "Create a TierDomain and associate it to top-level "
+          "ComputerSystem -- via SystemComponent association." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateTierDomain(
+         [IN, Description ( 
+             "If nameable, an end user relevant name for the "
+             "TierDomain. If null or not nameable, then system "
+             "assigns a name." )]
+      string ElementName, 
+         [IN, Description ( 
+             "If provided, it overrides the default tier setting "
+             "data that is used." ), 
+          EmbeddedInstance ( "CIM_TierSettingData" )]
+      string TierSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created TierDomain." )]
+      CIM_AdminDomain REF TierDomain);
+
+      [Description ( 
+          "Delete an instance of TierDomain. If the Force parameter "
+          "is true, the SystemComponents (i.e. StorageTier) of this "
+          "domain that are not associated to another TierDomain "
+          "will also be deleted." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 DeleteTierDomain(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "If true, delete a non-empty TierDomain and its "
+             "associated StorageTiers, as long as the associated "
+             "StorageTiers are not associated to other "
+             "TierDomains; otherwise, return an error." )]
+      boolean Force, 
+         [IN, Description ( "Reference to TierDomain to delete." )]
+      CIM_AdminDomain REF TierDomain);
+
+      [Description ( 
+          "Modify a StorageTier association to a TierDomain. A "
+          "StorageTier shall always be associated to at least one "
+          "TierDomain. This call ensures a StorageTier\'s "
+          "association to a TierDomain is maintained especially "
+          "when a StorageTier \'moves\' from one TierDomain to "
+          "another TierDomain. By setting the parameter "
+          "RemoveFromTierDomain to null and setting the parameter "
+          "AddToTierDomain to a TierDomain, this call associates a "
+          "StorageTier to additional TierDomains." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ModifyStorageTierDomainAssociation(
+         [IN, Description ( 
+             "Remove StorageTier\'s association to this "
+             "TierDomain.If null, the association will not be "
+             "removed from an existing TierDomain." )]
+      CIM_AdminDomain REF RemoveFromTierDomain, 
+         [IN, Description ( 
+             "Associate StorageTier to this TierDomain. If null, "
+             "the association will not be added to an existing "
+             "TierDomain." )]
+      CIM_AdminDomain REF AddToTierDomain, 
+         [IN, Description ( 
+             "If provided, it overrides the default tier setting "
+             "data that is used." ), 
+          EmbeddedInstance ( "CIM_TierSettingData" )]
+      string TierSettingData, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "Reference to the StorageTier to manipulate." )]
+      CIM_StorageTier REF StorageTier);
+
+      [Description ( 
+          "This method returns an array of storage objects that can "
+          "form a storage tier. The selection criteria is based on "
+          "the input parameters. The more input parameters, the "
+          "narrower the search criteria. For example, it is "
+          "possible to specify to return the candidate storage "
+          "objects based on all storage extents of a storage pool, "
+          "i.e. ConcreteComponents, that utilize solid state "
+          "technology by supplying the appropriate InPools and "
+          "TierSettingData." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "0x8000.." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 GetStorageTierCandidateObjects(
+         [IN, Description ( 
+             "List of elements to consider. For example, a list "
+             "of storage pools." )]
+      CIM_LogicalElement REF InElements[], 
+         [IN, Description ( 
+             "If provided, it overrides the default tier setting "
+             "data that is used. For example, a storage tier "
+             "based on performance of underlying technology of "
+             "components considered." ), 
+          EmbeddedInstance ( "CIM_TierSettingData" )]
+      string TierSettingData, 
+         [IN, Description ( 
+             "The Quality of Service per the properties of "
+             "supplied StorageSetting." )]
+      CIM_ManagedElement REF Goal, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "An array of storage objects that can form a storage tier."
+              )]
+      CIM_LogicalElement REF Candidates[]);
+
+};

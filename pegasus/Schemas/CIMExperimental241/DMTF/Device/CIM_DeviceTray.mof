@@ -1,0 +1,88 @@
+// Copyright (c) 2009 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.23.0" ), 
+    ClassConstraint { "inv: LogicalModuleType=2" }, 
+    UMLPackagePath ( "CIM::Device::Ports" ), 
+    Description ( 
+       "CIM_DeviceTray provides specific information about device "
+       "trays (bays) used in computer systems. Making use of "
+       "technologies such as USB and Firewire, Device Tray is intended "
+       "to make adding and removing devices from the PC easier, "
+       "through the use of plug-n-play." )]
+class CIM_DeviceTray : CIM_LogicalModule {
+
+      [Description ( "Defines the type of Device Tray." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "Unknown", "Other", "Proprietary Tray", 
+          "Standard Desktop Device Tray", "Standard Mobile Device", 
+          "Tray Standard Ultra-Mobile Device Tray", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_DeviceTray.OtherDeviceTrayTypeDescription" }]
+   uint16 DeviceTrayType;
+
+      [Description ( 
+          "A string that describes the type of Device Tray, when "
+          "the DeviceTrayType property of this class (or any of its "
+          "subclasses) is set to 1 (Other). This property should be "
+          "set to null when the Type property is any value other "
+          "than 1." ), 
+       ModelCorrespondence { "CIM_DeviceTray.DeviceTrayType" }]
+   string OtherDeviceTrayTypeDescription;
+
+      [Description ( 
+          "Describes the device currently attached to the tray." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "32768..65535" }, 
+       Values { "Unknown", "Other", "CD-ROM", "DVD", "DVD-RW+", 
+          "CD-RW", "Hard Disk", "DVD-RW", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_DeviceTray.OtherAttachedDevice" }]
+   uint16 AttachedDevice;
+
+      [Description ( 
+          "A string that describes the currently attched device, "
+          "when the AttachedDeviceDescription property is set to 1 "
+          "(Other). This property should be set to null when the "
+          "AttachedDeviceDescription property is any value other "
+          "than 1." ), 
+       ModelCorrespondence { "CIM_DeviceTray.AttachedDevice" }]
+   string OtherAttachedDevice;
+
+      [Description ( 
+          "An array containing a list of logical devices supported "
+          "in this tray." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "32768..65535" }, 
+       Values { "Unknown", "Other", "CD-ROM", "DVD", "DVD-RW+", 
+          "CD-RW", "Hard Disk", "DVD-RW", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DeviceTray.OtherDevicesSupported" }]
+   uint16 DevicesSupported[];
+
+      [Description ( 
+          "A string that describes the devices supported, when the "
+          "DevicesSupported property is set to 1 (Other). This "
+          "property should be set to null when the DevicesSupported "
+          "property is any value other than 1." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_DeviceTray.DevicesSupported" }]
+   string OtherDevicesSupported[];
+
+      [Override ( "LogicalModuleType" ), 
+       Description ( 
+          "LogicalModuleType identifies the type of LogicalModule "
+          "this instance represents. \n"
+          "A value of \"Device Tray\" indicates that the device is "
+          "a device or media tray, for example in a modular system. \n"
+          "The ranges expressed by \"DMTF Reserved\" and \"Vendor "
+          "Reserved\" are reserved for DMTF and Vendor "
+          "extensibility, respectively." ), 
+       ValueMap { "2", "..", "32768..65535" }, 
+       Values { "Device Tray", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_LogicalModule.OtherLogicalModuleTypeDescription" }]
+   uint16 LogicalModuleType = 2;
+
+
+};

@@ -1,0 +1,363 @@
+// Copyright (c) 2009 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.23.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "Supplies the methods used to create and modify composite elements."
+        )]
+class CIM_StorageElementCompositionService : CIM_Service {
+
+
+      [Description ( 
+          "Creates (or modifies) a composite element. Note that "
+          "only like elements can be combined." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Size Not Supported", "Vendor Reserved" }]
+   uint32 CreateOrModifyCompositeElement(
+         [IN, Description ( 
+             "A end user relevant name for the element being "
+             "created. If NULL, then a system supplied default "
+             "name can be used. The value will be stored in the "
+             "\'ElementName\' property for the created element. "
+             "If not NULL, this parameter will supply a new name "
+             "when modifying an existing element." )]
+      string ElementName, 
+         [IN, Description ( 
+             "Enumeration indicating the type of element being "
+             "created or modified. If the input parameter "
+             "TheElement is specified when the operation is a "
+             "\'modify\', this type value must match the type of "
+             "that instance." ), 
+          ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+          Values { "Unknown", "StorageVolume", "LogicalDisk", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 ElementType, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job - may be null if job completed."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The QoS requirements for the composite element to "
+             "maintain. If NULL, then the QoS setting associated "
+             "to RepresentativeElement will be used for the QoS "
+             "goal of the composite. If both Goal and "
+             "RepresentativeElement are null, the "
+             "instrumentation selects an appropriate Goal from "
+             "the InElements." )]
+      CIM_ManagedElement REF Goal, 
+         [IN, OUT ( false ), Description ( 
+             "The instrumentation will use this parameter to "
+             "determine the QoS goal of the composite. It will "
+             "use this parameter + Size or InElements to "
+             "determine the elements used to construct the "
+             "composite. This parameter may be NULL. If both "
+             "Goal and RepresentativeElement are null, the "
+             "instrumentation selects an appropriate Goal from "
+             "the InElements." )]
+      CIM_StorageExtent REF RepresentativeElement, 
+         [IN, OUT, Description ( 
+             "As an input parameter Size specifies the desired "
+             "size. If NULL, then InElements shall be supplied. "
+             "If not NULL, this parameter will supply a new size "
+             "when modifying an existing element. As an output "
+             "parameter Size specifies the size achieved." ), 
+          PUNIT ( "byte" )]
+      uint64 Size, 
+         [IN, Description ( 
+             "The elements from which to create the composite "
+             "element. This parameter shall be NULL if Size is "
+             "supplied. Once the elements are combined, they "
+             "will be removed from the model and replaced with a "
+             "single element. For some instrumentation, this may "
+             "be one of the InElements, so in effect, all but "
+             "one are removed." )]
+      CIM_StorageExtent REF InElements[], 
+         [IN, OUT, Description ( 
+             "As an input parameter: if null, creates a new "
+             "element. If not null, then the method modifies the "
+             "specified element. As an output parameter, it is a "
+             "reference to the resulting element." )]
+      CIM_LogicalElement REF TheElement, 
+         [IN, Description ( 
+             "Type of composite element to create. Possible "
+             "values are Concatenate, Stripe, "
+             "Concatenate+Stripe, Vendor specific." ), 
+          ValueMap { "2", "3", "4", "..", "32768..65535" }, 
+          Values { "Concatenate elements", "Stripe elements", 
+             "Concatenate and stripe elements", "DMTF Reserved", 
+             "Vendor Reserved" }]
+      uint16 CompositeType, 
+         [IN, OUT ( false ), Description ( 
+             "Tell the instrumentation where to get the "
+             "elements. Only applies when Size is specified and "
+             "not InElements. Otherwise it shall be NULL. "
+             "Possible values are: 1. Use existing elements only "
+             "2. Create new elements only 3. Can use existing or "
+             "create new or both 4. Instrumentation decides If "
+             "NULL, the instrumentation will decide." ), 
+          ValueMap { "1", "2", "3", "4", "..", "0x8000..0xFFFF" }, 
+          Values { "Use existing elements only", 
+             "Create new elements only", 
+             "Can use existing or create new or both", 
+             "Instrumentation decides", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 ElementSource);
+
+      [Description ( 
+          "Dissolves a composite into its constituent elements." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Vendor Reserved" }]
+   uint32 ReturnElementToElements(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job - may be null if job completed."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The composite element to dissolve. Possible "
+             "element types are StorageVolume and LogicalDisk." )]
+      CIM_LogicalElement REF TheElement, 
+         [OUT, Description ( 
+             "The elements the extent was dissolved into." )]
+      CIM_StorageExtent REF OutElements[]);
+
+      [Description ( 
+          "Removes one or more constituent elements from a "
+          "composite volume. Note, removing a constituent element "
+          "from a composite element may impact the data stored on "
+          "the remaining constituent elements (see capabilities). "
+          "Removing all constituent members is the same as invoking "
+          "ReturnElementToElements." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Vendor Reserved" }]
+   uint32 RemoveElementsFromElement(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The composite element to affect. Possible element "
+             "types are StorageVolume and LogicalDisk." )]
+      CIM_LogicalElement REF TheElement, 
+         [IN, Description ( "The elements to remove." )]
+      CIM_LogicalElement REF InElements[]);
+
+      [Description ( 
+          "This method queries the set of pools passed in and "
+          "returns a set of volumes or logical disks that can be "
+          "composed together based on the specified goal and "
+          "element passed in. Since there are usually complicated "
+          "vendor-specific rules for creating these composite "
+          "volumes, using the representative element can supply "
+          "more vendor-specific information than would be in a "
+          "interoperable setting. The client can then use some or "
+          "all of this list in a call to "
+          "CreateOrModifyCompositeElement()." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Vendor Reserved" }]
+   uint32 GetAvailableElements(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "A list of pools to draw the candidate elements from."
+              )]
+      CIM_StoragePool REF InPools[], 
+         [IN, Description ( 
+             "The requirements for the element to maintain. This "
+             "parameter should be a reference to a Setting or "
+             "Profile appropriate to the element being created. "
+             "." )]
+      CIM_StorageSetting REF Goal, 
+         [IN, Description ( 
+             "Enumeration indicating the type of element being "
+             "created or modified." ), 
+          ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+          Values { "Unknown", "StorageVolume", "LogicalDisk", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 ElementType, 
+         [IN, Description ( 
+             "Serves as a guide to help the instrumentation "
+             "determine which elements to return. It must be a "
+             "member of one of the pools passed in. This may be "
+             "NULL." )]
+      CIM_StorageExtent REF RepresentativeElement, 
+         [OUT, Description ( 
+             "The elements that can be used to create the "
+             "composite element. These will be an array of "
+             "references to StorageVolumes or LogicalDisks." )]
+      CIM_StorageExtent REF Candidates[]);
+
+      [Description ( 
+          "Determines the component elements of a composite element." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Vendor Reserved" }]
+   uint32 GetCompositeElements(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( "The composite element to query." )]
+      CIM_LogicalElement REF TheElement, 
+         [IN, Description ( 
+             "Enumeration indicating the type of elements to "
+             "return. \n"
+             "Immediate: Immediate children of TheElement. \n"
+             "Primordial: Dependent storage extents of "
+             "TheElement at the lowest extent hierarchy." ), 
+          ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+          Values { "Unknown", "Immediate", "Primordial", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 RequestType, 
+         [OUT, Description ( 
+             "The elements that comprise the composite." )]
+      CIM_StorageExtent REF OutElements[], 
+         [OUT, Description ( 
+             "A parallel array to OutElements array containing: "
+             "\"Member of Stripe Set\" or \"Member of "
+             "Concatenation\"." ), 
+          ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+          Values { "Unknown", "Member of Stripe Set", 
+             "Member of Concatenation", "DMTF Reserved", 
+             "Vendor Reserved" }]
+      uint16 OutElementTypes[]);
+
+      [Description ( 
+          "This method returns the list of possible stripe lengths "
+          "which can be used in the property "
+          "StorageSetting.ExtentStripeLength supplied, as the Goal, "
+          "to the CreateOrModifyCompositeElement method. Note that "
+          "different implementations may support either the "
+          "GetSupportedStripeLengths or the "
+          "GetSupportedStripeLengthRange method." ), 
+       ValueMap { "0", "1", "2", "3", "..", "32768..65535" }, 
+       Values { "Method Completed with no errors", 
+          "Method Not Supported", "ElementType not supported", 
+          "Use GetSupportedStripeLengthRange instead", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint32 GetSupportedStripeLengths(
+         [IN, Description ( "Type of element." ), 
+          ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+          Values { "Unknown", "StorageVolume", "LogicalDisk", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 ElementType, 
+         [IN ( false ), OUT, Description ( 
+             "List of supported stripe lengths." ), 
+          PUNIT ( "count" )]
+      uint64 StripeLengths[]);
+
+      [Description ( 
+          "For systems that support a range of stripe lengths for "
+          "composite volumes, this method can be used to retrieve "
+          "the range of possible stripe lengths which can be used "
+          "in the property StorageSetting.ExtentStripeLength "
+          "supplied, as the Goal, to the "
+          "CreateOrModifyCompositeElement method. Note that "
+          "different implementations may support either the "
+          "GetSupportedStripeLengths or the "
+          "GetSupportedStripeLengthRange method. If the system only "
+          "supports discrete values, then the return value will be "
+          "set to 3." ), 
+       ValueMap { "0", "1", "2", "3", "..", "32768..65535" }, 
+       Values { "Method Completed with no errors", 
+          "Method Not Supported", "ElementType not supported", 
+          "Use GetSupportedStripeLengths instead", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint32 GetSupportedStripeLengthRange(
+         [IN, Description ( "Type of element." ), 
+          ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+          Values { "Unknown", "StorageVolume", "LogicalDisk", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 ElementType, 
+         [IN ( false ), OUT, Description ( 
+             "Minimum StripeLength for a composite element." )]
+      uint64 MinimumStripeLength, 
+         [IN ( false ), OUT, Description ( 
+             "Maximum StripeLength for a composite element." )]
+      uint64 MaximumStripeLength, 
+         [IN ( false ), OUT, Description ( 
+             "Composite elements stripe length must be a "
+             "multiple of this value." )]
+      uint64 StripeLengthDivisor);
+
+      [Description ( 
+          "This method returns the list of possible stripe depths "
+          "(aka stripe size)to use in Goal parameter of the "
+          "CreateOrModifyCompositeElement method for systems that "
+          "support discrete stripe depths. Note that different "
+          "implementations may support either the "
+          "GetSupportedStripeDepths or the "
+          "GetSupportedStripeDepthRange method." ), 
+       ValueMap { "0", "1", "2", "3", "..", "32768..65535" }, 
+       Values { "Method Completed with no errors", 
+          "Method Not Supported", "ElementType not supported", 
+          "Use GetSupportedStripeDepthRange instead", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint32 GetSupportedStripeDepths(
+         [IN, Description ( "Type of element." ), 
+          ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+          Values { "Unknown", "StorageVolume", "LogicalDisk", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 ElementType, 
+         [IN ( false ), OUT, Description ( 
+             "List of supported stripe depths." ), 
+          PUNIT ( "byte" )]
+      uint64 StripeDepths[]);
+
+      [Description ( 
+          "This method returns the range of possible stripe depths "
+          "(aka stripe size) to use in Goal parameter of the "
+          "CreateOrModifyCompositeElement method. Note that "
+          "different implementations may support either the "
+          "GetSupportedStripeDepths or the "
+          "GetSupportedStripeDepthRange method." ), 
+       ValueMap { "0", "1", "2", "3", "..", "32768..65535" }, 
+       Values { "Method Completed with no errors", 
+          "Method Not Supported", "ElementType not supported", 
+          "Use GetSupportedStripeDepths instead", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint32 GetSupportedStripeDepthRange(
+         [IN, Description ( "Type of element." ), 
+          ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+          Values { "Unknown", "StorageVolume", "LogicalDisk", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 ElementType, 
+         [IN ( false ), OUT, Description ( 
+             "Minimum StripeDepth for a composite element." ), 
+          PUNIT ( "byte" )]
+      uint64 MinimumStripeDepth, 
+         [IN ( false ), OUT, Description ( 
+             "Maximum StripeDepth for a composite element." ), 
+          PUNIT ( "byte" )]
+      uint64 MaximumStripeDepth, 
+         [IN ( false ), OUT, Description ( 
+             "Composite elements stripe depth must be a multiple "
+             "of this value." ), 
+          PUNIT ( "byte" )]
+      uint64 StripeDepthDivisor);
+
+};

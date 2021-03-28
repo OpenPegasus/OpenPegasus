@@ -1,0 +1,179 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="sysdevCR00696.002" type ="new">LocalPortName and
+// LocalPortNameType promoted.</
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_StorageNameBinding
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Device::StorageNameBinding" ), 
+    Description ( 
+       "StorageNameBinding instances represent bindings between "
+       "transport-specific devices names and either OS device "
+       "names/addresses or virtual initiator names. Bindings are "
+       "defined by administrators and are persistent. The binding "
+       "defines names of other elements that may or may not correlate "
+       "to other CIM classes. It must be possible to create these "
+       "bindings in cases when CIM instances for these other elements "
+       "are not available. This may be because the elements are "
+       "temporarily unavailable or because the elements are managed by "
+       "some other providers or because the binding represents a "
+       "\'black listed\' device name. A SettingData models the "
+       "persistence of the binding in the absence of the elements. In "
+       "the descriptions below, FC API refers to the FC API as "
+       "specified in the t11_5 workgroup, and IMA refers to the iSCSI "
+       "Management API as specified in the SNIA IPS Management "
+       "workgroup. \n"
+       "\n"
+       "Three types of bindings are modeled: \n"
+       "- OSStorageNameBinding models a binding from a storage "
+       "elements to OS device names or addresses (as used in FC API "
+       "PersistentBindings and IMA ExposeLun. One side of the binding "
+       "represents a device (as viewed from the system scoping the "
+       "binding) and the name exposed by the scoping system. For "
+       "example, Fibre Channel HBAs support binding of Fibre Channel "
+       "port names (and optionally a SCSI logical unit identifier) to "
+       "OS device names. Each time the system or device is stopped and "
+       "restated, the same OS device name is bound to the device. \n"
+       "- StorageBridgeNameBinding models gateways where a name valid "
+       "for one transport is mapped to a name valid for a different "
+       "transport. This binding is used in bridge devices that allow "
+       "Infiniband or iSCSI host adapters to connect to Fibre Channel "
+       "devices. \n"
+       "- The third type of binding is similar to the first, but no OS "
+       "device name or address is provided, the OS uses its usual "
+       "rules to assign names. For this type of binding, the "
+       "superclass can be used." )]
+class CIM_StorageNameBinding : CIM_SettingData {
+
+      [Description ( 
+          "BindingType describes the type of binding expressed by "
+          "the setting data instance. It also defines the "
+          "interpretation of TargetName. \n"
+          "BindToFcDID, FcApiBindToWWPN, and FcApiBindToWWNW "
+          "represent bindings in a fibre channel HBA to a D_ID "
+          "(destination ID), WWPN (World Wide Port Name), or WWNW "
+          "(World Wide Node Name). \n"
+          "LUID is a binding based on a SCSI Inquiry VPD page 83, "
+          "Association 0 logical unit identifier. \n"
+          "\'iSCSI Name\' represents a binding to an iSCSI target "
+          "as used in IMA for Static Configuration (if "
+          "TargetLUNumberValid is false) or an IMA (Un)Exposed LUN "
+          "record (if TargetLUNumberValid is true). \n"
+          "\'iSCSI Network Address\' represents a binding to an "
+          "iSCSI network entity. It is formatted as a host name or "
+          "IP address optionally followed by a plus (\'+\') and a "
+          "TCP port number. If \'+port<#>\' is omitted, the iSCSI "
+          "default (3260) is used. \n"
+          "\'Bridge Binding\' represents a binding between "
+          "initiator IDs in a transport bridge device." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "FcApiBindToDID", "FcApiBindToWWPN", 
+          "FcApiBindToWWNN", "BindToLUID", "iSCSI Target Name", 
+          "iSCSI Network Address", "Bridge Binding" }, 
+       MappingStrings { "FC API.INCITS-T11| HBA_BIND_TYPE" }]
+   uint16 BindingType;
+
+      [Description ( 
+          "If true, then all target logical units are bound to the "
+          "OS. Not valid to set this if BindingType is BindToLUID." ), 
+       MappingStrings { "FC API.INCITS-T11| HBA_BIND_TARGETS" }, 
+       ModelCorrespondence { 
+          "CIM_StorageNameBinding.LogicalUnitNumber", 
+          "CIM_StorageNameBinding.BindingType" }]
+   boolean BindAllLogicalUnits = false;
+
+      [Description ( 
+          "If false (the default), the specified target unit(s) is "
+          "exposed to the OS. If true, the OS-related properties "
+          "are ignored, and the target related properties identify "
+          "target unit(s) that are hidden from the OS. In most "
+          "cases, this is false." )]
+   boolean Hide = false;
+
+      [Description ( 
+          "The name (dependent on BindingType) identifying the SCSI "
+          "target. If BindingType is FcApiBindToDID, TargetName "
+          "holds a hexadecimal-encoded representation of the 32-bit "
+          "D_ID \n"
+          "and corresponds to FC API HBA_FCPID.FcId. \n"
+          "If BindingType is FcApiBindToWWPN or FcApiBindToWWNN, "
+          "TargetName holds a hexadecimal-encoded representation of "
+          "the 64-bit FC Port or Node World Wide Name. \n"
+          "If BindingType is BindToLUID, TargetName holds a SCSI "
+          "Logical Unit Name from Inquiry VPD page 83, Association "
+          "0 as defined in SCSI Primary Commands. If the identifier "
+          "descriptor (in the SCSI response) has Code Set Binary, "
+          "then TargetName is its hexadecimal-encoded value." ), 
+       MappingStrings { "FC API.INCITS-T11| HBA_FcpId | FcId", 
+          "FC API.INCITS-T11| HBA_FcpId | NodeWWN", 
+          "FC API.INCITS-T11| HBA_FcpId | PortWWN", 
+          "FC API.INCITS-T11| HBA_FcpId | FcId", 
+          "FC API.INCITS-T11| HBA_LUID" }]
+   string TargetName;
+
+      [Description ( 
+          "A string containing a hexadecimal-encoded representation "
+          "of the 64-bit SCSI Logical Unit Number in the format "
+          "described in the T10 SCSI Architecture Model "
+          "specification. This format consists of four 2-byte "
+          "fields. In most cases, the human-oriented logical unit "
+          "number will be in the high- order two bytes and the "
+          "low-order six bytes will be zero. This property is only "
+          "valid if BindAllLogicalUnits is false and BindingType is "
+          "not ." ), 
+       MappingStrings { "FC API.INCITS-T11| HBA_FcpId | FcpLun" }, 
+       ModelCorrespondence { 
+          "CIM_StorageNameBinding.BindAllLogicalUnits" }]
+   string LogicalUnitNumber;
+
+      [Description ( 
+          "A status associated with the previous attempt to enable "
+          "the binding - this may be set many times after the "
+          "binding is created. The first subset is defined by FC "
+          "API: \n"
+          "BadOSBus - request included a bad OS SCSI bus number \n"
+          "BadOSTarget - request included a bad SCSI target number \n"
+          "BadOSLun - request included a bad OS SCSI logical unit "
+          "number \n"
+          "OSAddressAlreadyBound - request included an OS SCSI ID "
+          "that was already bound \n"
+          "BadFcid - request included a bad or unlocatable FCP "
+          "Target FCID \n"
+          "BadWWNN - request included a bad FCP Target Node_Name \n"
+          "BadWWPN - request included a bad FCP Target Port Name \n"
+          "BadTargetLU - request included an FCP Logical Unit "
+          "Number not defined by the identified Target. \n"
+          "BadLUID - request included an undefined in inaccessible "
+          "LUID." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10" }, 
+       Values { "Unknown", "Other", "OK", "BadOSBus", "BadOSTarget", 
+          "BadOSLun", "BadFcId", "BadWWNN", "BadWWPN", 
+          "BadTargetLU", "BadLUID" }, 
+       MappingStrings { "FC API.INCITS-T11|HBA_FCPBINDING2|Status" }, 
+       ModelCorrespondence { "CIM_StorageNameBinding.OtherStatus" }]
+   uint32 Status;
+
+      [Description ( 
+          "A string describing the status if Status is \'Other\'." ), 
+       ModelCorrespondence { "CIM_StorageNameBinding.Status" }]
+   string OtherStatus;
+
+      [Description ( "The type of the port in LocalPortName." ), 
+       ValueMap { "2", "3" }, 
+       Values { "FC Port WWN", "iSCSI Name" }, 
+       ModelCorrespondence { "CIM_StorageNameBinding.LocalPortName" }]
+   uint16 LocalPortNameType;
+
+      [Description ( 
+          "The port name on the current system associated with this "
+          "persistent binding." ), 
+       MappingStrings { "FC API.INCITS-T11|hbaPortWWN" }, 
+       ModelCorrespondence { 
+          "CIM_StorageNameBinding.LocalPortNameType" }]
+   string LocalPortName;
+
+
+};

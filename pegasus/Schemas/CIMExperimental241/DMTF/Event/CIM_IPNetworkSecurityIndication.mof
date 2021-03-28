@@ -1,0 +1,140 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+// IPNetworkSecurityIndication
+// ==================================================================
+   [Indication, Experimental, Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Event" ), 
+    Description ( 
+       "IPNetworkSecurityIndication is a class that represents events "
+       "that have a network context, i.e. a source or destination "
+       "address is a necessary property of the indication. More "
+       "specific Indication subclasses that can derive from this class "
+       "are for example, firewall or intrusion detection subclasses. "
+       "This class is not limited to use on IPv4 networks but has "
+       "numerical property support for IPv4 networks that can be used "
+       "for efficient implementations of search and analysis." )]
+class CIM_IPNetworkSecurityIndication : CIM_SecurityIndication {
+
+      [Required, Override ( "MessageType" ), 
+       Description ( 
+          "An integer indicating the type of message to which the "
+          "Indication applies. Generic indications of this class "
+          "SHOULD set the value to Unknown. DMTF subclasses will "
+          "define specific values from the DMTF Class Reserved "
+          "range." ), 
+       ValueMap { "0", "..", "2", "3..500", "16000.." }, 
+       Values { "Unknown", "DMTF Reserved", "Not Applicable", 
+          "DMTF Class Reserved", "Vendor Reserved" }]
+   uint16 MessageType;
+
+      [Required, Description ( 
+          "An integer indicating the type of network protocol for "
+          "the traffic associated with this Indication." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6" }, 
+       Values { "Unknown", "ARP", "TCP", "UDP", "ICMP", "IGMP" }]
+   uint16 Protocol;
+
+      [Required, Description ( 
+          "This property explicitly defines support for different "
+          "versions of the IP protocol for the traffic associated "
+          "with this Indication." ), 
+       ValueMap { "0", "2", "3" }, 
+       Values { "Unknown", "IPv4", "IPv6" }]
+   uint16 IPVersionSupport;
+
+      [Description ( 
+          "The address for the originator of the network traffic "
+          "associated with this Indication from the Detector\'s "
+          "point of view. This address MUST be identical to the "
+          "IPv4NumericSourceAddress if both property values are not "
+          "NULL and the IPVersionSupport property is \"IPv4\" ." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.IPv4NumericSourceAddress", 
+          "CIM_IPNetworkSecurityIndication.IPVersionSupport" }]
+   string SourceAddress;
+
+      [Description ( 
+          "The IPv4 source address in numeric form. This address "
+          "MUST be identical to the SourceAddress property if both "
+          "property values are not NULL and the IPVersionSupport "
+          "property is \"IPv4\"." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.SourceAddress", 
+          "CIM_IPNetworkSecurityIndication.IPVersionSupport" }]
+   uint32 IPv4NumericSourceAddress;
+
+      [Description ( 
+          "The prefix length for the IPv6 address for the "
+          "originator of the network traffic associated with this "
+          "Indication from the Detector\'s point of view." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.SourceAddress", 
+          "CIM_IPNetworkSecurityIndication.IPVersionSupport" }]
+   uint8 SourcePrefixLength;
+
+      [Description ( 
+          "The address for the destination of the network traffic "
+          "associated with this Indication from the Detector\'s "
+          "point of view. This address MUST be identical to the "
+          "IPv4NumericDestAddress if both property values are not "
+          "NULL and the IPVersionSupport property is \"IPv4\"." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.IPv4NumericDestAddress", 
+          "CIM_IPNetworkSecurityIndication.IPVersionSupport" }]
+   string DestAddress;
+
+      [Description ( 
+          "The IPv4 destination address in numeric form. This "
+          "address MUST be identical to the DestAddress property if "
+          "both property values are not NULL and the "
+          "IPVersionSupport property is \"IPv4\"." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.DestAddress", 
+          "CIM_IPNetworkSecurityIndication.IPVersionSupport" }]
+   uint32 IPv4NumericDestAddress;
+
+      [Description ( 
+          "The prefix length for the IPv6 address for the "
+          "destination of the network traffic associated with this "
+          "Indication from the Detector\'s point of view." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.DestAddress", 
+          "CIM_IPNetworkSecurityIndication.IPVersionSupport" }]
+   uint8 DestPrefixLength;
+
+      [Description ( 
+          "The port for the source address for this message from "
+          "the Detector\'s point of view." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.SourceAddress", 
+          "CIM_IPNetworkSecurityIndication.IPv4NumericSourceAddress" }]
+   uint32 SourcePort;
+
+      [Description ( 
+          "The port for the destination address for this message "
+          "from the Detector\'s point of view." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.DestAddress", 
+          "CIM_IPNetworkSecurityIndication.IPv4NumericDestAddress" }]
+   uint32 DestPort;
+
+      [Description ( 
+          "The MAC address for the source address for this message "
+          "from the Detector\'s point of view." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.SourceAddress", 
+          "CIM_IPNetworkSecurityIndication.IPv4NumericSourceAddress" }]
+   string SourceMACAddress;
+
+      [Description ( 
+          "The MAC address for the destination address for this "
+          "message from the Detector\'s point of view." ), 
+       ModelCorrespondence { 
+          "CIM_IPNetworkSecurityIndication.DestAddress", 
+          "CIM_IPNetworkSecurityIndication.IPv4NumericDestAddress" }]
+   string DestMACAddress;
+
+
+};

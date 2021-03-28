@@ -1,0 +1,117 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Abstract, Version ( "2.22.0" ), 
+    UMLPackagePath ( "CIM::System::Diagnostics" ), 
+    Description ( 
+       "The CIM_DiagnosticService class provides the ability to start "
+       "a service that functions to participate in a problem "
+       "determination process. Specific diagnostic services SHOULD be "
+       "defined by subclassing this class. Examples of a diagnostic "
+       "service are tests, information retrievers, exercisers, and "
+       "ports to external executives." )]
+class CIM_DiagnosticService : CIM_Service {
+
+
+      [Deprecated { "CIM_DiagnosticService.RunDiagnosticService" }, 
+       Description ( 
+          "This method is being deprecated as part of the change to "
+          "have Diagnostic Settings derive from CIM_SettingData "
+          "instead of CIM_Setting. \n"
+          "The RunDiagnostic method is invoked to commence "
+          "execution of a diagnostic program on a specific managed "
+          "element. The input parameters specify this managed "
+          "element and the settings that SHALL be applied to the "
+          "diagnostic and the resultant job. The method returns a "
+          "reference to the ConcreteJob instance created. \n"
+          "Prior to invoking this method, clients SHALL examine the "
+          "appropriate capabilities and create valid "
+          "DiagnosticSetting and JobSettingData instances to apply "
+          "as input parameters. Since settings may be changed "
+          "without warning, the RunDiagnostic method SHOULD "
+          "immediately evaluate and capture the attributes of "
+          "DiagnsoticSetting in an instance of "
+          "DiagnosticSettingRecord. This information is useful for "
+          "post-mortem analysis of diagnostic results. \n"
+          "A job SHALL be instantiated as a means for monitoring "
+          "the diagnostic as it runs and to provide useful "
+          "accounting and status information once the diagnostic "
+          "has completed. \n"
+          "The \"Busy\" return code indicates that the method "
+          "cannot be invoked \"at this time\". It is not an error "
+          "condition, but signals that the provider is doing "
+          "something else and cannot respond." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", 
+          "0x1000..0x7FFF", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "Busy", "DMTF Reserved", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RunDiagnostic(
+         [IN, Description ( 
+             "Specifies the element upon which the "
+             "DiagnosticService SHOULD be run." )]
+      CIM_ManagedElement REF ManagedElement, 
+         [IN, Description ( 
+             "Specifies the desired settings that SHOULD be "
+             "applied to the Diagnostic. If null, the "
+             "Diagnostic\'s defaults MAY be used." )]
+      CIM_DiagnosticSetting REF DiagSetting, 
+         [IN, Description ( 
+             "Specifies the desired settings that SHALL be "
+             "applied to the resulting Job. If null, the job\'s "
+             "defaults MAY be used." )]
+      CIM_JobSettingData REF JobSetting, 
+         [IN ( false ), OUT, Description ( 
+             "Returns a reference to the resulting Job." )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "The RunDiagnosticService method is invoked to commence "
+          "execution of a diagnostic program on a specific managed "
+          "element. The input parameters specify this managed "
+          "element and the settings to be applied to the diagnostic "
+          "and the resultant job. The method returns a reference to "
+          "the ConcreteJob instance created. \n"
+          "Prior to invoking this method, clients examine defaults "
+          "and appropriate capabilities and create valid "
+          "DiagnosticSettingData and JobSettingData instances to "
+          "apply as input parameters. The RunDiagnosticService "
+          "method SHALL evaluate and capture the attributes of "
+          "DiagnosticSettingData in an instance of "
+          "DiagnosticSettingDataRecord for use in post-mortem "
+          "analysis of diagnostic results. \n"
+          "A job SHALL be instantiated as a means for monitoring "
+          "the diagnostic as it runs and to provide useful "
+          "accounting and status information once the diagnostic "
+          "has completed. \n"
+          "The \"Busy\" return code indicates that the method "
+          "cannot be invoked \"at this time\". It is not an error "
+          "condition, but signals that the provider is doing "
+          "something else and cannot respond." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", 
+          "0x1000..0x7FFF", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "Busy", "DMTF Reserved", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RunDiagnosticService(
+         [IN, Description ( 
+             "Specifies the element upon which the "
+             "DiagnosticService SHOULD be run." )]
+      CIM_ManagedElement REF ManagedElement, 
+         [IN, Description ( 
+             "A string containing an encoding of the "
+             "DiagnosticSettingData instance to be applied to "
+             "the diagnostic. If null, the diagnostic\'s "
+             "defaults are used." ), 
+          EmbeddedInstance ( "CIM_DiagnosticSettingData" )]
+      string DiagnosticSettings, 
+         [IN, Description ( 
+             "A string containing an encoding of the "
+             "JobSettingData instance to be applied to the "
+             "resulting job. If null, the job\'s defaults are "
+             "used." ), 
+          EmbeddedInstance ( "CIM_JobSettingData" )]
+      string JobSettings, 
+         [IN ( false ), OUT, Description ( 
+             "Returns a reference to the resulting Job." )]
+      CIM_ConcreteJob REF Job);
+
+};

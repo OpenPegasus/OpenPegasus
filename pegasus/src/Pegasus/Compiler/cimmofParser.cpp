@@ -570,6 +570,7 @@ int cimmofParser::addClass(CIMClass *classdecl)
         cimmofMessages::MsgCode updateMessage;
         // Determine if class can be updated or added. Class is updated or
         // added based on the compiler options specified.
+
         if (updateClass(*classdecl, updateMessage, classExist))
         {
             if (classExist)
@@ -1325,7 +1326,6 @@ Uint32 cimmofParser::addInstanceAlias(const String &alias,
     CIMObjectPath objpath;
 
 #ifdef DEBUG_cimmofParser
-    printf("addInstanceAlias: aliasName.size = %d\n", aliasName.size());
     cout << "addInstanceAlias: alias = " << alias << endl;
     cout << "addInstanceAlias class name = " << cd->getClassName().getString()
          << endl;
@@ -1492,7 +1492,6 @@ Boolean cimmofParser::updateClass(const CIMClass &classdecl,
                           Boolean &classExist)
 {
     classExist = true;
-
     Boolean ret = true;
     Boolean iExperimental = false;
     Boolean rExperimental = false;
@@ -1553,6 +1552,7 @@ Boolean cimmofParser::updateClass(const CIMClass &classdecl,
         cRep = _repository.getClass(getNamespacePath(),
                 classdecl.getClassName());
     }
+    
     catch (const CIMException &e)
     {
         if (e.getCode() == CIM_ERR_NOT_FOUND)
@@ -1569,6 +1569,11 @@ Boolean cimmofParser::updateClass(const CIMClass &classdecl,
             {
                 throw;
             }
+    }
+
+    catch(Exception &e)
+    {
+        throw;
     }
 
     // Get the experimental qualifier from the input class
@@ -1639,20 +1644,21 @@ Boolean cimmofParser::updateClass(const CIMClass &classdecl,
             if (!_cmdline->allow_experimental())
             {
                 /* PEP43: ID = 1 */
-                //printf("ID=1 (NoAction): Does Not Exist. -aE not set.\n");
+                //printf//"ID=1 (NoAction): Does Not Exist. -aE not set.\n");
                 updateMessage = cimmofMessages::NO_EXPERIMENTAL_UPDATE;
+                
                 return false;
             }
             else
             {
                 /* PEP43: ID = 2 */
-                //printf("ID=2 (CreateClass): Does Not Exist. -aE set.\n");
+                //printf//"ID=2 (CreateClass): Does Not Exist. -aE set.\n");
             }
         }
         else
         {
             /* PEP43: ID = 3 */
-            //printf("ID=3 (CreateClass): Does Not Exist. Not Experimental.\n");
+            //printf//"ID=3 (CreateClass): Does Not Exist. Not Experimental.\n");
         }
     }
     else
@@ -1660,7 +1666,7 @@ Boolean cimmofParser::updateClass(const CIMClass &classdecl,
         if (!_cmdline->update_class())
         {
             /* PEP43: ID = 4 */
-            //printf("ID=4 (NoAction): Exists. -uC not set.\n");
+            //printf//"ID=4 (NoAction): Exists. -uC not set.\n");
             updateMessage = cimmofMessages::NO_CLASS_UPDATE;
             return false;
         }
@@ -1671,7 +1677,7 @@ Boolean cimmofParser::updateClass(const CIMClass &classdecl,
             if (!_cmdline->allow_experimental())
             {
                 /* PEP43: ID = 5 */
-                //printf("ID=5 (NoAction): Exists. -aE not set.\n");
+                //printf//"ID=5 (NoAction): Exists. -aE not set.\n");
                 updateMessage = cimmofMessages::NO_EXPERIMENTAL_UPDATE;
                 return false;
             }
@@ -1710,8 +1716,8 @@ Boolean cimmofParser::updateClass(const CIMClass &classdecl,
                     (iU > rU && rU >= 0))     /* minor update of update id */
                 {
                     /* PEP43: ID = 8 */
-                    //printf("ID=8 (ModifyClass): Exists. -aE set."
-                    //"(Minor Update, NULL->Any)\n");
+                    //printf//"ID=8 (ModifyClass): Exists. -aE set."
+                    //       "(Minor Update, NULL->Any)\n");
 
                 }
                 else
@@ -1721,7 +1727,7 @@ Boolean cimmofParser::updateClass(const CIMClass &classdecl,
                     // 2    ->2.0.0 or 2.0.0->2   (equates to same version)
                     // 2.7  ->2.7.0 or 2.7.0->2.7 (equates to same version)
                     /* PEP43: ID = 9 --> Same Version */
-                    //printf("ID=9 (NoAction): Exists. Same Version.\n");
+                    //printf//"ID=9 (NoAction): Exists. Same Version.\n");
                     updateMessage = cimmofMessages::SAME_VERSION;
                     return false;
                 }
@@ -1760,15 +1766,15 @@ Boolean cimmofParser::updateClass(const CIMClass &classdecl,
                         (iU > rU && rU >= 0))   // minor update of update id
                     {
                         /* PEP43: ID = 12 */
-                        //printf("ID=12 (ModifyClass): Exists: "
-                        //"(Minor Update, NULL->Any)\n");
+                        //printf//"ID=12 (ModifyClass): Exists: "
+                        //       "(Minor Update, NULL->Any)\n");
 
                     }
                     else
                     {
                         /* PEP43: ID = 13 --> Same Version */
                         // See above for examples...ID=9
-                        //printf("ID=13 (NoAction): Exists. Same Version.\n");
+                        //printf//"ID=13 (NoAction): Exists. Same Version.\n");
                         updateMessage = cimmofMessages::SAME_VERSION;
                         return false;
                     }

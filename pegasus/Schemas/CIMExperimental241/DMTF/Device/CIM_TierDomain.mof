@@ -1,0 +1,99 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.35.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "TierDomain is a subclass of AdminDomain that identifies tiers "
+       "belonging to a domain." )]
+class CIM_TierDomain : CIM_AdminDomain {
+
+      [Write, Description ( 
+          "Specifies if data movement is automatic or requires "
+          "manual intervention. \n"
+          "\'Auto\' - Movement of data between tiers happens "
+          "automatically based on the collected statistics. \n"
+          "\'Manual\' - The actual movement of data between tiers "
+          "happens when requested by a client. The data movement is "
+          "still based on the collected statistics." ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "Auto", "Manual", "DMTF Reserved", "Vendor Specific" }]
+   uint16 DataMovement;
+
+      [Description ( 
+          "Indicates the state of data movement that requires "
+          "manual intervention." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "..", 
+          "0x8000.." }, 
+       Values { "Not Applicable", "Waiting for Approval", 
+          "Waiting for Scheduled Time", "In Progress", "Stopped", 
+          "Paused", "Aborted", "Completed", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_TierDomain.DataMovement" }]
+   uint16 DataMovementState;
+
+
+      [Description ( 
+          "Requests that the state of manual data movement to be "
+          "changed to the value specified in the RequestedState "
+          "parameter. Invoking this method multiple times could "
+          "result in earlier requests being overwritten or lost. \n"
+          "If 0 is returned, then the task completed successfully. "
+          "Any other return code indicates an error condition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098", "4099", "4100..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown/Unspecified Error", 
+          "Can NOT complete within Timeout Period", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Transition Started", 
+          "Invalid State Transition", 
+          "Use of Timeout Parameter Not Supported", "Busy", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 RequestDataMovementStateChange(
+         [IN, Description ( 
+             "Specifies the requested state. Possible values are "
+             "as follows: \n"
+             "Start: begin manual data movement. \n"
+             "Stop: stop manual data movement. \n"
+             "Pause: pause data movement. \n"
+             "Resume: resume data movement." ), 
+          ValueMap { "2", "3", "4", "5", "..", "0x8000.." }, 
+          Values { "Start", "Stop", "Pause", "Resume", 
+             "DMTF Reserved", "Vendor Reserved" }]
+      uint16 RequestedState, 
+         [IN, Description ( 
+             "Specifies the type of elements to move. Possible "
+             "values are as follows: \n"
+             "ThinlyProvisioned: only move thinly provisioned "
+             "elements. \n"
+             "ThicklyProvisioned: only move thickly. \n"
+             "provisioned elements. \n"
+             "If not specified, \"Implementation Decides\"." ), 
+          ValueMap { "2", "3", "4", "5", "..", "0x8000.." }, 
+          Values { "ThinlyProvisioned", "ThicklyProvisioned", 
+             "Both", "Implementation Decides", "DMTF Reserved", 
+             "Vendor Reserved" }]
+      uint16 ProvisioningType, 
+         [IN, Description ( 
+             "A timeout period that specifies the maximum amount "
+             "of time that the client expects the transition to "
+             "the new state to take. The interval format must be "
+             "used to specify the TimeoutPeriod. A value of 0 or "
+             "a null parameter indicates that the client has no "
+             "time requirements for the transition. \n"
+             "If this property does not contain 0 or null and "
+             "the implementation does not support this "
+             "parameter, a return code of \'Use Of Timeout "
+             "Parameter Not Supported\' must be returned." )]
+      datetime TimeoutPeriod, 
+         [IN, Description ( 
+             "Specifies to data and time for the indicated new "
+             "requested state. If null, data movement starts as "
+             "soon as possible." )]
+      datetime StartTime, 
+         [IN, Description ( 
+             "Specifies the duration for data movement.The "
+             "interval format must be used. A value of 0 or a "
+             "null parameter indicates there is no time limit." )]
+      datetime DataMovementInterval);
+
+};

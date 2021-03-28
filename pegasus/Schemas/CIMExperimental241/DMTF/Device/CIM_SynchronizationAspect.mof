@@ -1,0 +1,128 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.41.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "A class to keep track of the source of a copy operation. "
+       "Additionally, the class has a series of properties to indicate "
+       "the SyncType that was used and the date and time of the "
+       "point-in-time if it applies to the SyncType." )]
+class CIM_SynchronizationAspect : CIM_SettingData {
+
+      [Description ( 
+          "SyncType describes the type of copy. \n"
+          "Mirror: a synchronized, full copy of the source. \n"
+          "Snapshot: a point-in-time, virtual copy of the source. \n"
+          "Clone: a point-in-time, full copy of the source." ), 
+       ValueMap { "..", "6", "7", "8", "..", "0x8000.." }, 
+       Values { "DMTF Reserved", "Mirror", "Snapshot", "Clone", 
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+   uint16 SyncType;
+
+      [Description ( "Set to true if consistency is enabled." )]
+   boolean ConsistencyEnabled = false;
+
+      [Description ( 
+          "Indicates the consistency type used by the groups. "
+          "Sequentially Consistent: Members of a target group are "
+          "sequentially consistent - the order of the write "
+          "operations is maintained." ), 
+       ValueMap { "2", "..", "0x8000.." }, 
+       Values { "Sequentially Consistent", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 ConsistencyType;
+
+      [Description ( 
+          "Indicates the status of copy operation. Operation In "
+          "Progress: Copy operation is in progress. \n"
+          "Operation Completed: The copy operation completed with "
+          "no errors. \n"
+          "Initializing: Initialization is in progress. \n"
+          "Synchronizing: Synchronization is in progress. \n"
+          "Resyncing: Target element is being resynchronized. \n"
+          "Restoring: Restore operation is in progress. \n"
+          "Aborting: The copy operation is being aborted. \n"
+          "Terminating: The relationship is being terminated. \n"
+          "Mixed: Applies to groups with elements with different "
+          "statuses. Generally, the individual statuses need to be "
+          "examined." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "..", "0x8000.." }, 
+       Values { "Not Applicable", "Operation In Progress", 
+          "Operation Completed", "Initializing", "Synchronizing", 
+          "Resyncing", "Restoring", "Aborting", "Terminating", 
+          "Mixed", "DMTF Reserved", "Vendor Specific" }]
+   uint16 CopyStatus;
+
+      [Description ( 
+          "Indicates the copy methodology utilized for copying "
+          "source element to target element. \n"
+          "Full-Copy: The entire source data is copied to target. \n"
+          "Incremental-Copy: Only changed data from source element "
+          "is copied to target element. \n"
+          "Differential-Copy: Only the new writes to source element "
+          "are copied to the target element. \n"
+          "Copy-On-Write: Affected data is copied on the first "
+          "write to the source or to the target elements. \n"
+          "Copy-On-Access: Affected data is copied on the first "
+          "access to the source element. \n"
+          "Delta-Update: Difference based replication where after "
+          "the initial copy, only updates to source are copied to target.\n"
+          "Snap-And-Clone: The service creates a snapshot of the "
+          "source element first, then uses the snapshot as the "
+          "source of the copy operation to the target element." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "..", 
+          "0x8000.." }, 
+       Values { "Other", "Implementation decides", "Full-Copy", 
+          "Incremental-Copy", "Differential-Copy", "Copy-On-Write", 
+          "Copy-On-Access", "Delta-Update", "Snap-And-Clone", 
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_ReplicationSettingData.DesiredCopyMethodology" }]
+   uint16 CopyMethodology;
+
+      [Description ( 
+          "Specifies when point-in-time was created. Shall be set "
+          "to NULL if implementation is not capable of providing "
+          "this information. A value of 0 indicates the information "
+          "is not known." )]
+   datetime WhenPointInTime;
+
+      [Description ( 
+          "The identifying information of source element (i.e. an "
+          "instance ) of a copy operation, or of a point-in-time "
+          "source. The identifying information is in the form of an "
+          "object path encoded as a string parameter. The format of "
+          "a CIMObjectPath, is "
+          "<NamespacePath>:<ClassName>.<Prop1>=\"<Value1>\", "
+          "<Prop2>=\"<Value2>\", . . . specifying an instance in "
+          "the CIM Schema." )]
+   string SourceElement;
+
+      [Write, Description ( 
+          "The created element can be deleted if system resources "
+          "are running low. If TimeBeforeRemoval is specified, this "
+          "property is ignored, even if it is set to true." ), 
+       ModelCorrespondence { 
+          "CIM_SynchronizationAspect.TimeBeforeRemoval" }]
+   boolean AutoDelete = false;
+
+      [Write, Description ( 
+          "The amount of time that the element is retained. If "
+          "non-null, the property AutoDelete is ignored. If null, "
+          "there is no time limit, however, the element may be "
+          "removed if AutoDelete is set to true." ), 
+       ModelCorrespondence { "CIM_SynchronizationAspect.AutoDelete" }]
+   datetime TimeBeforeRemoval;
+
+      [Experimental, Description ( 
+          "SyncState describes the state of the synchronization "
+          "aspect with respect to replication activity." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Initialized", "Unsynchronized", "Synchronized", 
+          "Error", "Invalid", "Restored", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SyncState;
+
+
+};

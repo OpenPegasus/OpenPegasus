@@ -1,0 +1,77 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.19.0" ), 
+    UMLPackagePath ( "CIM::Network::MPLS" ), 
+    Description ( 
+       "This class is used to represent an MPLS Label Switch Path "
+       "(LSP). This is usually a path from an ingress to an egress "
+       "label edge router, through a sequence of label switch routers. "
+       "Sometimes an LSP is a series of hop-by-hop LSPs that go from "
+       "the ingress to egress LSRs. For example, using unordered "
+       "downstream unsolicited mode in LDP, the result is a series of "
+       "\'mini\' LSPs along the path, each with incoming and outgoing "
+       "labels, and a FEC to accept traffic onto the \'mini\' LSP at "
+       "each hop. \n"
+       "\n"
+       "An instance describes either an existing LSP, or the user\'s "
+       "configurations of one to be established in the network. The "
+       "boolean property, Established, indicates the state of the "
+       "instance. \n"
+       "\n"
+       "Note that MPLSLSP subclasses from EnabledLogicalElement. This "
+       "allows (via inherited properties) the explicit enabling and "
+       "disabling of the path, as well as the ability to request that "
+       "the path be \'tested\' or shut down." )]
+class CIM_MPLSLSP : CIM_EnabledLogicalElement {
+
+      [Key, Override ( "InstanceID" ), 
+       Description ( 
+          "InstanceID opaquely identifies a unique instance of "
+          "MPLSLSP. The InstanceID must be unique within a "
+          "namespace. In order to ensure uniqueness, the value of "
+          "InstanceID should be constructed in the following "
+          "manner: The instance id consists of the IPAddress of the "
+          "ingress LSR, combined with the LocalLSPId found in this "
+          "class." )]
+   string InstanceID;
+
+      [Write, Description ( 
+          "Boolean indicating whether or not the LSP currently "
+          "exists in the network. Note that if the LSP is not "
+          "established, then the OperationalStatus properties "
+          "inherited from Managed SystemElement have no meaning." )]
+   boolean Established;
+
+      [Description ( 
+          "Property to indicate the nesting level of this LSP. Note "
+          "that this a shortcut counting the number of instances of "
+          "the MPLSLSPInLSP association. It is advantageous to "
+          "determine the nesting level directly, instead of "
+          "traversing several associations to do so." )]
+   uint16 NestingLevel;
+
+      [Required, Description ( 
+          "Property indicating a unique (per ingress LSR) LSP ID." )]
+   uint16 LocalLSPId;
+
+      [Description ( 
+          "The IP addresses of the ingress node(s) (LERs) of the "
+          "path. This is an array to allow for multipoint LSPs." )]
+   string IngressIPAddresses[];
+
+      [Description ( 
+          "The IP addresses of the egress node(s) (LERs) of the "
+          "path. This is an array to allow for multipoint LSPs." )]
+   string EgressIPAddresses[];
+
+      [Description ( 
+          "Flag to indicate that the LSP ingress node may choose to "
+          "reroute this LSP without tearing it down." )]
+   boolean IngressMayReroute;
+
+      [Description ( 
+          "Flag to indicate that this LSP should be restored "
+          "automatically after a failure occurs." )]
+   boolean IsPersistent;
+
+
+};

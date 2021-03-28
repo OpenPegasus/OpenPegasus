@@ -1,0 +1,38 @@
+// <change cr="CIMCoreCR00805" type = "new"> Add class.</change>
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+// NetworkPortSettings
+// ==================================================================
+   [Experimental, Version ( "2.13.0" ), 
+    UMLPackagePath ( "CIM::Device::Ports" ), 
+    Description ( 
+       "A NetworkPort may be configured via the NetworkPortSettings "
+       "class. The requested configuration changes are expected to be "
+       "stored to non-volatile memory. NetworkPortCapabilities defines "
+       "which settings are configurable." )]
+class CIM_NetworkPortSettings : CIM_LogicalPortSettings {
+
+      [Write, Description ( 
+          "An array of network identifiers that specify which "
+          "Networks the NetworkPort may belong to. The ability to "
+          "set this property is defined in NetworkPortCapabilities.\n"
+          "\n"
+          "For example, in Fibre Channel the NetworkIDs would be "
+          "populated with Virtual Fabric IDs." )]
+   string NetworkIDs[];
+
+      [Write, Description ( 
+          "The requested LinkTechnology of the NetworkPort. The "
+          "list of supported LinkTechnologies of the NetworkPort is "
+          "defined in the NetworkPortCapabilities." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", "11" }, 
+       Values { "Ethernet", "IB", "FC", "FDDI", "ATM", "Token Ring", 
+          "Frame Relay", "Infrared", "BlueTooth", "Wireless LAN" }, 
+       ModelCorrespondence { 
+          "CIM_NetworkPortCapabilities.NetworkIDsConfigurable", 
+          "CIM_NetworkPort.LinkTechnology" }]
+   uint16 LinkTechnology;
+
+
+};

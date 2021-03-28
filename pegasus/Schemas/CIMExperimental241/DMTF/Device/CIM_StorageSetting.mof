@@ -1,0 +1,691 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Version ( "2.35.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "StorageSetting is roughly equivalent to a Service Level "
+       "Agreement (SLA) It defines the characteristics, qualities of "
+       "service and goals when used in a CreateOrModifyElement "
+       "FromStoragePool or CreateOrModifyStoragePool method in the "
+       "StorageConfigurationService. It specifies a series of "
+       "properties with Maximum and Minimum values that define the "
+       "(inclusive) bounds that the object should maintain. Note that "
+       "the setting is associated to a StorageVolume or LogicalDisk, "
+       "using ElementSetting. \n"
+       "The use of these properties differs depending on whether the "
+       "StorageSetting instance is being used as a goal for a "
+       "configuration operation or being used as a Service Level "
+       "Agreement for a created Volume. In addition the properties "
+       "fall into two categories: The QOS "
+       "properties(PackageRedundancy, Data Redundancy, & "
+       "NoSinglePointOfFailure) and the Detailed RAID "
+       "properties(ExtentStripeLength, ParityLayout, and "
+       "UserDataStripeDepth). In a Setting used as a goal, the QOS "
+       "properties are required as a set; The Detailed RAID "
+       "properties(if supported as indicated by the scoping "
+       "StorageCapabilities instance) may be used optionally in any "
+       "combination. The implementation MUST supply it\'s own best "
+       "practice in the case where one or more supported RAID "
+       "properties are not supplied. In this situation the use of "
+       "StorageSettingWithHints can be useful to provide direction to "
+       "the implementation. \n"
+       "In a Setting used as a service agreement for a Volume, the QOS "
+       "properties reflect the Service Level Agreement, with goal, "
+       "min, & max. The actual current service level is exposed by "
+       "corresponding values in StorageExtent. \n"
+       "The Detailed RAID properties, by contrast, reflect specific "
+       "values that reflect the RAID construction of the Volume. Only "
+       "the primary values are meaningful; Min and Max are set to "
+       "match. \n"
+       "Certain StorageSetting instances may be classed as \"Fixed\", "
+       "by using the \"ChangeableType\" property, indicating the "
+       "setting is preset. Such settings are used when the possible "
+       "setting variations are low enough to be instantiated in their "
+       "entirety. The StorageCapabilities \"CreateSetting\" method MAY "
+       "NOT be used to return settings that are not changeable. \n"
+       "Other StorageSetting instances are created using the "
+       "\"CreateSetting\" method. If the capabilities specifies "
+       "ranges, then the setting can be used by a client to narrow the "
+       "range to particular values within the range. In other words, "
+       "the capabilities MAY be broad, but the related setting MUST be "
+       "as capable or less capable, that is more narrowly defined, "
+       "before it is used to create or modify resources. \n"
+       "These created StorageSetting instances MUST have their "
+       "\"ChangeableType\" property = 1, \"Changeable - Transient\". \n"
+       "GeneratedSettings MAY not remain after the restart or reset of "
+       "the implementation. They may be deleted by implementation at "
+       "any time. A reasonable minimal time to retain the generated "
+       "transient settings is five minutes, although there is no "
+       "minimal retention time." )]
+class CIM_StorageSetting : CIM_SettingData {
+
+      [Write, Description ( 
+          "Indicates the desired value for No Single Point of "
+          "Failure. Possible values are false = single point of "
+          "failure, and true = no single point of failure." )]
+   boolean NoSinglePointOfFailure;
+
+      [Write, Description ( 
+          "DataRedundancyMax describes the maximum number of "
+          "complete copies of data to be maintained. Examples would "
+          "be RAID 5 where 1 copy is maintained and RAID 1 where 2 "
+          "or more copies are maintained. Possible values are 1 to "
+          "n. The desired redundancy is specified using "
+          "DataRedundancyGoal, while the minimum is defined by "
+          "DataRedundancyMin." ), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DataRedundancyMin", 
+          "CIM_StorageSetting.DataRedundancyGoal" }]
+   uint16 DataRedundancyMax;
+
+      [Write, Description ( 
+          "DataRedundancyMin describes the minimum number of "
+          "complete copies of data to be maintained. Examples would "
+          "be RAID 5 where 1 copy is maintained and RAID 1 where 2 "
+          "or more copies are maintained. Possible values are 1 to "
+          "n. The desired redundancy is specified using "
+          "DataRedundancyGoal, while the maximum is defined by "
+          "DataRedundancyMax." ), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DataRedundancyMax", 
+          "CIM_StorageSetting.DataRedundancyGoal" }]
+   uint16 DataRedundancyMin;
+
+      [Write, Description ( 
+          "DataRedundancyGoal describes the desired number of "
+          "complete copies of data to be maintained. Examples would "
+          "be RAID 5 where 1 copy is maintained and RAID 1 where 2 "
+          "or more copies are maintained. Possible values are 1 to "
+          "n. The bounds (max and min) for redundancy are defined "
+          "using the properties, DataRedundancyMax and "
+          "DataRedundancyMin." ), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { "CIM_StorageSetting.DataRedundancyMax", 
+          "CIM_StorageSetting.DataRedundancyMin" }]
+   uint16 DataRedundancyGoal;
+
+      [Write, Description ( 
+          "PackageRedundancyMax describes the maximum number of "
+          "redundant packages to be used. For example, in the "
+          "storage domain, package redundancy describes how many "
+          "disk spindles can fail without data loss including, at "
+          "most, one spare. An example would be RAID5 with a spare "
+          "disk which would have a PackageRedundancy of 2. Possible "
+          "values are 0 to n. The desired redundancy is specified "
+          "using PackageRedundancyGoal, while the minimum is "
+          "defined by PackageRedundancyMin." ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.PackageRedundancyMin", 
+          "CIM_StorageSetting.PackageRedundancyGoal" }]
+   uint16 PackageRedundancyMax;
+
+      [Write, Description ( 
+          "PackageRedundancyMin describes the minimum number of "
+          "redundant packages to be used. For example, in the "
+          "storage domain, package redundancy describes how many "
+          "disk spindles can fail without data loss including, at "
+          "most, one spare. An example would be RAID5 with a spare "
+          "disk which would have a PackageRedundancy of 2. Possible "
+          "values are 0 to n. The desired redundancy is specified "
+          "using PackageRedundancyGoal, while the maximum is "
+          "defined by PackageRedundancyMax." ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.PackageRedundancyMax", 
+          "CIM_StorageSetting.PackageRedundancyGoal" }]
+   uint16 PackageRedundancyMin;
+
+      [Write, Description ( 
+          "PackageRedundancyGoal describes the desired number of "
+          "redundant packages to be used. For example, in the "
+          "storage domain, package redundancy describes how many "
+          "disk spindles can fail without data loss including, at "
+          "most, one spare. An example would be RAID5 with a spare "
+          "disk which would have a PackageRedundancy of 2. Possible "
+          "values are 0 to n. The bounds (max and min) for "
+          "redundancy are defined using the properties, "
+          "PackageRedundancyMax and PackageRedundancyMin." ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.PackageRedundancyMax", 
+          "CIM_StorageSetting.PackageRedundancyMin" }]
+   uint16 PackageRedundancyGoal;
+
+      [Write, Description ( 
+          "DeltaReservationMax is a number between 1 (1%) and a 100 "
+          "(100%) which specifies the maximum amount of space that "
+          "should be reserved in a replica for caching changes. For "
+          "a complete copy this would be 100%. The desired "
+          "reservation is specified using DeltaReservationGoal, "
+          "while the minimum is defined by DeltaReservationMin." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 1 ), 
+       MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.DeltaReservationMin", 
+          "CIM_StorageSetting.DeltaReservationGoal" }, 
+       PUnit ( "percent" )]
+   uint8 DeltaReservationMax;
+
+      [Write, Description ( 
+          "DeltaReservationMin is a number between 1 (1%) and a 100 "
+          "(100%) which specifies the minimum amount of space that "
+          "should be reserved in a replica for caching changes. For "
+          "a complete copy this would be 100%. The desired "
+          "reservation is specified using DeltaReservationGoal, "
+          "while the maximum is defined by DeltaReservationMax." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 1 ), 
+       MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.DeltaReservationMax", 
+          "CIM_StorageSetting.DeltaReservationGoal" }, 
+       PUnit ( "percent" )]
+   uint8 DeltaReservationMin;
+
+      [Write, Description ( 
+          "DeltaReservationGoal is a number between 1 (1%) and a "
+          "100 (100%) which specifies the desired amount of space "
+          "that should be reserved in a replica for caching "
+          "changes. For a complete copy this would be 100%. The "
+          "bounds (max and min) for the reservation are defined "
+          "using the properties, DeltaReservationMax and "
+          "DeltaReservationMin." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 1 ), 
+       MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.DeltaReservationMin", 
+          "CIM_StorageSetting.DeltaReservationMax" }, 
+       PUnit ( "percent" )]
+   uint8 DeltaReservationGoal;
+
+      [Override ( "ChangeableType" ), 
+       Description ( 
+          "Enumeration indicating the type of setting. \"Fixed - "
+          "Not Changeable\" settings are primordial. These setting "
+          "are defined at the implementor of the class. \"Changeable "
+          "- Transient\" is the type of setting produced by the "
+          "\"CreateSetting\" method. A client can subsequently "
+          "request that the implementation persist the generated "
+          "and potentially modified setting indefinately. Only a "
+          "\"Changeable - Transient\" setting SHALL be converted to "
+          "a \"Changeable = Persistent\" setting; the setting SHALL "
+          "NOT be changed back." ), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Fixed - Not Changeable", "Changeable - Transient", 
+          "Changeable - Persistent" }]
+   uint16 ChangeableType;
+
+      [Write, Description ( 
+          "ExtentStripeLength describes the number of underlying "
+          "StorageExtents across which data is striped in the "
+          "common striping-based storage organizations. This is "
+          "also known as the number of \'members\' or \'columns\'. "
+          "When used in a goal setting instance, ExtentStripeLength "
+          "is the optimal desired value. The bounds (max and min) "
+          "for Stripe Length are defined using the properties "
+          "ExtentStripeLengthMax and ExtentStripeLengthMin. "
+          "ExtentStripeLength MUST be set to NULL if the scoping "
+          "StorageCapablities indicates that it is not supported in "
+          "this context. ExtentStripeLength can be used in "
+          "conjunction with CreateOrModifyElementFromELements to "
+          "explicitly configure storage. An example would be RAID "
+          "0+1 with mirroring two stripe sets, each set being three "
+          "wide. In this case CreateOrModifyElementFromElements "
+          "would be passed a goal setting with DataRedundancy = 2 "
+          "and ExtentStripeLength = 3. The size of the InElements "
+          "array would be 6 and would contain the StorageExtents to "
+          "be used to construct the StorageElement as a RAID 0+1. "
+          "ExtentStripeLengthMin and ExtentStripeLengthMax are "
+          "meaningless and wouldbe set to NULL. If the property is "
+          "supported, and is part of StorageSettingWithHints it MAY "
+          "be set to NULL. If used it will constrain the effects of "
+          "Hint selections. When used in a Setting instance "
+          "associated to a Volume, this property indicates the "
+          "specific value that the Volume was created with, and "
+          "ExtentStripeLengthMin and ExtentStripeLengthMax will be "
+          "set to the same specific value." ), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.ExtentStripeLengthMax", 
+          "CIM_StorageSetting.ExtentStripeLengthMin" }]
+   uint16 ExtentStripeLength;
+
+      [Write, Description ( 
+          "ExtentStripeLength describes the number of underlying "
+          "StorageExtents across which data is striped in the "
+          "common striping-based storage organizations. This is "
+          "also known as the number of \'members\' or \'columns\'. "
+          "When used in a goal setting instance, "
+          "ExtentStripeLengthMin is the minimum acceptable value. "
+          "The desired Stripe Length is specified using "
+          "ExtentStripeLength, while the maximum is defined by "
+          "ExtentStripeLengthMax. ExtentStripeLengthMin MUST be set "
+          "to NULL if the scoping StorageCapablities indicates that "
+          "it is not supported in this context. If the property is "
+          "supported, and is part of StorageSettingWithHints it MAY "
+          "be set to NULL. If used it will constrain the effects of "
+          "Hint selections. When used in a Setting instance "
+          "associated to a Volume, this property is set to the "
+          "specific value of ExtentStripeLength." ), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.ExtentStripeLengthMax", 
+          "CIM_StorageSetting.ExtentStripeLength" }]
+   uint16 ExtentStripeLengthMin;
+
+      [Write, Description ( 
+          "ExtentStripeLength describes the number of underlying "
+          "StorageExtents across which data is striped in the "
+          "common striping-based storage organizations. This is "
+          "also known as the number of \'members\' or \'columns\'. "
+          "When used in a goal setting instance, "
+          "ExtentStripeLengthMax is the maximum acceptable value. "
+          "The desired Stripe Length is specified using "
+          "ExtentStripeLength, while the minimum is defined by "
+          "ExtentStripeLengthMin. ExtentStripeLengthMax MUST be set "
+          "to NULL if the scoping StorageCapablities indicates that "
+          "it is not supported in this context. If the property is "
+          "supported, and is part of StorageSettingWithHints it MAY "
+          "be set to NULL. If used it will constrain the effects of "
+          "Hint selections. When used in a Setting instance "
+          "associated to a Volume, this property is set to the "
+          "specific value of ExtentStripeLength." ), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.ExtentStripeLengthMin", 
+          "CIM_StorageSetting.ExtentStripeLength" }]
+   uint16 ExtentStripeLengthMax;
+
+      [Write, Description ( 
+          "ParityLayout specifies whether a parity-based storage "
+          "organization is using rotated or non-rotated parity. "
+          "When used in a goal setting instance, ParityLayout is "
+          "the desired value. It MUST be set to NULL if the scoping "
+          "StorageCapablities indicates that it is not supported in "
+          "this context. If the property is supported, and is part "
+          "of StorageSettingWithHints it MAY be set to NULL. If "
+          "used it will constrain the effects of Hint selections. "
+          "When used in a Setting instance associated to a Volume, "
+          "this property indicates the specific value that the "
+          "Volume was created with." ), 
+       ValueMap { "1", "2" }, 
+       Values { "Non-rotated Parity", "Rotated Parity" }]
+   uint16 ParityLayout;
+
+      [Write, Description ( 
+          "UserDataStripeDepth describes the number of bytes "
+          "forming a strip in common striping-based storage "
+          "organizations. The strip is defined as the size of the "
+          "portion of a stripe that lies on one extent. Thus, "
+          "ExtentStripeLength * UserDataStripeDepth will yield the "
+          "size of one stripe of user data. When used in a goal "
+          "setting instance, UserDataStripeDepth is the optimal "
+          "desired value. The bounds (max and min) for Stripe Depth "
+          "are defined using the properties UserDataStripeDepthMax "
+          "and UserDataStripeDepthMin. UserDataStripeDepth MUST be "
+          "set to NULL if the scoping StorageCapablities indicates "
+          "that it is not supported in this context. If the "
+          "property is supported, and is part of "
+          "StorageSettingWithHints it MAY be set to NULL. If used "
+          "it will constrain the effects of Hint selections. When "
+          "used in a Setting instance associated to a Volume, this "
+          "property indicates the specific value that the Volume "
+          "was created with, and UserDataStripeDepthMin and "
+          "UserDataStripeDepthMax will be set to the same specific "
+          "value." ), 
+       Units ( "Bytes" ), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.UserDataStripeDepthMax", 
+          "CIM_StorageSetting.UserDataStripeDepthMin" }, 
+       PUnit ( "byte" )]
+   uint64 UserDataStripeDepth;
+
+      [Write, Description ( 
+          "UserDataStripeDepth describes the number of bytes "
+          "forming a strip in common striping-based storage "
+          "organizations. The strip is defined as the size of the "
+          "portion of a stripe that lies on one extent. Thus, "
+          "ExtentStripeLength * UserDataStripeDepth will yield the "
+          "size of one stripe of user data. When used in a goal "
+          "setting instance, UserDataStripeDepthMin is the minimum "
+          "acceptable value. The desired Stripe Depth is specified "
+          "using UserDataStripeDepth, while the maximum is defined "
+          "by UserDataStripeDepthMax. UserDataStripeDepthMin MUST "
+          "be set to NULL if the scoping StorageCapablities "
+          "indicates that it is not supported in this context. If "
+          "the property is supported, and is part of "
+          "StorageSettingWithHints it MAY be set to NULL. If used "
+          "it will constrain the effects of Hint selections. When "
+          "used in a Setting instance associated to a Volume, this "
+          "property is set to the specific value of "
+          "UserDataStripeDepth." ), 
+       Units ( "Bytes" ), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.UserDataStripeDepthMax", 
+          "CIM_StorageSetting.UserDataStripeDepth" }, 
+       PUnit ( "byte" )]
+   uint64 UserDataStripeDepthMin;
+
+      [Write, Description ( 
+          "UserDataStripeDepth describes the number of bytes "
+          "forming a strip in common striping-based storage "
+          "organizations. The strip is defined as the size of the "
+          "portion of a stripe that lies on one extent. Thus, "
+          "ExtentStripeLength * UserDataStripeDepth will yield the "
+          "size of one stripe of user data. When used in a goal "
+          "setting instance, UserDataStripeDepthMax is the maximum "
+          "acceptable value. The desired Stripe Depth is specified "
+          "using UserDataStripeDepthGoal, while the minimum is "
+          "defined by UserDataStripeDepthMin. "
+          "UserDataStripeDepthMax MUST be set to NULL if the "
+          "scoping StorageCapablities indicates that it is not "
+          "supported in this context. If the property is supported, "
+          "and is part of StorageSettingwWithHints it MAY be set to "
+          "NULL. If used it will constrain the effects of Hint "
+          "selections. When used in a Setting instance associated "
+          "to a Volume, this property is set to the specific value "
+          "of UserDataStripeDepth." ), 
+       Units ( "Bytes" ), 
+       MinValue ( 1 ), 
+       ModelCorrespondence { 
+          "CIM_StorageSetting.UserDataStripeDepthMin", 
+          "CIM_StorageSetting.UserDataStripeDepth" }, 
+       PUnit ( "byte" )]
+   uint64 UserDataStripeDepthMax;
+
+      [Experimental, Description ( 
+          "True indicates delta replicas associated with the source "
+          "element associated with this settingdata are "
+          "incrementally dependent. Only the oldest replica in the "
+          "set may be deleted or resynced." )]
+   boolean IncrementalDeltas;
+
+      [Experimental, Description ( 
+          "True indicates the associated replicas persist during "
+          "power off or system reset. False indicates replicas lost "
+          "during these events." )]
+   boolean PersistentReplica;
+
+      [Experimental, Write, Description ( 
+          "\"Not Applicable\" indicates that this property is not "
+          "applicable to the associated storage element. Other "
+          "values indicate whether or not remote mirror pair "
+          "created with SynchronizationType \"Async\" is allowed to "
+          "use a write buffer for asynchronous buffering. These "
+          "other values are defined as: \n"
+          "- \"Not Managed\": use or not of the buffer is up to the "
+          "implementation. \n"
+          "- \"Use Buffer\": use of a buffer for logging is "
+          "required. \n"
+          "- \"Do Not Use Buffer\": a buffer for logging shall not "
+          "be used." ), 
+       ValueMap { "0", "1", "2", "3", "..", "0x8000.." }, 
+       Values { "Not Applicable", "Not Managed", "Use Buffer", 
+          "Do Not Use Buffer", "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_StorageReplicationCapabilities.UseReplicationBufferDefault" }]
+   uint16 UseReplicationBuffer = 0;
+
+      [Experimental, Write, Description ( 
+          "Not Applicable indicates that this property is not "
+          "applicable to the associated storage element. Other "
+          "values indicate whether or not a source element should "
+          "be fully copied to a target element at the time the "
+          "replication is initiated. The provider does not have to "
+          "comply with the client request. These other values are "
+          "defined as: \n"
+          "- \"Not Managed\": to start or not at initiation is up "
+          "to the implementation. \n"
+          "- \"Start\": start replication on initiation. \n"
+          "- \"Do Not Start\": do not start replication on "
+          "initiation." ), 
+       ValueMap { "0", "1", "2", "3", "..", "0x8000.." }, 
+       Values { "Not Applicable", "Not Managed", "Start", 
+          "Do Not Start", "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_StorageReplicationCapabilities.InitialSynchronizationDefault" }]
+   uint16 InitialSynchronization = 0;
+
+      [Experimental, Write, Description ( 
+          "Not Applicable indicates that this property is not "
+          "applicable to the associated storage element. Other "
+          "values indicate the relative priority of background "
+          "Replication I/O operations relative to host I/O "
+          "operations. These other values are: \n"
+          "- \"Low\": Replication engine I/O lower priority than "
+          "host I/O. \n"
+          "- \"Same\": Replication engine I/O has the same priority "
+          "as host I/O. \n"
+          "- \"High\": Replication engine I/O has higher priority "
+          "than host I/O." ), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Not Applicable", "Not Managed", "Low", "Same", 
+          "High", "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_StorageReplicationCapabilities.ReplicationPriorityDefault" }]
+   uint16 ReplicationPriority;
+
+      [Experimental, Description ( 
+          "SpaceLimit is the consumption limit for the allocated "
+          "storage element from all associated StoragePools. If "
+          "asserted, then the assumption is that the storage "
+          "element can grow, (for instance an element representing "
+          "the storage for a delta replica). \n"
+          "If SpaceLimit is greater than zero, the space consumed "
+          "by the storage element shall not exceed the value of "
+          "SpaceLimit. \n"
+          "If SpaceLimit = 0 (the default) then no limits are "
+          "asserted on the amount of space consumed." ), 
+       Units ( "Bytes" ), 
+       PUnit ( "byte" )]
+   uint64 SpaceLimit = 0;
+
+      [Experimental, Description ( 
+          "If the associated storage element may dynamically "
+          "consume an increasing amount of space and a space limit "
+          "is enforced on the element, then a non-zero warning "
+          "threshold percentage indicates when a warning indication "
+          "should be generated based on the total amount of space "
+          "consumed being >= "
+          "(SpaceLimit*SpaceLimitWarningThreshold)/100." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       PUnit ( "percent" )]
+   uint16 SpaceLimitWarningThreshold;
+
+      [Experimental, Description ( 
+          "LowSpaceWarningThreshold simplifies the creation of a "
+          "pool specific Indication based on RemainingManagedSpace "
+          "<= \n"
+          "(TotalManagedSpace*LowSpaceWarningThreshold)/100. One "
+          "example client for an Indication based on this property "
+          "is a delta copy implementation where the pool enables "
+          "continuous, variable space consumption for the delta "
+          "storage. Another example client for an Indication based "
+          "on this property is a provisioning manager implementing "
+          "a policy for adding storage to a pool when it becomes "
+          "low." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_StoragePool.RemainingManagedSpace" }, 
+       PUnit ( "percent" )]
+   uint16 LowSpaceWarningThreshold;
+
+      [Experimental, Write, Description ( 
+          "The Usage value to be used when creating a new element "
+          "that is derived from a StorageExtent.\n"
+          "\n"
+          "\"Reserved to be Unrestricted Pool Contributor\": "
+          "Indicates the element is available and it is intended to "
+          "be used as an Unrestricted Pool Contributor. Once such "
+          "element is in use, the elements Usage value will change "
+          "to \"In use as Unrestricted Pool Contributor\"." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "21", "22", "23", "24", "..", "32768..65535" }, 
+       Values { "Other", "Unrestricted", 
+          "Reserved for ComputerSystem (the block server)", 
+          "Reserved by Replication Services", 
+          "Reserved by Migration Services", "Local Replica Source", 
+          "Remote Replica Source", "Local Replica Target", 
+          "Remote Replica Target", "Local Replica Source or Target", 
+          "Remote Replica Source or Target", "Delta Replica Target", 
+          "Element Component", 
+          "Reserved to be Unrestricted Pool Contributor", 
+          "Composite Volume Member", "Composite LogicalDisk Member", 
+          "Reserved for Sparing", 
+          "In use as Unrestricted Pool Contributor", 
+          "Reserved to be Delta Replica Pool Contributor", 
+          "Reserved to be Local Replication Pool Contributor", 
+          "Reserved to be Remote Replication Pool Contributor", 
+          "In use as Delta Replica Pool Contributor", 
+          "In use as Local Replication Pool Contributor", 
+          "In use as Remote Replication Pool Contributor", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_StorageExtent.Usage" }]
+   uint16 StorageExtentInitialUsage;
+
+      [Experimental, Write, Description ( 
+          "The Usage value to be used when creating a new StoragePool."
+           ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "..", 
+          "32768..65535" }, 
+       Values { "Other", "Unrestricted", 
+          "Reserved for ComputerSystem (the block server)", 
+          "Reserved as a Delta Replica Container", 
+          "Reserved for Migration Services", 
+          "Reserved for Local Replication Services", 
+          "Reserved for Remote Replication Services", 
+          "Reserved for Sparing", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_StoragePool.Usage" }]
+   uint16 StoragePoolInitialUsage;
+
+      [Experimental, Description ( 
+          "This property is the Node Element Descriptor of the "
+          "Control Unit Image (this property is required for CKD "
+          "StorageVolume). It is not required for LogicalDisks." )]
+   string CUImage;
+
+      [Experimental, Description ( "Type of data organization used." ), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Other", "Unknown", "Fixed Block", "Variable Block", 
+          "Count Key Data" }]
+   uint16 DataOrganization;
+
+      [Experimental, Description ( 
+          "Enumeration indicating the type of DiskDrives which may "
+          "be available." ), 
+       ValueMap { "0", "1", "2", "3", "4" }, 
+       Values { "Do Not Care", "Other", "Hard Disk Drive", 
+          "Solid State Drive", "Hybrid" }]
+   uint16 DiskType;
+
+      [Experimental, Description ( 
+          "Specifies the specific device (e.g., 3380 or 3390) that "
+          "is emulated by the volume." )]
+   string EmulatedDevice;
+
+      [Experimental, Description ( 
+          "This property reflects support of the encryption feature "
+          "implemented by some disk drives." ), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Do Not Care", "Not Supported", "Supported" }]
+   uint16 Encryption;
+
+      [Experimental, Description ( 
+          "Enumeration indicating the type of form factors which "
+          "may be available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "Do Not Care", "Other", "Not Reported", "5.25 inch", 
+          "3.5 inch", "2.5 inch", "1.8 inch" }]
+   uint16 FormFactorType;
+
+      [Experimental, Description ( 
+          "Enumeration indicating the type of disk interfaces which "
+          "may be available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Do Not Care", "other", "SAS", "SATA", "SAS/SATA", 
+          "FC" }]
+   uint16 PortType;
+
+      [Experimental, Description ( 
+          "This property is the Subsystem ID if the array or "
+          "virtualizer supports Subsystem IDs. If they are "
+          "supported they would be required on volume creation." )]
+   string SubsystemID;
+
+      [Experimental, Description ( 
+          "The initial reserve being requested by the client when "
+          "StorageConfigurationCapabilities is used as a parameter "
+          "for creating volumes or logical disks." ), 
+       Units ( "Bytes" ), 
+       ModelCorrespondence { 
+          "CIM_StorageConfigurationCapabilities.ThinProvisionedClientSettableReserve", 
+          "CIM_StorageConfigurationCapabilities.ThinProvisionedDefaultReserve" }, 
+       PUnit ( "byte" )]
+   uint64 ThinProvisionedInitialReserve = 0;
+
+      [Experimental, Description ( 
+          "The type of thin provisioned pool used when "
+          "StorageSetting is used as a goal for creating a thin "
+          "provisioned pool. In other contexts, this property is "
+          "undefined. The possibles values match the appropriate "
+          "values in "
+          "StorageConfigrationCapabilities.SupportedStorageElementTypes."
+           ), 
+       ValueMap { "7", "8", "9", "..", "0x800..0xFFFF" }, 
+       Values { "ThinlyProvisionedAllocatedStoragePool", 
+          "ThinlyProvisionedQuotaStoragePool", 
+          "ThinlyProvisionedLimitlessStoragePool", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_StorageConfigurationCapabilities.SupportedStorageElementTypes" }]
+   uint16 ThinProvisionedPoolType;
+
+      [Experimental, Description ( 
+          "The CompressedElement property indicates whether or not "
+          "compression of the element is being requested. When set "
+          "to true, compression is being requested. When set to "
+          "false, compression is not being requested." ), 
+       ModelCorrespondence { "CIM_StorageSetting.CompressionRate" }]
+   boolean CompressedElement = false;
+
+      [Experimental, Write, Description ( 
+          "Indicates the desired compression for a storage element. "
+          "The possible values are \"None\", \"High\", \"Medium\", "
+          "\"Low\" or \"Implementation Decides\". If "
+          "CompressedElement is set to \"false\", then this "
+          "property should be set to 1 (None)." ), 
+       ValueMap { "1", "2", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "None", "High", "Medium", "Low", 
+          "Implementation Decides", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_StorageSetting.CompressedElement" }]
+   uint16 CompressionRate = 1;
+
+      [Experimental, Description ( 
+          "The speed of disk interconnection wanted. Value of 0 "
+          "means don\'t care. Values are in bits/second" ), 
+       PUnit ( "bit / second" )]
+   uint64 InterconnectSpeed;
+
+      [Experimental, Description ( 
+          "Enumeration indicating the type of disk interconnection wanted."
+           ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6" }, 
+       Values { "don\'t care", "other", "SAS", "SATA", "SAS/SATA", 
+          "FC", "SOP" }]
+   uint16 InterconnectType;
+
+      [Experimental, Description ( 
+          "The rotational speed of disk media wanted. a value of "
+          "0xffffffff means don\'t care. Values are in revolutions "
+          "per minute. SSD devices shall report 0." ), 
+       PUnit ( "revolution / minute" )]
+   uint32 RPM;
+
+
+};

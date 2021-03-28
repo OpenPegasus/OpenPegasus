@@ -1,0 +1,78 @@
+// Copyright (c) 2009 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.24.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageExtents" ), 
+    Description ( 
+       "DiskPartitionConfigurationCapabilities instances describe a "
+       "partition style supported by the platform. An instance of this "
+       "class is associated with a volume (or partition) when a "
+       "partition table is installed (see "
+       "DiskPartitionConfigurationService.SetPartitionStyle." )]
+class CIM_DiskPartitionConfigurationCapabilities : CIM_Capabilities {
+
+      [Required, Description ( 
+          "The partition style (i.e partition table type) "
+          "associated with this capabilities instance." ), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "MBR", "GPT", "VTOC" }]
+   uint16 PartitionStyle;
+
+      [Description ( 
+          "Some partitions can act as a container for other "
+          "partitions. If sub partitions are not supported, this "
+          "should be set to NULL." ), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Other", "MBR", "VTOC", "GPT" }, 
+       ArrayType ( "Indexed" )]
+   uint16 ValidSubPartitionStyles[];
+
+      [Description ( 
+          "A string describing the partition style if the "
+          "corresponding entry in ValidSubPartitionStyles is "
+          "\'Other\'." ), 
+       ArrayType ( "Indexed" )]
+   string OtherValidSubPartitionStyles[];
+
+      [Description ( 
+          "The version number associated with this partition style." )]
+   uint16 Version;
+
+      [Required, Description ( 
+          "The maximum number of partitions that can be BasedOn the "
+          "Underlying extent." )]
+   uint16 MaxNumberOfPartitions;
+
+      [Required, Description ( 
+          "The largest partition size (in blocks) of this style "
+          "supported on this platform." ), 
+       Units ( "Blocks" ), 
+       PUnit ( "count" )]
+   uint64 MaxCapacity;
+
+      [Required, Description ( 
+          "The platform supports partitions with overlapping address ranges."
+           )]
+   boolean OverlapAllowed = false;
+
+      [Required, Description ( 
+          "The number of block occupied by the partition table and "
+          "other metadata. The effective block size for partitions "
+          "is the StorageExtent\'s ConsumableBlocks minus this "
+          "size." ), 
+       Units ( "Blocks" ), 
+       ModelCorrespondence { "CIM_StorageExtent.ConsumableBlocks" }, 
+       PUnit ( "count" )]
+   uint32 PartitionTableSize;
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "synchronously. If an operation is included in this "
+          "property then the underlying implementation is "
+          "indicating that it supports the operation without the "
+          "creation of a job." ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "SetPartitionStyle", "CreateOrModifyPartition", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 SupportedSynchronousActions[];
+
+
+};

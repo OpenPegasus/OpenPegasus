@@ -1,0 +1,72 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.32.0" ), 
+    UMLPackagePath ( "CIM::Policy" ), 
+    Description ( 
+       "This class is inherited from CIM_PolicyRule to include "
+       "properties specific to storage tiering." )]
+class CIM_TierPolicyRule : CIM_PolicyRule {
+
+      [Description ( 
+          "Indicates which tiering activity this rule applies to." ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "Data movement", "Workload statistics collection", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 Activity;
+
+      [Write, Description ( 
+          "The policy rule applies to elements that have the "
+          "indicated provisioning. For example, thinly provisioned "
+          "elements." ), 
+       ValueMap { "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "ThinlyProvisioned", "ThicklyProvisioned", "All", 
+          "Not Applicable", "Implementation Decides", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 ProvisioningType;
+
+      [Write, Description ( 
+          "Specifies how fast data should be moved between storage tiers."
+           ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "..", "0x8000.." }, 
+       Values { "Very High", "High", "Medium", "Low", "Very Low", 
+          "Not Applicable", "Implementation Decides", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 DataMovementRate;
+
+      [Description ( 
+          "An array of strings used to discriminate the association "
+          "context in which this TierPolicyRule is instantiated. "
+          "Each element of the array should be prefixed by a well "
+          "known organization name followed by a colon and followed "
+          "by a string defined by that organization. For example, "
+          "SNIA SMI-S compliant instances might contain one or more "
+          "of the following values: \n"
+          "\'SNIA:GlobalRule\' - This is global rule and is "
+          "associated to the TierPolicyService. \'SNIA:LocalRule\' "
+          "- This is a local rule and is associated to indivitual "
+          "components such as a StorageVolume." )]
+   string RuleDiscriminator[];
+
+      [Write, Description ( 
+          "Specifies the time period for this policy rule. If Null, "
+          "the implementation decides. \n"
+          "\'Not Available\' - The time period information is not "
+          "available. \n"
+          "\'All The Time\' - The policy rule is in effect at all "
+          "times. \n"
+          "\'Associated Time Period\' - The time period is based on "
+          "the associated time period to the instance. \n"
+          "\'Global\' - Utilize the effective time period "
+          "associated to a corresponding \'global\' policy rule "
+          "instance. Policy rules are tailored for data movement, "
+          "workload data collection, and thin or thick "
+          "provisioning. \n"
+          "\'None\' - The policy rule currently does not have a "
+          "time period condition associated with it." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Unknown", "Implementation Decides", 
+          "Not Available", "All The Time", "Associated Time Period", 
+          "Global", "None", "DMTF Reserved", "Vendor Specific" }]
+   uint16 TimePeriodCondition;
+
+
+};

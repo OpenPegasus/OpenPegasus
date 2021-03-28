@@ -1,0 +1,47 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Association, Experimental, Version ( "2.18.0" ), 
+    ClassConstraint { 
+       "inv:self.Dependent.oclIsKindOf(CIM_TargetPortGroup) or self.Dependent.oclIsKindOf(CIM_StorageResourceLoadGroup)" }, 
+    UMLPackagePath ( "CIM::Device::Dependency" ), 
+    Description ( 
+       "StorageProcessorAffinity indicates a processing affinity and "
+       "state between a TargetPortGroup or StorageResourceLoadGroup "
+       "and a ComputerSystem representing a storage processor in a "
+       "redundant storage server. The processor can host the group in "
+       "either a healthy or failover state. Instances of this "
+       "association are static, one for each combination of "
+       "StorageResourceLoadGroup and ComputerSystem in the "
+       "RedundancySet." )]
+class CIM_StorageProcessorAffinity : CIM_Dependency {
+
+      [Override ( "Antecedent" ), 
+       Description ( 
+          "The storage processor for which the Port Group or "
+          "Storage Resource Load Group has affinity." )]
+   CIM_ComputerSystem REF Antecedent;
+
+      [Override ( "Dependent" ), 
+       Description ( 
+          "The Target Port Group or Storage Resource Load Group." )]
+   CIM_Collection REF Dependent;
+
+      [Description ( 
+          "This property is set to true if the TargetPortGroup or "
+          "StorageResourceLoadGroup is hosted by the storage "
+          "processor when the processor is healthy. It is set to "
+          "false if the group can be hosted by the processor when "
+          "the primary storage processor for the group has failed. "
+          "This property is static, as is the association itself. "
+          "For each StorageResourceLoadGroup, one instance of "
+          "StorageProcessorAffinity will have IsPrimary=true, the "
+          "rest will have IsPrimary=false." )]
+   boolean IsPrimary;
+
+      [Description ( 
+          "This property is set to true if the TargetPortGroup or "
+          "StorageResourceLoadGroup is currently being hosted by "
+          "the storage processor." )]
+   boolean IsActive;
+
+
+};

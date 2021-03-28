@@ -1,0 +1,49 @@
+// Copyright (c) 2006 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.13.0" ), 
+    UMLPackagePath ( "CIM::Metrics::BaseMetric" ), 
+    Description ( 
+       "Specialization of BaseMetricValue representing a discrete "
+       "metric value in addition to the analog value. \n"
+       "For a definition of the discrete metrics concept, refer to the "
+       "description of DiscreteMetricDefinition. \n"
+       "This class does not have instances. Instead, it is used to "
+       "define derived classes that override the Values and ValueMap "
+       "qualifiers of the DiscreteValue property, in order to define "
+       "the predefined set of discrete values to be used." )]
+class CIM_DiscreteMetricValue : CIM_BaseMetricValue {
+
+      [Description ( 
+          "Discrete value of the metric. \n"
+          "The possible discrete values are defined using the "
+          "Values and ValueMap qualifiers. Any derived class of "
+          "this class shall define the set of possible discrete "
+          "values in overridden Values and ValueMap qualifiers. The "
+          "Values qualifiers are string representations of the "
+          "discrete values and are interpreted as a datatype and "
+          "unit defined in the Datatype and Unit properties of the "
+          "associated DiscreteMetricDefinition instance. \n"
+          "An according derived class of DiscreteMetricDefinition "
+          "shall define the same set of possible discrete values in "
+          "overridden qualifiers of its DiscreteValues array "
+          "property. The value is calculated from the Value "
+          "property of the associated analog BaseMetricValue "
+          "instance, using the DiscreteValues, AnalogTriggerValues "
+          "and AnalogResetValues arrays of the associated "
+          "DiscreteMetricDefinition. The behavior for the value is "
+          "undefined if AnalogTriggerValues[i] <= "
+          "AnalogResetValue[i] for any i >= BaseIndex, or "
+          "AnalogTriggerValues[i] >= AnalogResetValues[i] for any i "
+          "< BaseIndex (that is, the trigger values are not farther "
+          "away from the base than the reset values).\n"
+          "The analog value shall still be provided in the Value "
+          "property of this instance. Note that it is also "
+          "available in the Value property of the according analog "
+          "BaseMetricValue instance." ), 
+       ValueMap { "..", "0x8000..0xFFFF" }, 
+       Values { "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_DiscreteMetricDefinition.DiscreteValues" }]
+   uint16 DiscreteValue;
+
+
+};

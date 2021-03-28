@@ -1,0 +1,51 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Association, Experimental, Version ( "2.19.0" ), 
+    UMLPackagePath ( "CIM::Core::CoreElements" ), 
+    Description ( 
+       "Indicates that two replication groups are associated." )]
+class CIM_GroupSynchronized : CIM_Synchronized {
+
+      [Override ( "SystemElement" ), 
+       Description ( 
+          "SystemElement represents the group that is the source of "
+          "the replication." )]
+   CIM_ManagedElement REF SystemElement;
+
+      [Override ( "SyncedElement" ), 
+       Description ( 
+          "SyncedElement represents the target that is the target "
+          "of the replication." )]
+   CIM_ManagedElement REF SyncedElement;
+
+      [Description ( "A unique identifier for the relationship." )]
+   string RelationshipName;
+
+      [Description ( "Set to true if consistency is enabled." )]
+   boolean ConsistencyEnabled = false;
+
+      [Description ( 
+          "Indicates the consistency type used by the source and "
+          "its associated target group." ), 
+       ValueMap { "2", "..", "0x8000.." }, 
+       Values { "Sequentially Consistent", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 ConsistencyType;
+
+      [Description ( "Indicates the current state of consistency." ), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "Not Applicable", "Consistent", 
+          "Inconsistent", "DMTF Reserved", "Vendor Specific" }]
+   uint16 ConsistencyState = 2;
+
+      [Description ( 
+          "Indicates the current status of consistency. Consistency "
+          "may have been disabled or is experiencing an error "
+          "condition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "Completed", 
+          "Consistency-in-progress", "Consistency disabled", 
+          "Consistency-error", "DMTF Reserved", "Vendor Specific" }]
+   uint16 ConsistencyStatus;
+
+
+};

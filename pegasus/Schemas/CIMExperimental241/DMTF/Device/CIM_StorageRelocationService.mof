@@ -1,0 +1,299 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.31.1" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "Typically, a storage pool is established on a set of storage "
+       "extents, and a volume is allocated to a storage pool with "
+       "different performance characteristics (e.g. with different RPM "
+       "drives, or different drive classes). Storage Relocation (SR) "
+       "can relocate storage elements to a different storage pool, or "
+       "relocate a storage element to a specified set of storage "
+       "extents.The relocation source and target could be either local "
+       "or remote. Two functions are defined in this class: "
+       "RelocateStorageElementsToStoragePool and "
+       "RelocateStorageElementToElements." )]
+class CIM_StorageRelocationService : CIM_Service {
+
+
+      [Description ( 
+          "Start a job to relocate a specified set of volumes to a "
+          "target StoragePool. Both relocation source and target "
+          "could be either local or remote. If 0 is returned, the "
+          "function completes successfully and no ConcreteJob "
+          "instance was required. If 4096/0x1000 is returned, a "
+          "ConcreteJob will be started to kick off the relocation. "
+          "The Job\'s reference will be returned in the output "
+          "parameter Job." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "ElementType Not Supported", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 RelocateStorageVolumesToStoragePool(
+         [Required, IN, OUT, Description ( 
+             "As an input, TheElements is an array of storage "
+             "volumes for the source of relocation. As an "
+             "output, it represents the storage volumes after "
+             "relocation. Notice that: 1) The input may not be "
+             "identical to the output. One example is relocation "
+             "from local to remote. 2)It is output only when the "
+             "relocation operation succeeds." )]
+      CIM_StorageVolume REF TheElements[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The requirements for the relocation target pool. "
+             "If set to a null value, the default configuration "
+             "associated with the service will be used. This "
+             "parameter should be a reference to a "
+             "CIM_StorageSetting which represent the profile "
+             "appropriate to the relocation target pool. If not "
+             "NULL, this parameter will supply a new Goal for "
+             "the target pool." )]
+      CIM_StorageSetting REF TargetSettingGoal, 
+         [Required, IN, OUT, Description ( 
+             "A reference to target storage pool instance used "
+             "for relocation. As an input parameter, TargetPool "
+             "specifies the storage pool to relocate source "
+             "onto. As an output parameter, TargetPool "
+             "represents the pool actually used as the "
+             "relocation target. It is output only when the "
+             "relocation succeeds." )]
+      CIM_StoragePool REF TargetPool);
+
+      [Description ( 
+          "Start a job to relocate a specified set of storage pools "
+          "to a target StoragePool. Both relocation source and "
+          "target could be either local or remote. If 0 is "
+          "returned, the function completes successfully and no "
+          "ConcreteJob instance was required. If 4096/0x1000 is "
+          "returned, a ConcreteJob will be started to kick off the "
+          "relocation. The Job\'s reference will be returned in the "
+          "output parameter Job." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "ElementType Not Supported", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 RelocateStoragePoolsToStoragePool(
+         [Required, IN, OUT, Description ( 
+             "As an input, TheElements is an array of storage "
+             "pools for the source of relocation. As an output, "
+             "it represents the storage pools after relocation. "
+             "Notice that: 1) The input may not be identical to "
+             "the output. One example is relocation from local "
+             "to remote. 2)It is output only when the relocation "
+             "operation succeeds." )]
+      CIM_StoragePool REF TheElements[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The requirements for the relocation target pool. "
+             "If set to a null value, the default configuration "
+             "associated with the service will be used. This "
+             "parameter should be a reference to a "
+             "CIM_StorageSetting which represent the profile "
+             "appropriate to the relocation target pool. If not "
+             "NULL, this parameter will supply a new Goal for "
+             "the target pool." )]
+      CIM_StorageSetting REF TargetSettingGoal, 
+         [Required, IN, OUT, Description ( 
+             "A reference to target storage pool instance used "
+             "for relocation. As an input parameter, TargetPool "
+             "specifies the storage pool to relocate source "
+             "onto. As an output parameter, TargetPool "
+             "represents the pool actually used as the "
+             "relocation target. It is output only when the "
+             "relocation succeeds." )]
+      CIM_StoragePool REF TargetPool);
+
+      [Description ( 
+          "Start a job to relocate a StorageVolume to a specified "
+          "group of storage extents. Both relocation source and "
+          "target couldbe either local or remote. If 0 is returned, "
+          "the function completed successfully and no ConcreteJob "
+          "instance was required. If 4096/0x1000 is returned, a "
+          "ConcreteJob will be started to kick off the relocation. "
+          "The Job\'s reference will be returned in the output "
+          "parameter Job." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "ElementType Not Supported", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 RelocateStorageVolumeToStorageExtents(
+         [IN, Description ( 
+             "An array of StorageExtents that \'TheElement\' is relocated to."
+              )]
+      CIM_StorageExtent REF InElements[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The requirements for the relocation target "
+             "element. If set to a null value, the default "
+             "configuration associated with the service will be "
+             "used. This parameter should be a reference to a "
+             "CIM_StorageSetting which represents the profile "
+             "appropriate to the relocation target elements. If "
+             "not NULL, this parameter will supply a new Goal "
+             "for the target elements." )]
+      CIM_StorageSetting REF TargetSettingGoal, 
+         [Required, IN, OUT, Description ( 
+             "As an input, TheElement is a storageVolume as the "
+             "source ofrelocation. As an output, it represents "
+             "the storageVolume after relocation. Notice that: "
+             "1) The input may not be identical to the output. "
+             "One example is relocation from local to remote. 2) "
+             "It is output only when the relocation operation "
+             "succeeds." )]
+      CIM_StorageVolume REF TheElement);
+
+      [Description ( 
+          "Start a job to relocate a StoragePool to a specified "
+          "group of storage extents. Both relocation source and "
+          "target couldbe either local or remote. If 0 is returned, "
+          "the function completed successfully and no ConcreteJob "
+          "instance was required. If 4096/0x1000 is returned, a "
+          "ConcreteJob will be started to kick off the relocation. "
+          "The Job\'s reference will be returned in the output "
+          "parameter Job." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "ElementType Not Supported", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 RelocateStoragePoolToStorageExtents(
+         [IN, Description ( 
+             "An array of StorageExtents that \'TheElement\' is relocated to."
+              )]
+      CIM_StorageExtent REF InElements[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The requirements for the relocation target "
+             "element. If set to a null value, the default "
+             "configuration associated with the service will be "
+             "used. This parameter should be a reference to a "
+             "CIM_StorageSetting which represents the profile "
+             "appropriate to the relocation target elements. If "
+             "not NULL, this parameter will supply a new Goal "
+             "for the target elements." )]
+      CIM_StorageSetting REF TargetSettingGoal, 
+         [Required, IN, OUT, Description ( 
+             "As an input, TheElement is a storagePool as the "
+             "source ofrelocation. As an output, it represents "
+             "the storagePool after relocation. Notice that: 1) "
+             "The input may not be identical to the output. One "
+             "example is relocation from local to remote. 2) It "
+             "is output only when the relocation operation "
+             "succeeds." )]
+      CIM_StoragePool REF TheElement);
+
+      [Description ( 
+          "Start a job to relocate a LogicalDisk to a specified "
+          "group of storage extents. Both relocation source and "
+          "target couldbe either local or remote. If 0 is returned, "
+          "the function completed successfully and no ConcreteJob "
+          "instance was required. If 4096/0x1000 is returned, a "
+          "ConcreteJob will be started to kick off the relocation. "
+          "The Job\'s reference will be returned in the output "
+          "parameter Job." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "ElementType Not Supported", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 RelocateLogicalDiskToStorageExtents(
+         [IN, Description ( 
+             "An array of StorageExtents that \'TheElement\' is relocated to."
+              )]
+      CIM_StorageExtent REF InElements[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The requirements for the relocation target "
+             "element. If set to a null value, the default "
+             "configuration associated with the service will be "
+             "used. This parameter should be a reference to a "
+             "CIM_StorageSetting which represents the profile "
+             "appropriate to the relocation target elements. If "
+             "not NULL, this parameter will supply a new Goal "
+             "for the target elements." )]
+      CIM_StorageSetting REF TargetSettingGoal, 
+         [Required, IN, OUT, Description ( 
+             "As an input, TheElement is a logicalDisk as the "
+             "source ofrelocation. As an output, it represents "
+             "the logicalDisk after relocation. Notice that: 1) "
+             "The input may not be identical to the output. One "
+             "example is relocation from local to remote. 2) It "
+             "is output only when the relocation operation "
+             "succeeds." )]
+      CIM_LogicalDisk REF TheElement);
+
+      [Description ( 
+          "This method can be used to retrieve a list of available "
+          "target Extents that may be used in the relocation of a "
+          "StoragePool, StorageVolume, or LogicalDisk. This method "
+          "MUST return Extents from InPool. The returned Extents "
+          "are available at the time the method returns. There is "
+          "no guarantee that the same Extents will be available "
+          "later. This method MUST return the Extents that are not "
+          "being used as supporting capacity for any other Pools, "
+          "Volumes, or LogicalDisks that have been allocated from "
+          "this Pool." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", 
+          "4098..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "In Use", "DMTF Reserved", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 GetAvailableTargetRelocationExtents(
+         [Required, IN, Description ( 
+             "TheElement is a storage element as the source of relocation."
+              )]
+      CIM_LogicalElement REF TheElement, 
+         [IN, Description ( 
+             "The TargetSettingGoal for which supported extents "
+             "should be retrieved as available. If a NULL is "
+             "passed for the Goal, the method will return all "
+             "available extents, regardless of the goal. There "
+             "exists a possibility of error in relocating a "
+             "Pool, Volume, or LogicalDisk to extents retrieved "
+             "in this manner." )]
+      CIM_StorageSetting REF TargetSettingGoal, 
+         [Required, IN, Description ( 
+             "A reference to target storage pool instance used "
+             "for relocation. InPool specifies the storage pool "
+             "to relocate source onto." )]
+      CIM_StoragePool REF InPool, 
+         [OUT, Description ( 
+             "List of references to available StorageExtents for relocation."
+              )]
+      CIM_StorageExtent REF AvailableExtents[]);
+
+};

@@ -1,0 +1,1113 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.40.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "A subclass of Capabilities that defines the Capabilities of a "
+       "ReplicationService. An instance of "
+       "FileSystemReplicationServiceCapabilities is associated with a "
+       "ReplicationService using ElementCapabilities." )]
+class CIM_FileSystemReplicationServiceCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "Enumeration indicating the supported "
+          "SyncType/Mode/Local-or-Remote combinations." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "..", "0x8000.." }, 
+       Values { "Synchronous Mirror Local", 
+          "Asynchronous Mirror Local", "Synchronous Mirror Remote", 
+          "Asynchronous Mirror Remote", 
+          "Synchronous Snapshot Local", 
+          "Asynchronous Snapshot Local", 
+          "Synchronous Snapshot Remote", 
+          "Asynchronous Snapshot Remote", "Synchronous Clone Local", 
+          "Asynchronous Clone Local", "Synchronous Clone Remote", 
+          "Asynchronous Clone Remote", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SupportedReplicationTypes[];
+
+      [Description ( 
+          "Enumeration indicating the supported storage objects." ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "FileSystem", "ReplicationEntity", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SupportedStorageObjects[];
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "as asynchronous jobs. If an operation is included in "
+          "both this and SupportedSynchronousActions properties "
+          "then the underlying implementation is indicating that it "
+          "may or may not create a job. \r\n"
+          "Note: the following methods are not supported "
+          "asynchronously, hence the gap between 11 and 19: \r\n"
+          "\t - CreateGroup \r\n"
+          "\t - DeleteGroup \r\n"
+          "\t - AddMembers \r\n"
+          "\t - RemoveMembers \r\n"
+          "\t - AddReplicationEntity \r\n"
+          "\t - AddServiceAccessPoint \r\n"
+          "\t - AddSharedSecret." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "19", "20", "21", "22", "23", "24", "25", "..", 
+          "0x8000.." }, 
+       Values { "CreateElementReplica", "CreateGroupReplica", 
+          "CreateSynchronizationAspect", 
+          "ModifyReplicaSynchronization", 
+          "ModifyListSynchronization", "ModifySettingsDefineState", 
+          "GetAvailableTargetElements", "GetPeerSystems", 
+          "GetReplicationRelationships", "GetServiceAccessPoints", 
+          "CreateListReplica", "CreateGroupReplicaFromElements", 
+          "GetReplicationRelationshipInstances", 
+          "ModifyListSettingsDefineState", 
+          "CreateRemoteReplicationCollection", 
+          "AddToRemoteReplicationCollection", 
+          "RemoveFromRemoteReplicationCollection", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_FileSystemReplicationServiceCapabilities.SupportedSynchronousActions" }]
+   uint16 SupportedAsynchronousActions[];
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "synchronously -- without the creation of a job. If an "
+          "operation is included in both this property and "
+          "SupportedAsynchronousActions then the underlying "
+          "implementation is indicating that it may or may not "
+          "create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "21", "22", "23", "24", "25", "..", "0x8000.." }, 
+       Values { "CreateElementReplica", "CreateGroupReplica", 
+          "CreateSynchronizationAspect", 
+          "ModifyReplicaSynchronization", 
+          "ModifyListSynchronization", "ModifySettingsDefineState", 
+          "GetAvailableTargetElements", "GetPeerSystems", 
+          "GetReplicationRelationships", "GetServiceAccessPoints", 
+          "CreateGroup", "DeleteGroup", "AddMembers", 
+          "RemoveMembers", "AddReplicationEntity", 
+          "AddServiceAccessPoint", "AddSharedSecret", 
+          "CreateListReplica", "CreateGroupReplicaFromElements", 
+          "GetReplicationRelationshipInstances", 
+          "ModifyListSettingsDefineState", 
+          "CreateRemoteReplicationCollection", 
+          "AddToRemoteReplicationCollection", 
+          "RemoveFromRemoteReplicationCollection", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_FileSystemReplicationServiceCapabilities.SupportedAsynchronousActions" }]
+   uint16 SupportedSynchronousActions[];
+
+
+      [Experimental, Description ( 
+          "The majority of the methods in this class accept "
+          "ReplicationType which represents a combination of "
+          "SyncType, Mode, Local/Remote. This method accepts the "
+          "supplied information and returns the corresponding "
+          "ReplicationType, which can be passed to other methods to "
+          "get the additional capabilities." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 ConvertSyncTypeToReplicationType(
+         [In, Description ( 
+             "SyncType describes the type of copy. \r\n"
+             "Mirror: create and maintain a copy of the source. \r\n"
+             "Snapshot: create a PIT, virtual copy of the "
+             "source. \r\n"
+             "Clone: create an unsynchronized copy of the "
+             "source." ), 
+          ValueMap { "6", "7", "8", "..", "0x8000.." }, 
+          Values { "Mirror", "Snapshot", "Clone", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [In, Description ( 
+             "Mode describes whether the target elements will be "
+             "updated synchronously or asynchronously." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [In, Description ( "Copy to local or remote replica." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Local", "Remote", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 LocalOrRemote, 
+         [Out, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 SupportedReplicationTypes);
+
+      [Experimental, Description ( 
+          "This method does the opposite of the method "
+          "ConvertSyncTypeToReplicationType. This method translates "
+          "ReplicationType to the corresponding SyncType, Mode, "
+          "Local/Remote." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 ConvertReplicationTypeToSyncType(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "SyncType describes the type of copy. \r\n"
+             "Mirror: create and maintain a copy of the source. \r\n"
+             "Snapshot: create a PIT, virtual copy of the \r\n"
+             "source. \r\n"
+             "Clone: create an unsynchronized copy of the \r\n"
+             "source. " ), 
+          ValueMap { "6", "7", "8", "..", "0x8000.." }, 
+          Values { "Mirror", "Snapshot", "Clone", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncType, 
+         [Out, Description ( 
+             "Mode describes whether the target elements will be "
+             "updated synchronously or asynchronously." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Mode, 
+         [Out, Description ( "Copy to local or remote replica." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Local", "Remote", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 LocalOrRemote);
+
+      [Experimental, Description ( 
+          "This method for a given ReplicationType returns the "
+          "supported CopyStates and a parallel array to indicate "
+          "for a given CopyState the target element is host "
+          "accessible or not." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedCopyStates(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( "Supported Copy States." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 SupportedCopyStates[], 
+         [Out, Description ( 
+             "A parallel array to SupportedCopyStates[] to "
+             "indicate whether in that CopyState the target "
+             "element is host accessible or not (true or false)" )]
+      boolean HostAccessible[]);
+
+      [Experimental, Description ( 
+          "This method, for a given ReplicationType, returns the "
+          "supported replication group CopyStates." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedGroupCopyStates(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( "Supported Copy States." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 SupportedCopyStates[]);
+
+      [Experimental, Description ( 
+          "This method, for a given ReplicationType and method, "
+          "returns the supported CopyStates that can be specified "
+          "in the method\'s WaitForCopyState parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedWaitForCopyStates(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [In, Description ( 
+             "A value representing the desired method name." ), 
+          ValueMap { "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+          Values { "CreateElementReplica", "CreateGroupReplica", 
+             "ModifyFileSystemSynchronization", 
+             "ModifyListSynchronization", 
+             "ModifySettingsDefineState", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 MethodName, 
+         [Out, Description ( "Supported Copy States." ), 
+          ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+      uint16 SupportedCopyStates[]);
+
+      [Experimental, Description ( 
+          "This method, for a given ReplicationType, returns the "
+          "supported features." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedFeatures(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "An array of Supported Features. \r\n"
+             "Replication Groups: Element in a group are "
+             "supported in a replication operation. \r\n"
+             "Multi-hop element replication: Target of one copy "
+             "operation can at the same time be the source of "
+             "another copy operation. \r\n"
+             "Multi-hop elements must have same SyncType: The "
+             "SyncType of each hop must be the same as previous "
+             "hop, e.g., mirror, snapshot, clone. \r\n"
+             "Multi-hop requires advance notice: The service "
+             "needs to know when multi-hoping is intended to "
+             "allow the service to do the appropriate set up. "
+             "The parameter ReplicationSettingData specified "
+             "number of hops intended. \r\n"
+             "Requires full discovery of target ComputerSystem: "
+             "Target element\'s containing computer system must "
+             "be known to the provider. \r\n"
+             "Service suspends source I/O when necessary: "
+             "Applies to a group of elements when a consistent "
+             "point-in-time is created. \r\n"
+             "Targets allocated from Any storage pool: No "
+             "restriction as to what storage pool to use to "
+             "allocate targets elements, as long as the pool is "
+             "not reserved for special activities. \r\n"
+             "Targets allocated from Shared storage pool: "
+             "Targets areallocated from a shared pool for all "
+             "targets of the same type. \r\n"
+             "Targets allocated from Exclusive storage pool: "
+             "Targets are allocated from a pool that is "
+             "exclusive. \r\n"
+             "Targets allocated from Multiple storage pools: "
+             "Targets are allocated from multiple pools. Targets "
+             "require reserved elements: Targets must have a "
+             "specific Usage value. Target is associated to "
+             "SynchronizationAspect: Target is associated via "
+             "SettingsDefineState association to an instance of "
+             "SynchronizationAspect. Source is associated to "
+             "SynchronizationAspect: Source is associated via "
+             "SettingsDefineState association to an instance of "
+             "SynchronizationAspect. Error recovery from Broken "
+             "state Automatic: Once the connection is repaired, "
+             "the copy operation continues automatically. \r\n"
+             "Target must remain associated to source: A "
+             "dependent target element must remain associated to "
+             "source element at all times. \r\n"
+             "Remote resource requires remote CIMOM: Client is "
+             "required to interact with two providers: the "
+             "provider controlling the source element and the "
+             "provider controlling the target element.\r\n"
+             "Synchronized clone target detaches automatically: "
+             "The clone target element detaches automatically "
+             "when the target element becomes synchronized; "
+             "otherwise, the client needs to explicitly request "
+             "a detach operation.\r\n"
+             "Reverse Roles operation requires Read Only source: "
+             "The Reverse Roles operation requires the source "
+             "element to be in the Read Only mode. \r\n"
+             "Reverse Roles operation requires resync: After the "
+             "Reverse Roles operation completed, it is required "
+             "to resync the synchronization relationship between "
+             "the source and the target elements. \r\n"
+             "Restore operation requires fracture: The copy "
+             "operation has completed; however, the "
+             "synchronization relationship must be fractured. \r\n"
+             "Resync operation requires activate: For the copy "
+             "operation to continue, the synchronization "
+             "relationship must be activated.\r\n"
+             "Copy operation requires offline source: "
+             "Instrumentation requires the source element to be "
+             "offline (not-ready) to ensure data does not change "
+             "before starting the copy operation. Adjustable "
+             "CopyPriority: Priority of copy operation versus "
+             "the host I/O can be adjusted.\r\n"
+             "Source requires reserved element: Source element "
+             "must have a Usage value that indicates the element "
+             "may be a \"Replica Source\". \r\n"
+             "Supports undiscovered resources: The service can "
+             "perform copy operations to and from elements, e.g. "
+             "a \"ReplicationEntity\", on a ComputerSystem not "
+             "known to the service." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "11", "12", "13", "14", "15", "16", "17", 
+             "18", "19", "20", "21", "22", "23", "24", "25", 
+             "26", "27", "..", "32768.." }, 
+          Values { "Replication groups", 
+             "Multi-hop element replication", 
+             "Multi-hop elements must have same SyncType", 
+             "Multi-hop requires advance notice", 
+             "Requires full discovery of target ComputerSystem", 
+             "Service suspends source I/O when necessary", 
+             "Targets allocated from Any storage pool", 
+             "Targets allocated from Shared storage pool", 
+             "Targets allocated from Exclusive storage pool", 
+             "Targets allocated from Multiple storage pools", 
+             "Targets require reserved elements", 
+             "Target is associated to SynchronizationAspect", 
+             "Source is associated to SynchronizationAspect", 
+             "Error recovery from Broken state Automatic", 
+             "Target must remain associated to source", 
+             "Remote resource requires remote CIMOM", 
+             "Synchronized clone target detaches automatically", 
+             "Reverse Roles operation requires Read Only source", 
+             "Reverse Roles operation requires resync", 
+             "Restore operation requires fracture", 
+             "Resync operation requires activate", 
+             "Copy operation requires offline source", 
+             "Adjustable CopyPriority", 
+             "Source requires reserved element", 
+             "Supports undiscovered resources", 
+             "Restore operation requires detach", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 Features[]);
+
+      [Experimental, Description ( 
+          "This method, for a given ReplicationType, returns the "
+          "supported group features." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedGroupFeatures(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "An array of Supported Features. \r\n"
+             "One-to-many replication: One source element and "
+             "multiple targets elements in a group. \r\n"
+             "Many-to-many: One or more elements in the source "
+             "group and one or more elements in the target "
+             "group. \r\n"
+             "Consistency enabled for all groups: All groups are "
+             "considered consistent by default. \r\n"
+             "Empty replication groups allowed: A replication "
+             "group can have zero elements. \r\n"
+             "Source group must have more than one element: A "
+             "group with only one element is not allowed. \r\n"
+             "Composite Groups: Elements of a group may be from "
+             "different arrays. \r\n"
+             "Multi-hop group replication: A group that is the "
+             "target of a copy operation can be the source of "
+             "another copy operation at the same time. \r\n"
+             "Multi-hop elements must have same SyncType: The "
+             "SyncType of each hop must be the same as previous "
+             "hop, e.g., mirror, snapshot, clone. \r\n"
+             "Group can only have one single relationship "
+             "active: Only one FileSystemSynchronized "
+             "association within a group can be active at a "
+             "given time. \r\n"
+             "Source element can be removed from group: A source "
+             "element can be removed even when the group is "
+             "associated with another replication group. \r\n"
+             "Target element can be removed from group: A target "
+             "element can be removed even when the group is "
+             "associated with another replication group. \r\n"
+             "Group can be temporary: Group can have a "
+             "persistence of false, which means the group -- not "
+             "its elements, may be deleted if it no longer "
+             "participates in a replication operation. \r\n"
+             "Group is nameable: In creating a group, it is "
+             "possible to name the group. \r\n"
+             "Supports target element count: It is possible to "
+             "supply one source element and request more than "
+             "one target element copies.\r\n"
+             "Synchronized clone target detaches automatically: "
+             "The clone target group detaches automatically when "
+             "the target group becomes synchronized; otherwise, "
+             "the client needs to explicitly request a detach operation.\r\n"
+             "Reverse Roles operation requires Read Only source: "
+             "The Reverse Roles operation requires the source "
+             "element to be in the Read Only mode. \r\n"
+             "Reverse Roles operation requires resync: For the "
+             "copy operation to continue, resync of source and "
+             "target elements is required. \r\n"
+             "Restore operation requires fracture: The copy "
+             "operation has completed; however, the "
+             "synchronization relationship must be fractured. \r\n"
+             "Resync operation requires activate: For the copy "
+             "operation to continue, the synchronization "
+             "relationship must be activated. \r\n"
+             "Copy operation requires offline source: "
+             "Instrumentation requires the source element to be "
+             "offline (not-ready) to ensure data does not change "
+             "before starting the copy operation." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "11", "12", "13", "14", "15", "16", "17", 
+             "18", "19", "20", "21", "22", "23", "24", "..", 
+             "0x8000.." }, 
+          Values { "One-to-many replication", 
+             "Many-to-many groups", 
+             "Consistency enabled for all groups", 
+             "Empty replication groups allowed", 
+             "Source group must have more than one element", 
+             "Composite Groups", "Multihop element replication", 
+             "Multi-hop elements must have same SyncType", 
+             "Group can only have one single relationship active", 
+             "Source element can be removed from group", 
+             "Target element can be removed from group", 
+             "Group can be temporary", "Group is nameable", 
+             "Supports target element count", 
+             "Synchronized clone target detaches automatically", 
+             "Reverse Roles operation requires Read Only source", 
+             "Reverse Roles operation requires resync", 
+             "Restore operation requires fracture", 
+             "Resync operation requires activate", 
+             "Copy operation requires offline source", 
+             "Restore operation requires detach", 
+             "Element can be member of multiple groups", 
+             "Elements of group can be mix of thin and thick", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 GroupFeatures[]);
+
+      [Experimental, Description ( 
+          "This method for a given ReplicationType returns the "
+          "supported Consistency." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedConsistency(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "An array of Supported Features. \r\n"
+             "Sequentially Consistent: Members of a target group "
+             "are sequentially consistent - the order of the "
+             "write operations is maintained." ), 
+          ValueMap { "2", "..", "0x8000.." }, 
+          Values { "Sequentially Consistent", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 SupportedConsistency[]);
+
+      [Experimental, Description ( 
+          "This method for a given ReplicationType returns the "
+          "supported Operations on a FileSystemSynchronized "
+          "association that can be supplied to the "
+          "ModifyReplicaSynchronization method." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedOperations(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "An array of Supported Operations. \r\n"
+             "Abort: Abort the copy operation if it is possible. "
+             "Activate Consistency: Ensure all target elements "
+             "of a group are consistent. \r\n"
+             "Activate: Activate an inactive or prepared source "
+             "and target association. \r\n"
+             "AddSyncPair: Add elements associated via "
+             "FileSystemSynchronized to source and target "
+             "groups. \r\n"
+             "Deactivate Consistency: Disable consistency. \r\n"
+             "Deactivate: Deactivate a source and target "
+             "association. The writes to the target are deleted "
+             "in the case of a snapshot. \r\n"
+             "Detach: Remove the association between source and "
+             "target. \r\n"
+             "Dissolve: Dissolve the synchronization between two "
+             "storage objects, however, the target element "
+             "continues to exist. \r\n"
+             "Failover: Switch to target element instead of "
+             "source. \r\n"
+             "Failback: Reverses the effects of failover. \r\n"
+             "Fracture: Separate target element from source "
+             "element. \r\n"
+             "RemoveSyncPair: Remove pair of source and target "
+             "elements from the source/target groups. \r\n"
+             "Resync Replica: Synchronize a fractured/split "
+             "source and target elements. \r\n"
+             "Restore from Replica: Copy data from a fractured "
+             "target back to source. \r\n"
+             "Resume: Continue an association that was "
+             "suspended. \r\n"
+             "Reset To Sync: Change mode to synchronous. \r\n"
+             "Reset To Async: Change mode to asynchronous. \r\n"
+             "Reverse Roles: Make target the source and source "
+             "the target. \r\n"
+             "Return To ResourcePool: Applies to Snapshot -- "
+             "delete the target element and its replication "
+             "association. \r\n"
+             "Split: Similar to Fracture, however, the provider "
+             "needs to make sure whether there are pending I/O "
+             "in transit before fracturing the connection. \r\n"
+             "Suspend: Stop the copy operations to the target "
+             "element. Continue when the operations is resumed. \r\n"
+             "Unprepare: Causes the synchronization to be "
+             "reinitialized and stop in Prepared state." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "11", "12", "13", "14", "15", "16", "17", 
+             "18", "19", "20", "21", "22", "23", "..", 
+             "0x8000..0xFFFF" }, 
+          Values { "Abort", "Activate Consistency", "Activate", 
+             "AddSyncPair", "Deactivate Consistency", 
+             "Deactivate", "Detach", "Dissolve", "Failover", 
+             "Failback", "Fracture", "RemoveSyncPair", 
+             "Resync Replica", "Restore from Replica", "Resume", 
+             "Reset To Sync", "Reset To Async", 
+             "Return To ResourcePool", "Reverse Roles", "Split", 
+             "Suspend", "Unprepare", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 SupportedOperations[]);
+
+      [Experimental, Description ( 
+          "This method for a given ReplicationType returns the "
+          "supported Operations on a FileSystemGroupSynchronized "
+          "association that can be supplied to the "
+          "ModifyReplicaSynchronization method." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedGroupOperations(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "An array of Supported group Operations. Abort: "
+             "Abort the copy operation if it is possible. \r\n"
+             "Activate Consistency: Ensure all target elements "
+             "of a group are consistent. \r\n"
+             "Activate: Activate an inactive or prepared source "
+             "and target association. \r\n"
+             "AddSyncPair: Add elements associated via "
+             "FileSystemSynchronized to source and target "
+             "groups. \r\n"
+             "Deactivate Consistency: Disable consistency. \r\n"
+             "Deactivate: Deactives a source and target "
+             "association. The writes to the target are deleted "
+             "in the case of a snapshot. \r\n"
+             "Detach: Remove the association between source and "
+             "target. \r\n"
+             "Dissolve: Dissolve the synchronization between two "
+             "storage objects, however, the target element "
+             "continues to exist. \r\n"
+             "Failover: Switch to target element instead of "
+             "source. \r\n"
+             "Failback: Reverses the effects of failover. \r\n"
+             "Fracture: Separate target element from source "
+             "element. \r\n"
+             "RemoveSyncPair: Remove pair of source and target "
+             "elements from the source/target groups. \r\n"
+             "Resync Replica: Synchronize a fractured/split "
+             "source and target elements. \r\n"
+             "Restore from Replica: Copy data from a fractured "
+             "target back to source. \r\n"
+             "Resume: Continue an association that was "
+             "suspended. \r\n"
+             "Reset To Sync: Change mode to synchronous. \r\n"
+             "Reset To Async: Change mode to asynchronous. \r\n"
+             "Reverse Roles: Make target the source and source "
+             "the target. \r\n"
+             "Return To ResourcePool: Applies to Snapshot -- "
+             "delete the target element and its replication "
+             "association. \r\n"
+             "Split: Similar to Fracture, however, the provider "
+             "needs to make sure wether there are pending I/O in "
+             "transit before fracturing the connection. \r\n"
+             "Suspend: Stop the copy operations to the target "
+             "element. Continue when the operations is resumed. \r\n"
+             "Unprepare: Causes the synchronization to be "
+             "reinitialized and stop in Prepared state." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "11", "12", "13", "14", "15", "16", "17", 
+             "18", "19", "20", "21", "22", "23", "..", 
+             "0x8000..0xFFFF" }, 
+          Values { "Abort", "Activate Consistency", "Activate", 
+             "AddSyncPair", "Deactivate Consistency", 
+             "Deactivate", "Detach", "Dissolve", "Failover", 
+             "Failback", "Fracture", "RemoveSyncPair", 
+             "Resync Replica", "Restore from Replica", "Resume", 
+             "Reset To Sync", "Reset To Async", 
+             "Return To ResourcePool", "Reverse Roles", "Split", 
+             "Suspend", "Unprepare", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 SupportedGroupOperations[]);
+
+      [Experimental, Description ( 
+          "This method for a given ReplicationType returns the "
+          "supported Operations on a list of FileSystemSynchronized "
+          "or FileSystemGroupSynchronized associations that can be "
+          "supplied to the ModifyListSynchronization method." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedListOperations(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Description ( 
+             "Specifies the supported operations as they apply "
+             "to a list of FileSystemSynchronized or "
+             "GroupSynchronized. If this parameter is not "
+             "specified, FileSystemSynchronized is assumed." ), 
+          ValueMap { "2", "3", "4", "5", "..", "0x8000.." }, 
+          Values { "FileSystemSynchronized", 
+             "FileSystemGroupSynchronized", 
+             "ReplicationEntitySynchronized", 
+             "ReplicationEntityGroupSynchronized", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 SynchronizationType, 
+         [Description ( 
+             "An array of Supported group Operations. Abort: "
+             "Abort the copy operation if it is possible. \r\n"
+             "Activate: Activate an inactive or prepared source "
+             "and target association. \r\n"
+             "Deactivate: Deactivate a source and target "
+             "association. The writes to the target are deleted "
+             "in the case of a snapshot. \r\n"
+             "Detach: Remove the association between source and "
+             "target. \r\n"
+             "Dissolve: Dissolve the synchronization between two "
+             "storage objects, however, the target element "
+             "continues to exist. \r\n"
+             "Failover: Switch to target element instead of "
+             "source. \r\n"
+             "Failback: Reverses the effects of failover. \r\n"
+             "Fracture: Separate target element from source "
+             "element. \r\n"
+             "Resync Replica: Synchronize a fractured/split "
+             "source and target elements. \r\n"
+             "Restore from Replica: Copy data from a fractured "
+             "target back to source. \r\n"
+             "Resume: Continue an association that was "
+             "suspended. \r\n"
+             "Reset To Sync: Change mode to synchronous. \r\n"
+             "Reset To Async: Change mode to asynchronous. \r\n"
+             "Reverse Roles: Make target the source and source "
+             "the target. \r\n"
+             "Return To ResourcePool: Applies to Snapshot -- "
+             "delete the target element and its replication "
+             "association. \r\n"
+             "Split: Similar to Fracture, however, the provider "
+             "needs to make sure wether there are pending I/O in "
+             "transit before fracturing the connection. \r\n"
+             "Suspend: Stop the copy operations to the target "
+             "element. \r\n"
+             "Continue when the operations is resumed. \r\n"
+             "Unprepare: Causes the synchronization to be "
+             "reinitialized and stop in Prepared state." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "11", "12", "13", "14", "15", "16", "17", 
+             "18", "19", "20", "21", "22", "23", "..", 
+             "0x8000..0xFFFF" }, 
+          Values { "Abort", "DMTF Reserved", "Activate", 
+             "DMTF Reserved", "DMTF Reserved", "Deactivate", 
+             "Detach", "Dissolve", "Failover", "Failback", 
+             "Fracture", "DMTF Reserved", "Resync Replica", 
+             "Restore from Replica", "Resume", "Reset To Sync", 
+             "Reset To Async", "Return To ResourcePool", 
+             "Reverse Roles", "Split", "Suspend", "Unprepare", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 SupportedListOperations[]);
+
+      [Experimental, Description ( 
+          "This method for a given ReplicationType returns the "
+          "supported Operations on a SettingsDefineState "
+          "association that can be supplied to the "
+          "ModifySettingsDefineState method." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedSettingsDefineStateOperations(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "An array of supported Operations. /nActivate "
+             "Consistency: Enable consistency Deactivate "
+             "Consistency: Disable consistency Delete: Remove "
+             "the SettingsDefineState association. Instance of "
+             "SynchronizationAspect may also be deleted if it is "
+             "not shared with other elements. Copy To Target: "
+             "Introduces the target elements and forms the "
+             "necessary associations between the source and the "
+             "target elements i.e. FileSystemSynchronized and "
+             "GroupSynchronized." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "..", 
+             "0x8000..0xFFFF" }, 
+          Values { "Activate Consistency", 
+             "Deactivate Consistency", "Delete", 
+             "Copy To Target", "Detach", "Restore", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 SupportedOperations[]);
+
+      [Experimental, Description ( 
+          "This method for a given ReplicationType returns the "
+          "supported features related to thin provisioning." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedThinProvisioningFeatures(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "An array of Supported Thin Provisioning Features. \r\n"
+             "Thin provisioning is not supported: Feature is "
+             "unavailable. \r\n"
+             "Zeros written in unused allocated blocks of "
+             "target: In copying thin to full, the unused blocks "
+             "of target will be written with zeros. \r\n"
+             "Unused allocated blocks of target are not "
+             "initialized: In copying thin to full, the unused "
+             "blocks of target will remain uninitialized. \r\n"
+             "See the property "
+             "ReplicationSettingData.ThinProvisioningPolicy for "
+             "a list of possible options for a copy operation." ), 
+          ValueMap { "1", "2", "3", "..", "0x8000.." }, 
+          Values { "Thin provisioning is not supported", 
+             "Zeros written in unused allocated blocks of target", 
+             "Unused allocated blocks of target are not initialized", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { 
+             "CIM_ReplicationSettingData.ThinProvisioningPolicy" }]
+      uint16 SupportedThinProvisioningFeatures[]);
+
+      [Experimental, Description ( 
+          "This method accepts a ReplicationType and a component, "
+          "it then returns a static numeric value representing the "
+          "maximum number of the specified component that the "
+          "service supports. A value of 0 indicates unlimited "
+          "components of the given type. In all cases the maximum "
+          "value is bound by the availability of resources on the "
+          "computer system. Effectively, the method informs clients "
+          "of the edge conditions." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", 
+          "Information is not available", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedMaximum(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [In, Description ( 
+             "For the given Mirror, Snapshot, Clone and their "
+             "mode and locality variations as specified by "
+             "ReplicationType, this parameter represents one of "
+             "the following components: Number of groups: "
+             "Maximum number of groups supported by the "
+             "replication service.Number of elements per source "
+             "group: Maximum number of elements in a group that "
+             "can be used as a source group. Number of elements "
+             "per target group: Maximum number of elements in a "
+             "group that can be used as a target group. Number "
+             "of target elements per source element: Maximum "
+             "number of target elements per source element. "
+             "Number of total source elements: Maximum number of "
+             "total source elements supported by the service. "
+             "Number of total target elements: Maximum number of "
+             "total target elements supported by the source. "
+             "Number of peer systems: Maximum number of peer "
+             "systems that replication service can communicate "
+             "with. Number of hops in multi-hop replication: "
+             "Maximum number of hops in multi-hop replication "
+             "the service can manage." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "..", "0x8000.." }, 
+          Values { "Number of groups", 
+             "Number of elements per source group", 
+             "Number of elements per target group", 
+             "Number of target elements per source element", 
+             "Number of total source elements", 
+             "Number of total target elements", 
+             "Number of peer systems", 
+             "Number of hops in multi-hop copy", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Component, 
+         [Out, Description ( 
+             "The maximum value, or 0 if the maximum is unlimited."
+              )]
+      uint16 MaxValue);
+
+      [Experimental, Description ( 
+          "od for a given ReplicationType, returns the default "
+          "consistency value." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetDefaultConsistency(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "Default consistency value, or 0 if there is no default value."
+              ), 
+          ValueMap { "0", "1", "2", "..", "0x8000.." }, 
+          Values { "No default consistency", "DMTF Reserved", 
+             "Sequentially Consistent", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 DefaultConsistency);
+
+      [Experimental, Description ( 
+          "This method returns the default persistency for a newly "
+          "created group." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetDefaultGroupPersistency(
+         [Out, Description ( "Default group persistency value." ), 
+          ValueMap { "0", "1", "2", "3", "..", "0x8000.." }, 
+          Values { "No default persistency", "DMTF Reserved", 
+             "Persistent", "Not Persistent", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 DefaultGroupPersistency);
+
+      [Experimental, Description ( 
+          "This method, for a given ReplicationType and a supplied "
+          "property, returns an array of supported settings that "
+          "can be utilized in an instance of the "
+          "ReplicationSettingData class." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedReplicationSettingData(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [In, Description ( 
+             "A value representing the property name." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "11", "12", "13", "14", "15", "16", "17", 
+             "18", "19", "20", "..", "0x8000.." }, 
+          Values { "ConsistentPointInTime", 
+             "DesiredCopyMethodology", "Multihop", 
+             "OnGroupOrListError", "UnequalGroupsAction", 
+             "TargetElementSupplier", "ThinProvisioningPolicy", 
+             "Pairing", "FailedCopyStopsHostIO", 
+             "CopyRecoveryMode", "UnequalListsAction", 
+             "DeltaUpdateInterval", "DeltaUpdateBlocks", 
+             "ReadOnly", "StorageCompressionPolicy", 
+             "TargetElementResourcePool", "TargetElementGoal", 
+             "RRCSoftwareCompressionEnabled", 
+             "RRCHardwareCompressionEnabled", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 PropertyName, 
+         [In ( false ), Out, Description ( 
+             "An array containing the supported values that can "
+             "be supplied in an instance of a "
+             "ReplicationSettingData. Refer to the class "
+             "ReplicationSettingData for the possible values for "
+             "each property. For boolean data, use the following "
+             "data mapping: 2=\"false\", 3=\"true\". \r\n"
+             "For datetime data, use the following data mapping: "
+             "0=\"property is supported\", 1=\"property is not "
+             "supported\"." ), 
+          ModelCorrespondence { 
+             "CIM_ReplicationSettingData.ConsistentPointInTime", 
+             "CIM_ReplicationSettingData.DesiredCopyMethodology", 
+             "CIM_ReplicationSettingData.Multihop", 
+             "CIM_ReplicationSettingData.OnGroupOrListError", 
+             "CIM_ReplicationSettingData.Pairing", 
+             "CIM_ReplicationSettingData.UnequalGroupsAction", 
+             "CIM_ReplicationSettingData.TargetElementSupplier", 
+             "CIM_ReplicationSettingData.ThinProvisioningPolicy", 
+             "CIM_ReplicationSettingData.FailedCopyStopsHostIO", 
+             "CIM_ReplicationSettingData.CopyRecoveryMode", 
+             "CIM_ReplicationSettingData.UnequalListsAction", 
+             "CIM_ReplicationSettingData.DeltaUpdateInterval", 
+             "CIM_ReplicationSettingData.DeltaUpdateBlocks", 
+             "CIM_ReplicationSettingData.ReadOnly", 
+             "CIM_ReplicationSettingData.StorageCompressionPolicy", 
+             "CIM_ReplicationSettingData.TargetElementResourcePool", 
+             "CIM_ReplicationSettingData.TargetElementGoal", 
+             "CIM_ReplicationSettingData.RRCSoftwareCompressionEnabled", 
+             "CIM_ReplicationSettingData.RRCHardwareCompressionEnabled", 
+             "CIM_ReplicationSettingData.AutoDelete", 
+             "CIM_ReplicationSettingData.TimeBeforeRemoval" }]
+      uint64 SupportedValues[]);
+
+      [Experimental, Description ( 
+          "This method for a given ReplicationType returns the "
+          "default ReplicationSettingData as an instance." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "..", 
+          "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", 
+          "No default ReplicationSettingData", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetDefaultReplicationSettingData(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "A copy of the instance this populated with default "
+             "values for the given ReplicationType." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string DefaultInstance);
+
+      [Experimental, Description ( 
+          "This method accepts a connection reference and returns "
+          "specific features of that connection." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedConnectionFeatures(
+         [In, Description ( 
+             "A value representing the connection." )]
+      CIM_ServiceAccessPoint REF connection, 
+         [Out, Description ( 
+             "An array supported connection features. "
+             "Unidirectional to ServiceAccessPoint: Data flow is "
+             "unidirectional to ServiceAccessPoint such as a "
+             "protocol end point. Unidirectional from "
+             "ServiceAccessPoint: Data flow is unidirectional "
+             "from ServiceAccessPoint such as a protocol end "
+             "point." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Unidirectional to ServiceAccessPoint", 
+             "Unidirectional from ServiceAccessPoint", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 SupportedConnectionFeatures[]);
+
+      [Experimental, Description ( 
+          "For the supplied element, this method returns the "
+          "supported synchronization operations in a series of "
+          "parallel output arrays." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSynchronizationSupported(
+         [In, Description ( 
+             "A reference to the supplied element. For example, "
+             "the source element." )]
+      CIM_ManagedElement REF LocalElement, 
+         [In, Description ( 
+             "A reference to the other end of the "
+             "synchronization association. For example, the "
+             "target element. OtherElement can be a local or a "
+             "remote element." )]
+      CIM_ManagedElement REF OtherElement, 
+         [In, Description ( 
+             "erence to the access point instance to allow the "
+             "service to access the OtherElement. If NULL, it is "
+             "assumed the service does not need any access "
+             "information or the element is local." )]
+      CIM_ServiceAccessPoint REF OtherElementAccessPoint, 
+         [In, Description ( 
+             "A value representing the desired method name." ), 
+          ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+          Values { "CreateElementReplica", "CreateGroupReplica", 
+             "CreateSynchronizationAspect", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 MethodName, 
+         [In, Description ( 
+             "If provided, it overrides the default replication "
+             "setting data for the given SyncType. For example, "
+             "the intended CopyMethodology can be specified to "
+             "determine if the copy operation is supported for "
+             "the given source and target elements." ), 
+          EmbeddedInstance ( "CIM_ReplicationSettingData" )]
+      string ReplicationSettingData, 
+         [Out, Description ( 
+             "An array of supported SyncTypes for the copy "
+             "operations using the supplied element." ), 
+          ValueMap { "6", "7", "8", "..", "0x8000.." }, 
+          Values { "Mirror", "Snapshot", "Clone", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.SyncType" }]
+      uint16 SyncTypes[], 
+         [Out, Description ( 
+             "An array of supported Modes for the copy "
+             "operations using the supplied element." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "Synchronous", "Asynchronous", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { "CIM_Synchronized.Mode" }]
+      uint16 Modes[], 
+         [Out, Description ( 
+             "An array that specifies whether the local element "
+             "can be the source or the target element of the "
+             "copy operations. Possible values are: \r\n"
+             "SystemElement: the source element. \r\n"
+             "SyncedElement: the target element. \r\n"
+             "These designations correspond to the keys of the "
+             "Synchronized association." ), 
+          ValueMap { "2", "3", "..", "0x8000.." }, 
+          Values { "SystemElement", "SyncedElement", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 LocalElementRole[]);
+
+      [Experimental, Description ( 
+          "This method for a given ReplicationType returns the "
+          "supported features related to storage compression." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetSupportedStorageCompressionFeatures(
+         [In, Description ( 
+             "A value representing the ReplicationType." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemReplicationServiceCapabilities.SupportedReplicationTypes" }]
+      uint16 ReplicationType, 
+         [Out, Description ( 
+             "An array of supported Storage Compression Features." ), 
+          ValueMap { "1", "2", "3", "4", "5", "6", "7", "..", 
+             "0x8000.." }, 
+          Values { "Storage compression is not supported", 
+             "Compressed source to compressed target", 
+             "Compressed source to uncompressed target", 
+             "Uncompressed source to compressed target", 
+             "Compression of target same as source", 
+             "Target pool decides compression of target element", 
+             "Implementation decides compression of target", 
+             "DMTF Reserved", "Vendor specific" }, 
+          ModelCorrespondence { 
+             "CIM_ReplicationSettingData.StorageCompressionPolicy" }]
+      uint16 SupportedStorageCompressionFeatures[]);
+
+};

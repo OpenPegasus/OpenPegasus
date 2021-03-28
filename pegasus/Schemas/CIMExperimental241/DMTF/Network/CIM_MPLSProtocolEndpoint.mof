@@ -1,0 +1,64 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// <change cr="ArchCR00089.003" type="add">Add PUnit qualifier values
+// to Units qualifier values.</change>
+// ==================================================================
+//  CIM_MPLSProtocolEndpoint
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::ProtocolEndpoints" ), 
+    Description ( 
+       "This is the representation of an MPLS interface on a Label "
+       "Switch Router (LSR)." )]
+class CIM_MPLSProtocolEndpoint : CIM_ProtocolEndpoint {
+
+      [Description ( 
+          "If this property is true, the Label Min/Max In/Out "
+          "values of the ProtocolEndpoint\'s MPLSCapabilities "
+          "overrule the values specified for the Label Switched "
+          "Router as a whole (where the LSR is indicated by the "
+          "existence of an MPLSService). Note that the min/max "
+          "in/out labels are only defined in the MPLSCapabilities "
+          "class, which is associated with either an MPLSService or "
+          "an MPLSProtocolEndpoint via the CIM_ElementCapabilities "
+          "relationship." )]
+   boolean OverruleLSR;
+
+      [Description ( 
+          "This property indicates the total amount of usable "
+          "bandwidth on this interface and is specified in kilobits "
+          "per second (Kbps)." ), 
+       Units ( "KiloBits per Second" ), 
+       MappingStrings { 
+          "MIB.IETF|MPLS-LSR-MIB.MPLSInterfaceTotalBandwidth" }, 
+       PUnit ( "bit / second * 10^3" )]
+   uint32 TotalBandwidth;
+
+      [Description ( 
+          "This property indicates the total amount of available "
+          "bandwidth for the interface and is specified in kilobits "
+          "per second (Kbps). This value is calculated as the "
+          "difference between the amount of bandwidth currently in "
+          "use and that specified in TotalBandwidth. Note that this "
+          "is not statistical data, since change is not frequent, "
+          "and the property can be regarded as the \'current state\' "
+          "of the network. It is intended that this data be used by "
+          "applications doing centralized LSP provisioning." ), 
+       Units ( "KiloBits per Second" ), 
+       MappingStrings { 
+          "MIB.IETF|MPLS-LSR-MIB.MPLSInterfaceAvailableBandwidth" }, 
+       ModelCorrespondence { 
+          "CIM_MPLSProtocolEndpoint.TotalBandwidth" }, 
+       PUnit ( "bit / second * 10^3" )]
+   uint32 AvailableBandwidth;
+
+      [Description ( 
+          "The ResourceClasses property defines a 32-bit vector "
+          "representing the classes associated with a link, where "
+          "the link originates at this ProtocolEndpoint. A resource "
+          "class is described in [RFC2702]." )]
+   uint32 ResourceClasses;
+
+
+};

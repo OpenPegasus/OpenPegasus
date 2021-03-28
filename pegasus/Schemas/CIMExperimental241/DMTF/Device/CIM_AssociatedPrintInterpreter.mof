@@ -1,0 +1,53 @@
+//Copyright (c) 2007 DMTF. All Rights Reserved.
+   [Association, Experimental, Version ( "2.17.0" ), 
+    UMLPackagePath ( "CIM::Device::Printing" ), 
+    Description ( 
+       "This class represents the association between a PrintChannel "
+       "component of a Printer (print device) and a default Job "
+       "Control Language (JCL) or Page Description Language (PDL) "
+       "PrintInterpreter component of the same Printer. See: Model in "
+       "section 2 of Printer MIB (RFC 3805) and section 3 of Finisher "
+       "MIB (RFC 3806)." ), 
+    MappingStrings { 
+       "MIB.IETF|Printer-MIB.prtChannelCurrentJobCntlLangIndex", 
+       "MIB.IETF|Printer-MIB.prtChannelDefaultPageDescLangIndex" }]
+class CIM_AssociatedPrintInterpreter : CIM_Dependency {
+
+      [Override ( "Antecedent" ), 
+       Min ( 0 ), 
+       Max ( 2 ), 
+       Description ( 
+          "The PrintInterpreter component of a Printer that is the "
+          "the default JCL (e.g., HP PJL) or PDL (e.g., Adobe PDF) "
+          "interpreter for this PrintChannel, according to the "
+          "value of DefaultType." )]
+   CIM_PrintInterpreter REF Antecedent;
+
+      [Override ( "Dependent" ), 
+       Description ( 
+          "The PrintChannel (e.g., IPP) component of the same "
+          "Printer that needs or is associated with this default "
+          "PrintInterpreter." )]
+   CIM_PrintChannel REF Dependent;
+
+      [Description ( 
+          "The type of this default PrintInterpreter for this PrintChannel."
+           ), 
+       ValueMap { "1", "2", "3", "4", ".." }, 
+       Values { "Other", "Unknown", "JobControlLanguage", 
+          "PageDescriptionLanguage", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtChannelCurrentJobCntlLangIndex", 
+          "MIB.IETF|Printer-MIB.prtChannelDefaultPageDescLangIndex" }]
+   uint16 DefaultType;
+
+      [Description ( 
+          "A free-form string that describes the type of this "
+          "default PrintInterpreter for this PrintChannel when the "
+          "value of the DefaultType property is equal to 1 (Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 )]
+   string OtherDefaultTypeDescription;
+
+
+};

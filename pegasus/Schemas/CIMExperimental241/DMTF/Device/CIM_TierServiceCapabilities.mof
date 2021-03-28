@@ -1,0 +1,136 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.35.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "A subclass of Capabilities that defines the Capabilities of a "
+       "TierService to manage storage tiers. An instance of "
+       "TierServiceCapabilities is associated with a TierService using "
+       "ElementCapabilities." )]
+class CIM_TierServiceCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "Enumeration indicating the supported features of the "
+          "storage tier service." ), 
+       ValueMap { "2", "3", "4", "5", "6", "..", "0x8000.." }, 
+       Values { "System Creates StorageTiers", 
+          "Client Can Create StorageTiers", 
+          "System Creates TierDomains", 
+          "Client Can Create TierDomains", "Supports SubLUN", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 SupportedFeatures[];
+
+      [Description ( 
+          "Enumeration indicating the supported storage objects "
+          "that can be used to form a storage "
+          "tier.ComponentsOfStoragePool: In calling the method "
+          "CreateStorageTier, it is possible to supply one or "
+          "StoragePools and request the storage tiers to be created "
+          "based on the \"ConcreteComponents\" of the StoragePools, "
+          "i.e. StorageExtents. ElementsOfStoragePool: Storage tier "
+          "is comprised of elements, e.g. volumes, allocated from a "
+          "StoragePool. \n"
+          "External StoragePool: represents a storage capacity that "
+          "is external to the ComputerSystem. \n"
+          "Primordial StorageExtent: represent storage extents that "
+          "are directly associated to a disk drive and have an "
+          "extent discriminator of \"SNIA:DiskDrive\"." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "..", 
+          "0x8000.." }, 
+       Values { "Other", "StorageVolume", "LogicalDisk", 
+          "StorageExtent", "StoragePool", "ComponentsOfStoragePool", 
+          "ElementsOfStoragePool", "External StoragePool", 
+          "Primordial StorageExtent", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SupportedStorageObjects[];
+
+      [Description ( 
+          "Enumeration indicating the supported storage elements "
+          "that can be moved between storage tiers. "
+          "DeviceMaskingGroup: All members of DeviceMaskingGroup "
+          "are moved to the storage tiers with the same performance "
+          "characteristics." ), 
+       ValueMap { "1", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Other", "StorageVolume", "LogicalDisk", 
+          "DeviceMaskingGroup", "DMTF Reserved", "Vendor Specific" }]
+   uint16 SupportedStorageElements[];
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "as asynchronous jobs. If an operation is included in "
+          "both this and SupportedSynchronousActions properties "
+          "then the underlying implementation is indicating that it "
+          "may or may not create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "..", 
+          "0x8000.." }, 
+       Values { "CreateStorageTier", "AddToStorageTier", 
+          "RemoveFromStorageTier", "CreateTierDomain", 
+          "DeleteTierDomain", "ModifyStorageTierDomainAssociation", 
+          "GetStorageTierCandidateObjects", "DeleteStorageTier", 
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_TierServiceCapabilities.SupportedSynchronousActions" }]
+   uint16 SupportedAsynchronousActions[];
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "synchronously -- without the creation of a job. If an "
+          "operation is included in both this property and "
+          "SupportedAsynchronousActions then the underlying "
+          "implementation is indicating that it may or may not "
+          "create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "..", 
+          "0x8000.." }, 
+       Values { "CreateStorageTier", "AddToStorageTier", 
+          "RemoveFromStorageTier", "CreateTierDomain", 
+          "DeleteTierDomain", "ModifyStorageTierDomainAssociation", 
+          "GetStorageTierCandidateObjects", "DeleteStorageTier", 
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_TierServiceCapabilities.SupportedAsynchronousActions" }]
+   uint16 SupportedSynchronousActions[];
+
+      [Description ( 
+          "Enumeration indicating the supported features of the "
+          "storage tiers. \n"
+          "Performance generally relates to the underlying "
+          "technology, for example, Solid State versus Fibre "
+          "Channel drives. QoS refers to the Quality of Service, "
+          "for example, RAID protected versus unprotected." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "..", "0x8000.." }, 
+       Values { "StorageTiers Based On Performance Only", 
+          "StorageTiers Based On QoS Only", 
+          "StorageTiers Based On Performance and QoS", 
+          "StorageTiers Based On Other Characteristics", 
+          "StorageTiers Can Overlap", "StorageTiers Can Be Empty", 
+          "StorageTiers In Multiple TierDomains", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SupportedTierFeatures[];
+
+      [Experimental, Description ( 
+          "Indicates if the Automated Storage Tiering subsystem has "
+          "the capability to compress storage volumes that are "
+          "subject to tiering." ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "ThinlyProvisioned", "ThicklyProvisioned", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 SupportedCompression[];
+
+      [Experimental, Description ( 
+          "Indicates the supported data movement choices that are available."
+           ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "Auto", "Manual", "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_TierDomain.DataMovement" }]
+   uint16 SupportedDataMovement[];
+
+      [Experimental, Description ( 
+          "Indicates the supported data movement choices that are available."
+           ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "ThinlyProvisioned", "ThicklyProvisioned", 
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_TierDomain.DataMovement" }]
+   uint16 SupportedManualMovementProvisioning[];
+
+
+};

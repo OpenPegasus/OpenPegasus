@@ -1,0 +1,52 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.31.0" ), 
+    UMLPackagePath ( "CIM::System::Diagnostics" ), 
+    Description ( 
+       "This class define the additional settings to be used for "
+       "Ethernet NIC diagnostic tests." )]
+class CIM_EthernetNICDiagnosticSettingData : CIM_DiagnosticSettingData {
+
+      [Description ( 
+          "This array property specifies the packet sizes to be "
+          "used for the some of the Ethernet NIC tests. If no "
+          "packet sizes are specified, then the default set of "
+          "packet sizes as defined by the vendor will be used." ), 
+       ModelCorrespondence { 
+          "CIM_EthernetNICDiagnosticServiceCapabilities.PacketSizesSupported" }, 
+       PUnit ( "Byte" )]
+   uint16 PacketSizes[];
+
+      [Description ( 
+          "This array property specifies the link speed to be used "
+          "for the some of the Ethernet NIC tests. If no link "
+          "speeds are specified, then the default set of link "
+          "speeds as defined by the vendor will be used." ), 
+       ModelCorrespondence { 
+          "CIM_EthernetNICDiagnosticServiceCapabilities.LinkSpeedsSupported" }, 
+       PUnit ( "bit / second * 10^6" )]
+   uint64 LinkSpeeds[];
+
+      [Description ( 
+          "This array property is used by a client for the Internal "
+          "Loopback test to specify the layer to test. If no value "
+          "is specified by the client, then the vendor-defined "
+          "default value will be used." ), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "PHY Layer", "MAC Layer" }, 
+       ModelCorrespondence { 
+          "CIM_EthernetNICDiagnosticSettingData.OtherLoopbackLayers", 
+          "CIM_EthernetNICDiagnosticServiceCapabilities.LoopbackLayersSupported" }]
+   uint16 LoopbackLayers[];
+
+      [Description ( 
+          "A string that describes the Ethernet NIC Layer to test "
+          "when the LoopbackLayer property is set to 1 (\"Other\"). "
+          "This property must be set to null when LoopbackLayer is "
+          "any value other than 1." ), 
+       ModelCorrespondence { 
+          "CIM_EthernetNICDiagnosticServiceCapabilities.OtherLoopbackLayersSupported", 
+          "CIM_EthernetNICDiagnosticSettingData.LoopbackLayers" }]
+   string OtherLoopbackLayers[];
+
+
+};

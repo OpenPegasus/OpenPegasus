@@ -1,0 +1,299 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Version ( "2.39.0" ), 
+    UMLPackagePath ( "CIM::Interop" ), 
+    Description ( 
+       "A RegisteredProfile describes a set of CIM Schema classes with "
+       "required properties and/or methods, necessary to manage a "
+       "real-world entity or to support a usage scenario, in an "
+       "interoperable fashion. RegisteredProfiles can be defined by "
+       "the DMTF or other standards organizations. Note that this "
+       "class should not be confused with CIM_Profile, which collects "
+       "SettingData instances, to be applied as a \'configuration "
+       "profile\' for an element. \n"
+       "A RegisteredProfile is a named \'standard\' for CIM-based "
+       "management of a particular System, subsystem, Service or other "
+       "entity, for a specified set of uses. It is a complete, "
+       "standalone definition, as opposed to the subclass "
+       "RegisteredSubProfile, which requires a scoping profile for "
+       "context. \n"
+       "The uses for a RegisteredProfile or SubProfile MUST be "
+       "specified in the document that defines the profile. Examples "
+       "of Profiles are to manage various aspects of an Operating "
+       "System, Storage Array, or Database. The name of the profile is "
+       "defined and scoped by its authoring organization." )]
+class CIM_RegisteredProfile : CIM_RegisteredSpecification {
+
+      [Description ( 
+          "Profiles may gather a set of provisions together that "
+          "are implemented, (or not implemented), as a whole by a "
+          "conformant implementation. Such sets are known as "
+          "profile features.\n"
+          "If a profile does not define features, then this "
+          "property shall be null. \n"
+          "If not null, an implementation shall put the profile "
+          "defined feature name of each implemented feature in a "
+          "separate entry of this array." )]
+   string ImplementedFeatures[];
+
+      [Override ( "SpecificationType" ), 
+       Description ( 
+          "If this property has a value other than null, the value shall be 2"
+           ), 
+       ValueMap { "2" }, 
+       Values { "Profile" }, 
+       ModelCorrespondence { 
+          "CIM_RegisteredSpecification.OtherSpecificationType" }]
+   uint16 SpecificationType;
+
+
+      [Deprecated { "CIM_RegisteredProfile.GetCentralInstances" }, 
+       Description ( 
+          "This operation is used to close a session to enumerate "
+          "central and scoping class instances." ), 
+       VALUEMAP { "0", "1", ".." }, 
+       VALUES { "Completed with No Error", "Not Supported", 
+          "DMTF Reserved" }]
+   uint32 CloseConformantInstances(
+         [Description ( 
+             "The EnumerationContext parameter is the "
+             "enumeration context value representing the "
+             "enumeration session to be used." )]
+      string EnumerationContext);
+
+      [Deprecated { "CIM_RegisteredProfile.GetCentralInstances" }, 
+       Description ( 
+          "This operation is used to establish and open a session "
+          "to enumerate central and scoping class instances of this "
+          "registered profile instance and optionally to retrieve a "
+          "first set of such instances." ), 
+       VALUEMAP { "0", "1", "22", "26", ".." }, 
+       VALUES { "Completed with No Error", "Not Supported", 
+          "CIM_ERR_INVALID_OPERATION_TIMEOUT", 
+          "CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED", 
+          "DMTF Reserved" }]
+   uint32 OpenConformantInstances(
+         [Description ( 
+             "NULL, or a class name that acts as a filter to "
+             "select only those central or scoping instances "
+             "that a kind of the specified class. This is useful "
+             "to select particular subclasses or to select a "
+             "particular instances when more than one is defined "
+             "for a profile." )]
+      string ResultClass, 
+         [Description ( 
+             "NULL, or unordered set of property names, acting "
+             "as a restricting filter on the properties included "
+             "in the returned instance. An empty list specifies "
+             "to return no properties. The instance path shall "
+             "always be returned." )]
+      string IncludedPropertyList[], 
+         [Description ( 
+             "The operation timeout is the minimum time the CIM "
+             "Server shall maintain the open enumeration session "
+             "after the last OpenConformantInstances or "
+             "PullConformantInstances invocation, (unless the "
+             "enumeration session was closed during that last "
+             "invocation). If the operation timeout is exceeded, "
+             "the enumeration session may be closed at any time, "
+             "releasing any possibly allocated resources related "
+             "to the enumeration session. \n"
+             "An OperationTimeout of 0 means that there is no "
+             "operation timeout, i.e. the enumeration session is "
+             "never closed based on time.\n"
+             "If OperationTimeout is NULL, the operation timeout "
+             "is implementation dependent. \n"
+             "All other values for OperationTimeout specify the "
+             "operation timeout in seconds.\n"
+             "The implementation may restrict the set of "
+             "allowable values for OperationTimeout. This "
+             "specifically includes the possibility to not allow "
+             "0 (no timeout).\n"
+             "If the specified value is not an allowable value, "
+             "the method shall return failure with return code "
+             "CIM_ERR_INVALID_OPERATION_TIMEOUT." )]
+      uint32 OperationTimeout, 
+         [Description ( 
+             "TRUE requests continuation on error. Continuation "
+             "on error is the ability to resume an enumeration "
+             "session successfully after an invocation of this "
+             "method that returned an error. A conformant "
+             "implementation may support continuation on error.\n"
+             "If ContinueOnError is true and the method does not "
+             "support continuation on error, it shall return "
+             "failure with return code "
+             "CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED \n"
+             "If the implementation supports continuation on "
+             "error, it shall support it as follows: If "
+             "ContinueOnErroris true, the enumeration session "
+             "shall remain open when this or a subsequent "
+             "PullConformantInstances invocation returns "
+             "failure, and any subsequent successful "
+             "PullConformantInstances operations process the set "
+             "of instances that would have remained if the "
+             "failing invocation had been successful, subject to "
+             "the consistency rules defined for pulled "
+             "enumerations, see DSP0223.\n"
+             "If ContinueOnError is false, the enumeration "
+             "session shall be closed when this method returns "
+             "failure." )]
+      boolean ContinueOnError, 
+         [Description ( 
+             "The MaxObjectCount input parameter defines the "
+             "maximum number of elements that may be returned by "
+             "this Pull operation. Any uint32 number is valid, "
+             "including 0. The implementation may deliver any "
+             "number of elements up to MaxObjectCount but shall "
+             "not deliver more than MaxObjectCount.elements. The "
+             "CIM Client may use a MaxObjectCount value of 0 as "
+             "a means of restarting the OperationTimeout for the "
+             "enumeration session, while it wishes to not "
+             "retrieve any elements." )]
+      uint32 MaxObjectCount, 
+         [IN ( false ), OUT, Description ( 
+             "The EnumerationContext parameter is the "
+             "enumeration context value representing the "
+             "enumeration session to be used.\n"
+             "If the session is closed as a result of this "
+             "invocation, the output EnumerationContext shall be "
+             "NULL. Otherwise, the output EnumerationContext "
+             "shall provide the information necessary for a "
+             "subsequent PullConformantInstances call." )]
+      string EnumerationContext, 
+         [IN ( false ), OUT, Description ( 
+             "The EndOfSequence output parameter indicates to "
+             "the CIM Client whether the enumeration session is "
+             "exhausted. If EndOfSequence is true upon "
+             "successful completion of this invocation, no more "
+             "elements are available and the implmeentation "
+             "shall close the enumeration session, releasing any "
+             "possibly allocated resources related to the "
+             "enumeration session. If EndOfSequence is false, "
+             "there may be additional elements available and "
+             "implementation shall not close the enumeration "
+             "session." )]
+      boolean EndOfSequence, 
+         [IN ( false ), OUT, Description ( 
+             "On successful completion, an array corresponding "
+             "to the InstanceWithPathList that indicates whether "
+             "the entry is a scoping instance, a central "
+             "instance, or both." ), 
+          ValueMap { "2", "3", "4", ".." }, 
+          Values { "Central Instance", "Scoping Instance", 
+             "Central and Scoping Instance", "DMTF Reserved" }, 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_RegisteredProfile.OpenConformantInstances(InstanceWithPathList)" }]
+      uint16 InstanceType[], 
+         [IN ( false ), OUT, Description ( 
+             "On successful completion, an correlated, but "
+             "unordered set of the enumerated instances and "
+             "their addresses, with a number of entries from 0, "
+             "up to a maximum defined by MaxObjectCount, that "
+             "meet the criteria defined in the Open operation "
+             "that established this enumeration session. Note "
+             "that returning no entries in the array does not "
+             "imply that the enumeration session has been "
+             "exhausted. Only the EndOfSequence output parameter "
+             "indicates whether the enumeration session has been "
+             "exhausted." ), 
+          EmbeddedInstance ( "CIM_ManagedElement" ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_RegisteredProfile.OpenConformantInstances(InstanceType)" }]
+      string InstanceWithPathList[]);
+
+      [Deprecated { "CIM_RegisteredProfile.GetCentralInstances" }, 
+       Description ( 
+          "This operation is used to continue enumeration central "
+          "class instances in the context of a session established "
+          "by OpenConformantInstances." ), 
+       VALUEMAP { "0", "1", "21", ".." }, 
+       VALUES { "Completed with No Error", "Not Supported", 
+          "CIM_ERR_INVALID_ENUMERATION_CONTEXT", "DMTF Reserved" }]
+   uint32 PullConformantInstances(
+         [Description ( 
+             "The MaxObjectCount input parameter defines the "
+             "maximum number of elements that may be returned by "
+             "this method. Any uint32 number is valid, including "
+             "0. The implementation may deliver any number of "
+             "elements up to MaxObjectCount but shall not "
+             "deliver more than MaxObjectCount elements. The CIM "
+             "Client may use a MaxObjectCount value of 0 as a "
+             "means of restarting the OperationTimeout for the "
+             "enumeration session, while it wishes to not "
+             "retrieve any elements." )]
+      uint32 MaxObjectCount, 
+         [OUT, Description ( 
+             "The EnumerationContext parameter is the "
+             "enumeration context value representing the "
+             "enumeration session to be used.\n"
+             "On input, it shall be the EnumerationContext ouput "
+             "value from the previous invocation of "
+             "OpenConformantInstances or PullConformantInstances "
+             "within an open enumeration session.If the session "
+             "is closed as a result of this invocation, the "
+             "output EnumerationContext shall be NULL. "
+             "Otherwise, the output EnumerationContext shall "
+             "provide the information necessary for a subsequent "
+             "PullConformantInstances call." )]
+      string EnumerationContext, 
+         [IN ( false ), OUT, Description ( 
+             "The EndOfSequence output parameter indicates to "
+             "the CIM Client whether the enumeration session is "
+             "exhausted. If EndOfSequence is true upon "
+             "successful completion of this method, no more "
+             "elements are available and the enumeration session "
+             "shall be closed, releasing any possibly allocated "
+             "resources related to the enumeration session. If "
+             "EndOfSequence is false, there may be additional "
+             "elements available and enumeration session shall "
+             "be remain open unless there is an error in which "
+             "case, ContinueOnError governs whether or not the "
+             "session is closed or not." )]
+      boolean EndOfSequence, 
+         [IN ( false ), OUT, Description ( 
+             "On successful completion, an array corresponding "
+             "to the InstanceWithPathList that indicates whether "
+             "the entry is a scoping instance, a central "
+             "instance, or both." ), 
+          ValueMap { "2", "3", "4", ".." }, 
+          Values { "Central Instance", "Scoping Instance", 
+             "Central and Scoping Instance", "DMTF Reserved" }, 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_RegisteredProfile.PullConformantInstances(InstanceWithPathList)" }]
+      uint16 InstanceType[], 
+         [IN ( false ), OUT, Description ( 
+             "On successful completion, a correlated, but "
+             "unordered set of the enumerated instances and "
+             "their addresses, with a number of entries from 0, "
+             "up to a maximum defined by MaxObjectCount, that "
+             "meet the criteria defined in the "
+             "OpenConformantInstances operation that established "
+             "this enumeration session. Note that returning no "
+             "entries in the array does not imply that the "
+             "enumeration session has been exhausted. Only the "
+             "EndOfSequence output parameter indicates whether "
+             "the enumeration session has been exhausted." ), 
+          EmbeddedInstance ( "CIM_ManagedElement" ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_RegisteredProfile.PullConformantInstances(InstanceType)" }]
+      string InstanceWithPathList[]);
+
+      [Description ( 
+          "GetCentralInstances will get all the references of the "
+          "central instances for the profile represented by this "
+          "instance. If this method completes without an error, it "
+          "shall return 0, otherwise it shall return an error with "
+          "zero or more CIM_Error instances." ), 
+       ValueMap { "0" }, 
+       Values { "Completed with no error" }]
+   uint8 GetCentralInstances(
+         [In ( false ), Out, Description ( 
+             "The CentralInstances output parameter will include "
+             "zero or more references to central instances for "
+             "the profile." )]
+      CIM_ManagedElement REF CentralInstances[]);
+
+};

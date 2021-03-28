@@ -1,0 +1,68 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_StorageNameBindingCapabilities 
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Device::StorageNameBinding" ), 
+    Description ( 
+       "StorageNameBindingCapabilities describes the current "
+       "implementation\'s support for optional behavior." )]
+class CIM_StorageNameBindingCapabilities : CIM_Capabilities {
+
+      [Description ( "The type of bindings supported." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8" }, 
+       Values { "FcApiBindToDID", "FcApiBindToWWPN", 
+          "FcApiBindToWWNN", "BindToLUID", "iSCSI Target Name", 
+          "iSCSI Network Address", "Bridge Binding" }, 
+       MappingStrings { "FC API.INCITS-T11| HBA_BIND_TYPE" }]
+   uint16 ValidBindingTypes[];
+
+      [Description ( 
+          "Set to true if the implementation requires the "
+          "associated software element be reset. In the case of "
+          "drivers, this requires a system reboot. Set to false if "
+          "the implementation can activate bindings without a "
+          "reset." )]
+   boolean ActivateBindingRequiresReset;
+
+      [Description ( 
+          "Set to true if the implementation supports "
+          "OSStorageNameBinding and allows overriding OS "
+          "bus/target/LUN numbers. Set to false if not "
+          "OSStorageNameBinding or if overriding OS address is not "
+          "supported." ), 
+       MappingStrings { "FC API.INCITS-T11|HBA_CAN_BIND_ANY_LUNS" }, 
+       ModelCorrespondence { "CIM_OSStorageNameBinding.OSBusNumber", 
+          "CIM_OSStorageNameBinding.OSTargetNumber", 
+          "CIM_OSStorageNameBinding.OSLUN" }]
+   boolean CanMapAddresses;
+
+      [Description ( 
+          "Set to true if the implementation supports "
+          "OSStorageNameBinding and supports binding all logical "
+          "units from a target to the OS. Set to false if not "
+          "OSStorageNameBinding or if the implementation requires "
+          "binding each logical unit independently." ), 
+       MappingStrings { "FC API.INCITS-T11|HBA_CAN_BIND_TARGETS" }]
+   boolean CanBindAllLuns;
+
+      [Description ( 
+          "Set to true if the implementation supports "
+          "auto-discovery and automatic name binding; create "
+          "binding methods in StorageBindingService are not "
+          "supported. Set to false indicates that create binding "
+          "methods are supported." ), 
+       MappingStrings { "FC API.INCITS-T11|HBA_CAN_BIND_AUTOMAP" }]
+   boolean AutoDiscovery;
+
+      [Description ( 
+          "Set to true if the implementation supports "
+          "OSStorageNameBinding method and supports changing "
+          "OSDeviceName by specifying a non-null OSDeviceName "
+          "parameter to CreateOSStorageNameBinding." )]
+   boolean CanSetOSDeviceName;
+
+
+};

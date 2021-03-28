@@ -1,0 +1,44 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Abstract, Version ( "2.19.0" ), 
+    UMLPackagePath ( "CIM::Network::MPLS" ), 
+    Description ( 
+       "This class is abstract, and generalizes the notion of incoming "
+       "and outgoing MPLS segments on an "
+       "interface/MPLSProtocolEndpoint. (Both In and Out Segment "
+       "subclasses are derived from MPLSSegment.) An instance is "
+       "defined in the context of an MPLSProtocolEndpoint. This is "
+       "specified using the association, CIM_MPLSSegmentOnProtocolEP." )]
+class CIM_MPLSSegment : CIM_LogicalElement {
+
+      [Key, Override ( "InstanceID" ), 
+       Description ( 
+          "InstanceID opaquely identifies a unique instance of "
+          "MPLSSegment. The InstanceID must be unique within a "
+          "namespace. In order to ensure uniqueness, the value of "
+          "InstanceID should be constructed in the following "
+          "manner: \n"
+          "<ID of the MPLSProtocolEndpoint>.<InLabel or TopLabel>." )]
+   string InstanceID;
+
+      [Description ( 
+          "Denotes the entity that created and is responsible for "
+          "managing this Segment. Note that the MappingString is "
+          "depending on the instantiated class and corresponds to "
+          "InSegmentOwner or OutSegmentOwner." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "Other", "SNMP", "LDT", "RSVP", "CR-LDP", 
+          "Policy Agent", "CLI" }, 
+       MappingStrings { "MIB.IETF|MPLS-LSR-MIB.MPLSInSegmentOwner", 
+          "MIB.IETF|MPLS-LSR-MIB.MPLSIOutSegmentOwner" }, 
+       ModelCorrespondence { "CIM_MPLSSegment.OtherOwner" }]
+   uint16 SegmentOwner;
+
+      [Description ( 
+          "If property SegmentOwner has a value 1 (\"Other\"), this "
+          "property contains a string explaining the entity that "
+          "created and manages the Segment." ), 
+       ModelCorrespondence { "CIM_MPLSSegment.SegmentOwner" }]
+   string OtherOwner;
+
+
+};

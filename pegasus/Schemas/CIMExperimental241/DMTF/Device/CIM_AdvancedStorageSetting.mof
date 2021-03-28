@@ -1,0 +1,68 @@
+// Copyright (c) 2012 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.35.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "This subclass of StorageSetting allows a client to specify "
+       "advanced settings that can be applied to creating and "
+       "manipulating elements." )]
+class CIM_AdvancedStorageSetting : CIM_StorageSetting {
+
+      [Write, Description ( 
+          "Enumeration indicating the initial storage tier for this "
+          "element. None (or null): The element should not be "
+          "considered for storage tiering." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "None", "Implementation Decides", 
+          "Highest Performance", "Lowest Performance", 
+          "Highest Availability", "Lowest Availability", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 InitialStorageTierMethodology = 2;
+
+      [Write, Description ( 
+          "Use this value to set the property "
+          "StorageTieringSelection of the associated element. "
+          "Storage tiering examines StorageTieringSelection to "
+          "determine whether to use RelativePerformanceOrder or "
+          "RelativePerformanceOrderSet for selecting an appropriate "
+          "storage tier. A value of 0 or null indicates the "
+          "associated element is not subject to storage tiering." ), 
+       ValueMap { "0", "2", "3", "..", "0x8000.." }, 
+       Values { "Unknown", "Use RelativePerformanceOrder", 
+          "Use RelativePerformanceOrderSet", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_AdvancedStorageSetting.RelativePerformanceOrderLimit", 
+          "CIM_AdvancedStorageSetting.InitialRelativePerformanceOrderSet" }]
+   uint16 InitialStorageTieringSelection = 0;
+
+      [Write, Description ( 
+          "The storage tiering limit applied to the element. This "
+          "property indicates RelativePerformanceOrder not to "
+          "exceed this value.InitialStorageTierMethodology "
+          "specifies the initial placement of the element in the "
+          "appropriate storage tier." ), 
+       ModelCorrespondence { 
+          "CIM_AdvancedStorageSetting.InitialStorageTierMethodology", 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 RelativePerformanceOrderLimit;
+
+      [Write, Description ( 
+          "A set of values. The associated element can only be "
+          "placed in storage tiers that have a "
+          "RelativePerformanceOrder value included in this set." ), 
+       ModelCorrespondence { 
+          "CIM_AdvancedStorageSetting.InitialStorageTierMethodology", 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 InitialRelativePerformanceOrderSet[];
+
+      [Write, Description ( 
+          "If true, and the storage element is under the control of "
+          "the tiering subsystem, the element\'s tiering "
+          "associations will remain frozen -- no data relocation "
+          "between tiers." ), 
+       ModelCorrespondence { 
+          "CIM_StorageVolume.StorageTieringSelection" }]
+   boolean StorageTieringFrozen;
+
+
+};

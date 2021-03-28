@@ -1,0 +1,38 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_MPLSInSegment
+// ==================================================================
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::MPLS" ), 
+    Description ( 
+       "This class represents an incoming Segment on an MPLS interface." )]
+class CIM_MPLSInSegment : CIM_MPLSSegment {
+
+      [Required, Description ( 
+          "The incoming label for this segment." ), 
+       MappingStrings { "MIB.IETF|MPLS-LSR-MIB.MPLSInSegmentLabel" }]
+   uint32 InLabel;
+
+      [Description ( 
+          "The number of labels to pop from the incoming packet. "
+          "Normally only the top label is popped from the packet, "
+          "and used for all switching decisions. Note that "
+          "technologies which do not support label popping should "
+          "leave this value at its default (1)." ), 
+       MappingStrings { "MIB.IETF|MPLS-LSR-MIB.MPLSInSegmentNPop" }]
+   uint32 NPop = 1;
+
+      [Description ( 
+          "Describes the address type expected on the incoming "
+          "Segment. This is used when the last label is popped to "
+          "know to which IP stack the packet is forwarded." ), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "Unknown", "IPv4", "IPv6" }, 
+       MappingStrings { 
+          "MIB.IETF|MPLS-LSR-MIB.MPLSInSegmentAddrFamily" }]
+   uint16 AddressType;
+
+
+};

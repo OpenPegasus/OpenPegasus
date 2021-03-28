@@ -1,0 +1,197 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Version ( "2.37.0" ), 
+    UMLPackagePath ( "CIM::System::Processing" ), 
+    Description ( 
+       "JobSettingData represents job characteristics and scheduling "
+       "information for a CIM_Job. The settings may be applied to a "
+       "job handling Service, a JobQueue or other destination to which "
+       "jobs are submitted, and/or to individual CIM_Jobs. The "
+       "applicability of the settings are defined using the "
+       "ElementSettingData relationship. Since the Settings may be "
+       "defined in several contexts and applied to many types of "
+       "elements, this class is defined as a subclass of SettingData, "
+       "versus ScopedSettingData." )]
+class CIM_JobSettingData : CIM_SettingData {
+
+      [Write, Description ( 
+          "Indicates whether or not the Job should be automatically "
+          "deleted upon completion. Note that the \'completion\' of "
+          "a recurring job is defined by its JobRunTimes or "
+          "UntilTime properties, OR when the Job is terminated by "
+          "manual intervention." ), 
+       ModelCorrespondence { "CIM_Job.DeleteOnCompletion" }]
+   boolean DeleteOnCompletion;
+
+      [Description ( 
+          "Describes the recovery setting if the Job does not "
+          "successfully complete. The possible values are: \n"
+          "0 = \"Unknown\", meaning it is unknown as to what "
+          "recovery action to take \n"
+          "1 = \"Other\", indicating that the recovery action will "
+          "be specified in the property, OtherRecoveryAction \n"
+          "2 = \"Do Not Continue\", meaning stop the execution of "
+          "the job and appropriately update its status \n"
+          "3 = \"Continue With Next Job\", meaning continue with "
+          "the next job in the queue \n"
+          "4 = \"Re-run Job\", indicating that the job should be "
+          "re-run \n"
+          "5 = \"Run Recovery Job\", meaning run the Job associated "
+          "using the RecoveryJob relationship. Note that the "
+          "recovery Job MUST already be on the queue from which it "
+          "will run." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Do Not Continue", 
+          "Continue With Next Job", "Re-run Job", "Run Recovery Job" }, 
+       ModelCorrespondence { 
+          "CIM_JobSettingData.OtherRecoveryAction", 
+          "CIM_Job.RecoveryAction" }]
+   uint16 RecoveryAction;
+
+      [Description ( 
+          "A string describing the recovery action when the "
+          "instance\'s RecoveryAction property is 1 (\"Other\")." ), 
+       ModelCorrespondence { "CIM_JobSettingData.RecoveryAction", 
+          "CIM_Job.OtherRecoveryAction" }]
+   string OtherRecoveryAction;
+
+      [Experimental, Description ( 
+          "A numeric value indicating the number of retries a "
+          "client may make on ResumeWithInput (or ResumeWithAction) "
+          "after a failed attempt at ResumeWithInput (or "
+          "ResumeWithAction). Zero means that the client has no "
+          "retries. For example, this would be set this to zero if "
+          "the test will use default inputs if an initial attempt "
+          "at ResumeWithInput fails." ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceJobCapabilities.ClientRetriesMax" }]
+   uint32 ClientRetries;
+
+      [Experimental, Description ( 
+          "DefaultInputNames is an array of strings that define the "
+          "names for the default inputs that will be requested from "
+          "clients. The values in this array are the names of the "
+          "values in the corresponding entry in the "
+          "DefaultInputValues array.\n"
+          "When a job requests input (such as with the DIAG34 "
+          "standard message), the inputs being requested should be "
+          "named using the names in the DefaultInputNames property.\n"
+          "If this property is non-NULL then "
+          "CIM_JobSettingData.InteractiveTimeout, "
+          "CIM_JobSettingData.ClientRetries, "
+          "CIM_DiagnosticServiceJobCapabilities.ClientRetriesMax "
+          "should have a values and "
+          "CIM_DiagnosticServiceJobCapabilities.DefaultValuesSupported "
+          "should be TRUE. \n"
+          "Since the property would only apply to interactive jobs, "
+          "CIM_DiagnosticTest.Characteristics should contain 3 (Is "
+          "Interactive). If this property has values, then "
+          "CIM_JobSettingData.RunInSilentMode and "
+          "CIM_DiagnosticServiceJobCapabilities.SilentModeSupported "
+          "may be TRUE.\n"
+          "This property may be used when there is an interactive "
+          "timeout on a CIM_ConcreteJob.ResumeWithInput method "
+          "call." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceJobCapabilities.DefaultValuesSupported", 
+          "CIM_JobSettingData.DefaultInputValues", 
+          "CIM_JobSettingData.InteractiveTimeout", 
+          "CIM_JobSettingData.ClientRetries", 
+          "CIM_DiagnosticServiceJobCapabilities.ClientRetriesMax", 
+          "CIM_DiagnosticTest.Characteristics", 
+          "CIM_JobSettingData.RunInSilentMode", 
+          "CIM_DiagnosticServiceJobCapabilities.SilentModeSupported", 
+          "CIM_ConcreteJob.ResumeWithInput" }]
+   string DefaultInputNames[];
+
+      [Experimental, Description ( 
+          "DefaultInputValues is an array of strings that define "
+          "default values for inputs that will be requested from "
+          "clients. Each array has a name as defined in the "
+          "corresponding entry in the DefaultInputNames array.\n"
+          "If this property is non-NULL then "
+          "CIM_JobSettingData.InteractiveTimeout, "
+          "CIM_JobSettingData.ClientRetries, "
+          "CIM_DiagnosticServiceJobCapabilities.ClientRetriesMax "
+          "should have a values and "
+          "CIM_DiagnosticServiceJobCapabilities.DefaultValuesSupported "
+          "should be TRUE. \n"
+          "Since the property would only apply to interactive jobs, "
+          "CIM_DiagnosticTest.Characteristics should contain 3 (Is "
+          "Interactive). If this property has values, then "
+          "CIM_JobSettingData.RunInSilentMode and "
+          "CIM_DiagnosticServiceJobCapabilities.SilentModeSupported "
+          "may be TRUE.\n"
+          "This property may be used when there is an interactive "
+          "timeout on a CIM_ConcreteJob.ResumeWithInput method "
+          "call." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceJobCapabilities.DefaultValuesSupported", 
+          "CIM_JobSettingData.DefaultInputNames", 
+          "CIM_JobSettingData.InteractiveTimeout", 
+          "CIM_JobSettingData.ClientRetries", 
+          "CIM_DiagnosticServiceJobCapabilities.ClientRetriesMax", 
+          "CIM_DiagnosticTest.Characteristics", 
+          "CIM_JobSettingData.RunInSilentMode", 
+          "CIM_DiagnosticServiceJobCapabilities.SilentModeSupported", 
+          "CIM_ConcreteJob.ResumeWithInput" }]
+   string DefaultInputValues[];
+
+      [Experimental, Description ( 
+          "A datetime specification of a time interval to wait for "
+          "input from a client before it leaves the QueryPending "
+          "CIM_ConcreteJob.JobState (in favor or either terminating "
+          "or continuing with defaults). The default is 15 minutes "
+          "(00000000001500.000000:000)." ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceJobCapabilities.InteractiveTimeoutMax" }]
+   datetime InteractiveTimeout = "00000000001500.000000:000";
+
+      [Experimental, Description ( 
+          "If "
+          "CIM_DiagnosticServiceJobCapabilities.SilentModeSupported "
+          "is TRUE, then this property identifies whether the "
+          "DiagnosticService runs without interaction with the "
+          "client. It does if the value is set to TRUE. It does not "
+          "if the value is set to FALSE.\n"
+          "This shall be set to FALSE if "
+          "CIM_DiagnosticServiceJobCapabilities.SilentModeSupported "
+          "is FALSE.\n"
+          "If this is set to TRUE, then "
+          "CIM_JobSettingData.DefaultInputValues and "
+          "CIM_JobSettingData.DefaultInputNames shall be non-empty "
+          "arrays." ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceJobCapabilities.SilentModeSupported", 
+          "CIM_JobSettingData.DefaultInputValues", 
+          "CIM_JobSettingData.DefaultInputNames" }]
+   boolean RunInSilentMode;
+
+      [Experimental, Description ( 
+          "TerminateOnTimeout is a boolean that defines the "
+          "behavior when the InteractiveTimeout is exceeded. If "
+          "this value is TRUE the job will terminate when the "
+          "InteractiveTimeout is exceeded. If FALSE the job will "
+          "use DefaultInputs." ), 
+       ModelCorrespondence { 
+          "CIM_DiagnosticServiceJobCapabilities.DefaultValuesSupported", 
+          "CIM_JobSettingData.DefaultInputValues", 
+          "CIM_JobSettingData.DefaultInputNames" }]
+   boolean TerminateOnTimeout;
+
+      [Experimental, Description ( 
+          "This property identifies the method in CIM_Service "
+          "associated to this SettingData to which the SettingData "
+          "applies." )]
+   string ApplicableMethod;
+
+      [Experimental, Description ( 
+          "This is the TimeBeforeRemoval value to be applied to a "
+          "ConcreteJob generated from the method identified in the "
+          "ApplicableMethod property." ), 
+       ModelCorrespondence { "CIM_ConcreteJob.TimeBeforeRemoval" }]
+   datetime TimeBeforeRemoval;
+
+
+};

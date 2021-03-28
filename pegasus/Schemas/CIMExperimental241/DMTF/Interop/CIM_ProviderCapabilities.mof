@@ -1,0 +1,52 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Interop" ), 
+    Description ( 
+       "This class defines the capabilities of the associated provider." )]
+class CIM_ProviderCapabilities : CIM_Capabilities {
+
+      [Required, Description ( 
+          "The ClassName lists the class for which the associated "
+          "Provider supplies instances, associations or indications "
+          "information. The ClassInNamespace association provides "
+          "namespace information for the listed class name." )]
+   string ClassName;
+
+      [Description ( 
+          "ProviderType enumerates the kind of provider "
+          "capabilities defined for the associated Provider." ), 
+       ValueMap { "1", "2", "3", "4", "5" }, 
+       Values { "Other", "Instance", "Association", "Indication", 
+          "Method" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { 
+          "CIM_ProviderCapabilities.OtherProviderTypes" }]
+   uint16 ProviderTypes[];
+
+      [Description ( 
+          "Type(s) of provider capabilities when \"Other\" is "
+          "included in ProviderType property array." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_ProviderCapabilities.ProviderTypes" }]
+   string OtherProviderTypes[];
+
+      [Description ( 
+          "SupportedProperties lists the properties supported by "
+          "this provider. If this array is NULL, the provider MUST "
+          "support all of the properties defined in the class. If "
+          "the provider does not support all of the properties, the "
+          "properties supported MUST be included in the array. The "
+          "array entry format is \"PropertyName\"." )]
+   string SupportedProperties[];
+
+      [Description ( 
+          "SupportedMethods lists the methods supported by this "
+          "provider. If this array is NULL, the provider MUST "
+          "support all the methods defined in the class. If the "
+          "provider does not support all the methods, the methods "
+          "supported MUST be included in the array. The array entry "
+          "format is \"MethodName\"." )]
+   string SupportedMethods[];
+
+
+};

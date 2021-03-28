@@ -1,0 +1,43 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_MPLSCrossConnectLSP
+// ==================================================================
+   [Association, Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::MPLS" ), 
+    Description ( "Defines the LSP to which the CrossConnect belongs." )]
+class CIM_MPLSCrossConnectLSP : CIM_Dependency {
+
+      [Override ( "Antecedent" ), 
+       Max ( 1 ), 
+       Description ( "The LSP." )]
+   CIM_MPLSLSP REF Antecedent;
+
+      [Override ( "Dependent" ), 
+       Description ( "The CrossConnect belonging to the LSP." )]
+   CIM_MPLSCrossConnect REF Dependent;
+
+      [Description ( 
+          "The XcType property defines whether a CrossConnect is at "
+          "the terminating end (\"Term\", 1), or originating end "
+          "(\"Orig\", 2) of an LSP. A value of 4, \"Normal\", "
+          "indicates the CrossConnect is switching through an LSP "
+          "on an intermediate node. A value of 3, \"Special\", "
+          "implies a terminating LSP for special traffic, e.g. "
+          "signaling neighbor discovery, etc. Reserved MPLS labels "
+          "with values 0 through 15 are used." ), 
+       ValueMap { "1", "2", "3", "4" }, 
+       Values { "Term", "Orig", "Special", "Normal" }]
+   uint16 XcType;
+
+      [Description ( 
+          "This property defines the order of the CrossConnects in "
+          "an LSP. An incrementally higher number indicates the "
+          "next Cross Connect in the ordered sequence. Note that "
+          "the first CrossConnect must be of type \'Orig\', and the "
+          "last of type \'Term\' (see the property, XcType)." )]
+   uint16 XcOrder;
+
+
+};

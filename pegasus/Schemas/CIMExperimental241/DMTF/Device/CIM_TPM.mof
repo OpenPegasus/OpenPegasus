@@ -1,0 +1,213 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.21.0" ), 
+    UMLPackagePath ( "CIM::Device::TPM" ), 
+    Description ( 
+       "A class derived from CIM_LogicalDevice that describes the "
+       "Trusted Platform Module (TPM) hardware as defined by the "
+       "Trusted Computing Group (TCG)." )]
+class CIM_TPM : CIM_LogicalDevice {
+
+      [Description ( 
+          "The TPM specification\'s major version to which the TPM "
+          "device claims to be conformant." ), 
+       MappingStrings { 
+          "TPM.TCG|Part 2 v1dot2|Section 5.3|version|major", 
+          "TSS.TCG|Level 1 v1.2|Section 2.3.2.18" }]
+   uint32 TPMSpecMajorVersion;
+
+      [Description ( 
+          "The TPM specification\'s minor version to which the TPM "
+          "device claims to be conformant." ), 
+       MappingStrings { 
+          "TPM.TCG|Part 2 v1dot2|Section 5.3|version|minor", 
+          "TSS.TCG|Level 1 v1.2|Section 2.3.2.18" }]
+   uint32 TPMSpecMinorVersion;
+
+      [Description ( "The TPM manufacturer\'s major revision." ), 
+       MappingStrings { 
+          "TPM.TCG|Part 2 v1dot2|Section 5.3|version|revMajor" }]
+   uint32 TPMManafucturerMajorRevision;
+
+      [Description ( "The TPM manufacturer\'s minor revision." ), 
+       MappingStrings { 
+          "TPM.TCG|Part 2 v1dot2|Section 5.3|version|revMinor" }]
+   uint32 TPMManufacturerMinorRevision;
+
+      [Description ( 
+          "The additional information defined by the TPM manufacturer."
+           ), 
+       MappingStrings { 
+          "TPM.TCG|Part 2 v1.2.TCG|Section 21.6|TPM_CAP_VERSION_INFO|vendorSpecific" }]
+   string TPMManufacturerInfo;
+
+      [Description ( 
+          "The TPM manufacturer Identifier as defined by the TCG." ), 
+       MappingStrings { 
+          "TPM.TCG|Part 2 v1dot2|Section 21.6|TPM_CAP_VERSION_INFO|tpmVendorID" }]
+   uint32 TPMManufacturerId;
+
+      [Description ( 
+          "Indicates the TPM\'s operational mode by indicating "
+          "whether TPM is Enabled, Active and Owned." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "..", "32768..65535" }, 
+       Values { "Unknown", "S1 Enabled-Active-Owned", 
+          "S2 Disabled-Active-Owned", "S3 Enabled-Inactive-Owned", 
+          "S4 Disabled-Inactive-Owned", "S5 Enabled-Active-Unowned", 
+          "S6 Disabled-Active-Unowned", 
+          "S7 Enabled-Inactive-Unowned", 
+          "S8 Disabled-Inactive-Unowned", "Not Applicable", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       MappingStrings { "TPM.TCG|Part 1 v1dot2|Section 9.4", 
+          "TPM.TCG|Part 2 v1dot2|Section 7.1|TPM_PERMANENT_FLAGS" }, 
+       ModelCorrespondence { "CIM_TPM.RequestTPMStateChange", 
+          "CIM_TPM.TransitioningToTPMState" }]
+   uint16 TPMState;
+
+      [Description ( 
+          "TransitioningToState indicates the TPM\'s target state "
+          "to which the TPM is transitioning. \n"
+          "A value of 11 \"No Change\" shall indicate that no "
+          "transition is in progress.A value of 12 \"Not "
+          "Applicable\" shall indicate the implementation does not "
+          "support representing ongoing transitions. \n"
+          "A value other than 11 or 10 shall identify the state to "
+          "which the element is in the process of transitioning." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "..", "32768..65535" }, 
+       Values { "Unknown", "S1 Enabled-Active-Owned", 
+          "S2 Disabled-Active-Owned", "S3 Enabled-Inactive-Owned", 
+          "S4 Disabled-Inactive-Owned", "S5 Enabled-Active-Unowned", 
+          "S6 Disabled-Active-Unowned", 
+          "S7 Enabled-Inactive-Unowned", 
+          "S8 Disabled-Inactive-Unowned", "Not Applicable", 
+          "No Change", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_TPM.RequestTPMStateChange", 
+          "CIM_TPM.TPMState" }]
+   uint16 TransitioningToTPMState = 12;
+
+      [Description ( 
+          "AvailableRequestedTPMStates indicates the possible "
+          "values for the RequestedTPMState parameter of the method "
+          "RequestTPMStateChange, used to initiate a state change. "
+          "The values listed shall be a subset of the values "
+          "contained in the RequestedTPMStatesSupported property of "
+          "the associated instance of CIM_TPMCapabilities where the "
+          "values selected are a function of the current TPM state "
+          "of the TPM." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", "..", 
+          "32768..65535" }, 
+       Values { "Unknown", "S1 Enabled-Active-Owned", 
+          "S2 Disabled-Active-Owned", "S3 Enabled-Inactive-Owned", 
+          "S4 Disabled-Inactive-Owned", "S5 Enabled-Active-Unowned", 
+          "S6 Disabled-Active-Unowned", 
+          "S7 Enabled-Inactive-Unowned", 
+          "S8 Disabled-Inactive-Unowned", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_TPM.RequestTPMStateChange", 
+          "CIM_TPMCapabilities.RequestedTPMStatesSupported" }]
+   uint16 AvailableRequestedTPMStates[];
+
+
+      [Description ( 
+          "Requests that the state of the TPM be changed to the "
+          "value specified in the RequestedTPMState parameter. If "
+          "the method invokation completes successfuly, the "
+          "TPMState property shall be equal to the "
+          "RequestedTPMState parameter. Invoking the "
+          "RequestTPMStateChange method multiple times could result "
+          "in earlier requests being overwritten or lost. \n"
+          "A return code of 0 shall indicate the state change was "
+          "successfully initiated. \n"
+          "A return code of 3 shall indicate that the state "
+          "transition cannot complete within the interval specified "
+          "by the TimeoutPeriod parameter. \n"
+          "A return code of 4096 (0x1000) shall indicate the state "
+          "change was successfully initiated, a ConcreteJob has "
+          "been created, and its reference returned in the output "
+          "parameter Job. Any other return code indicates an error "
+          "condition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097", "4098", "4099", "4100..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown or Unspecified Error", 
+          "Cannot complete within Timeout Period", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Invalid State Transition", 
+          "Use of Timeout Parameter Not Supported", "Busy", 
+          "Method Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_TPM.TPMState" }]
+   uint32 RequestTPMStateChange(
+         [Required, IN, Description ( "The requested TPM states." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "..", "32768..65535" }, 
+          Values { "S1 Enabled-Active-Owned", 
+             "S2 Disabled-Active-Owned", 
+             "S3 Enabled-Inactive-Owned", 
+             "S4 Disabled-Inactive-Owned", 
+             "S5 Enabled-Active-Unowned", 
+             "S6 Disabled-Active-Unowned", 
+             "S7 Enabled-Inactive-Unowned", 
+             "S8 Disabled-Inactive-Unowned", "DMTF Reserved", 
+             "Vendor Reserved" }]
+      uint16 RequestedTPMState, 
+         [IN, Description ( 
+             "Authorization token that may be required for the "
+             "action to take effect. The AuthorizationToken "
+             "parameter may be required to establish Physical "
+             "Presence, or to pass the OwnerAuth, the TCG "
+             "defined owner authorization password. In the case "
+             "of OwnerAuth, the CIM_SharedCredential with "
+             "non-null value of the CIM_SharedCredential.Secret "
+             "may be required. The "
+             "CIM_SharedCredential.Algorithm property may also "
+             "be specified based on the property "
+             "CIM_TPMCapabilities.SupportedPasswordAlgorithms." ), 
+          EmbeddedInstance ( "CIM_Credential" )]
+      string AuthorizationToken, 
+         [IN ( false ), OUT, Description ( 
+             "May contain a reference to the ConcreteJob created "
+             "to track the state transition initiated by the "
+             "method invocation." )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "A timeout period that specifies the maximum amount "
+             "of time that the client expects the transition to "
+             "the new state to take. The interval format must be "
+             "used to specify the TimeoutPeriod. A value of 0 or "
+             "a null parameter indicates that the client has no "
+             "time requirements for the transition." )]
+      datetime TimeoutPeriod);
+
+      [Description ( 
+          "This method changes the owner authorization credential "
+          "of the TPM device. The old and new owner authorization "
+          "passwords are required.Reference: See Section 17 "
+          "(Changing AuthData) of Spec (#3)." ), 
+       ValueMap { "0", "1", "2", "3..4095", "4096..32767", 
+          "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unknown/Unspecified Error", "DMTF Reserved", 
+          "Method Reserved", "Vendor Specified" }]
+   uint32 ChangeOwnerAuth(
+         [Required, IN, Description ( 
+             "OldOwnerAuth represents old owner authorization "
+             "credential required to take ownership of the TPM "
+             "device.The CIM_SharedCredential subclass may be "
+             "required with non-null value of the "
+             "CIM_SharedCredential.Secret property for the "
+             "parameter." ), 
+          EmbeddedInstance ( "CIM_Credential" )]
+      string OldOwnerAuth, 
+         [Required, IN, Description ( 
+             "NewOwnerAuth represents new owner authorization "
+             "credential required to take ownership of the TPM "
+             "device.The CIM_SharedCredential subclass may be "
+             "required with non-null value of the "
+             "CIM_SharedCredential.Secret property for the "
+             "parameter." ), 
+          EmbeddedInstance ( "CIM_Credential" )]
+      string NewOwnerAuth);
+
+};

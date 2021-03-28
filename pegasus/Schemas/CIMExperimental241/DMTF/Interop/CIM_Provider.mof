@@ -1,0 +1,85 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.19.0" ), 
+    UMLPackagePath ( "CIM::Interop" ), 
+    Description ( 
+       "A CIM Provider is an EnabledLogicalElement that instruments "
+       "one or more aspects of the CIM Schema. A CIM_Provider operates "
+       "at the request of the CIM_ObjectManager to perform operations "
+       "on CIM objects. The properties CreationClassName, "
+       "SystemCreationClassName and SystemName can be set to empty "
+       "strings for a createInstance operation. In this case, the CIM "
+       "Object Manager must interpret the properties with the local "
+       "system information." )]
+class CIM_Provider : CIM_EnabledLogicalElement {
+
+      [Key, Override ( "InstanceID" ), 
+       Description ( 
+          "Within the scope of the instantiating Namespace, "
+          "InstanceID opaquely and uniquely identifies an instance "
+          "of this class. In order to ensure uniqueness within the "
+          "NameSpace, the value of InstanceID SHOULD be constructed "
+          "using the following \'preferred\' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon "
+          "\':\', and where <OrgID> MUST include a copyrighted, "
+          "trademarked or otherwise unique name that is owned by "
+          "the business entity creating/defining the InstanceID, or "
+          "is a registered ID that is assigned to the business "
+          "entity by a recognized global authority. (This is "
+          "similar to the <Schema Name>_<Class Name> structure of "
+          "Schema class names.) In addition, to ensure uniqueness, "
+          "<OrgID> MUST NOT contain a colon (\':\'). When using "
+          "this algorithm, the first colon to appear in InstanceID "
+          "MUST appear between <OrgID> and <LocalID>. \n"
+          "<LocalID> is chosen by the organizational entity and "
+          "SHOULD not be re-used to identify different underlying "
+          "(real-world) elements. If the above \'preferred\' "
+          "algorithm is not used, the defining entity MUST assure "
+          "that the resultant InstanceID is not re-used across any "
+          "InstanceIDs produced by this or other providers for this "
+          "instance\'s NameSpace. \n"
+          "For DMTF defined instances, the \'preferred\' algorithm "
+          "MUST be used with the <OrgID> set to \'CIM\'." )]
+   string InstanceID;
+
+      [Required, Description ( 
+          "An implementation specific string that identifies the "
+          "handle to the provider. This value will be used to load "
+          "the provider. If the provider must be loaded as part of "
+          "a library, this value must be null and an associated "
+          "ProviderLibrary must be created." )]
+   string Handle;
+
+      [Required, Description ( 
+          "The ClassName lists the class(es) for which the "
+          "associated Provider supplies instances, associations or "
+          "indications information." )]
+   string ClassName[];
+
+      [Required, Description ( 
+          "The Namespaces lists the namespaces that this provider "
+          "supports the class names listed in the ClassName[]." )]
+   string Namespaces[];
+
+      [Required, Description ( 
+          "Interface describes the interface that this Provider "
+          "implements. Other - If the adapter does not fit into one "
+          "of the other catagories in the list. If specified, the "
+          "OtherInterfaceDescription property MUST be populated. \n"
+          "CMPI - Common Manageability Programming Interface by The "
+          "Open Group. \n"
+          "JSR48 - WBEM Services Specification by The Java "
+          "Community Process." ), 
+       ValueMap { "1", "2", "3" }, 
+       Values { "Other", "CMPI", "JSR48" }, 
+       ModelCorrespondence { "CIM_Provider.OtherInterfaceDescription" }]
+   uint16 Interface;
+
+      [Description ( 
+          "The type of Interface when \"Other\" is specified for "
+          "the Interface property." ), 
+       ModelCorrespondence { "CIM_Provider.Interface" }]
+   string OtherInterfaceDescription;
+
+
+};

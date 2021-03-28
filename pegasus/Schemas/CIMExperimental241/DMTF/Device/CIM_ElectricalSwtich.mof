@@ -1,0 +1,80 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.22.0" ), 
+    UMLPackagePath ( "CIM::Device::CoolingAndPower" ), 
+    Description ( 
+       "This class is a representation of logical properties of a "
+       "generic electrical switch. An example of an electric switch is "
+       "a circuit breaker. An electrical switch is used to interrupt "
+       "the flow of power. When the switch is open, power flow is "
+       "interrupted." )]
+class CIM_ElectricalSwitch : CIM_LogicalDevice {
+
+      [Override ( "EnabledState" ), 
+       Description ( 
+          "EnabledState is an integer enumeration that indicates "
+          "the enabled and disabled states of an element. The "
+          "following text briefly summarizes the various states: \n"
+          "\"Unknown\" (0) indicates that the state of the switch "
+          "is unknown. \"Enabled\" (2) indicates that the switch is "
+          "closed. \"Disabled\" (3) indicates that the switch is "
+          "open." ), 
+       ValueMap { "0", "1", "2", "3" }, 
+       Values { "Unknown", "Other", "Enabled", "Disabled" }, 
+       ModelCorrespondence { "CIM_ElectricalSwitch.OtherEnabledState" }]
+   uint16 EnabledState = 0;
+
+      [Override ( "OtherEnabledState" ), 
+       Description ( 
+          "A string that describes the enabled or disabled state of "
+          "the element when the EnabledState property is set to "
+          "\"Other\" (1). This property must be set to NULL when "
+          "EnabledState is any value other than 1. If the switch is "
+          "tripped, the value shall be \"Tripped\"." ), 
+       ModelCorrespondence { "CIM_ElectricalSwitch.EnabledState", 
+          "CIM_ElectricalSwitch.canProtect" }]
+   string OtherEnabledState;
+
+      [Override ( "RequestedState" ), 
+       Description ( 
+          "RequestedState is an integer enumeration that indicates "
+          "the last requested or desired state for the element, "
+          "irrespective of the mechanism through which it was "
+          "requested. The actual state of the element is "
+          "represented by EnabledState. This property is provided "
+          "to compare the last requested and current enabled or "
+          "disabled states. Refer to the EnabledState property "
+          "description for explanations of the values in the "
+          "RequestedState enumeration. This property overriddes the "
+          "parent class and is a subset of the values. The "
+          "following values are valid: \"Unknown\" (0) indicates "
+          "the last requested state for the element is unknown.\n"
+          "If the last requested or desired state is unknown, "
+          "RequestedState should have the value \"Unknown\" (0) \n"
+          "This property is set as the result of a method "
+          "invocation (such as Start or StopService on "
+          "CIM_Service), or can be overridden and defined as "
+          "WRITEable in a subclass. The method approach is "
+          "considered superior to a WRITEable property, because it "
+          "allows an explicit invocation of the operation and the "
+          "return of a result code." ), 
+       ValueMap { "0", "2", "3", "4" }, 
+       Values { "Unknown", "Enabled", "Disabled", "Reset" }, 
+       ModelCorrespondence { "CIM_ElectricalSwitch.EnabledState" }]
+   uint16 RequestedState;
+
+      [Required, Description ( 
+          "If this device provides protective function, this value "
+          "shall be set to true (e.g. a circuit breaker). "
+          "OtherEnabledState cannot have a value of \"Tripped\" "
+          "unless this property is true." ), 
+       ModelCorrespondence { "CIM_ElectricalSwitch.OtherEnabledState" }]
+   boolean CanProtect;
+
+      [Description ( 
+          "The rated current capacity in milliamperes that the "
+          "switch can supply" ), 
+       PUnit ( "ampere * 10^-3" )]
+   uint32 RatedCapacity;
+
+
+};

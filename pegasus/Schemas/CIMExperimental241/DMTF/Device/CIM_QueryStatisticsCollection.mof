@@ -1,0 +1,107 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.39.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageStatistics" ), 
+    Description ( 
+       "A subclass of SystemSpecificCollection which collects together "
+       "statistics and gathers them into an efficient representation. "
+       "This enables very large numbers of statistics to be "
+       "efficiently gathered via CIM Indications or Operations." )]
+class CIM_QueryStatisticsCollection : CIM_StatisticsCollection {
+
+      [Required, Description ( 
+          "A query expression that defines information to be placed "
+          "into the SelectedNames, SelectedTypes, and "
+          "SelectedValues properties. \n"
+          "\n"
+          "The FROM clause MAY reference any class. \n"
+          "\n"
+          "An Example using QueryLanguage = \"DMTF:CQLT\": \n"
+          "SELECT Stats.* \n"
+          "FROM CIM_BlockStatisticalData Stats, \n"
+          "CIM_QueryStatisticsCollection QSC, \n"
+          "CIM_MemberOfCollection MoC \n"
+          "Where ObjectPath(QSC) = ObjectPath($SELF$) \n"
+          "AND ObjectPath(QSC) = MoC.Collection \n"
+          "AND ObjectPath(Stats) = MoC.Member \n"
+          "AND CurrentDateTime() >= \n"
+          "Stats.StatisticTime + Stats.SampleInterval." ), 
+       ModelCorrespondence { 
+          "CIM_QueryStatisticsCollection.QueryLanguage" }]
+   string Query;
+
+      [Required, Description ( 
+          "The language in which the query is expressed. \n"
+          "CQL: indicates a CIM Query Language string. \n"
+          "CQLT: indicates a CIM Query Language Template string. "
+          "When used, the identifiers recognized in the "
+          "$identifier$ tokens are \"SELF\" and the property names "
+          "of this class, or one of its subclasses. When used in "
+          "the Query string, $SELF$ will be replaced by a string "
+          "corresponding to a WBEM URI referencing the instance of "
+          "this class that contains the Query template string. "
+          "Tokens of the form $<propertyname>$ will be replaced by "
+          "a string representing the corresponding property value "
+          "of the instance of this class that contains the Query "
+          "string." ), 
+       ValueMap { "2", "3", "..", "0x8000.." }, 
+       Values { "CQL", "CQLT", "DMTF Reserved", "Vendor Reserved" }]
+   uint16 QueryLanguage = 2;
+
+      [Required, Description ( 
+          "The encoding of the SelectedNames, SelectedTypes, and "
+          "SelectedValues strings. \n"
+          "- CSV = Comma Separated Values." ), 
+       ValueMap { "2", "..", "0x8000.." }, 
+       Values { "CSV", "DMTF Reserved", "Vendor Reserved" }]
+   uint16 SelectedEncoding = 2;
+
+      [Required, Description ( 
+          "A string containing the Names of the select list entries "
+          "defined in Query. The encoding is defined by "
+          "SelectedEncoding." ), 
+       ModelCorrespondence { "CIM_QueryStatisticsCollection.Query", 
+          "CIM_QueryStatisticsCollection.SelectedEncoding" }]
+   string SelectedNames;
+
+      [Required, Description ( 
+          "A string containing the Types of the select list entries "
+          "defined in Query. The encoding is defined by "
+          "SelectedEncoding." ), 
+       ModelCorrespondence { "CIM_QueryStatisticsCollection.Query", 
+          "CIM_QueryStatisticsCollection.SelectedEncoding" }]
+   string SelectedTypes;
+
+      [Required, Description ( 
+          "A string containing a table of Values with the columns "
+          "corresponding to the select list entries defined in "
+          "Query. The encoding is defined by SelectedEncoding." ), 
+       ModelCorrespondence { "CIM_QueryStatisticsCollection.Query", 
+          "CIM_QueryStatisticsCollection.SelectedEncoding" }]
+   string SelectedValues;
+
+      [Description ( 
+          "A string containing the Names of the select list rated "
+          "entries defined in Query. The encoding is defined by "
+          "SelectedEncoding." ), 
+       ModelCorrespondence { "CIM_QueryStatisticsCollection.Query", 
+          "CIM_QueryStatisticsCollection.SelectedEncoding" }]
+   string SelectedRateNames;
+
+      [Description ( 
+          "A string containing the Types of the select list rated "
+          "entries defined in Query. The encoding is defined by "
+          "SelectedEncoding." ), 
+       ModelCorrespondence { "CIM_QueryStatisticsCollection.Query", 
+          "CIM_QueryStatisticsCollection.SelectedEncoding" }]
+   string SelectedRateTypes;
+
+      [Description ( 
+          "A string containing a table of Values with the columns "
+          "corresponding to the select list rated entries defined "
+          "in Query. The encoding is defined by SelectedEncoding." ), 
+       ModelCorrespondence { "CIM_QueryStatisticsCollection.Query", 
+          "CIM_QueryStatisticsCollection.SelectedEncoding" }]
+   string SelectedRateValues;
+
+
+};

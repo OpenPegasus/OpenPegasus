@@ -1,0 +1,85 @@
+// Copyright (c) 2010 DMTF.  All rights reserved.
+   [Version ( "2.27.0" ), 
+    UMLPackagePath ( "CIM::Network::iSCSI" ), 
+    Description ( 
+       "The capabilites for an iSCSI Network Entity. An instance of "
+       "this class will be associated by ElementCapabilities to a "
+       "instance of ComputerSystem that represents the Network Entity. "
+       "These capability properties are associated to a Network "
+       "Entity/ComputerSystem since they affect all login negotiations "
+       "on all iSCSI ProtocolEndpoints aggregated to the system." )]
+class CIM_iSCSICapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "The minimum version number of the iSCSI specification "
+          "such that this iSCSI instance supports this minimum "
+          "value, the maximum value indicated by the corresponding "
+          "property MaximumSpecificationVersionSupported, and all "
+          "versions in between." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 255 ), 
+       MappingStrings { "MIB.IETF|iSCSI-MIB.iscsiInstVersionMin" }, 
+       ModelCorrespondence { 
+          "CIM_iSCSICapabilities.MaximumSpecificationVersionSupported", 
+          "CIM_iSCSIConnection.ActiveiSCSIVersion" }]
+   uint8 MinimumSpecificationVersionSupported;
+
+      [Description ( 
+          "The maximum version number of the iSCSI specification "
+          "such that this iSCSI instance supports this maximum "
+          "value, the minimum value indicated by the corresponding "
+          "property MinimumSpecificationVersionSupported, and all "
+          "versions in between." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 255 ), 
+       MappingStrings { "MIB.IETF|ISCSI-MIB.iscsiInstVersionMax" }, 
+       ModelCorrespondence { 
+          "CIM_iSCSICapabilities.MinimumSpecificationVersionSupported", 
+          "CIM_iSCSIConnection.ActiveiSCSIVersion" }]
+   uint8 MaximumSpecificationVersionSupported;
+
+      [Description ( 
+          "An array containing a list of authentication methods "
+          "supported by this Network Entity." ), 
+       ValueMap { "2", "3", "4", "5" }, 
+       Values { "(None", "SRP", "CHAP", "Kerberos" }, 
+       ArrayType ( "Indexed" ), 
+       MappingStrings { "MIB.IETF|IPS-AUTH-MIB.ipsAuthCredAuthMethod" }, 
+       ModelCorrespondence { 
+          "CIM_iSCSIConnectionSettings.PrimaryAuthenticationMethod", 
+          "CIM_iSCSIConnectionSettings.SecondaryAuthenticationMethod", 
+          "CIM_iSCSIConnection.AuthenticationMethodUsed" }]
+   uint16 AuthenticationMethodsSupported[];
+
+      [Experimental, Description ( 
+          "A string describing the additional supported features of "
+          "the Network Entity, used when the corresponding "
+          "SupportedFeatures array element is set to the value \"1\" "
+          "(Other). Each element that corresponds to a "
+          "SupportedFeatures array element with a value other than "
+          "\"1\" (Other) shall have a value of NULL." ), 
+       ModelCorrespondence { 
+          "CIM_iSCSICapabilities.SupportedFeatures" }]
+   string OtherSupportedFeatures[];
+
+      [Experimental, Description ( 
+          "An enumeration indicating features that are supported by "
+          "the Network Entity. Since this is an array, multiple "
+          "values may be specified. The current values in the "
+          "enumeration are:\n"
+          "0 = \"None\", indicating that no features are supported. "
+          "If this value is present in the array, it shall be the "
+          "only value.\n"
+          "1 = \"Other\", indicating that a feature not described "
+          "by another value is present. A description of the "
+          "capability can be found in the OtherSupportedFeatures "
+          "property. \"Other\" can be present more than once in the "
+          "SupportedFeatures array.\n"
+          "2 = \"iSCSI Session\", indication that the Network "
+          "Entity supports iSCSI sessions." ), 
+       ValueMap { "0", "1", "2" }, 
+       Values { "None", "Other", "iSCSI Session" }]
+   uint16 SupportedFeatures[];
+
+
+};

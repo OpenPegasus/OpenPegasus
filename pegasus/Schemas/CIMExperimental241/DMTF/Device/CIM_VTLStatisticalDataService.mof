@@ -1,0 +1,490 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.29.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageStatistics" ), 
+    Description ( 
+       "The CIM_VTLStatisticalDataService class provides Historical "
+       "Resource Usage Service. This class has set of functions to "
+       "collect historical values for Front-end port performance, "
+       "Physical disk usage, Logical backup data, Overall system "
+       "compression ratio, Deduplication efficiency and Replication "
+       "traffic. All the functions returns graph object Data point "
+       "history of specified resource." )]
+class CIM_VTLStatisticalDataService : CIM_Service {
+
+
+      [Description ( 
+          "GetPhysicalCapacityUsage Provides capacity on a per "
+          "storage pool and virtual library basis. If the "
+          "primordial pool is used, data is returned for all pools. "
+          "If the VLS Computer System is used, capacity is returned "
+          "for the entire appliance.\n"
+          "At least one of StartTime, EndTime, and Duration must be specified.\n"
+          "- If all three are specified, then Duration is ignored.\n"
+          "- StartTime shall not be higher than EndTime.\n"
+          "- No time may be set in the future.\n"
+          "- If two of the three are specified, then the third is calculated.\n"
+          "- If only StartTime or Duration is specified, then "
+          "EndTime will be set to the current time.\n"
+          "- If only EndTime is specified, then StartTime will be "
+          "set to the time the earliest data is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Method Parameters Checked - Job Started" }]
+   uint16 GetPhysicalCapacityUsage(
+         [In, Description ( 
+             "Specifies the format of the \'Data\' output parameter"
+              ), 
+          ValueMap { "2" }, 
+          Values { "CSV" }]
+      uint16 DataFormat, 
+         [In, Description ( 
+             "Reference to the storage pool, concrete or primordial"
+              )]
+      CIM_StoragePool REF Pool, 
+         [In, Description ( 
+             "Specifies the start time for when the data is "
+             "required. If only StartTime is specified, then "
+             "EndTime shall be set to current time." )]
+      datetime StartTime, 
+         [In, Description ( 
+             "Specifies the duration in seconds to generate "
+             "statistical data. If only Duration is specified, "
+             "then EndTime will be set to current time." )]
+      uint64 Duration, 
+         [In, Description ( 
+             "Specifies the end time up to which the statistical "
+             "data will be generated. Current time will be "
+             "assumed whenever EndTime is specified null.\n"
+             "If only EndTime is specified, then StartTime will "
+             "be set to the earliest time that data is "
+             "available." )]
+      datetime EndTime, 
+         [In ( false ), Out, Description ( "Graph Object" )]
+      CIM_VTLStatisticalData REF Data, 
+         [In, Description ( "Reference to a VTL or the VLS" )]
+      CIM_ComputerSystem REF Library, 
+         [In ( false ), Out, Description ( 
+             "Reference to the job (null if synchronous call)" )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "GetLogicalCapacityUsage Provides logical capacity usage "
+          "for the entire VLS appliance or a specific VTL depending "
+          "on the ComputerSystem reference passed in.\n"
+          "At least one of StartTime, EndTime, and Duration must be specified.\n"
+          "- If all three are specified, then Duration is ignored.\n"
+          "- StartTime shall not be higher than EndTime.\n"
+          "- No time may be set in the future.\n"
+          "- If two of the three are specified, then the third is calculated.\n"
+          "- If only StartTime or Duration is specified, then "
+          "EndTime will be set to the current time.\n"
+          "- If only EndTime is specified, then StartTime will be "
+          "set to the time the earliest data is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Method Parameters Checked - Job Started" }]
+   uint16 GetLogicalCapacityUsage(
+         [In, Description ( 
+             "Specifies the format of the \'Data\' output parameter"
+              ), 
+          ValueMap { "2" }, 
+          Values { "CSV" }]
+      uint16 DataFormat, 
+         [In, Description ( 
+             "Specifies the start time for when the data is "
+             "required. If only StartTime is specified, then "
+             "EndTime shall be set to current time." )]
+      datetime StartTime, 
+         [In, Description ( 
+             "Specifies the duration in seconds to generate "
+             "statistical data. If only Duration is specified, "
+             "then EndTime will be set to current time." )]
+      uint64 Duration, 
+         [In, Description ( 
+             "Specifies the end time up to which the statistical "
+             "data will be generated. Current time will be "
+             "assumed whenever EndTime is specified null.\n"
+             "If only EndTime is specified, then StartTime will "
+             "be set to the earliest time that data is "
+             "available." )]
+      datetime EndTime, 
+         [In ( false ), Out, Description ( "Graph Object" )]
+      CIM_VTLStatisticalData REF Data, 
+         [In, Description ( "Reference to a VTL or the VLS" )]
+      CIM_ComputerSystem REF Library, 
+         [In ( false ), Out, Description ( 
+             "Reference to the job (null if synchronous call)" )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "GetSystemRatio Provides an historic of the compression "
+          "ratio for the entire VLS appliance or a specific VTL "
+          "depending on on the ComputerSystem reference passed in.\n"
+          "At least one of StartTime, EndTime, and Duration must be specified.\n"
+          "- If all three are specified, then Duration is ignored.\n"
+          "- StartTime shall not be higher than EndTime.\n"
+          "- No time may be set in the future.\n"
+          "- If two of the three are specified, then the third is calculated.\n"
+          "- If only StartTime or Duration is specified, then "
+          "EndTime will be set to the current time.\n"
+          "- If only EndTime is specified, then StartTime will be "
+          "set to the time the earliest data is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Method Parameters Checked - Job Started" }]
+   uint16 GetSystemRatio(
+         [In, Description ( 
+             "Specifies the format of the \'Data\' output parameter"
+              ), 
+          ValueMap { "2" }, 
+          Values { "CSV" }]
+      uint16 DataFormat, 
+         [In, Description ( "Reference to a VTL or the VLS" )]
+      CIM_ComputerSystem REF Library, 
+         [In, Description ( 
+             "Specifies the start time for when the data is "
+             "required. If only StartTime is specified, then "
+             "EndTime shall be set to current time." )]
+      datetime StartTime, 
+         [In, Description ( 
+             "Specifies the duration in seconds to generate "
+             "statistical data. If only Duration is specified, "
+             "then EndTime will be set to current time." )]
+      uint64 Duration, 
+         [In, Description ( 
+             "Specifies the end time up to which the statistical "
+             "data will be generated. Current time will be "
+             "assumed whenever EndTime is specified null.\n"
+             "If only EndTime is specified, then StartTime will "
+             "be set to the earliest time that data is "
+             "available." )]
+      datetime EndTime, 
+         [In ( false ), Out, Description ( "Graph Object" )]
+      CIM_VTLStatisticalData REF Data, 
+         [In ( false ), Out, Description ( 
+             "Reference to the job (null if synchronous call)" )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "GetDeduplicationRatio(CIM_ComputerSystem REF): Provides "
+          "an historicof the deduplication ratio for the entire VLS "
+          "appliance or a specificVTL depending on on the "
+          "ComputerSystem reference passed in.\n"
+          "At least one of StartTime, EndTime, and Duration must be specified.\n"
+          "- If all three are specified, then Duration is ignored.\n"
+          "- StartTime shall not be higher than EndTime.\n"
+          "- No time may be set in the future.\n"
+          "- If two of the three are specified, then the third is calculated.\n"
+          "- If only StartTime or Duration is specified, then "
+          "EndTime will be set to the current time.\n"
+          "- If only EndTime is specified, then StartTime will be "
+          "set to the time the earliest data is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Method Parameters Checked - Job Started" }]
+   uint16 GetDeduplicationRatio(
+         [In, Description ( 
+             "Specifies the format of the \'Data\' output parameter"
+              ), 
+          ValueMap { "2" }, 
+          Values { "CSV" }]
+      uint16 DataFormat, 
+         [In, Description ( "Reference to a VTL or the VLS" )]
+      CIM_ComputerSystem REF Library, 
+         [In, Description ( 
+             "Specifies the start time for when the data is "
+             "required. If only StartTime is specified, then "
+             "EndTime shall be set to current time." )]
+      datetime StartTime, 
+         [In, Description ( 
+             "Specifies the duration in seconds to generate "
+             "statistical data. If only Duration is specified, "
+             "then EndTime will be set to current time." )]
+      uint64 Duration, 
+         [In, Description ( 
+             "Specifies the end time up to which the statistical "
+             "data will be generated. Current time will be "
+             "assumed whenever EndTime is specified null.\n"
+             "If only EndTime is specified, then StartTime will "
+             "be set to the earliest time that data is "
+             "available." )]
+      datetime EndTime, 
+         [In ( false ), Out, Description ( "Graph Object" )]
+      CIM_VTLStatisticalData REF Data, 
+         [In ( false ), Out, Description ( 
+             "Reference to the job (null if synchronous call)" )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "GetReplicationThroughput provides a historic ofthe "
+          "incoming or outgoing replication throughput in MB/s.\n"
+          "At least one of StartTime, EndTime, and Duration must be specified.\n"
+          "- If all three are specified, then Duration is ignored.\n"
+          "- StartTime shall not be higher than EndTime.\n"
+          "- No time may be set in the future.\n"
+          "- If two of the three are specified, then the third is calculated.\n"
+          "- If only StartTime or Duration is specified, then "
+          "EndTime will be set to the current time.\n"
+          "- If only EndTime is specified, then StartTime will be "
+          "set to the time the earliest data is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Method Parameters Checked - Job Started" }]
+   uint16 GetReplicationThroughput(
+         [In, Description ( 
+             "Specifies the format of the \'Data\' output parameter"
+              ), 
+          ValueMap { "2" }, 
+          Values { "CSV" }]
+      uint16 DataFormat, 
+         [In, Description ( 
+             "Indicates incoming or outgoing traffic" ), 
+          ValueMap { "0", "1", "..", "32768..65535" }, 
+          Values { "In Traffic", "Out Traffic", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 DataDirection, 
+         [In, Description ( "Reference to a VTL or the VLS" )]
+      CIM_ComputerSystem REF Library, 
+         [In, Description ( 
+             "Specifies the start time for when the data is "
+             "required. If only StartTime is specified, then "
+             "EndTime shall be set to current time." )]
+      datetime StartTime, 
+         [In, Description ( 
+             "Specifies the duration in seconds to generate "
+             "statistical data. If only Duration is specified, "
+             "then EndTime will be set to current time." )]
+      uint64 Duration, 
+         [In, Description ( 
+             "Specifies the end time up to which the statistical "
+             "data will be generated. Current time will be "
+             "assumed whenever EndTime is specified null.\n"
+             "If only EndTime is specified, then StartTime will "
+             "be set to the earliest time that data is "
+             "available." )]
+      datetime EndTime, 
+         [In ( false ), Out, Description ( "Graph Object" )]
+      CIM_VTLStatisticalData REF Data, 
+         [In ( false ), Out, Description ( 
+             "Reference to the job (null if synchronous call)" )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "GetReplicationRatio provides a historic of the "
+          "deduplication ratio over the replication link.\n"
+          "At least one of StartTime, EndTime, and Duration must be specified.\n"
+          "- If all three are specified, then Duration is ignored.\n"
+          "- StartTime shall not be higher than EndTime.\n"
+          "- No time may be set in the future.\n"
+          "- If two of the three are specified, then the third is calculated.\n"
+          "- If only StartTime or Duration is specified, then "
+          "EndTime will be set to the current time.\n"
+          "- If only EndTime is specified, then StartTime will be "
+          "set to the time the earliest data is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Method Parameters Checked - Job Started" }]
+   uint16 GetReplicationRatio(
+         [In, Description ( 
+             "Specifies the format of the \'Data\' output parameter"
+              ), 
+          ValueMap { "2" }, 
+          Values { "CSV" }]
+      uint16 DataFormat, 
+         [In, Description ( "Reference to a VTL or the VLS" )]
+      CIM_ComputerSystem REF Library, 
+         [In, Description ( 
+             "Specifies the start time for when the data is "
+             "required. If only StartTime is specified, then "
+             "EndTime shall be set to current time." )]
+      datetime StartTime, 
+         [In, Description ( 
+             "Specifies the duration in seconds to generate "
+             "statistical data. If only Duration is specified, "
+             "then EndTime will be set to current time." )]
+      uint64 Duration, 
+         [In, Description ( 
+             "Specifies the end time up to which the statistical "
+             "data will be generated. Current time will be "
+             "assumed whenever EndTime is specified null.\n"
+             "If only EndTime is specified, then StartTime will "
+             "be set to the earliest time that data is "
+             "available." )]
+      datetime EndTime, 
+         [In ( false ), Out, Description ( "Graph Object" )]
+      CIM_VTLStatisticalData REF Data, 
+         [In ( false ), Out, Description ( 
+             "Reference to the job (null if synchronous call)" )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "GetPerformanceStatisticsReadWriteIO gives the front-end "
+          "port performance.\n"
+          "At least one of StartTime, EndTime, and Duration must be specified.\n"
+          "- If all three are specified, then Duration is ignored.\n"
+          "- StartTime shall not be higher than EndTime.\n"
+          "- No time may be set in the future.\n"
+          "- If two of the three are specified, then the third is calculated.\n"
+          "- If only StartTime or Duration is specified, then "
+          "EndTime will be set to the current time.\n"
+          "- If only EndTime is specified, then StartTime will be "
+          "set to the time the earliest data is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Method Parameters Checked - Job Started" }]
+   uint16 GetPerformanceStatisticsReadWriteIO(
+         [In, Description ( 
+             "Specifies the format of the \'Data\' output parameter"
+              ), 
+          ValueMap { "2" }, 
+          Values { "CSV" }]
+      uint16 DataFormat, 
+         [In, Description ( "Reference to a VTL or the VLS" )]
+      CIM_ComputerSystem REF Library, 
+         [In, Description ( 
+             "Specifies the start time for when the data is "
+             "required. If only StartTime is specified, then "
+             "EndTime shall be set to current time." )]
+      datetime StartTime, 
+         [In, Description ( 
+             "Specifies the duration in seconds to generate "
+             "statistical data. If only Duration is specified, "
+             "then EndTime will be set to current time." )]
+      uint64 Duration, 
+         [In, Description ( 
+             "Specifies the end time up to which the statistical "
+             "data will be generated. Current time will be "
+             "assumed whenever EndTime is specified null.\n"
+             "If only EndTime is specified, then StartTime will "
+             "be set to the earliest time that data is "
+             "available." )]
+      datetime EndTime, 
+         [In ( false ), Out, Description ( "Graph Object" )]
+      CIM_VTLStatisticalData REF Data, 
+         [IN, Description ( 
+             "Reference to the Tape Drive for which the "
+             "performance data is requested,if null performance "
+             "stastics for the Virtual Library will be returned" )]
+      CIM_TapeDrive REF tapeDrive, 
+         [In ( false ), Out, Description ( 
+             "Reference to the job (null if synchronous call)" )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "GetFCPortStatisticsSRR provides the Sequence "
+          "RetransmissionRequest performance statistics of a FC "
+          "Port in a VLS.\n"
+          "At least one of StartTime, EndTime, and Duration must be specified.\n"
+          "- If all three are specified, then Duration is ignored.\n"
+          "- StartTime shall not be higher than EndTime.\n"
+          "- No time may be set in the future.\n"
+          "- If two of the three are specified, then the third is calculated.\n"
+          "- If only StartTime or Duration is specified, then "
+          "EndTime will be set to the current time.\n"
+          "- If only EndTime is specified, then StartTime will be "
+          "set to the time the earliest data is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Method Parameters Checked - Job Started" }]
+   uint16 GetFCPortStatisticsSRR(
+         [In, Description ( 
+             "Specifies the format of the \'Data\' output parameter"
+              ), 
+          ValueMap { "2" }, 
+          Values { "CSV" }]
+      uint16 DataFormat, 
+         [In, Description ( 
+             "Specifies the start time for when the data is "
+             "required. If only StartTime is specified, then "
+             "EndTime shall be set to current time." )]
+      datetime StartTime, 
+         [In, Description ( 
+             "Specifies the duration in seconds to generate "
+             "statistical data. If only Duration is specified, "
+             "then EndTime will be set to current time." )]
+      uint64 Duration, 
+         [In, Description ( 
+             "Specifies the end time up to which the statistical "
+             "data will be generated. Current time will be "
+             "assumed whenever EndTime is specified null.\n"
+             "If only EndTime is specified, then StartTime will "
+             "be set to the earliest time that data is "
+             "available." )]
+      datetime EndTime, 
+         [In ( false ), Out, Description ( "Graph Object" )]
+      CIM_VTLStatisticalData REF Data, 
+         [IN, Description ( 
+             "Port for which the Aborts metric is requested" )]
+      CIM_LogicalPort REF port, 
+         [In ( false ), Out, Description ( 
+             "Reference to the job (null if synchronous call)" )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "GetFCPortStatisticsAborts provides the abort statistics "
+          "of a FC Port in a VLS.\n"
+          "At least one of StartTime, EndTime, and Duration must be specified.\n"
+          "- If all three are specified, then Duration is ignored.\n"
+          "- StartTime shall not be higher than EndTime.\n"
+          "- No time may be set in the future.\n"
+          "- If two of the three are specified, then the third is calculated.\n"
+          "- If only StartTime or Duration is specified, then "
+          "EndTime will be set to the current time.\n"
+          "- If only EndTime is specified, then StartTime will be "
+          "set to the time the earliest data is available." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Method Parameters Checked - Job Started" }]
+   uint16 GetFCPortStatisticsAborts(
+         [In, Description ( 
+             "Specifies the format of the \'Data\' output parameter"
+              ), 
+          ValueMap { "2" }, 
+          Values { "CSV" }]
+      uint16 DataFormat, 
+         [In, Description ( 
+             "Specifies the start time for when the data is "
+             "required. If only StartTime is specified, then "
+             "EndTime shall be set to current time." )]
+      datetime StartTime, 
+         [In, Description ( 
+             "Specifies the duration in seconds to generate "
+             "statistical data. If only Duration is specified, "
+             "then EndTime will be set to current time." )]
+      uint64 Duration, 
+         [In, Description ( 
+             "Specifies the end time up to which the statistical "
+             "data will be generated. Current time will be "
+             "assumed whenever EndTime is specified null.\n"
+             "If only EndTime is specified, then StartTime will "
+             "be set to the earliest time that data is "
+             "available." )]
+      datetime EndTime, 
+         [In ( false ), Out, Description ( "Graph Object" )]
+      CIM_VTLStatisticalData REF Data, 
+         [IN, Description ( 
+             "Port for which the Aborts metric is requested" )]
+      CIM_LogicalPort REF port, 
+         [In ( false ), Out, Description ( 
+             "Reference to the job (null if synchronous call)" )]
+      CIM_ConcreteJob REF Job);
+
+};

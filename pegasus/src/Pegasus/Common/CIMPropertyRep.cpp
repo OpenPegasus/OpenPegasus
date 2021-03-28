@@ -140,6 +140,9 @@ void CIMPropertyRep::resolve(
     PEGASUS_ASSERT(!inheritedProperty.isUninitialized());
 
     // Check the type:
+    
+    //printf("DEBUG CIMPropertyRep::resolve L:%d Enter property %s\n", __LINE__, 
+    //      (const char *)inheritedProperty.getName().getString().getCString());
 
     if (!inheritedProperty.getValue().typeCompatible(_value))
     {
@@ -202,10 +205,13 @@ void CIMPropertyRep::resolve(
             {
                 CIMInstance embeddedInst;
                 _value.get(embeddedInst);
-                classNames.append(embeddedInst.getClassName());
+                if(!embeddedInst.isUninitialized())
+                {
+                    classNames.append(embeddedInst.getClassName());
+                }
             }
         }
-        else
+        else  // else it is Reference type
         {
             CIMName referenceClass;
             if (_referenceClassName.isNull())

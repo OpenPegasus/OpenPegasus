@@ -1,0 +1,87 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::System::FileServices" ), 
+    Description ( 
+       "FileExportCapabilities specifies the capability of a "
+       "FileExportService to support the specified methods." )]
+class CIM_FileExportCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "An array of enumerated integers indicating the "
+          "filesharing protocols that this service can support. "
+          "Duplicate entries are permitted because they may be "
+          "associated with different versions in the corresponding "
+          "ProtocolVersions property. For each file sharing "
+          "protocol supported nby the Service, there will be at "
+          "least one FileExportCapabilities element." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Unknown", "NFS", "CIFS", "DAFS", "WebDAV", "HTTP", 
+          "FTP", "DMTF Reserved", "Vendor Defined" }, 
+       ArrayType ( "Indexed" ), 
+       Read, ModelCorrespondence { 
+          "CIM_ExportedFileShareSetting.FileSharingProtocol", 
+          "CIM_FileImportCapabilities.FileSharingProtocol", 
+          "CIM_FileExportCapabilities.ProtocolVersions" }]
+   uint16 FileSharingProtocol[];
+
+      [Description ( 
+          "An array of strings listing the versions of the file "
+          "sharing protocol in the corresponding "
+          "FileSharingProtocol property that can be supported by "
+          "this FileExportService." ), 
+       ArrayType ( "Indexed" ), 
+       Read, ModelCorrespondence { 
+          "CIM_ExportedFileShareSetting.ProtocolVersions", 
+          "CIM_FileImportCapabilities.ProtocolVersions", 
+          "CIM_FileExportCapabilities.FileSharingProtocol" }]
+   string ProtocolVersions[];
+
+      [Description ( 
+          "An array of methods of this Service that are supported "
+          "as synchronous methods." ), 
+       ValueMap { "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "CreateExportedShare", "ModifyExportedShare", 
+          "ReleaseExportedShare", "CreateGoal", "DMTF Reserved", 
+          "Vendor Defined" }, 
+       Read]
+   uint16 SupportedSynchronousMethods[];
+
+      [Description ( 
+          "An array of methods of this Service that are supported "
+          "as asynchronous methods." ), 
+       ValueMap { "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "CreateExportedShare", "ModifyExportedShare", 
+          "ReleaseExportedShare", "CreateGoal", "DMTF Reserved", 
+          "Vendor Defined" }, 
+       Read]
+   uint16 SupportedAsynchronousMethods[];
+
+      [Description ( 
+          "An enumerated value that indicates the enabled/disabled "
+          "states to which the Service can initialize the created "
+          "file share. Unlike FileShare.EnabledState it cannot "
+          "indicate transitions between requested states because "
+          "those states cannot be requested. The following text "
+          "briefly summarizes the various enabled/disabled initial "
+          "states: \n"
+          "Enabled (2) indicates that the element will execute "
+          "commands, will process any queued commands, and will "
+          "queue new requests. \n"
+          "Disabled (3) indicates that the element will not execute "
+          "commands and will drop any new requests. \n"
+          "In Test (7) indicates that the element will be in a test "
+          "state. \n"
+          "Deferred (8) indicates that the element will not process "
+          "any commands but will queue new requests. \n"
+          "Quiesce (9) indicates that the element is enabled but in "
+          "a restricted mode. The element\'s behavior is similar to "
+          "the Enabled state, but it only processes a restricted "
+          "set of commands. All other requests are queued." ), 
+       ValueMap { "0", "2", "3", "7", "8", "9", "..", "0x8000.." }, 
+       Values { "Unknown", "Enabled", "Disabled", "In Test", 
+          "Deferred", "Quiesce", "DMTF Reserved", "Vendor Defined" }, 
+       Read]
+   uint16 InitialEnabledState = 8;
+
+
+};

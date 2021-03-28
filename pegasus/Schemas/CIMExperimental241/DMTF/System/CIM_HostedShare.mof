@@ -1,0 +1,41 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Association, Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::System::FileElements" ), 
+    Description ( 
+       "CIM_HostedShare is an association between a Share and the "
+       "System on which the functionality resides. The cardinality of "
+       "this association is many-to-many but a FileShare must have at "
+       "least 1 host system, either exporting or importing it. (A "
+       "System may host many Shares and a Share may be hosted by more "
+       "than one System, but a Share must have at least one "
+       "HostedShare). \n"
+       "Heuristic: For export, a Share is hosted on the System where "
+       "the LogicalElement that is exported by the Share is located "
+       "(via SharedElement, derived from LogicalIdentity). For import, "
+       "a Share is hosted on the System where the LogicalFile (or "
+       "other namespace element) that provides the mount-point for the "
+       "share is located (via ImportedShare, derived from "
+       "LogicalIdentity)." )]
+class CIM_HostedShare : CIM_HostedDependency {
+
+      [Override ( "Antecedent" ), 
+       Min ( 1 ), 
+       Description ( "The hosting System." )]
+   CIM_System REF Antecedent;
+
+      [Override ( "Dependent" ), 
+       Description ( "The Share hosted on the System." )]
+   CIM_Share REF Dependent;
+
+      [Description ( 
+          "A string that uniquely identifies the remote element "
+          "(expected to be an ExportedFileShare) that the Dependent "
+          "Share represents if this is an imported Share. This is "
+          "an opaque, unique identifier that provides an "
+          "unambiguous name for the remote share -- we expect that "
+          "it will be a WWN but any other interoperable format "
+          "(e.g., a URI) would also work." )]
+   string RemoteShareWWN;
+
+
+};

@@ -1,0 +1,83 @@
+// Copyright (c) 2006 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.14.0" ), 
+    UMLPackagePath ( "CIM::Core::Redundancy" ), 
+    Description ( 
+       "A class derived from SettingData that describes a possible "
+       "configuration for an associated RedundancySet." )]
+class CIM_RedundancySetSettingData : CIM_SettingData {
+
+      [Write, Description ( 
+          "TypeOfSet provides information on the type of "
+          "redundancy. - N+1 (=2) indicates all members are active, "
+          "are unaware and function independent of one another. "
+          "However, there exist at least one extra member to "
+          "achieve functionality. \'Sparing\' is implied (i.e. each "
+          "member can be a spare for the other(s). An example of "
+          "N+1 is a system that has 2 power supplies, but needs "
+          "only 1 power supply to functioning properly. \n"
+          "- Load Balanced (=3) indicates all members are active. "
+          "However, there functionality is not independent of each "
+          "other. Their functioning is determined by some sort of "
+          "load balancing algorithm (implemented in hardware and/or "
+          "software). \'Sparing\' is implied (i.e. each member can "
+          "be a spare for the other(s). \n"
+          "- Sparing (=4) indicates that all members are active and "
+          "are aware of each others. However, their functionality "
+          "is independent until failover. Each member can be a "
+          "spare for the other(s). \n"
+          "- Limited Sparing (=5) indicates that all members are "
+          "active, and they may or may not be aware of each and "
+          "they are not spares for each other. Instead, their "
+          "redundancy is indicated by the IsSpare relationship." ), 
+       ValueMap { "2", "3", "4", "5", "..", "0x8000.." }, 
+       Values { "N+1", "Load Balanced", "Sparing", 
+          "Limited Sparing", "DMTF Reserved", "Vendor Reserved" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_RedundancySet.TypeOfSet" }]
+   uint16 TypeOfSet[];
+
+      [Description ( 
+          "MinNumberNeeded indicates the smallest number of "
+          "elements that will be required to be operational in "
+          "order for components dependent on the redundancy set to "
+          "function." ), 
+       MinValue ( 0 ), 
+       ModelCorrespondence { "CIM_RedundancySet.MinNumberNeeded" }]
+   uint32 MinNumberNeeded;
+
+      [Description ( 
+          "MaxNumberSupported indicates the largest number of "
+          "elements that will be able to participate in the "
+          "RedundancySet. A value of 0 shall indicate no limit on "
+          "the number of elements." ), 
+       ModelCorrespondence { "CIM_RedundancySet.MaxNumberSupported" }]
+   uint32 MaxNumberSupported;
+
+      [Write, Description ( 
+          "The desired load balance algorithm. \n"
+          "Least Blocks, Least IO, and Address Region are used in "
+          "storage device path redundancy drivers to optimize load "
+          "balancing by routing requests to a path with the least "
+          "queued blocks or IO requests, or based on locality of "
+          "reference. \n"
+          "\'Product Specific\' indicates that the algorithm is "
+          "optimized for a particular type of product. Information "
+          "about that product SHOULD be provided in an associated "
+          "CIM_Product instance." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "No Load Balancing", "Round Robin", "Least Blocks", 
+          "Least IO", "Address Region", "Product Specific", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_RedundancySet.LoadBalanceAlgorithm" }]
+   uint16 LoadBalanceAlgorithm;
+
+      [Write, Description ( 
+          "VendorIdentifyingInfo captures the vendor identifying "
+          "data for the RedundancySet. One example is the product "
+          "name for a cluster." ), 
+       ModelCorrespondence { 
+          "CIM_RedundancySet.VendorIdentifyingInfo" }]
+   string VendorIdentifyingInfo;
+
+
+};

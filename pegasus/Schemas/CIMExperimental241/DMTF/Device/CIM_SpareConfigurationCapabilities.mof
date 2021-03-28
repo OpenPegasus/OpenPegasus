@@ -1,0 +1,78 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.20.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "A subclass of Capabilities that defines the Capabilities of a "
+       "SpareConfigurationService. An instance of "
+       "SpareConfigurationCapabilities is associated with a top level "
+       "ComputerSystem using ElementCapabilities. This allows systems "
+       "that automatically manage sparing to describe their "
+       "capabilities without implementing a SpareConfigurationService "
+       "instance." )]
+class CIM_SpareConfigurationCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "as asynchronous jobs. If an operation is included in "
+          "both this and SupportedSynchronousActions then the "
+          "underlying implementation is indicating that it may or "
+          "may not create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7" }, 
+       Values { "Assign Spares", "Unassign Spares", 
+          "Rebuild Storage Extent", "Check Parity Consistency", 
+          "Repair Parity", "Fail Over" }, 
+       ModelCorrespondence { 
+          "CIM_SpareConfigurationCapabilities.SupportedSynchronousActions" }]
+   uint16 SupportedAsynchronousActions[];
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "without the creation of a job. If an operation is "
+          "included in both this and SupportedAsynchronousActions "
+          "then the underlying instrumentation is indicating that "
+          "it may or may not create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7" }, 
+       Values { "Assign Spares", "Unassign Spares", 
+          "Rebuild Storage Extent", "Check Parity Consistency", 
+          "Repair Parity", "Fail Over" }, 
+       ModelCorrespondence { 
+          "CIM_SpareConfigurationCapabilities.SupportedAsynchronousActions" }]
+   uint16 SupportedSynchronousActions[];
+
+      [Description ( 
+          "Set to true if this storage system automatically "
+          "configures spares. If set to false, the client must use "
+          "the extinsic methods AssignSpares and UnassignSpares." )]
+   boolean SystemConfiguredSpares = false;
+
+      [Description ( 
+          "Set to true if this storage system automatically fails "
+          "over. If set to false, the client must use the FailOver "
+          "extinsic method, although that method may not be "
+          "supported." )]
+   boolean AutomaticFailOver = false;
+
+      [Description ( 
+          "The maximum number of StorageExtents that can be "
+          "configured as spares. A value of 0 indicates that all "
+          "StorageExtents can be configured as spares. A value of "
+          "NULL specifies that no StorageExtents may be configured "
+          "as spares." )]
+   uint32 MaximumSpareStorageExtents = null;
+
+      [Description ( 
+          "Enumeration contains combinations of TargetElement and "
+          "CheckType that are supported by CheckStorageElement()." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "..", "32768..65535" }, 
+       Values { "StoragePool Parity", "StoragePool Bad Block", 
+          "StoragePool Replication", "StorageVolume Parity", 
+          "StorageVolume Bad Block", "StorageVolume Replication", 
+          "StorageExtent Parity", "StorageExtent Bad Block", 
+          "StorageExtent Replication", "LogicalDisk Parity", 
+          "LogicalDisk Bad Block", "LogicalDisk Replication", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 SupportedStorageElementCheck[];
+
+
+};

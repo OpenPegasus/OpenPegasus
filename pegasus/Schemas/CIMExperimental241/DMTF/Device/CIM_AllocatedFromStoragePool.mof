@@ -1,0 +1,64 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Association, Version ( "2.15.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "AllocatedFromStoragePool is an association describing how "
+       "LogicalElements are allocated from underlying StoragePools. "
+       "These elements typically would be subclasses of StorageExtents "
+       "or StoragePools." )]
+class CIM_AllocatedFromStoragePool : CIM_ElementAllocatedFromPool {
+
+      [Override ( "Antecedent" ), 
+       Description ( "The StoragePool." )]
+   CIM_StoragePool REF Antecedent;
+
+      [Override ( "Dependent" ), 
+       Description ( "The subsidiary element." )]
+   CIM_LogicalElement REF Dependent;
+
+      [Required, Description ( 
+          "Space consumed from this Pool, in bytes. This value MUST "
+          "be maintained so that, relative to the Antecedent "
+          "StoragePool, it is possible to compute TotalManagedSpace "
+          "as StoragePool.RemainingManagedSpace plus the sum of "
+          "SpaceConsumed from all of the AllocatedFromStoragePool "
+          "references from the antecedent StoragePool." ), 
+       Units ( "Bytes" ), 
+       ModelCorrespondence { "CIM_StoragePool.TotalManagedSpace", 
+          "CIM_StoragePool.RemainingManagedSpace" }, 
+       PUnit ( "byte" )]
+   uint64 SpaceConsumed;
+
+      [Experimental, Description ( 
+          "SpaceLimit is the consumption limit for the allocated "
+          "storage element from the associated StoragePool. If "
+          "SpaceLimt is greater than zero, the assumption is that "
+          "the storage element can grow, (for instance an element "
+          "representing the storage for a delta replica) \n"
+          "If SpaceLimit is greater than zero, SpaceConsumed shall "
+          "not exceed the value of SpaceLimit. \n"
+          "If SpaceLimit = 0 (the default) then no limits are "
+          "asserted on SpaceConsumed." ), 
+       Units ( "Bytes" ), 
+       ModelCorrespondence { 
+          "CIM_AllocatedFromStoragePool.SpaceConsumed" }, 
+       PUnit ( "byte" )]
+   uint64 SpaceLimit = 0;
+
+      [Experimental, Description ( 
+          "If the associated storage element may dynamically "
+          "consume an increasing amount of space and a space limit "
+          "is enforced on the element, then a non-zero warning "
+          "threshold percentage indicates when a warning indication "
+          "should be generated based on SpaceConsumed >= "
+          "(SpaceLimit*SpaceLimitWarningThreshold)/100." ), 
+       Units ( "Percentage" ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_AllocatedFromStoragePool.SpaceConsumed" }, 
+       PUnit ( "percent" )]
+   uint16 SpaceLimitWarningThreshold;
+
+
+};

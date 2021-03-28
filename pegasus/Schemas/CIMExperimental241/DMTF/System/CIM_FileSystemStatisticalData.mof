@@ -1,0 +1,429 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.38.0" ), 
+    UMLPackagePath ( "CIM::System::FileStatistics" ), 
+    Description ( 
+       "A subclass of StatisticalData which identifies individual "
+       "statistics for an element of a system that provides filesystem "
+       "support. This class defines the metrics that MAY be kept for "
+       "managed elements of the system." )]
+class CIM_FileSystemStatisticalData : CIM_StatisticalData {
+
+      [Required, Description ( 
+          "Defines the role that the element played for which this "
+          "statistics record was collected. If the metered element "
+          "is a system or a component of a system associated to a "
+          "RegisteredProfile, then that profile may provide a more "
+          "specialized definition and additional usage information "
+          "for this property. \n"
+          "Generally, the ElementTypes defined here have the "
+          "following meaning in the context of this class: 1, "
+          "\"Other\": An element type other than one explicitly "
+          "declared herein. In this case, information describing "
+          "this element should be provided in the "
+          "OtherElementTypeDescription string property. 102, \"Local "
+          "Filesystem\": Statistics for a local filesystem and "
+          "collectively all of its files and directories. 103, "
+          "\"Exported File Share\": Statistics for a file share "
+          "that is exported to a network. 104, \"Exporting Port\": "
+          "Statistics for a port through which a file share being "
+          "exported can be accessed." ), 
+       ValueMap { "1", "102", "103", "104", "105", "..", "0x8000.." }, 
+       Values { "Other", "Local Filesystem", "Exported File Share", 
+          "Exporting Port", "Session", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 ElementType;
+
+      [Description ( 
+          "A string describing the type of element when the "
+          "ElementType property of this class (or any of its "
+          "subclasses) is set to 1 (i.e., \"Other\"). This property "
+          "should be set to NULL when the ElementType property is "
+          "any value other than 1." ), 
+       MaxLen ( 64 )]
+   string OtherElementTypeDescription;
+
+      [Description ( 
+          "The cumulative count of file I/O operations for the "
+          "object, including metadata I/O operations." ), 
+       Counter]
+   uint64 TotalIOs;
+
+      [Description ( 
+          "The cumulative count of bytes transferred for all of the "
+          "file I/O operations as defined in the \"TotalIOs\" "
+          "property." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 TotalBytesTransferred;
+
+      [Description ( 
+          "The cumulative count of file I/O operations that were "
+          "directed to the object and that performed a transfer of "
+          "data from the file contents." ), 
+       Counter]
+   uint64 ReadIOs;
+
+      [Description ( 
+          "The cumulative count of file I/O operations that were "
+          "directed to the object and that performed a transfer of "
+          "data to the file contents." ), 
+       Counter]
+   uint64 WriteIOs;
+
+      [Description ( 
+          "The cumulative count of file I/O operations that were "
+          "directed to the object and that did not perform a "
+          "transfer of data either to or from the file contents. "
+          "This count excludes metadata I/O operations (both read "
+          "and write)." ), 
+       Counter]
+   uint64 OtherIOs;
+
+      [Description ( 
+          "The cumulative count of file I/O operations that were "
+          "directed to the object and that performed a read "
+          "transfer of metadata." ), 
+       Counter]
+   uint64 MetadataReadIOs;
+
+      [Description ( 
+          "The cumulative count of file I/O operations that were "
+          "directed to the object and that performed a write "
+          "transfer of metadata." ), 
+       Counter]
+   uint64 MetadataWriteIOs;
+
+      [Description ( 
+          "The cumulative elapsed I/O operation time (number of "
+          "ClockTickIntervals) for all I/O operations as defined in "
+          "\"Total I/Os\". The I/O operation response time is added "
+          "to this counter at the completion of each measured I/O "
+          "operation using ClockTickInterval units. The "
+          "TotalIOTimeCounter value can be divided by the total "
+          "number of I/O operations (TotalIOs) to obtain an I/O "
+          "operation average response time." ), 
+       Counter]
+   uint64 TotalIOTimeCounter;
+
+      [Description ( 
+          "The cumulative elapsed idle time using ClockTickInterval "
+          "units. That is, the cumulative number of "
+          "ClockTimeIntervals for all idle time within the object, "
+          "with \"idle time\" being that time during which no I/O "
+          "operations were being processed by the object." ), 
+       Counter]
+   uint64 TotalIdleTimeCounter;
+
+      [Description ( 
+          "The cumulative elapsed I/O operation time for all Read "
+          "I/O operations (that is, the cumulative elapsed time for "
+          "all Read I/O operations as defined by the \"ReadIOs\" "
+          "property." ), 
+       Counter]
+   uint64 ReadIOTimeCounter;
+
+      [Description ( 
+          "The cumulative count of bytes read (that is, the "
+          "cumulative count of bytes transferred by all Read I/O "
+          "operations as defined by the \"ReadIOs\" property)." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 BytesRead;
+
+      [Description ( 
+          "The cumulative elapsed I/O operation time for all Write "
+          "I/O operations (that is, the cumulative elapsed time for "
+          "all Write I/O operations as defined by the \"WriteIOs\" "
+          "property." ), 
+       Counter]
+   uint64 WriteIOTimeCounter;
+
+      [Description ( 
+          "The cumulative count of bytes written (that is, the "
+          "cumulative count of bytes transferred by all Write I/O "
+          "operations as defined by the \"WriteIOs\" property)." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 BytesWritten;
+
+      [Description ( 
+          "The cumulative count of metabytes read (that is, the "
+          "cumulative count of bytes transferred by all Metadata "
+          "read I/O operations as defined by the \"MetadataReadIOs\" "
+          "property)." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 MetadataBytesRead;
+
+      [Description ( 
+          "The cumulative count of metabytes written (that is, the "
+          "cumulative count of bytes transferred by all Metadata "
+          "write I/O operations as defined by the "
+          "\"MetadataWriteIOs\" property)." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 MetadataBytesWritten;
+
+      [Description ( 
+          "The percentage of total opens for which clients "
+          "requested durability." ), 
+       Counter]
+   uint16 PercentDurableOpens;
+
+      [Description ( 
+          "The percentage of total opens for which clients "
+          "requested resiliency." ), 
+       Counter]
+   uint16 PercentResilientOpens;
+
+      [Description ( 
+          "The percentage of total handles for which clients "
+          "requested persistency." ), 
+       Counter]
+   uint16 PercentPersistentOpens;
+
+      [Description ( 
+          "The average number of seconds that elapse between the "
+          "time at which a read request to this share is received "
+          "and the time at which the SMB2 File Server sends the "
+          "corresponding response." ), 
+       Counter]
+   uint16 AverageReadResponseTime;
+
+      [Description ( 
+          "The average number of seconds that elapse between the "
+          "time at which a write request to this share is received "
+          "and the time at which the SMB2 File Server sends the "
+          "corresponding response." ), 
+       Counter]
+   uint16 AverageWriteResponseTime;
+
+      [Description ( 
+          "The average number of seconds that elapse between the "
+          "time at which the SMB2 File Server receives a request "
+          "for this share and the time at which the SMB2 File "
+          "Server sends the corresponding response." ), 
+       Counter]
+   uint16 AverageRequestResponseTime;
+
+      [Description ( 
+          "The rate, in seconds, at which data is being read from this share."
+           ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 BytesReadPerSec;
+
+      [Description ( 
+          "The number of bytes that have been received for requests "
+          "related to this share. This value includes application "
+          "data as well as SMB2 protocol data (such as packet "
+          "headers)." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 TotalBytesReceived;
+
+      [Description ( 
+          "The rate at which bytes are being received for requests "
+          "related to this share. This value includes application "
+          "data as well as SMB2 protocol data (such as packet "
+          "headers)." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 BytesReceivedPerSec;
+
+      [Description ( 
+          "The number of bytes that have been sent by the SMB2 File "
+          "Server related to this share to its clients since the "
+          "server started. This value includes both data bytes and "
+          "protocol bytes." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 TotalBytesSent;
+
+      [Description ( 
+          "The rate, in seconds, at which bytes are being sent from "
+          "the SMB2 File Server related to this share to its "
+          "clients. This value includes both data bytes and "
+          "protocol bytes." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 BytesSentPerSec;
+
+      [Description ( 
+          "The sum of bytes transferred/sec related to this share." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 BytesTranferredPerSec;
+
+      [Description ( 
+          "The rate, in seconds, at which data is being written to "
+          "this share." ), 
+       Units ( "Bytes" ), 
+       Counter]
+   uint64 BytesWrittenPerSec;
+
+      [Description ( 
+          "The rate, in seconds, at which files are being opened "
+          "for the SMB2 File Server\'s clients on this share." ), 
+       Counter]
+   uint64 FilesOpenedPerSec;
+
+      [Description ( 
+          "The number of files that have been opened by the SMB2 "
+          "File Server on behalf of its clients on this share since "
+          "the server started." ), 
+       Counter]
+   uint64 TotalOpenFileCount;
+
+      [Description ( 
+          "The number of requests related to this share that are "
+          "waiting to be processed by the SMB2 File Server." ), 
+       Counter]
+   uint64 CurrentPendingRequests;
+
+      [Description ( 
+          "Read requests processed/sec related to this share." ), 
+       Counter]
+   uint64 ReadRequestsProcessedPerSec;
+
+      [Description ( 
+          "The number of requests that have been received for this share."
+           ), 
+       Counter]
+   uint64 TotalRequestsReceived;
+
+      [Description ( 
+          "The rate at which requests are being received for this share."
+           ), 
+       Counter]
+   uint64 RequestsReceivedPerSec;
+
+      [Description ( 
+          "The number of durable opens on this share that have been "
+          "recovered after a temporary network disconnect since the "
+          "SMB2 File Server started." ), 
+       Counter]
+   uint64 TotalDurableHandleReopenCount;
+
+      [Description ( 
+          "The number of durable opens on this share that could not "
+          "be recovered after a temporary network disconnect since "
+          "the SMB2 File Server Started." ), 
+       Counter]
+   uint64 TotalFailedDurableHandleReopenCount;
+
+      [Description ( 
+          "The number of resilient opens on this share that could "
+          "not be recovered after a temporary network disconnect "
+          "since the SMB2 File Server Started." ), 
+       Counter]
+   uint64 TotalFailedResilientHandleReopenCount;
+
+      [Description ( 
+          "The number of file handles that are currently open in this share."
+           ), 
+       Counter]
+   uint64 CurrentOpenFileCount;
+
+      [Description ( 
+          "The number of resilient opens on this share that have "
+          "been recovered after a temporary network disconnect "
+          "since the SMB2 File Server started." ), 
+       Counter]
+   uint64 TotalResilientHandleReopenCount;
+
+      [Description ( 
+          "The number of persistent opens on this share that have "
+          "been recovered after a temporary network disconnect "
+          "since the SMB2 File Server started." ), 
+       Counter]
+   uint64 TotalPersistentHandleReopenCount;
+
+      [Description ( 
+          "The number of persistent opens on this share that could "
+          "not be recovered after a temporary network disconnect "
+          "since the SMB2 File Server Started." ), 
+       Counter]
+   uint64 TotalFailedPersistentHandleReopenCount;
+
+      [Description ( "The number of tree connects to this share." ), 
+       Counter]
+   uint64 TreeConnectCount;
+
+      [Description ( 
+          "Write requests processed/sec related to this share." ), 
+       Counter]
+   uint64 WriteRequestsProcessedPerSec;
+
+      [Description ( 
+          "The total number of metadata requests received related "
+          "to this share." ), 
+       Counter]
+   uint64 TotalMetadataRequestsReceived;
+
+      [Description ( 
+          "The rate, in seconds, at which metadata requests are "
+          "being sent to this share." ), 
+       Counter]
+   uint64 MetadataRequestsReceivedPerSec;
+
+      [Description ( 
+          "The average number of seconds that elapse between the "
+          "time at which a read or write request to this share is "
+          "received and the time at which the SMB2 File Server "
+          "processes the request." ), 
+       Counter]
+   uint64 AverageTimePerDataRequest;
+
+      [Description ( 
+          "The average number of bytes per read or write request." ), 
+       Counter]
+   uint64 AverageBytesPerDataRequest;
+
+      [Description ( "The average number of bytes per read request." ), 
+       Counter]
+   uint64 AverageBytesPerReadRequest;
+
+      [Description ( 
+          "The average number of bytes per write request." ), 
+       Counter]
+   uint64 AverageBytesPerWriteRequest;
+
+      [Description ( 
+          "The average number of read requests that were queued for "
+          "this share." ), 
+       Counter]
+   uint64 AverageReadQueueLength;
+
+      [Description ( 
+          "The average number of write requests that were queued "
+          "for this share." ), 
+       Counter]
+   uint64 AverageWriteQueueLength;
+
+      [Description ( 
+          "The average number of read and write requests that were "
+          "queued for this share." ), 
+       Counter]
+   uint64 AverageDataQueueLength;
+
+      [Description ( 
+          "The rate, in seconds, at which data is being written to "
+          "or read from this share." ), 
+       Counter]
+   uint64 DataBytesPerSec;
+
+      [Description ( 
+          "The rate, in seconds, at which read or write requests "
+          "are received for this share." ), 
+       Counter]
+   uint64 DataRequestsPerSec;
+
+      [Description ( 
+          "The current number of read or write requests outstanding "
+          "on this share." ), 
+       Counter]
+   uint64 CurrentDataQueueLength;
+
+
+};

@@ -246,16 +246,25 @@ ifndef PEGASUS_CIM_SCHEMA
 endif
 
 CIM_SCHEMA_DIR=$(PEGASUS_ROOT)/Schemas/$(PEGASUS_CIM_SCHEMA)
+
+# Extrace the CIM schema version from the PEGASUS_CIM_SCHEMA
 ifeq ($(findstring $(patsubst CIM%,%,$(patsubst CIMPrelim%,%,$(PEGASUS_CIM_SCHEMA))),1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 271 28),)
     CIM_SCHEMA_VER=
 else
+    # Define the schema version with two levels of pattern substituting
+    # inner substitute nothing for CIMPrelim
     CIM_SCHEMA_VER=$(patsubst CIM%,%,$(patsubst CIMPrelim%,%,$(PEGASUS_CIM_SCHEMA)))
 endif
 
+# If this is Prelim or Experimental set experimental option for compiler
 ifneq (, $(findstring Prelim, $(CIM_SCHEMA_DIR)))
     ALLOW_EXPERIMENTAL = -aE
 else
-    ALLOW_EXPERIMENTAL =
+	ifneq (, $(findstring Experimental, $(CIM_SCHEMA_DIR)))
+		ALLOW_EXPERIMENTAL = -aE
+	else
+		ALLOW_EXPERIMENTAL =
+	endif
 endif
 
 LEX = flex

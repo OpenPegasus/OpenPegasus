@@ -1,0 +1,222 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.38.0" ), 
+    UMLPackagePath ( "CIM::System::FileStatistics" ), 
+    Description ( 
+       "A subclass of StatisticsService that provides services for "
+       "filtering and retrieving statistics from a "
+       "StatisticsManifestCollection that contains instances of "
+       "FileSystemStatisticalData." )]
+class CIM_FileSystemStatisticsService : CIM_StatisticsService {
+
+
+      [Description ( 
+          "Retrieves statistics in a well-defined bulk format. The "
+          "collection of statistics returned is determined by the "
+          "list of element types passed in to the method and the "
+          "manifests for those types contained in the supplied "
+          "FileSystemStatisticsManifestCollection. If both the "
+          "Elements and FileSystemStatisticsManifestCollection "
+          "parameters are supplied, then the types of elements "
+          "returned is an intersection of the element types listed "
+          "in the Elements parameter and the types for which "
+          "FileSystemStatisticsManifest instances exist in the "
+          "supplied FileSystemStatisticsManifestCollection. The "
+          "statistics are returned through a well-defined array of "
+          "strings, whose format is specified by the "
+          "StatisticsFormat parameter, that can be parsed to "
+          "retrieve the desired statistics as well as limited "
+          "information about the elements that those metrics "
+          "describe." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "4096", 
+          "4097", "4098", "4099..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Method Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Element Not Supported", 
+          "Statistics Format Not Supported", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 GetStatisticsCollection(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "Element types for which statistics should be "
+             "returned. If not supplied (i.e., parameter is "
+             "null), then this parameter is not considered when "
+             "filtering the instances of StatisticalData that "
+             "will populate the Statistics output parameter. If "
+             "the array is not null, but is empty, then no "
+             "statistics will be returned by this method. A "
+             "client SHOULD NOT specify this parameter if it is "
+             "not meaningful (i.e., the service only provides "
+             "statistics for a single type of element)." ), 
+          ValueMap { "1", "102", "103", "104", "..", "0x8000.." }, 
+          Values { "Other", "Local Filesystem", 
+             "Exported File Share", "Exporting Port", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { 
+             "CIM_FileSystemStatisticalData.ElementType" }]
+      uint16 ElementTypes[], 
+         [IN, Description ( 
+             "An array of strings that specify the particular "
+             "\"Other\" element(s) when the ElementType property "
+             "above includes the ElementType value of 1 (i.e., "
+             "\"Other\"). Each string within this array "
+             "identifies a separate \"Other\" element and "
+             "duplicate string values are NOT allowed. This "
+             "property should be set to NULL when the "
+             "ElementType property does not include the value of "
+             "1." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemStatisticalData.OtherElementTypeDescription" }]
+      string OtherElementTypeDescriptions[], 
+         [IN, Description ( 
+             "The FileSystemStatisticsManifestCollection that "
+             "contains the manifests that list the metrics to be "
+             "returned for each element type. If not supplied "
+             "(i.e., parameter is null), then all available "
+             "statistics will be returned unfiltered. Only "
+             "elements that match the element type properties "
+             "(if meaningful) of the "
+             "FileSystemStatisticsManifest instances contained "
+             "within the FileSystemStatisticsManifestCollection "
+             "will have data returned by this method. If the "
+             "supplied FileSystemStatisticsManifestCollection "
+             "does not contain any FileSystemStatisticsManifest "
+             "instances, then no statistics will be returned by "
+             "this method." )]
+      CIM_FileSystemStatisticsManifestCollection REF ManifestCollection, 
+         [IN, Description ( 
+             "Specifies the format of the Statistics output "
+             "parameter. \n"
+             "- CSV = Comma Separated Values." ), 
+          ValueMap { "0", "1", "2", "..", "0x8000.." }, 
+          Values { "Unknown", "Other", "CSV", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 StatisticsFormat, 
+         [OUT, Description ( 
+             "The statistics for all the elements as determined "
+             "by the Elements, ManifestCollection parameters, "
+             "and StatisticsFormat parameters." ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemStatisticsService.GetStatisticsCollection(ElementTypes)", 
+             "CIM_FileSystemStatisticsService.GetStatisticsCollection(ManifestCollection)", 
+             "CIM_FileSystemStatisticsService.GetStatisticsCollection(StatisticsFormat)" }]
+      string Statistics[]);
+
+      [Description ( 
+          "Creates a new FileSystemStatisticsManifestCollection "
+          "instance, whose members can serve as a filter for "
+          "metrics retrieved through the GetStatisticsCollection "
+          "method." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6..32767", 
+          "32768..65535" }, 
+       Values { "Ok", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 CreateManifestCollection(
+         [IN, Description ( 
+             "The collection of statistics that will be filtered "
+             "using the new "
+             "FileSystemStatisticsManifestCollection." )]
+      CIM_StatisticsCollection REF Statistics, 
+         [IN, Description ( 
+             "Client-defined name for the new "
+             "FileSystemStatisticsManifestCollection." )]
+      string ElementName, 
+         [OUT, Description ( 
+             "Reference to the new FileSystemStatisticsManifestCollection."
+              )]
+      CIM_FileSystemStatisticsManifestCollection REF ManifestCollection);
+
+      [Description ( 
+          "Method that creates or modifies a "
+          "FileSystemStatisticsManifest for this statistics "
+          "service. A client supplies a "
+          "FileSystemStatisticsManifestCollection in which the new "
+          "FileSystemStatisticsManifest will be placed or an "
+          "existing FileSystemStatisticsManifest will be modified, "
+          "the element type of the statistics that the "
+          "FileSystemStatisticsManifest will filter, and a list of "
+          "metrics, which serves as a filter for statistical data "
+          "of that element type." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "4096", 
+          "4097", "4098", "4099..32767", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "Method Reserved", 
+          "Element Not Supported", "Metric not supported", 
+          "ElementType Parameter Missing", "Method Reserved", 
+          "Vendor Specific" }]
+   uint32 AddOrModifyManifest(
+         [IN, Description ( 
+             "FileSystemStatisticsManifestCollection that the "
+             "FileSystemStatisticsManifest is or should be a "
+             "member of." )]
+      CIM_FileSystemStatisticsManifestCollection REF ManifestCollection, 
+         [IN, Description ( 
+             "The type of elements whose statistics the "
+             "FileSystemStatisticsManifest will filter." ), 
+          ValueMap { "1", "102", "103", "104", "..", "0x8000.." }, 
+          Values { "Other", "Local Filesystem", 
+             "Exported File Share", "Exporting Port", 
+             "DMTF Reserved", "Vendor Specific" }, 
+          ModelCorrespondence { 
+             "CIM_FileSystemStatisticsManifest.ElementType" }]
+      uint16 ElementType, 
+         [IN, Description ( 
+             "A string describing the type of element when the "
+             "ElementType property above is set to 1 (i.e., "
+             "\"Other\"). This property should be set to NULL "
+             "when the ElementType property is any value other "
+             "than 1." ), 
+          MaxLen ( 64 ), 
+          ModelCorrespondence { 
+             "CIM_FileSystemStatisticsManifest.OtherElementTypeDescription" }]
+      string OtherElementTypeDescription, 
+         [IN, Description ( 
+             "A client-defined string that identifies the "
+             "FileSystemStatisticsManifest created or modified "
+             "by this method." )]
+      string ElementName, 
+         [IN, Description ( 
+             "The metrics that will be included by the filter. "
+             "The metrics supplied here are the properties of "
+             "CIM_FileSystemStatisticalData or one of its "
+             "subclasses that will remain after the "
+             "FileSystemStatisticsManifest filter is applied. If "
+             "this array parameter is empty, then only "
+             "InstanceID and ElementType will be returned when "
+             "the manifest is referenced. If this parameter is "
+             "NULL, then all supported metrics is assumed (i.e., "
+             "all supported metric properties will be included; "
+             "note that this would be the "
+             "FileSystemStatisticsManifest from the default "
+             "manifest collection)." )]
+      string StatisticsList[], 
+         [OUT, Description ( 
+             "The FileSystemStatisticsManifest that is created "
+             "or modified on successful execution of the method." )]
+      CIM_FileSystemStatisticsManifest REF Manifest);
+
+      [Description ( 
+          "Extrinsic method that removes manifests from a "
+          "FileSystemStatisticsManifestCollection." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "4096", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Invalid Parameter", "Method Reserved", 
+          "Manifest not found", "Method Reserved", "Vendor Specific" }]
+   uint32 RemoveManifests(
+         [IN, Description ( 
+             "FileSystemStatisticsManifestCollection from which "
+             "the FileSystemStatisticsManifests will be removed." )]
+      CIM_FileSystemStatisticsManifestCollection REF ManifestCollection, 
+         [IN, Description ( 
+             "List of FileSystemStatisticsManifests to be "
+             "removed from the "
+             "FileSystemStatisticsManifestCollection." )]
+      CIM_FileSystemStatisticsManifest REF Manifests[]);
+
+};

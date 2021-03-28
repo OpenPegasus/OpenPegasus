@@ -1,0 +1,178 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.22.0" ), 
+    UMLPackagePath ( "CIM::Device::CoolingAndPower" ), 
+    Description ( 
+       "This class is a representation of logical properties of a "
+       "generic power connector. This connector connects power source "
+       "and a sink." )]
+class CIM_PowerConnectionPoint : CIM_LogicalDevice {
+
+      [Required, Description ( 
+          "Indicates the expected flow of electricity. Power is "
+          "likely to flow in the direction indicated, but it may "
+          "flow in the other direction under exceptional "
+          "circumstances. Power flows into the device or from the "
+          "device to which this connector is connected. Use \"In\" "
+          "(2) when the element is an Ingress power connection to "
+          "the Power Equipment from an external power bus. Use "
+          "\"Out\" (3) when the element is an Egress power "
+          "connection from the Power Equipment to an external power "
+          "bus. Use \"Both\" (4) when the connection to an external "
+          "power bus that may be either an Ingress or Egress point "
+          "(e.g., battery or generator). Use Internal (5) when the "
+          "element is used only for collecting measurements. When "
+          "Internal is used the BusID must be \"TGG:Internal\"" ), 
+       ValueMap { "0", "..", "2", "3", "4", "5" }, 
+       Values { "Unknown", "DMTF Reserved", "In", "Out", "Both", 
+          "Internal" }, 
+       ModelCorrespondence { "CIM_PowerConnectionPoint.BusID", 
+          "CIM_PowerConnectionPoint.LoadType" }]
+   uint8 ConnectionType;
+
+      [Required, Description ( 
+          "The name of the bus to which this connector is "
+          "connected. Electrical equipment is not directly "
+          "connected together in the same manner that networking "
+          "equipment is connected, for example. Specifically, "
+          "components have no knowledge of what they are connected "
+          "to. This design does not make use of any means, protocol "
+          "or otherwise, for the connected equipment to be able to "
+          "convey the nature of what they are connected to. The "
+          "equipment is connected to a bus. Several pieces of "
+          "equipment may also be connected to the same bus. The bus "
+          "is given a name prior to the installation of equipment. "
+          "The bus ID is given to the connector by someone who has "
+          "the wiring plans. \n"
+          "A connection graph can be created using the knowledge of "
+          "what power connection points are connected to the buses "
+          "present in the wiring plan. The graph can be then used "
+          "to recreate the wiring plan at some resolution. The "
+          "resolution of the wiring plan that can be created "
+          "depends on the specifitivity of the bus IDs. When the "
+          "ConnectionType is \"Internal\" (5), then BusID is "
+          "\"TGG:Internal\"." ), 
+       ModelCorrespondence { 
+          "CIM_PowerConnectionPoint.ConnectionType" }]
+   string BusID = "TGG:Bus ID not defined";
+
+      [Required, Description ( 
+          "The type of load that is serviced by this power "
+          "connection point. This property shall only be used when "
+          "the ConnectionType is Out (3) or Both (4). If this "
+          "connection is not a load point, then the value should be "
+          "NULL. The descriptions for each CPU test type are below: \n"
+          "\n"
+          "* \"Other\" (1) is used when the other enumerated types "
+          "cannot be used.* \"IT:General\" (value=2) indicates that "
+          "power is used for non-specific IT power equipment.* "
+          "\"IT:Storage\" (value=3) indicates that power is used "
+          "for IT storage equipment.* \"IT:Server\" (value=4) "
+          "indicates that the power is used for IT server "
+          "equipment.* \"IT:Network\" (value=5) indicates that the "
+          "power is used for IT network equipment.* "
+          "\"Non-IT:General\" (value=6) indicates that the power is "
+          "for Non-IT power equipment.* \"Non-IT:Facilities\" "
+          "(value=7) indicates that the power is used for Non-IT "
+          "facilities equipment.* \"Non-IT:Facilities:Lighting\" "
+          "(value=8) indicates that the power is used for Non-IT "
+          "facilities lighting equipment.* "
+          "\"Non-IT:Facilities:Security\" (value=9) indicates that "
+          "the power is used for Non-IT facilities security "
+          "equipment.* \"Non-IT:Facilities:HVAC\" (value=10) "
+          "indicates that the power is used for Non-IT facilities "
+          "HVAC equipment.* \"Non-IT:Facilities:HVAC:AC\" "
+          "(value=11) indicates that the power is used for Non-IT "
+          "facilities HVAC AC equipment.* "
+          "\"Non-IT:Facilities:HVAC:Pumps\" (value=12) indicates "
+          "that the power is used for Non-IT facilities HVAC pumps "
+          "equipment.* \"Non-IT:Facilities:HVAC:Chillers\" "
+          "(value=13) indicates that the power is for Non-IT "
+          "facilities HVAC chillers equipment.* "
+          "\"Non-IT:Facilities:HVAC:Air Movement\" (value=14) "
+          "indicates that the power is for Non-IT facilities HVAC "
+          "air movement equipment.* \"Mixed\" (value=15) indicates "
+          "that the power is for both IT and Non-IT equipment." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "11", "12", "13", "14", "15", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "IT:General", "IT:Storage", 
+          "IT:Server", "IT:Network", "Non-IT:General", 
+          "Non-IT:Facilities", "Non-IT:Facilities:Lighting", 
+          "Non-IT:Facilities:Security", "Non-IT:HVAC", 
+          "Non-IT:HVAC:AC", "Non-IT:HVAC:Pumps", 
+          "Non-IT:HVAC:Chillers", "Non-IT:HVAC:Air Movement", 
+          "Mixed", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_PowerConnectionPoint.OtherLoadType", 
+          "CIM_PowerConnectionPoint.ConnectionType", 
+          "CIM_PowerConnectionPoint.DCIENumeratorFactor" }]
+   uint16 LoadType;
+
+      [Description ( 
+          "A free-form string describing the load type when "
+          "LoadType is set to \"Other\" (1)" ), 
+       ModelCorrespondence { "CIM_PowerConnectionPoint.LoadType" }]
+   string OtherLoadType;
+
+      [Description ( 
+          "The percentage of the power measurement from this point "
+          "that should be added into the numerator of a facility "
+          "DCiE calculation. A negative value means that the "
+          "percentage of the power measurement will be subtracted "
+          "from the numerator. The value of this property will be "
+          "determined and assigned by a person or system that has "
+          "knowledge of the overall power system topology. Use the "
+          "default (0) when this element should not be used for the "
+          "DCiE calculation." ), 
+       MinValue ( -100 ), 
+       MaxValue ( 100 ), 
+       ModelCorrespondence { "CIM_PowerConnectionPoint.LoadType" }, 
+       PUnit ( "Percent" )]
+   sint8 DCIENumeratorFactor = 0;
+
+      [Description ( 
+          "The percentage of the power measurement from this point "
+          "that should be added into the denominator of a facility "
+          "DCiE calculation. A negative value means that the "
+          "percentage of the power measurement will be subtracted "
+          "from the denominator. The value of this property will be "
+          "determined and assigned by a person or system that has "
+          "knowledge of the overall power system topology. Use the "
+          "default (0) when this element should not be used for the "
+          "DCiE calculation." ), 
+       MinValue ( -100 ), 
+       MaxValue ( 100 ), 
+       PUnit ( "Percent" )]
+   sint8 DCIEDenominatorFactor = 0;
+
+      [Required, Description ( 
+          "CircuitType indicates the type of circuit the power "
+          "connection point is connected to. This value is NOT "
+          "settable and it reflects the inherent power structure of "
+          "the host power equipment." ), 
+       ValueMap { "..", "2", "3", "4", "5" }, 
+       Values { "DMTF Reserved", "3PhaseAC", "DC", "2PhaseAC", 
+          "1PhaseAC" }, 
+       ModelCorrespondence { "CIM_PowerConnectionPoint.ReportedPhase" }]
+   uint8 CircuitType;
+
+      [Description ( 
+          "ReportedPhase indicates the specific phase(s) that are "
+          "present for a power connection point with a circuit type "
+          "of 1PhaseAC or 2PhaseAC. If a device inherently knows "
+          "the phase assignments, it can load them. If a device "
+          "does NOT inherently know them, it should initialize to a "
+          "value of \"Unknown\" (0), and allow a person with "
+          "inherent knowledge of the power topology in the system "
+          "to assign the appropriate value. For a CircuitType of "
+          "1PhaseAC, the allowable values are Unknown, PhaseA, "
+          "PhaseB, and PhaseC. For a CircuitType of 2PhaseAC the "
+          "allowable values are Unknown, PhaseAandB, PhaseBandC, "
+          "PhaseAandC" ), 
+       ValueMap { "0", "..", "2", "3", "4", "5", "6", "7" }, 
+       Values { "Unknown", "DMTF Reserved", "PhaseA", "PhaseB", 
+          "PhaseC", "PhaseAandB", "PhaseBandC", "PhaseAandC" }, 
+       ModelCorrespondence { "CIM_PowerConnectionPoint.CircuitType" }]
+   uint8 ReportedPhase;
+
+
+};

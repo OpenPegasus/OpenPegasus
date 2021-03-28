@@ -1,0 +1,48 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="CIMCoreCR00776.004" type ="new"> Addition of
+// class.</change>
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ===================================================================
+// CIM_RealizesProcessor
+// ===================================================================
+   [Association, Experimental, Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Device::Processor" ), 
+    Description ( 
+       "One or more Processors can be Realized by a Physical Package. "
+       "This association adds semantics how these Processors are "
+       "realized. For example, the processors may be realized by "
+       "Hyperthreading technology or by multiple cores on the same "
+       "package." )]
+class CIM_RealizesProcessor : CIM_Realizes {
+
+      [Override ( "Antecedent" ), 
+       Max ( 1 ), 
+       Description ( 
+          "The PhysicalPackage on which the Processor is realized." )]
+   CIM_PhysicalPackage REF Antecedent;
+
+      [Override ( "Dependent" ), 
+       Description ( 
+          "The Processor that is realized by the Component." )]
+   CIM_Processor REF Dependent;
+
+      [Description ( 
+          "The type how a logical Processor is realized. If a "
+          "physical package contains one logical processor, which "
+          "is the traditional case, then this value is set to "
+          "\"Dedicated\". If a single physical package/chip "
+          "contains multiple processor threads (e.g. HyperThreads) "
+          "then this value is set to \"Thread\". If the package "
+          "contains multiple CPU cores, and the processor is "
+          "realized by a core, then this value is set to \"Core\". "
+          "If a physical package contains multiple cores and each "
+          "core has multiple threads, then the type is set to "
+          "\"ThreadOnCore\"." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "DMTF Reserved", "Dedicated", "Thread", 
+          "Core", "ThreadOnCore" }]
+   uint16 RealizationType;
+
+
+};

@@ -1,0 +1,71 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Device::StorageNameBinding" ), 
+    Description ( 
+       "StorageBridgeBinding represents a binding between two "
+       "transport-specific initiator port names. One name is "
+       "associated with the initiator port in the format appropriate "
+       "for the port type. The other name is an administratively "
+       "assigned name with a format appropriate for transport on the "
+       "target side of the bridge. This virtual initiator port name is "
+       "used by the bridge when it communicates with targets from the "
+       "bound initiator. This virtual name is needed for target device "
+       "management functions that use initiator port names, such as "
+       "LUN masking and mapping. \n"
+       "For example, an Infiniband/FibreChannel bridge support "
+       "Infiniband initiator ports and allows the administrator to "
+       "assign a Fibre Channel Port WWN (AssignedPortName) to each "
+       "Infiniband initiator (InitiatorPortName). \n"
+       "The TargetName property from the superclass may be used to "
+       "restrict this binding to a specific target. If TargetPort is "
+       "left null, the binding affects all targets seen by the bridge." )]
+class CIM_StorageBridgeNameBinding : CIM_StorageNameBinding {
+
+      [Override ( "BindingType" ), 
+       Description ( 
+          "StorageBridgeNameBinding only allows one binding type." ), 
+       ValueMap { "8" }, 
+       Values { "Bridge Binding" }]
+   uint16 BindingType;
+
+      [Description ( 
+          "The name of the initiator port using the name Type of "
+          "the actual transport." ), 
+       MappingStrings { 
+          "FC API.INCITS-T11|Bind_SRP_Initiator|SRP Initiator Port Identifier" }, 
+       ModelCorrespondence { 
+          "CIM_StorageBridgeNameBinding.InitiatorPortNameType" }]
+   string InitiatorPortName;
+
+      [Description ( 
+          "The name of the initiator port using the name Type of "
+          "the actual transport." ), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "FibreChannel Port WWN", "SRP Port Identifier", 
+          "iSCSI Name" }, 
+       ModelCorrespondence { 
+          "CIM_StorageBridgeNameBinding.InitiatorPortName" }]
+   uint16 InitiatorPortNameType;
+
+      [Description ( 
+          "The name of the initiator port assigned by the "
+          "administrator using the name type of the target-side "
+          "transport." ), 
+       MappingStrings { 
+          "FC API.INCITS-T11|Bind_SRP_Initiator|FC_Port Name Identifier" }, 
+       ModelCorrespondence { 
+          "CIM_StorageBridgeNameBinding.AssignedPortNameType" }]
+   string AssignedPortName;
+
+      [Description ( 
+          "The name of the initiator port using the name Type of "
+          "the actual transport." ), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "FibreChannel Port WWN", "SRP Port Identifier", 
+          "iSCSI Name" }, 
+       ModelCorrespondence { 
+          "CIM_StorageBridgeNameBinding.AssignedPortName" }]
+   uint16 AssignedPortNameType;
+
+
+};

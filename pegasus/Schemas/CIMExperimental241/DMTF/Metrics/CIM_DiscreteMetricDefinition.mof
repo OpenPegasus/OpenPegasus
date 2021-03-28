@@ -1,0 +1,130 @@
+// Copyright (c) 2006 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.13.0" ), 
+    UMLPackagePath ( "CIM::Metrics::BaseMetric" ), 
+    Description ( 
+       "Specialization of BaseMetricDefinition that represents a "
+       "discrete metric type. \n"
+       "This class is does not have instances. Instead, it is used to "
+       "define derived classes that override the Values and ValueMap "
+       "qualifiers of the DiscreteValues array property, in order to "
+       "define the predefined set of discrete values to be used. \n"
+       "The remainder of this description defines the discrete metric "
+       "concept: \n"
+       "Discrete metrics are metrics (as defined in "
+       "BaseMetricDefinition), that have an additional discrete value, "
+       "which is from a set of predefined values. In order to contrast "
+       "this to the general metrics that have a continuous value "
+       "range, we call those \'analog metrics\' in this description. \n"
+       "The transformation of analog values into discrete values is "
+       "defined by analog thresholds that represent the transition "
+       "boundary from one discrete value to the next. There are "
+       "independent thresholds for each direction, so that a "
+       "hysteresis can be defined. \n"
+       "There is a mandatory set of instances for each discrete value: "
+       "Using the concepts of the dynamic metrics model, there is a "
+       "DiscreteMetricValue instance representing the discrete metric "
+       "value and a DiscreteMetricDefinition instance representing its "
+       "according definition (associated through MetricInstance). In "
+       "addition, there is a similar couple for the analog metric the "
+       "discrete metric is derived from, consisting of a "
+       "BaseMetricValue instance and according BaseMetricDefinition "
+       "instance (again associated via MetricInstance). These two "
+       "pairs of instances are connected through the "
+       "DiscreteMetricDefinitionDependency association between the two "
+       "metric definition classes, defining that the discrete metric "
+       "definition and all its values are derived from this analog "
+       "metric definition and all its values. \n"
+       "The existence of the DiscreteMetricDefinitionDependency "
+       "association mandates that there shall be one "
+       "DiscreteMetricValue instance for each analog BaseMetricValue "
+       "instance in the mandatory set of instances described above. "
+       "Furthermore, it mandates that there are "
+       "DiscreteMetricValueDependency association instances between "
+       "the discrete and analog value instances. \n"
+       "A recipe for creating a discrete metric type on existing "
+       "analog metric type is to create a DiscreteMetricDefinition "
+       "instance, and then to connect that to the analog "
+       "BaseMetricDefinition by means of creating an instance of "
+       "DiscreteMetricDefinitionDependency. This results in the "
+       "DiscreteMetricValue and DiscreteMetricValueDependency "
+       "instances coming into existence. \n"
+       "Please note that hysteresis is implicitly defined as the "
+       "difference between the trigger value and the reset value." )]
+class CIM_DiscreteMetricDefinition : CIM_BaseMetricDefinition {
+
+      [Required, Description ( 
+          "Array defining the mapping between analog and discrete "
+          "values. Each array entry is the discrete value assigned "
+          "to a range on the analog scale. Adjacent array entries "
+          "represent adjacent ranges on the analog scale. The "
+          "boundaries of the analog ranges are defined in the "
+          "AnalogTriggerValues and AnalogResetValues array "
+          "properties. The possible discrete values are defined "
+          "using the Values and ValueMap qualifiers. Any derived "
+          "class of this class shall define the set of possible "
+          "discrete values in overridden Values and ValueMap "
+          "qualifiers. The Values qualifiers are string "
+          "representations of the discrete values and are "
+          "interpreted as a datatype and unit defined in the "
+          "Datatype and Unit properties of this instance. \n"
+          "An according derived class of DiscreteMetricValue shall "
+          "define the same set of possible discrete values in "
+          "overridden qualifiers of its DiscreteValue property." ), 
+       ValueMap { "..", "0x8000..0xFFFF" }, 
+       Values { "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_DiscreteMetricValue.DiscreteValue" }]
+   uint16 DiscreteValues[];
+
+      [Description ( 
+          "This property is an index into the DiscreteValues array, "
+          "and is called the \'base index\'. The value of the "
+          "corresponding array entry is called the \'base value\'. \n"
+          "The base value is the reference point for the "
+          "AnalogTriggerValues and AnalogResetValues arrays. Moving "
+          "away from the base value is controlled by the "
+          "AnalogTriggerValues array, and moving back towards the "
+          "base value is controlled by the AnalogResetValues array." )]
+   uint16 BaseIndex;
+
+      [Description ( 
+          "Array defining the analog values used as thresholds when "
+          "the discrete value moves away from the base value. These "
+          "thresholds are called \'trigger values\'. \n"
+          "The array entries are string representations of the "
+          "analog values and are interpreted as a datatype and unit "
+          "defined in the Datatype and Unit properties of the "
+          "associated analog BaseMetricDefinition instance. \n"
+          "If this property is not NULL, the number of array "
+          "entries shall be one less than the entries in the "
+          "DiscreteValues array. Array entries in this array at "
+          "indexes above or equal to the base index control the "
+          "transition to higher indexes in the DiscreteValues "
+          "array. Array entries in this array at indexes below the "
+          "base index control the transition to lower indexes in "
+          "the DiscreteValues array. \n"
+          "If this property is NULL, trigger values may still be in "
+          "effect but are not externalized at the CIM level." )]
+   string AnalogTriggerValues[];
+
+      [Description ( 
+          "Array defining the analog values used as thresholds when "
+          "the discrete value moves towards the base value. These "
+          "thresholds are called \'reset values\'. \n"
+          "The array entries are string representations of the "
+          "analog values and are interpreted as a datatype and unit "
+          "defined in the Datatype and Unit properties of the "
+          "associated analog BaseMetricDefinition instance. \n"
+          "If this property is not NULL, the number of array "
+          "entries shall be one less than the entries in the "
+          "DiscreteValues array. Array entries in this array at "
+          "indexes abover or equal to the base index control the "
+          "transition to lower indexes in the DiscreteValues array. "
+          "Array entries in this array at indexes below the base "
+          "index control the transition to higher indexes in the "
+          "DiscreteValues array. \n"
+          "If this property is NULL, reset values may still be in "
+          "effect but are not externalized at the CIM level." )]
+   string AnalogResetValues[];
+
+
+};

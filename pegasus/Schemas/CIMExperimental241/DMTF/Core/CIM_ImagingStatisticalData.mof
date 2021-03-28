@@ -1,0 +1,83 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Abstract, Version ( "2.20.0" ), 
+    UMLPackagePath ( "CIM::Core::Statistics" ), 
+    Description ( 
+       "This class extends StatisticalData to abstract the concept of "
+       "ImagingStatisticalData associated with an imaging system "
+       "(e.g., ComputerSystem), imaging service (e.g., PrintService), "
+       "imaging device (e.g., Printer), imaging job (e.g., PrintJob), "
+       "or any other imaging element. \n"
+       "This abstract class defines common properties for: \n"
+       "(a) persistence (PersistenceType and OtherPersistenceType); \n"
+       "(b) correlation of ImagingStatisticalData information between "
+       "CIM and SNMP interfaces (SNMPKeyId). \n"
+       "Note: An instance of any concrete class derived from this "
+       "abstract class shall be associated with exactly one instance "
+       "of a scoping imaging element (e.g., Printer) via an instance "
+       "of the ElementStatisticalData association class. \n"
+       "See: Model and diagram in section 4 of PWG Imaging System "
+       "State and Counter MIB (PWG 5106.3-2008, or successor)." )]
+class CIM_ImagingStatisticalData : CIM_StatisticalData {
+
+      [Description ( 
+          "Persistence of this instance of ImagingStatisticalData. \n"
+          "1 (Other) means vendor-specific persistence and should "
+          "not be used (to avoid interoperability problems). \n"
+          "2 (Unknown) means unknown persistence and should not be "
+          "be used (to avoid amgiguity in accounting applications). \n"
+          "3 (Lifetime) means since install of the scoping imaging "
+          "element (e.g., PrintService). \n"
+          "4 (PowerOn) means since last power on of the scoping "
+          "imaging element (e.g., Printer). \n"
+          "5 (Reset) means since the last reset of this instance of "
+          "ImagingStatisticalData." ), 
+       ValueMap { "1", "2", "3", "4", "5", ".." }, 
+       Values { "Other", "Unknown", "Lifetime", "PowerOn", "Reset", 
+          "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icMonitorPersistence", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icTimePersistence", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icMediaUsedPersistence", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icTrafficPersistence", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icImagePersistence", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icImpressionPersistence", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icTwoSidedPersistence", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icSheetPersistence" }, 
+       ModelCorrespondence { 
+          "CIM_ImagingStatisticalData.OtherPersistenceType", 
+          "CIM_StatisticalData.ResetSelectedStats", 
+          "CIM_FileSystemSetting.PersistenceTypes" }]
+   uint16 PersistenceType;
+
+      [Description ( 
+          "A free-form string that describes the persistence when "
+          "the the value of the PersistenceType property is equal "
+          "to 1 (Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       ModelCorrespondence { 
+          "CIM_ImagingStatisticalData.PersistenceType", 
+          "CIM_FileSystemSetting.OtherPersistenceTypes" }]
+   string OtherPersistenceType;
+
+      [Description ( 
+          "A unique value used by the scoping imaging element "
+          "(e.g., PrintService) to identify this "
+          "ImagingStatisticalData. Note: This property is necessary "
+          "to correlate counter and event information between CIM "
+          "and SNMP interfaces." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 2147483647 ), 
+       MappingStrings { 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icMonitorKeyIndex", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icTimeKeyIndex", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icMediaUsedKeyIndex", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icTrafficKeyIndex", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icImageKeyIndex", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icImpressionKeyIndex", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icTwoSidedKeyIndex", 
+          "MIB.PWG|PWG-IMAGING-COUNTER-MIB.icSheetKeyIndex" }]
+   uint32 SNMPKeyId;
+
+
+};

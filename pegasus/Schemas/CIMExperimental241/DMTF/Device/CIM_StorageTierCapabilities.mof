@@ -1,0 +1,71 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.28.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "A subclass of StorageCapabilities that defines the "
+       "Capabilities of a storage tier." )]
+class CIM_StorageTierCapabilities : CIM_StorageCapabilities {
+
+      [Description ( 
+          "Indicates the storage tier charateristics. Performance "
+          "generally relates to the underlying technology, for "
+          "example, Solid State versus Fibre Channel drives. QoS "
+          "refers to the Quality of Service, for example, RAID "
+          "protected versus unprotected." ), 
+       ValueMap { "0", "1", "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "BasedOnPerformance Only", 
+          "BasedOnQOS Only", "BasedOnPerformance And BasedOnQOS", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 StorageTierCharacteristics[];
+
+      [Description ( 
+          "Indicates the minimum value for RelativePerformanceOrder "
+          "that this storage tier can have.\n"
+          "The minimum value for RelativePerformanceOrder that this "
+          "storage tier can have, which represents the highest "
+          "level of performance." ), 
+       ModelCorrespondence { 
+          "CIM_StorageTierCapabilities.RelativePerformanceOrderMax", 
+          "CIM_StorageTierCapabilities.RelativePerformanceOrderDefault", 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 RelativePerformanceOrderMin;
+
+      [Description ( 
+          "Indicates the maxmimum value for "
+          "RelativePerformanceOrder that this storage tier can have.\n"
+          "The maximum value for RelativePerformanceOrder that this "
+          "storage tier can have, which represents the lowest level "
+          "of performance." ), 
+       ModelCorrespondence { 
+          "CIM_StorageTierCapabilities.RelativePerformanceOrderMin", 
+          "CIM_StorageTierCapabilities.RelativePerformanceOrderDefault", 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 RelativePerformanceOrderMax;
+
+      [Description ( 
+          "Indicates the default value of RelativePerformanceOrder "
+          "for the storage tier -- the smaller the "
+          "RelativePerformanceOrder, the more performant the "
+          "storage tier." ), 
+       ModelCorrespondence { 
+          "CIM_StorageTierCapabilities.RelativePerformanceOrderMin", 
+          "CIM_StorageTierCapabilities.RelativePerformanceOrderMax", 
+          "CIM_StorageTier.RelativePerformanceOrder" }]
+   uint16 RelativePerformanceOrderDefault;
+
+      [Description ( 
+          "An array indicating the supported storage tier "
+          "methodologies. StorageTierMethodologies are useful for "
+          "use cases where client wants to place an element in a "
+          "storage tier without specifying a specific storage tier, "
+          "and let the implementation select an appropriate storage "
+          "tier. None: This storage tier should not be considered." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "None", "Implementation Decides", 
+          "Highest Performance", "Lowest Performance", 
+          "Highest Availability", "Lowest Availability", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 SupportedStorageTierMethodologies[];
+
+
+};

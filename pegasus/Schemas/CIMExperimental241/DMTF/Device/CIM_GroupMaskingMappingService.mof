@@ -1,0 +1,280 @@
+// Copyright (c) 2009 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.23.0" ), 
+    UMLPackagePath ( "CIM::Device::ComponentElement" ), 
+    Description ( "Methods to work with masking groups." )]
+class CIM_GroupMaskingMappingService : CIM_ControllerConfigurationService {
+
+
+      [Description ( "This method creates a masking group." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unspecified Error", 
+          "Timeout", "Failed", "Invalid Parameter", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 CreateGroup(
+         [IN, Description ( 
+             "If nameable, an end user relevant name for the "
+             "group being created. If NULL or not nameable, then "
+             "system assigns a name." )]
+      string GroupName, 
+         [IN, Description ( 
+             "The type of masking group to create." ), 
+          ValueMap { "0", "1", "2", "3", "4" }, 
+          Values { "Unknown", "Other", "InitiatorMaskingGroup", 
+             "TargetMaskingGroup", "DeviceMaskingGroup" }]
+      uint16 Type, 
+         [IN, Description ( 
+             "List of elements to add to the masking group. For "
+             "device masking groups the order is maintained. If "
+             "NULL, the group will be empty -- if empty groups "
+             "are supported." )]
+      CIM_ManagedElement REF Members[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "If true and empty groups are allowed, the group "
+             "will be deleted when the last element is removed "
+             "from the group. If empty groups are not allowed, "
+             "the group will be deleted automatically when the "
+             "group becomes empty. If this parameter is not "
+             "NULL, its value will be used to set the group\'s "
+             "DeleteOnEmpty property. Use the intrinsic method "
+             "ModifyInstance to change this property after the "
+             "group is created." )]
+      boolean DeleteOnEmpty, 
+         [IN, Description ( 
+             "If true, the group will be deleted when the group "
+             "is no longer associated with a masking view. This "
+             "can happen when the masking view is deleted or the "
+             "group is removed from the masking view. If this "
+             "parameter is not NULL, its value will be used to "
+             "set the group\'s DeleteWhenBecomesUnassociated "
+             "property. Use the intrinsic method ModifyInstance "
+             "to change this property after the group is "
+             "created." )]
+      boolean DeleteWhenBecomesUnassociated, 
+         [IN, Description ( 
+             "A volume may be visible to the same initiator "
+             "through multiple paths. Depending on which path "
+             "the volume is visible to an initiator, the volume "
+             "may have a different logical unit number. To "
+             "ensure a volume has the same logical unit number "
+             "to a given initiator regardless of the path, the "
+             "property "
+             "InitiatorMaskingGroup.ConsistentLogicalUnitNumber "
+             "shall be set to true. The value of this parameter, "
+             "if not NULL, is used to set the property "
+             "InitiatorMaskingGroup.ConsistentLogicalUnitNumber "
+             "when the initiator masking group is created. Use "
+             "the intrinsic method ModifyInstance to change the "
+             "value of the property "
+             "InitiatorMaskingGroup.ConsistentLogicalUnitNumber "
+             "after the masking group is created." )]
+      boolean ConsistentLogicalUnitNumber, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the created group." )]
+      CIM_MaskingGroup REF MaskingGroup);
+
+      [Description ( 
+          "Delete a masking group. Deleting a masking group does "
+          "not delete its constituents." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unspecified Error", 
+          "Timeout", "Failed", "Invalid Parameter", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 DeleteGroup(
+         [Required, IN, Description ( 
+             "Reference to a masking group." )]
+      CIM_MaskingGroup REF MaskingGroup, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "Attempt to delete the masking group even though it "
+             "is associated to a masking view, or the group is "
+             "not empty. The intent of the Force parameter is to "
+             "reduce the chance of accidental deletion of a "
+             "masking group." )]
+      boolean Force);
+
+      [Description ( "Add members to an existing masking group." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", 
+          "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unspecified Error", 
+          "Timeout", "Failed", "Invalid Parameter", "In Use", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint32 AddMembers(
+         [Required, IN, Description ( 
+             "Reference to an existing masking group." )]
+      CIM_MaskingGroup REF MaskingGroup, 
+         [IN, Description ( 
+             "List of elements to add to the group. New members "
+             "are added, in the order supplied, to the end of "
+             "the existing members of the group. It is not an "
+             "error, if a new member is already in the group." )]
+      CIM_ManagedElement REF Members[], 
+         [IN, Description ( 
+             "List of device numbers that correspond to Members. "
+             "This property is applicable when the group "
+             "consists of storage volumes." ), 
+          ModelCorrespondence { "Members" }]
+      string DeviceNumbers[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( "Remove members from a masking group." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unspecified Error", 
+          "Timeout", "Failed", "Invalid Parameter", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 RemoveMembers(
+         [Required, IN, Description ( 
+             "Reference to an existing masking group." )]
+      CIM_MaskingGroup REF MaskingGroup, 
+         [IN, Description ( 
+             "List of elements to remove from a group. Deleting "
+             "all members of a group is equivalent to deleting "
+             "the group if empty groups are not supported by the "
+             "implementation." )]
+      CIM_ManagedElement REF Members[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "If true and removal of the members causes the "
+             "group to become empty, the group will be deleted. "
+             "Note, if empty groups are not allowed, the group "
+             "will be deleted automatically when the group "
+             "becomes empty. If this parameter is not NULL, it "
+             "overrides the group\'s property DeleteOnEmpty." )]
+      boolean DeleteOnEmpty);
+
+      [Description ( 
+          "Expose a group of SCSI logical units (such as RAID "
+          "volumes or tape drives) to a group of initiators through "
+          "a group of target ports, through one or more "
+          "SCSIProtocolControllers (SPCs). \n"
+          "If 0 is returned, the function completed successfully "
+          "and no ConcreteJob instance is created. If 4096/0x1000 "
+          "is returned, a ConcreteJob is started, a reference to "
+          "which is returned in the Job output parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateMaskingView(
+         [IN, Description ( 
+             "A user relevant name for the masking view. If "
+             "NULL, the implementation assigns a name." )]
+      string ElementName, 
+         [IN, Description ( "Reference to a group of initiators." )]
+      CIM_MaskingGroup REF InitiatorMaskingGroup, 
+         [IN, Description ( 
+             "Reference to a group of target ports." )]
+      CIM_MaskingGroup REF TargetMaskingGroup, 
+         [IN, Description ( "Reference to a group of devices." )]
+      CIM_MaskingGroup REF DeviceMaskingGroup, 
+         [IN, Description ( 
+             "List of device numbers that correspond to the "
+             "elements of DeviceMaskingGroup. If this parameter "
+             "is NULL, device numbers are assigned by the "
+             "instrumentation." ), 
+          ModelCorrespondence { "DeviceMaskingGroup" }]
+      string DeviceNumbers[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN ( false ), OUT, Description ( 
+             "A reference to the created SCSIProtocolController, "
+             "which represents the masking view." )]
+      CIM_SCSIProtocolController REF ProtocolController);
+
+      [Description ( 
+          "Delete a masking view, i.e. a SCSIProtocolControllers. "
+          "Deleting a masking view may also delete the associated "
+          "masking groups -- see the applicable capabilities and "
+          "group properties. If 0 is returned, the function "
+          "completed successfully and no ConcreteJob instance is "
+          "created. If 4096/0x1000 is returned, a ConcreteJob is "
+          "started, a reference to which is returned in the Job "
+          "output parameter." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 DeleteMaskingView(
+         [Required, IN, Description ( 
+             "A reference to the SCSIProtocolController to "
+             "delete. The masking group associated with the view "
+             "may also get deleted depending on the groups\' "
+             "applicable properties." )]
+      CIM_SCSIProtocolController REF ProtocolController, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "Override the setting of the groups\' property "
+             "DeleteWhenBecomesUnassociated with the value of "
+             "this parameter." )]
+      boolean DeleteWhenBecomesUnassociated);
+
+      [Description ( 
+          "Modify a masking view by adding a masking group or by "
+          "removing a masking group from the masking view. If 0 is "
+          "returned, the function completed successfully and no "
+          "ConcreteJob instance was created. If 0x1000 is returned, "
+          "a ConcreteJob was started and a reference to this Job is "
+          "returned in the Job output parameter. A return value of "
+          "1 indicates the method is not supported. All other "
+          "values indicate some type of error condition." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Unspecified Error", "Timeout", "Failed", 
+          "Invalid Parameter", "In Use", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ModifyMaskingView(
+         [Required, IN, Description ( 
+             "Operation describes the type of modification to be "
+             "made to the masking view." ), 
+          ValueMap { "2", "3", "..", "32768..65535" }, 
+          Values { "Add Group", "Remove Group", "DMTF Reserved", 
+             "Vendor Specific" }]
+      uint16 Operation, 
+         [Required, IN, Description ( 
+             "The reference to the masking view to modify." )]
+      CIM_SCSIProtocolController REF ProtocolController, 
+         [IN, Description ( 
+             "A reference to the masking group to add or to remove."
+              )]
+      CIM_MaskingGroup REF MaskingGroup, 
+         [IN, Description ( 
+             "This parameter applies to an \"add group\" "
+             "operation. It is a list of device numbers that "
+             "correspond to the elements of a MaskingGroup." ), 
+          ModelCorrespondence { "MaskingGroup" }]
+      string DeviceNumbers[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be NULL if job is completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "If true, the client is not warned that the "
+             "operation may render the masking view unusable." )]
+      boolean Force);
+
+};

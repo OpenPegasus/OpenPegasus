@@ -1,0 +1,102 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Application::SWResources" ), 
+    Description ( 
+       "The metrics of SWRAllocationStatistics describe the allocation "
+       "of the software resource. The allocation is basically the size "
+       "of the software resource in terms of technical units (e.g., "
+       "kB) or domain-specific units (e.g., the number of items (e.g., "
+       "the number of messages if the software resource is of the type "
+       "\'queue\'). \n"
+       "The operational parameters regarding the allocation limits are "
+       "surfaced also. Further details can be found in the description "
+       "of the base class SWRStatistics. \n"
+       "The metrics found in this statistics are raw values that "
+       "describe the allocation behavior of the software resource as "
+       "simple as possible. Thus, the metric values can be used most "
+       "flexibly (e.g., cumulative, averaged, etc.). The drawback of "
+       "the flexibility is that the likelyhood of required "
+       "calculations - subsequent to retrieval of the values - "
+       "increases in order to result in rates or statistical data "
+       "needed for monitoring and reporting." )]
+class CIM_SWRAllocationStatistics : CIM_SWRStatistics {
+
+      [Description ( 
+          "AllocationLevel describes the current size of the "
+          "software resource in units corresponding to the type of "
+          "the statistics (e.g., technical based on Kilobytes). The "
+          "unit can be found at the CIM_SWRStatistics.Unit. \n"
+          "The metric is a point metric and applies to the point in "
+          "time of the end of the sample interval. \n"
+          "A value of null indicates that no allocation level is "
+          "available. \n"
+          "The initial value is 0." ), 
+       ModelCorrespondence { "CIM_SWRStatistics.Unit" }]
+   uint32 AllocationLevel;
+
+      [Description ( 
+          "OtherAllocationLevel describes the current size of the "
+          "software resource in complementary units compared to "
+          "AllocationLevel (e.g., domain-specific units like the "
+          "number of items: buffered objects or pooled "
+          "connections). The unit can be found at "
+          "CIM_SWRStatistics.OtherUnit. \n"
+          "The metric is a point metric and applies to the point in "
+          "time of the end of the sample interval. A value of null "
+          "indicates that no allocation level is available. \n"
+          "The initial value is 0." ), 
+       ModelCorrespondence { "CIM_SWRStatistics.OtherUnit", 
+          "CIM_SWRAllocationStatistics.AllocationLevel" }]
+   uint32 OtherAllocationLevel;
+
+      [Description ( 
+          "AverageItemResidenceTime describes the average period of "
+          "time that items reside in the software resource. This is "
+          "particular interesting for blocked or (volatile) storage "
+          "software resources. The average takes all items into "
+          "account that are output from the software resource "
+          "(i.e., the items\' residence time ends). \n"
+          "A value of null indicates that no average is available. \n"
+          "The initial value is 0." )]
+   datetime AverageItemResidenceTime;
+
+      [Description ( 
+          "AllocationHighWaterMark describes allocation peak "
+          "(highest allocation level) reached throughout the sample "
+          "interval. The unit depends on the type of the "
+          "statistics. The timestamp that corresponds to the high "
+          "water mark is not presented since the sample interval is "
+          "small enough that the exact point in time is not "
+          "significant. The metric is targeted to quantify errors "
+          "like the violation of the upper limit or any capacity "
+          "problems. A value of null indicates that no allocation "
+          "level is available. \n"
+          "The initial value is 0." ), 
+       ModelCorrespondence { "CIM_SWRStatistics.Unit", 
+          "CIM_SWRAllocationStatistics.AllocationHighWaterMark" }]
+   uint32 AllocationHighWaterMark;
+
+      [Description ( 
+          "HighWaterMarkTimeStamp is the point in time at which the "
+          "high water mark was detected. \n"
+          "The initial value is 0." ), 
+       ModelCorrespondence { 
+          "CIM_SWRAllocationStatistics.AllocationHighWaterMark" }]
+   datetime HighWaterMarkTimeStamp;
+
+      [Description ( 
+          "DroppedAllocationQuantity allows to further quantify the "
+          "error of the software resource is over-used and upper "
+          "limits are reached. In such a case, aging algorithms or "
+          "other priorization algorithms implemented by the "
+          "software resource may enforce the deletion of items. "
+          "DroppedAllocationQuantity counts the items dropped due "
+          "the resolution of such an overload. The metric\'s unit "
+          "depends on the type of the statistics. If no items have "
+          "been dropped, the value is 0. The property value is null "
+          "if no numeric value can be provided. \n"
+          "The initial value is 0." )]
+   uint32 DroppedAllocationQuantity;
+
+
+};

@@ -1,0 +1,202 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.19.0" ), 
+    UMLPackagePath ( "CIM::Application::SWResources" ), 
+    Description ( 
+       "A Software Resource (SWR) is an abstraction of the utilization "
+       "of other entities in the environment (communications, memory, "
+       "files, etc.) within the context of the software entity being "
+       "managed. SWR have a component-like implementation that is "
+       "independently manageable from the real entity outside the "
+       "software. These implementations are often used for storage and "
+       "transmission. Thus, a Software Resource (SWR) is: \n"
+       "a) any entity that is used by a system (e.g. an application "
+       "system) to transfer data over space and time (i.e., no data "
+       "processing in terms of creation/deletion or modification of "
+       "data). In contrast to normal (application) services (i.e., the "
+       "abstraction of data processing in terms of its "
+       "creation/deletion etc.), the SWR has limits (bounds) that are "
+       "not to be exceeded. This version does not consider resources "
+       "like CPU. \n"
+       "b) the system\'s view of such a transfer entity. Note that the "
+       "software resource is ultimately contained by or related to a "
+       "limited (physical or logical) resource of the encompassing "
+       "(operating) system such as memory, storage or a communication "
+       "links. \n"
+       "Anything transferred by an SWR is called an \'item\'. Items "
+       "may be data, code, connections, packets, etc.. Items are "
+       "atomic in the model, thus there is no partial items. \n"
+       "An instance only exists if a running system exists since it is "
+       "an internal component of the system implemented by its "
+       "software. Software resources are potentially external entities "
+       "like files viewed internally and (at least partially) "
+       "controlled by the software of the system. \n"
+       "SoftwareResource is contained by System via SystemComponent. "
+       "At least one system (e.g., one application system or a system "
+       "in general) contains 0 or more software resources. If more "
+       "than one system claims to contain the software resource, it is "
+       "a shared resource. \n"
+       "SoftwareResource is associated to SWRLimitSetting via "
+       "ElementSettingData. One software resource can have multiple "
+       "limit settings. Only one of the settings is the default and "
+       "one (potentially another one) is operational (current). "
+       "Settings can be shared by software resources. \n"
+       "SoftwareResource is associated to SWRStatistics via "
+       "ElementStatisticalData. In general, one software resource is "
+       "expected to have three statistics. The statistics type covers "
+       "each behavior characteristics at most once. I.e., the software "
+       "resource has at most one allocation statistcs, one input "
+       "statistics and one output statistics. Nevertheless, the "
+       "implementation of the software resource may exhibit more "
+       "statistics SWRStatistics instances that cover more "
+       "context-specific behavior characteristics." )]
+class CIM_SoftwareResource : CIM_EnabledLogicalElement {
+
+      [Key, Override ( "InstanceID" ), 
+       Description ( 
+          "Within the scope of the instantiating Namespace, "
+          "InstanceID opaquely and uniquely identifies an instance "
+          "of this class. In order to ensure uniqueness within the "
+          "NameSpace, the value of InstanceID SHOULD be constructed "
+          "using the following \'preferred\' algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon "
+          "\':\', and where <OrgID> MUST include a copyrighted, "
+          "trademarked or otherwise unique name that is owned by "
+          "the business entity creating/defining the InstanceID, or "
+          "is a registered ID that is assigned to the business "
+          "entity by a recognized global authority. (This is "
+          "similar to the <Schema Name>_<Class Name> structure of "
+          "Schema class names.) In addition, to ensure uniqueness "
+          "<OrgID> MUST NOT contain a colon (\':\'). When using "
+          "this algorithm, the first colon to appear in InstanceID "
+          "MUST appear between <OrgID> and <LocalID>. \n"
+          "<LocalID> is chosen by the business entity and SHOULD "
+          "not be re-used to identify different underlying "
+          "(real-world) elements. If the above \'preferred\' "
+          "algorithm is not used, the defining entity MUST assure "
+          "that the resultant InstanceID is not re-used across any "
+          "InstanceIDs produced by this or other providers for this "
+          "instance\'s NameSpace. \n"
+          "For DMTF defined instances, the \'preferred\' algorithm "
+          "MUST be used with the <OrgID> set to \'CIM\'." )]
+   string InstanceID;
+
+      [Description ( 
+          "IsAspect indicates whether the instance of this software "
+          "resource refers to another entity residing outside the - "
+          "software that implements the resource. This knowledge "
+          "should kept into account in order to solve control "
+          "conflicts. The property value is \'IsAspect\' if the "
+          "instrumentation knows that there is a corresponding "
+          "outside managed entity, e.g., a file that corresponds to "
+          "this software resource. Values: \n"
+          "Is Aspect: The instance of the software resource is an "
+          "aspect. The logically identical entity external to the "
+          "software (e.g., a file) is known to exist. Is not "
+          "Aspect: The instance of the software resource is not an "
+          "aspect. No logically identical entity external to the "
+          "software (e.g., likely in the case of a buffer) is known "
+          "to exist." ), 
+       ValueMap { "0", "2", "3", "4..32767", "32768..65535" }, 
+       Values { "Unknown", "Is Aspect", "Is not Aspect", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 IsAspect;
+
+      [Description ( 
+          "The property value is \'Aspect Is in Use\' if the "
+          "software resource is currently control of the software. "
+          "E.g., it still has a file handle of file. Any operations "
+          "on the corresponding outside entity (e.g., the file) can "
+          "now result in errors. E.g., the deletion of file from "
+          "the outside could be refused since it still opened by "
+          "the software. Note that currently no conflict resolution "
+          "is designed into software resource classes. \n"
+          "Values: \n"
+          "Aspect Is in Use: The software resource is in use by the "
+          "software (i.e., at least a reference to the resource is "
+          "held by the software). Access to the resource may result "
+          "in conflicting usage of any logically identical entity "
+          "external to this software. \n"
+          "Aspect Is not in Use: In special cases it may be the "
+          "case that the software resource is currently not "
+          "controlled by the software (i.e., a file is currently "
+          "not accessed by the software and the file handle is "
+          "returned. The software resource object exists without "
+          "having the file in use." ), 
+       ValueMap { "0", "2", "3", "4..32767", "32768..65535" }, 
+       Values { "Unknown", "Aspect Is in Use", 
+          "Aspect Is not in Use", "DMTF Reserved", "Vendor Reserved" }]
+   uint16 AspectInUse = 2;
+
+      [Description ( 
+          "ByReference indicates whether the software resource "
+          "handles only references to items, but not the items "
+          "itself. This can be the case for buffers or pools, where "
+          "the items reside in the memory that was originally "
+          "allocated for them and only the reference is kept in the "
+          "buffer. Other implementations or software resource "
+          "types, especially distributed resources that require "
+          "data transfer over space (i.e., communication) may deal "
+          "with the entire item. \n"
+          "Values: \n"
+          "Items Are References: The software resource holds only "
+          "pointers to the items (e.g., connections in a connection "
+          "pool. \n"
+          "Items Are Copies: The software resources transfers "
+          "entire items, i.e., the items are copied from one place "
+          "to another (e.g., packets in a communication)." ), 
+       ValueMap { "0", "2", "3", "4..32767", "32768..65535" }, 
+       Values { "Unknown", "Items Are References", 
+          "Items Are Copies", "DMTF Reserved", "Vendor Reserved" }]
+   uint16 ByReference;
+
+      [Description ( 
+          "The type of the software resource. Although the behavior "
+          "of the different software resource types is modeled "
+          "similarly, different names for resources transferring "
+          "data over time or/and space have been established. "
+          "SoftwareResourceType conveys their original, most common "
+          "name. \n"
+          "Values: \n"
+          "Buffer: volatile storage (transfer over time). \n"
+          "Queue: transfer over time (the internal FIFO) and often "
+          "over space (as entry point to a communication link. "
+          "Both, volatile and persistent versions exit. \n"
+          "Protocol Endpoint: transfer over space, entry point to a "
+          "communication link \n"
+          "Remote Interface: A generalized protocol endpoint "
+          "without a specific protocol. Is a proxy. \n"
+          "Pool: A special buffer. Clearly the lower allocation "
+          "limit is the important limit, i.e., depletion of the "
+          "pool is a problem. \n"
+          "Cache: Another special buffer with an aging algorithm "
+          "for dropping items held in the cache. \n"
+          "File: the simplest form of persistent storage. \n"
+          "Database: a more sophisticated form of persistent "
+          "storage that may consist of several files." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10..32767", "32768..65535" }, 
+       Values { "Unknown", "Buffer", "Queue", "Protocol Endpoint", 
+          "Remote Interface", "Pool", "Cache", "File", "Database", 
+          "DMTF Reserved", "Vendor Reserved" }]
+   uint16 SoftwareResourceType;
+
+
+      [Description ( 
+          "Error situations may sometimes require drastic measures. "
+          "One of them being the complete re-initialization of an "
+          "software resource. Re-initialization includes that the "
+          "resource is emptied entirely and the limit settings are "
+          "newly applied. \n"
+          "Reintialize Already in Progress: software resource still "
+          "being reinitialized." ), 
+       ValueMap { "0", "1", "2", "3", "4", "6", "7", "8", 
+          "9..32767", "32768..65535" }, 
+       Values { "Success", "Not Supported", "Unknown", "Timeout", 
+          "Failed", "Access Denied", "Not Found", 
+          "Reinitialize already in Progress", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 Reinitialize(
+);
+
+};

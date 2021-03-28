@@ -1,0 +1,323 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.40.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "This subclass defines the replication capabilities of a "
+       "ReplicationService. Multiple instances of "
+       "FileSystemReplicationCapabilities may be associated with a "
+       "ReplicationService using ElementCapabilities. A provider "
+       "should create one instance for each supported "
+       "SynchronizationType." )]
+class CIM_FileSystemReplicationCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "Enumeration indicating the supported "
+          "SyncType/Mode/Local-or-Remote combinations." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "..", "0x8000.." }, 
+       Values { "Synchronous Mirror Local", 
+          "Asynchronous Mirror Local", "Synchronous Mirror Remote", 
+          "Asynchronous Mirror Remote", 
+          "Synchronous Snapshot Local", 
+          "Asynchronous Snapshot Local", 
+          "Synchronous Snapshot Remote", 
+          "Asynchronous Snapshot Remote", "Synchronous Clone Local", 
+          "Asynchronous Clone Local", "Synchronous Clone Remote", 
+          "Asynchronous Clone Remote", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 SupportedReplicationType;
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "as asynchronous jobs. If an operation is included in "
+          "both this and SupportedSynchronousActions properties "
+          "then the underlying implementation is indicating that it "
+          "may or may not create a job.\r\n"
+          "Note: the following methods are not supported "
+          "asynchronously, hence the gap between 11 and 19: \r\n"
+          "\t - CreateGroup \r\n"
+          "\t - DeleteGroup \r\n"
+          "\t - AddMembers \r\n"
+          "\t - RemoveMembers \r\n"
+          "\t - AddReplicationEntity \r\n"
+          "\t - AddServiceAccessPoint \r\n"
+          "\t - AddSharedSecret." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "19", "20", "21", "22", "23", "24", "25", "..", 
+          "0x8000.." }, 
+       Values { "CreateElementReplica", "CreateGroupReplica", 
+          "CreateSynchronizationAspect", 
+          "ModifyReplicaSynchronization", 
+          "ModifyListSynchronization", "ModifySettingsDefineState", 
+          "GetAvailableTargetElements", "GetPeerSystems", 
+          "GetReplicationRelationships", "GetServiceAccessPoints", 
+          "CreateListReplica", "CreateGroupReplicaFromElements", 
+          "GetReplicationRelationshipInstances", 
+          "ModifyListSettingsDefineState", 
+          "CreateRemoteReplicationCollection", 
+          "AddToRemoteReplicationCollection", 
+          "RemoveFromRemoteReplicationCollection", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_FileSystemReplicationCapabilities.SupportedSynchronousActions" }]
+   uint16 SupportedAsynchronousActions[];
+
+      [Description ( 
+          "Enumeration indicating what operations will be executed "
+          "synchronously -- without the creation of a job. If an "
+          "operation is included in both this property and "
+          "SupportedAsynchronousActions then the underlying "
+          "implementation is indicating that it may or may not "
+          "create a job." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "21", "22", "23", "24", "25", "..", "0x8000.." }, 
+       Values { "CreateElementReplica", "CreateGroupReplica", 
+          "CreateSynchronizationAspect", 
+          "ModifyReplicaSynchronization", 
+          "ModifyListSynchronization", "ModifySettingsDefineState", 
+          "GetAvailableTargetElements", "GetPeerSystems", 
+          "GetReplicationRelationships", "GetServiceAccessPoints", 
+          "CreateGroup", "DeleteGroup", "AddMembers", 
+          "RemoveMembers", "AddReplicationEntity", 
+          "AddServiceAccessPoint", "AddSharedSecret", 
+          "CreateListReplica", "CreateGroupReplicaFromElements", 
+          "GetReplicationRelationshipInstances", 
+          "ModifyListSettingsDefineState", 
+          "CreateRemoteReplicationCollection", 
+          "AddToRemoteReplicationCollection", 
+          "RemoveFromRemoteReplicationCollection", "DMTF Reserved", 
+          "Vendor Specific" }, 
+       ModelCorrespondence { 
+          "CIM_FileSystemReplicationCapabilities.SupportedAsynchronousActions" }]
+   uint16 SupportedSynchronousActions[];
+
+      [Description ( 
+          "InitialReplicationState specifies which initial "
+          "ReplicationState is supported by a particular provider. "
+          "Values are: \r\n"
+          "Initialized: The replication relationship is known and "
+          "unsynchronized, but time required to synchronize may be "
+          "long. \r\n"
+          "Prepared: The replication relationship is known and "
+          "unsynchronized and the time required to synchronize will "
+          "be short. \r\n"
+          "Synchronized: The replicas are synchronized.Idle: an "
+          "UnSyncAssoc replica is ready to manage." ), 
+       ValueMap { "2", "3", "4", "5", "..", "0x8000..0xFFFF" }, 
+       Values { "Initialized", "Prepared", "Synchronized", "Idle", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 InitialReplicationState;
+
+      [Description ( 
+          "An array of Supported Operations. \r\n"
+          "Abort: Abort the copy operation if it is possible. "
+          "Activate Consistency: Ensure all target elements of a "
+          "group are consistent. \r\n"
+          "Activate: Activate an inactive or prepared source and "
+          "target association. \r\n"
+          "AddSyncPair: Add elements associated via "
+          "FileSystemSynchronized to source and target groups. \r\n"
+          "Deactivate Consistency: Disable consistency. \r\n"
+          "Deactivate: Deactivate a source and target association. "
+          "The writes to the target are deleted in the case of a "
+          "snapshot. \r\n"
+          "Detach: Remove the association between source and "
+          "target. \r\n"
+          "Dissolve: Dissolve the synchronization between two "
+          "storage objects, however, the target element continues "
+          "to exist. \r\n"
+          "Failover: Switch to target element instead of source. \r\n"
+          "Failback: Reverses the effects of failover. \r\n"
+          "Fracture: Separate target element from source element. \r\n"
+          "RemoveSyncPair: Remove pair of source and target "
+          "elements from the source/target groups. \r\n"
+          "Resync Replica: Synchronize a fractured/split source and "
+          "target elements. \r\n"
+          "Restore from Replica: Copy data from a fractured target "
+          "back to source. \r\n"
+          "Resume: Continue an association that was suspended. \r\n"
+          "Reset To Sync: Change mode to synchronous. \r\n"
+          "Reset To Async: Change mode to asynchronous. \r\n"
+          "Reverse Roles: Make target the source and source the "
+          "target. \r\n"
+          "Return To ResourcePool: Applies to Snapshot -- delete "
+          "the target element and its replication association. \r\n"
+          "Split: Similar to Fracture, however, the provider needs "
+          "to make sure whether there are pending I/O in transit "
+          "before fracturing the connection. \r\n"
+          "Suspend: Stop the copy operations to the target element. "
+          "Continue when the operations is resumed. \r\n"
+          "Unprepare: Causes the synchronization to be "
+          "reinitialized and stop in Prepared state." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", 
+          "20", "21", "22", "23", "..", "0x8000..0xFFFF" }, 
+       Values { "Abort", "Activate Consistency", "Activate", 
+          "AddSyncPair", "Deactivate Consistency", "Deactivate", 
+          "Detach", "Dissolve", "Failover", "Failback", "Fracture", 
+          "RemoveSyncPair", "Resync Replica", 
+          "Restore from Replica", "Resume", "Reset To Sync", 
+          "Reset To Async", "Return To ResourcePool", 
+          "Reverse Roles", "Split", "Suspend", "Unprepare", 
+          "DMTF Reserved", "Vendor Specific" }]
+   uint16 SupportedOperations[];
+
+      [Description ( 
+          "Indicates host access restrictions for replicas with "
+          "these capabilities. Values: 2 = not accessible. \r\n"
+          "3 = no restrictions. Any host may access. \r\n"
+          "4 = only accessible by associated source element hosts. \r\n"
+          "5 = not accessible by source element hosts. Other hosts "
+          "OK." ), 
+       ValueMap { "2", "3", "4", "5", ".." }, 
+       Values { "Not Accessible", "No Restrictions", 
+          "Source Hosts Only", "Source Hosts Excluded", 
+          "DMTF Reserved" }]
+   uint16 ReplicaHostAccessibility;
+
+      [Description ( 
+          "Lists the replica synchronization states in which the "
+          "provider allows host access to replicas. Accessibility "
+          "does not guarantee replica contents are valid or "
+          "consistent." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "11", "12", "13", "14", "15", "16", "17", "18", "..", 
+          "0x8000.." }, 
+       Values { "Initialized", "Unsynchronized", "Synchronized", 
+          "Broken", "Fractured", "Split", "Inactive", "Suspended", 
+          "Failedover", "Prepared", "Aborted", "Skewed", "Mixed", 
+          "Not Applicable", "Partitioned", "Invalid", "Restored", 
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_Synchronized.CopyState" }]
+   uint16 HostAccessibleState[];
+
+      [Description ( 
+          "True indicates space limits on allocation from "
+          "StoragePools may be enforced." ), 
+       ModelCorrespondence { 
+          "CIM_AllocatedFromStoragePool.SpaceLimit" }]
+   boolean SpaceLimitSupported;
+
+      [Description ( 
+          "True indicates space reserved for replicas can be from a "
+          "specialized pool." )]
+   boolean SpaceReservationSupported;
+
+      [Description ( 
+          "True indicates local mirror can be snapshot source." )]
+   boolean LocalMirrorSnapshotSupported;
+
+      [Description ( 
+          "True indicates remote mirror can be snapshot source." )]
+   boolean RemoteMirrorSnapshotSupported;
+
+      [Description ( 
+          "True indicates all delta replicas associated with the "
+          "same source element can be incrementally dependent. Only "
+          "the oldest replica in the set may be deleted or "
+          "resynced." )]
+   boolean IncrementalDeltasSupported;
+
+      [Description ( 
+          "True indicates replicas can persist during power off or "
+          "system reset. False indicates replicas lost during these "
+          "events." )]
+   boolean PersistentReplicasSupported;
+
+      [Description ( 
+          "True indicates peer-to-peer connections are "
+          "bi-directional. False indicates connections are "
+          "uni-directional." )]
+   boolean BidirectionalConnectionsSupported;
+
+      [Description ( 
+          "Maximum number of replicas that can be associated with "
+          "one source element." )]
+   uint16 MaximumReplicasPerSource;
+
+      [Description ( 
+          "Maximum number of port pairs assigned to a peer-to-peer "
+          "connection." )]
+   uint16 MaximumPortsPerConnection;
+
+      [Description ( 
+          "Maximum number of peer-to-peer connections to which a "
+          "port maybe assigned." )]
+   uint16 MaximumConnectionsPerPort;
+
+      [Description ( 
+          "Maximum number of peer connections supported by this "
+          "instance of StorageConfigurationService." )]
+   uint16 MaximumPeerConnections;
+
+      [Description ( 
+          "Maximum local mirror replication depth allowed by this "
+          "instance of ReplicationService. Value 1 indicates "
+          "multi-level replication not supported." )]
+   uint16 MaximumLocalReplicationDepth = 1;
+
+      [Description ( 
+          "Maximum remote mirror replication depth allowed by this "
+          "instance of ReplicationService. Value N means that "
+          "remote replicas can span N linked peer-to-peer "
+          "connections. Value 1 indicates multi-level replication "
+          "not supported." )]
+   uint16 MaximumRemoteReplicationDepth = 1;
+
+      [Description ( 
+          "ReplicationPriority allows the priority of background "
+          "Replication I/O to be managed relative to host I/O. "
+          "Default applies to initial or deferred background "
+          "Replication operations. Value can be modified while in "
+          "Replication-in-progress state. Values Low Replication "
+          "engine I/O lower priority than host I/O. Same "
+          "Replication engine I/O has the same priority as host "
+          "I/O. High Replication engine I/O has higher priority "
+          "than host I/O." ), 
+       ValueMap { "0", "1", "2", "3", "..", "0x8000.." }, 
+       Values { "Not Managed", "Low", "Same", "High", 
+          "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_StorageSetting.ReplicationPriority" }]
+   uint16 ReplicationPriorityDefault;
+
+      [Description ( 
+          "Warning threshold for generating an indication for "
+          "RemainingManagedSpace. Value of zero means no warning "
+          "generated.Triggered when RemainingManagedSpace <= "
+          "(TotalManagedSpace*LowSpaceWarningThreshold)/100." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_AllocatedFromStoragePool.SpaceLimitWarningThreshold" }, 
+       PUnit ( "percent" )]
+   uint8 LowSpaceWarningThresholdDefault;
+
+      [Description ( 
+          "Warning threshold for instance modification indication "
+          "for SpaceConsumed by a replica element. Value of zero "
+          "means no warning generated. Triggered when SpaceConsumed "
+          ">= (SpaceLimit*SpaceLimitWarningThreshold)/100." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 100 ), 
+       ModelCorrespondence { 
+          "CIM_AllocatedFromStoragePool.SpaceLimitWarningThreshold" }, 
+       PUnit ( "percent" )]
+   uint8 SpaceLimitWarningThresholdDefault;
+
+      [Description ( 
+          "DeltaReplicaPool indicates that a specialized pool is "
+          "required as a container for delta replica elements. "
+          "Values: Any: delta replicas can be created in any pool. "
+          "Exclusive: one specialized, exclusive pool must be "
+          "created for each source element that has associated "
+          "delta replicas. Shared: one specialized, shared pool "
+          "must be created to be shared by all source elements with "
+          "associated delta replicas." ), 
+       ValueMap { "2", "3", "4", "..", "0x8000.." }, 
+       Values { "Any", "Exclusive", "Shared", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint16 DeltaReplicaPoolAccess;
+
+
+};

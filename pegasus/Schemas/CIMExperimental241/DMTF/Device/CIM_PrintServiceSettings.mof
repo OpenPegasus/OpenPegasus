@@ -1,0 +1,233 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.29.0" ), 
+    UMLPackagePath ( "CIM::Device::Printing" ), 
+    Description ( 
+       "An instance of SettingData for a specific PrintService which "
+       "corresponds to xxx-default attributes of an IPP Printer. \n"
+       "See: Section 2.1 Printer Object in IPP/1.1 (RFC 2911). \n"
+       "See: Section 4.2 Job Template Attributes in IPP/1.1. \n"
+       "See: Section 4.4 Printer Description Attributes in IPP/1.1. \n"
+       "Note: An instance of PrintServiceSettings shall be associated "
+       "with exactly one instance of PrintService via an instance of "
+       "the ElementSettingData association." )]
+class CIM_PrintServiceSettings : CIM_SettingData {
+
+      [Description ( 
+          "The default number of copies for each PrintJob processed "
+          "by the associated PrintService." ), 
+       MinValue ( 1 ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.5 copies" }, 
+       ModelCorrespondence { "CIM_PrintServiceCapabilities.Copies", 
+          "CIM_PrintJob.Copies" }]
+   uint32 Copies;
+
+      [Description ( 
+          "The default document format (MIME type) for each "
+          "PrintJob processed by the associated PrintService." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.4.21 document-format-default" }, 
+       ModelCorrespondence { "CIM_PrintService.MimeTypesSupported", 
+          "CIM_PrintJob.MimeTypes" }]
+   string DocumentFormat;
+
+      [Description ( 
+          "The default array of named finishings for each PrintJob "
+          "processed by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'punch\' means drill hole(s) in each Job copy. \n"
+          "Value \'staple\' means put staple(s) in each Job copy." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.6 finishings" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.Finishings", 
+          "CIM_PrintJob.Finishings" }]
+   string Finishings[];
+
+      [Description ( 
+          "The default named job hold until for each PrintJob "
+          "processed by the associated PrintService. That is, the "
+          "named time period when the PrintJob may be scheduled. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Additional vendor or site values may also be used. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'night\' means local night (site-specific). \n"
+          "Value \'weekend\' means local weekend (site-specific). \n"
+          "Value \'no-hold\' means schedule PrintJob immediately." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.2 job-hold-until" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.JobHoldUntil", 
+          "CIM_PrintJob.JobHoldUntil" }]
+   string JobHoldUntil;
+
+      [Description ( 
+          "The default priority for each PrintJob processed by the "
+          "associated PrintService. \n"
+          "Note: Weighted scale is *opposite* to Job.Priority. \n"
+          "The value 1 indicates the lowest possible priority. \n"
+          "The value 100 indicates the highest possible priority." ), 
+       MinValue ( 1 ), 
+       MaxValue ( 100 ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.1 job-priority" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.JobPriority", 
+          "CIM_PrintJob.JobPriority" }]
+   uint32 JobPriority;
+
+      [Description ( 
+          "The default named start/end sheets for each PrintJob "
+          "processed by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Additional vendor or site values may also be used. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'none\' indicates no job start/end sheets. \n"
+          "Value \'standard\' indicates one or more site-specific "
+          "standard job sheets." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.3 job-sheets" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.JobSheets", 
+          "CIM_PrintJob.RequiredJobSheets" }]
+   string JobSheets;
+
+      [Description ( 
+          "The default named output media for each PrintJob "
+          "processed by the associated PrintService. \n"
+          "Note: Values should conform to the requirements of PWG "
+          "Media Standardized Names specification [PWG5101.1], "
+          "e.g., \'na_letter_8.5x11in\' or \'custom_poster_18x36in\'."
+           ), 
+       MappingStrings { "PWG5101-1.PWG|Media Standardized Names", 
+          "RFC2911.IETF|Section 4.2.11 media" }, 
+       ModelCorrespondence { "CIM_PrintService.PaperTypesAvailable", 
+          "CIM_PrintJob.RequiredPaperType" }]
+   string Media;
+
+      [Description ( 
+          "The default multiple document handling for each PrintJob "
+          "processed by the associated PrintService. \n"
+          "That is, the named policy for the handling of finishing, "
+          "the placement of one or more input logical pages onto "
+          "output impressions, and multiple copies in a PrintJob "
+          "with two or more documents. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'single-document\' means apply finishing to "
+          "multiple document sets (i.e., each copy of the "
+          "PrintJob). \n"
+          "Value \'single-document-new-sheet\' means the same "
+          "behavior as \'single-document\' plus each document must "
+          "start on a new sheet (i.e., a front side in duplex)." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.2.4 multiple-document-handling" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.MultipleDocumentHandling", 
+          "CIM_PrintServiceCapabilities.MultipleDocumentJobs", 
+          "CIM_PrintJob.MultipleDocumentHandling" }]
+   string MultipleDocumentHandling;
+
+      [Description ( 
+          "The default number of input logical pages per impression "
+          "for a PrintJob processed by the associated PrintService. "
+          "Note: The translation, rotation, and scaling required "
+          "for values of \'2\' or more are implementation "
+          "dependent." ), 
+       MinValue ( 1 ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.9 number-up" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.NumberUp", 
+          "CIM_PrintJob.NumberUp" }]
+   uint32 NumberUp;
+
+      [Description ( 
+          "The default orientation requested for each PrintJob "
+          "processed by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'portrait\' means imaged across the short edge, "
+          "with no content rotation. \n"
+          "Value \'landscape\' means imaged across the long edge, "
+          "with content rotated 90 degrees anticlockwise from "
+          "\'portrait\'. \n"
+          "Value \'reverse-landscape\' means imaged across the long "
+          "edge, with content rotated 90 degrees clockwise from "
+          "\'portrait\'. \n"
+          "Value \'reverse-portrait\' means imaged across the short "
+          "edge, with content rotated 180 degrees (opposite) from "
+          "\'portrait\'." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.2.10 orientation-requested" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.OrientationRequested", 
+          "CIM_PrintJob.OrientationRequested" }]
+   string OrientationRequested;
+
+      [Description ( 
+          "The default named output bin for each PrintJob processed "
+          "by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Additional vendor or site values may also be used. \n"
+          "Standard values defined in PWG 5100.2 include: \n"
+          "Value \'top\' means the output bin that, when facing the "
+          "device, is best identified as the top bin. \n"
+          "Value \'side\' means the output bin that, when facing "
+          "the device, is best identified as the side bin." ), 
+       MappingStrings { "PWG5100-2.PWG|Section 2.1 output-bin" }, 
+       ModelCorrespondence { "CIM_PrintServiceCapabilities.OutputBin" }]
+   string OutputBin;
+
+      [Description ( 
+          "The default print quality for impressions for each "
+          "PrintJob processed by the associated PrintService. \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'draft\' means lowest print quality. \n"
+          "Value \'normal\' means normal print quality. \n"
+          "Value \'high\' means highest print quality." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.13 print-quality" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.PrintQuality", 
+          "CIM_PrintJob.PrintQuality" }]
+   string PrintQuality;
+
+      [Description ( 
+          "The default print resolution for impressions for each "
+          "PrintJob processed by the associated PrintService. \n"
+          "That is, the horizontal by vertical resolution in pixels "
+          "per inch for output impressions (sides of selected "
+          "media) separated by a lowercase \'x\', e.g., print "
+          "resolutions of \'300x300\' and \'600x1200\'. \n"
+          "Horizontal resolution is defined as resolution in the "
+          "cross-feed direction, short-edge in portrait feed mode. \n"
+          "Vertical resolution is defined as resolution in the feed "
+          "direction, long-edge in portrait feed mode." ), 
+       MappingStrings { 
+          "RFC2911.IETF|Section 4.2.12 printer-resolution" }, 
+       ModelCorrespondence { 
+          "CIM_PrintServiceCapabilities.Resolution", 
+          "CIM_PrintJob.HorizontalResolution", 
+          "CIM_PrintJob.VerticalResolution" }]
+   string Resolution;
+
+      [Description ( 
+          "The default imposition mode for impressions for each "
+          "PrintJob processed by the associated PrintService. \n"
+          "That is, the policy for imposing input logical pages "
+          "onto output impressions (sides of selected media). \n"
+          "Complete standard values are in the IANA IPP Registry. \n"
+          "Standard values defined in IPP/1.1 (RFC 2911) include: \n"
+          "Value \'one-sided\' means each successive input logical "
+          "page onto the same side of consecutive sheets of media. \n"
+          "Value \'two-sided-long-edge\' means each consecutive "
+          "pair of input logical pages onto front and back sides of "
+          "consecutive sheets of media, with orientation for long "
+          "edge binding \n"
+          "Value \'two-sided-short-edge\' means each consecutive "
+          "pair of input logical pages onto front and back sides of "
+          "consecutive sheets of media, with orientation for short "
+          "edge binding." ), 
+       MappingStrings { "RFC2911.IETF|Section 4.2.8 sides" }, 
+       ModelCorrespondence { "CIM_PrintServiceCapabilities.Sides", 
+          "CIM_PrintJob.Sides" }]
+   string Sides;
+
+
+};

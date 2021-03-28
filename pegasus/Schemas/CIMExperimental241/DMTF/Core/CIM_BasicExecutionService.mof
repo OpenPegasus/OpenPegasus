@@ -1,0 +1,215 @@
+//Copyright (c) 2007 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.16.0" ), 
+    UMLPackagePath ( "CIM::Core::Grid" ), 
+    Description ( 
+       "The basic execution service (BES)is a service to which clients "
+       "can send requests to initiate, monitor, and manage "
+       "computational activities and access information about the BES. "
+       "A BasicExecutionService can act on one or more execution "
+       "environments - modeled, profiled, and instantiated as a "
+       "ComputerSystem. There is no requirement that a "
+       "BasicExecutionService reside on the node of a ComputerSystem "
+       "on which it acts. The associations ServiceAvailToElement and "
+       "ServiceAffectsElement relate the BasicExecutionService to "
+       "ComputerSystem. The association HostedDependency expresses the "
+       "concept that an execution environment may be contained within "
+       "another execution environment. For example, in a grid or "
+       "distributed/virtualized environment the whole point for not "
+       "explicitly stating which execution environment to use up front "
+       "is to allow some client software, e.g. scheduler, "
+       "orchestrator, provisioner, application, to determine where to "
+       "place the activity (in which execution environment) based on "
+       "the input activity document (that activity\'s "
+       "environment/resource requirements)." )]
+class CIM_BasicExecutionService : CIM_Service {
+
+
+      [Description ( 
+          "This operation adds requests to the execution "
+          "environment. For example, within the context of the OGSA "
+          "Basic Execution Services, this means that a new activity "
+          "is added to an execution environment, and the operation "
+          "maps to the CreateActivity() interface. CreateActivity "
+          "establishes the \'binding\' between the activity and the "
+          "execution environment that will contain it. Selection / "
+          "implementation of how an execution environment is "
+          "outside the scope of basic execution service. In a grid "
+          "or distributed environment, this allows other clients, "
+          "e.g. schedulers, orchestrators, applications, to make "
+          "decisions on which execution environment to select "
+          "(place activity) based on the JSDL job description (the "
+          "input activity document that describes that activity\'s "
+          "environment/resource requirements. The return value "
+          "should be 0 if the request was successfully executed and "
+          "some other value if an error occurred. The output the "
+          "CreateActivity method is an identifier which is used as "
+          "input to other methods in this class to identify the "
+          "activity being acted upon." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Operation Completed with No Error", 
+          "Not Supported", "Unknown", "Not Authorized", 
+          "Not Accepting New Activities", "Unsupported Feature", 
+          "Invalid Request Message", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }, 
+       MappingStrings { "MIF.OGF|GFD.108|CreateActivity.Faults" }]
+   uint32 CreateActivity(
+         [IN, Description ( 
+             "Describes a single request that is to be executed "
+             "by an execution environment." ), 
+          MappingStrings { 
+             "MIF.OGF|GFD.108|CreateActivity.ActivityDocument", 
+             "MIF.OGF|GFD.56|jsdl:JobDefinition" }]
+      string Request, 
+         [IN ( false ), OUT, Description ( 
+             "Identifier associated with the requested "
+             "execution. This Identifier is used as input to "
+             "other Basic Execution service methods." ), 
+          MappingStrings { 
+             "MIF.OGF|GFD.108|CreateActivity.Response", 
+             "MIF.OASIS|WS-Addressing", 
+             "MIF.OGF|GFD.56|jsdl:JobDefinition" }]
+      string Identifier, 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (can be null if the task is completed)."
+              )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "This operation requests that one or more items in an "
+          "execution environment be terminated. For example, within "
+          "the context of the OGSA Basic Execution Services, this "
+          "means that a new or existing activity in the container "
+          "can be requested to be terminated, and the operation "
+          "maps to the TerminateActivities() interface. The return "
+          "value should be 0 if the request was successfully "
+          "executed and some other value if an error occurred. The "
+          "return code Invalid Request Message refers to the input "
+          "of an invalid identifier." ), 
+       ValueMap { "0", "1", "2", "3", "..", "4096", "4097..32767", 
+          "32768..65535" }, 
+       Values { "Operation Completed with No Error", 
+          "Not Supported", "Unknown", "Invalid Activity Identifer", 
+          "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }, 
+       MappingStrings { "MIF.OGF|GFD.108|TerminateActivities.Faults" }]
+   uint32 TerminateActivity(
+         [IN, Description ( 
+             "Identifies one or more items in an execution "
+             "environment that are to be terminated." ), 
+          MappingStrings { 
+             "MIF.OGF|GFD.108|TerminateActivities.ActivityIdentifiers", 
+             "MIF.OASIS|WS-Addressing" }]
+      string Identifier[], 
+         [IN ( false ), OUT, Description ( 
+             "Boolean response value for each requested "
+             "termination. A value of TRUE indicates successful "
+             "termination." ), 
+          MappingStrings { 
+             "MIF.OGF|GFD.108|TerminateActivities.Response" }]
+      boolean Response[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (can be null if the task is completed)."
+              )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "This operation requests the status of one or more items "
+          "in an execution environment. For example, within the "
+          "context of the OGSA Basic Execution Services, this means "
+          "that the status of one or more activities within an "
+          "execution environment can be obtained, and the operation "
+          "maps to the GetActivityStatuses() interface. The return "
+          "value should be 0 if the request was successfully "
+          "executed and some other value if an error occurred. The "
+          "return code Invalid Request Message refers to the input "
+          "of an invalid identifier." ), 
+       ValueMap { "0", "1", "2", "3", "..", "4096", "4097..32767", 
+          "32768..65535" }, 
+       Values { "Operation Completed with No Error", 
+          "Not Supported", "Unknown", "Invalid Activity Identifier", 
+          "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }, 
+       MappingStrings { "MIF.OGF|GFD.108|GetActivityStatuses.Faults" }]
+   uint32 GetActivityStatus(
+         [IN, Description ( 
+             "Identifies one or more items in an execution "
+             "environment whose status will be obtained." ), 
+          MappingStrings { 
+             "MIF.OGF|GFD.108|GetActivityStatuses.ActivityIdentifiers", 
+             "MIF.OASIS|WS-Addressing" }]
+      string Identifier[], 
+         [IN ( false ), OUT, Description ( 
+             "A response for each requested status." ), 
+          MappingStrings { 
+             "MIF.OGF|GFD.108|GetActivityStatuses.Response" }]
+      string StatusResponse[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (can be null if the task is completed)."
+              )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "This operation requests activity document descriptions "
+          "for a set of specified set of activities. These activity "
+          "documents may be different from those initially input in "
+          "the CreateActivity operation since this service may "
+          "alter its contents to reflect policy or process within "
+          "the service. The return code Invalid Request Message "
+          "refers to the input of an invalid identifier." ), 
+       ValueMap { "0", "1", "2", "3", "..", "4096", "4097..32767", 
+          "32768..65535" }, 
+       Values { "Operation Completed with No Error", 
+          "Not Supported", "Unknown", "Invalid Activity Identifier", 
+          "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }, 
+       MappingStrings { "MIF.OGF|GFD.108|GetActivityDocuments.Faults" }]
+   uint32 GetActivityDocuments(
+         [IN, Description ( 
+             "Identifies one or more activities for which "
+             "activity documents are requested." ), 
+          MappingStrings { 
+             "MIF.OGF|GFD.108|GetActivityDocuments.ActivityIdentifiers", 
+             "MIF.OASIS|WS-Addressing" }]
+      string Identifier[], 
+         [IN ( false ), OUT, Description ( 
+             "An array of activity document response elements." ), 
+          MappingStrings { 
+             "MIF.OGF|GFD.108|GetActivityDocuments.Response" }]
+      string Response[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (can be null if the task is completed)."
+              )]
+      CIM_ConcreteJob REF Job);
+
+      [Description ( 
+          "This operation requests a document containing the basic "
+          "execution service management attributes.The return code "
+          "Invalid Request Message refers to the input of an "
+          "invalid identifier." ), 
+       ValueMap { "0", "1", "2", "..", "4096", "4097..32767", 
+          "32768..65535" }, 
+       Values { "Operation Completed with No Error", 
+          "Not Supported", "Unknown", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }, 
+       MappingStrings { 
+          "MIF.OGF|GFD.108|GetAttributesDocument.Faults" }]
+   uint32 GetAttributesDocument(
+         [IN ( false ), OUT, Description ( 
+             "A XML document containing the various attributes "
+             "within its associated container." ), 
+          MappingStrings { 
+             "MIF.OGF|GFD.108|GetAttributesDocument.BESResourceAttributesDocument", 
+             "MIF.OGF|GFD.56|JSDL Core Element Set and Appendix 1" }]
+      string AttrsDoc[], 
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (can be null if the task is completed)."
+              )]
+      CIM_ConcreteJob REF Job);
+
+};

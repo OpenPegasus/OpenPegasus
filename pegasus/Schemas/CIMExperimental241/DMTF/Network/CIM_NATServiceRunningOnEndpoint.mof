@@ -1,0 +1,37 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ==================================================================
+//  CIM_NATServiceRunningOnEndpoint
+// ==================================================================
+   [Association, Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Network::NAT" ), 
+    Description ( 
+       "NATServiceRunningOnEndpoint indicates that a NAT service is "
+       "translating addresses for packets communicated through the "
+       "referenced protocol endpoint/ interface." )]
+class CIM_NATServiceRunningOnEndpoint : CIM_ForwardsAmong {
+
+      [Override ( "Antecedent" ), 
+       Description ( 
+          "The endpoint/interface whose traffic is translated." )]
+   CIM_ProtocolEndpoint REF Antecedent;
+
+      [Override ( "Dependent" ), 
+       Description ( 
+          "The NAT service that performs the translation." )]
+   CIM_NATService REF Dependent;
+
+      [Description ( 
+          "Indicates whether the endpoint is connected to the "
+          "\'inside\'/local network (2), is in the external world "
+          "(3) or is in neither. The latter applies to firewall "
+          "NATing where a DMZ exists - neither inside or outside, "
+          "but bridging the two." ), 
+       ValueMap { "2", "3", "4" }, 
+       Values { "Connected to Inside Network", 
+          "Connected to Outside Network", "Connected to DMZ" }]
+   uint16 ConnectedNetwork;
+
+
+};

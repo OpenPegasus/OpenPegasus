@@ -1,0 +1,127 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.22.0" ), 
+    UMLPackagePath ( "CIM::Device::Button" ), 
+    Description ( 
+       "CIM_Button models the logical aspects of a mechanical or "
+       "electronic human interface device pressed to activate an "
+       "electrical circuit in a computer. Mechanical buttons may "
+       "include spring-loaded mechanical key or knobs. Electronic "
+       "buttons may include touch-sensitive switches or screens. The "
+       "Button object is used to model the manageable aspects of a "
+       "Button." )]
+class CIM_Button : CIM_LogicalDevice {
+
+      [Description ( 
+          "The ButtonPurpose property identifies or defines the use "
+          "of the button represented by the instance. If the type "
+          "is set to \"Other\", then the OtherButtonPurpose "
+          "property can be used to further identify the purpose. "
+          "Descriptions of the different Button purposes are as "
+          "follows: A Power Button changes the power state of a "
+          "device. A reset button is used to reset the state of a "
+          "device. Undock is used to undock or disconnect a device "
+          "or entire system from a separate device or system. An "
+          "Open/Close button is used on a device that has an object "
+          "that usually moves such as a drawer, door, or tray." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "..", "32768..65535" }, 
+       Values { "Unknown", "Other", "Power", "Reset", "Undock", 
+          "Open/Close", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Button.OtherButtonPurpose" }]
+   uint16 ButtonPurpose;
+
+      [Description ( 
+          "A string describing the Button Purpose - used when the "
+          "ButtonPurpose property is set to \"Other\"." ), 
+       MaxLen ( 128 ), 
+       ModelCorrespondence { "CIM_Button.ButtonPurpose" }]
+   string OtherButtonPurpose;
+
+      [Description ( 
+          "The ButtonType property identifies or defines the type "
+          "the button represented by the instance. If the type is "
+          "set to \"Other\", then the OtherButtonType property can "
+          "be used to further identify the type. A momentary button "
+          "is one that depressed for a moment to cause the desired "
+          "affect the target device or circuit A toggle type button "
+          "is one that will remain in a switched or depressed "
+          "position until it is depressed or switched again." ), 
+       ValueMap { "0", "1", "2", "3", "..", "32768..65535" }, 
+       Values { "Unknown", "Other", "Momentary", "Toggle", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { "CIM_Button.OtherButtonType" }]
+   uint16 ButtonType;
+
+      [Description ( 
+          "A string describing the Button Purpose - used when the "
+          "ButtonType property is set to \"Other\"." ), 
+       MaxLen ( 128 ), 
+       ModelCorrespondence { "CIM_Button.ButtonType" }]
+   string OtherButtonType;
+
+      [Description ( "The current state of the button." ), 
+       ValueMap { "0", "2", "3", "..", "32768..65535" }, 
+       Values { "Unknown", "Deassert", "Assert", "DMTF Reserved", 
+          "Vendor Reserved" }]
+   uint16 ButtonState;
+
+      [Description ( 
+          "ButtonStateMapping identifies a supported button state "
+          "that correlates to a specific action that will occur if "
+          "the button transitions to the state." ), 
+       ValueMap { "2", "3" }, 
+       Values { "Deassert", "Assert" }, 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Button.ButtonActionMapping" }]
+   uint16 ButtonStateMapping[];
+
+      [Description ( 
+          "ButtonActionMapping shall identify the action that "
+          "occurs if the ButtonState transitions to the value "
+          "specified in the corresponding array index of the "
+          "ButtonStateMapping property. Each value shall be "
+          "formatted using the following algorithm: "
+          "[OrgID]:[LocalID] \n"
+          "Where [OrgID] and [LocalID] are separated by a colon "
+          "(:), and where [OrgID] shall include a copyrighted, "
+          "trademarked, or otherwise unique name that is owned by "
+          "the business entity that is creating or defining the "
+          "string value or that is a registered ID assigned to the "
+          "business entity by a recognized global authority. "
+          "[OrgID] shall not contain a colon (:). \n"
+          "[LocalID] is chosen by the business entity and shall not "
+          "be reused to identify different underlying (real-world) "
+          "elements. For DMTF defined values, [OrgID] shall be "
+          "\"DMTF\". If ButtonPurpose contains the value 2 \"Power\", "
+          "ButtonActionMapping shall contain one of the following "
+          "values: \"DMTF:PowerOn\" - A transition to the state "
+          "will result in a request to power on the associated "
+          "element. \"DMTF:PowerOff\" - A transition to the state "
+          "will result in a request to power off the associated "
+          "element. \"DMTF:PowerChange\" - A transition to the "
+          "state will result in a request to change the power state "
+          "of the associated element. \n"
+          "If ButtonPurpose contains the value 3 \"Reset\", "
+          "ButtonActionMapping shall contain one of the following "
+          "values: \"DMTF:Reset\" - A transition to the state will "
+          "result in a request to reset the associated element. \n"
+          "If ButtonPurpose contains the value 4 \"Undock\", "
+          "ButtonActionMapping shall contain one of the following "
+          "values: \"DMTF:Undock\" - A transition to the state will "
+          "result in a request to undock the associated element. \n"
+          "If ButtonPurpose contains the value 5 \"OpenClose\", "
+          "ButtonActionMapping shall contain one of the following "
+          "values: \"DMTF:OpenCloseChange\" - A transition to the "
+          "state will result in a request to open or close the "
+          "associated element as appropriate. That is, an open "
+          "element will be closed, and a closed element will be "
+          "opened. \"DMTF:OpenCloseOpen\" - A transition to the "
+          "state will result in a request to open the associated "
+          "element. \"DMTF:OpenCloseClose\" - A transition to the "
+          "state will result in a request to close the associated "
+          "element." ), 
+       ArrayType ( "Indexed" ), 
+       ModelCorrespondence { "CIM_Button.ButtonStateMapping" }]
+   string ButtonActionMapping[];
+
+
+};

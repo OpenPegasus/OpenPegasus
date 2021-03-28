@@ -1,0 +1,161 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.39.0" ), 
+    UMLPackagePath ( "CIM::System::FileServices" ), 
+    Description ( 
+       "ExportedFileShareCapabilities specifies the combination of "
+       "properties that a FileExportService can support when creating "
+       "or maintaining FileShares. Each supported combination of "
+       "properties is specified by a ExportedFileShareSetting that is "
+       "associated with the ExportedFileShareCapabilities element via "
+       "SettingAssociatedToCapabilities. \n"
+       "An ExportedFileShareCapabilities element specifies the "
+       "properties supported when using it. A CreateGoal method is "
+       "provided that creates an ExportedFileShareSetting element to "
+       "be used as a goal when creating or modifying a file share." )]
+class CIM_ExportedFileShareCapabilities : CIM_Capabilities {
+
+      [Description ( 
+          "An enumerated integer indicating the filesharing "
+          "protocol that this share can support. All settings "
+          "associated with this Capabilities must have the same "
+          "value for the FileSharingProtocol property. This "
+          "property must exist and have a value." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "..", "0x8000.." }, 
+       Values { "Unknown", "NFS", "CIFS", "DAFS", "WebDAV", "HTTP", 
+          "FTP", "DMTF Reserved", "Vendor Defined" }, 
+       Read, ModelCorrespondence { 
+          "CIM_ImportedFileShareSetting.FileSharingProtocol", 
+          "CIM_ExportedFileShareSetting.FileSharingProtocol", 
+          "CIM_ExportedFileShareCapabilities.ProtocolVersions" }]
+   uint16 FileSharingProtocol;
+
+      [Description ( 
+          "An array of strings listing the versions of the file "
+          "sharing protocol that can be supported via these "
+          "capabilities. All settings associated with this "
+          "Capabilities must have a non-empty subset of these "
+          "values in the corresponding ProtocolVersions property." ), 
+       Read, ModelCorrespondence { 
+          "CIM_ExportedFileShareSetting.ProtocolVersions", 
+          "CIM_ImportedFileShareSetting.ProtocolVersions", 
+          "CIM_ExportedFileShareCapabilities.FileSharingProtocol" }]
+   string ProtocolVersions[];
+
+      [Description ( 
+          "An array of property names of the Setting that this "
+          "Capabilities element supports." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "..", "0x8000.." }, 
+       Values { "DefaultReadWrite", "DefaultExecute", 
+          "DefaultUserId", "RootAccess", "WritePolicy", 
+          "AccessPoints", "InitialEnabledState", "DMTF Reserved", 
+          "Vendor Defined" }, 
+       Read]
+   uint16 SupportedProperties[];
+
+
+      [Description ( 
+          "Start a job to create an ExportedFileShareSetting from "
+          "an ExportedFileShareSetting provided by the caller. If "
+          "the operation completes successfully and did not require "
+          "a long-running ConcreteJob, it will return 0. If "
+          "4096/0x1000 is returned, a ConcreteJob will be started "
+          "to create the element. A Reference to the ConcreteJob "
+          "will be returned in the output parameter Job. \n"
+          "This method MAY return a CIM_Error representing that a "
+          "single named property of a setting (or other) parameter "
+          "(either reference or embedded object) has an invalid "
+          "value or that an invalid combination of named properties "
+          "of a setting (or other) parameter (either reference or "
+          "embedded object) has been requested. \n"
+          "If the input TemplateGoal is NULL or the empty string, "
+          "this method returns a default ExportedFileShareSetting "
+          "that is supported by this ExportedFileShareCapabilities. \n"
+          "The output is returned as the SupportedGoal parameter. "
+          "Both TemplateGoal and SupportedGoal are embedded objects "
+          "and do not exist in the provider but are maintained by "
+          "the client. \n"
+          "If the TemplateGoal specifies values that cannot be "
+          "supported, this method must return an appropriate error "
+          "and should return a best match for a SupportedGoal." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "4096", 
+          "4097..32767", "32768..65535" }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Template Goal cannot be matched.", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint16 CreateGoal(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "This is an element of the "
+             "CIM_ExportedFileShareSetting class, or a derived "
+             "class, encoded as a string-valued embedded object "
+             "parameter. It specifies the goal element to be "
+             "used for matching." ), 
+          EmbeddedInstance ( "CIM_ExportedFileShareSetting" )]
+      string TemplateGoal, 
+         [IN ( false ), OUT, Description ( 
+             "This is an element of the "
+             "CIM_ExportedFileShareSetting class, or a derived "
+             "class, encoded as a string-valued embedded object "
+             "parameter. It specifies the element that is "
+             "returned as the best supported match to the "
+             "TemplateGoal." ), 
+          EmbeddedInstance ( "CIM_ExportedFileShareSetting" )]
+      string SupportedGoal);
+
+      [Experimental, Description ( 
+          "This returns the restrictions on the ElementName in the "
+          "related \"OUT\" parameters." ), 
+       ValueMap { "0", "4", "..", "0x8000.." }, 
+       Values { "Success", "Failed", "DMTF Reserved", 
+          "Vendor Specific" }]
+   uint32 GetElementNameCapabilities(
+         [Out, Description ( 
+             "Enumeration indicating what methods can accept the "
+             "element name for creation or modification of a "
+             "storage element. \r\n"
+             "CreateExportedShare is an example of an "
+             "InvokeMethod. ModifyInstance and SetProperty are "
+             "examples of intrinsic methods. \r\n"
+             "An empty array indicates ElementNaming for "
+             "ElementType is not supported, in which case the "
+             "other OUT parameters are null." ), 
+          ValueMap { "2", "3", "4", "..", "32768..65535" }, 
+          Values { "ElementName can be supplied during creation", 
+             "ElementName can be modified with InvokeMethod", 
+             "ElementName can be modified with intrinsic method", 
+             "DMTF Reserved", "Vendor Specific" }]
+      uint16 SupportedFeatures[], 
+         [Out, Description ( 
+             "Maximum supported ElementName length in characters." ), 
+          MaxValue ( 256 ), 
+          MappingStrings { 
+             "FC-SWAPI.INCITS-T11|SWAPI_UNIT_CONFIG_CAPS_T|MaxNameChars" }, 
+          ModelCorrespondence { 
+             "CIM_EnabledLogicalElementCapabilities.MaxElementNameLen" }]
+      uint16 MaxElementNameLen, 
+         [Out, Description ( 
+             "This string expresses the restrictions on "
+             "ElementName. The mask is expressed as a regular "
+             "expression. See DMTF standard ABNF with the "
+             "Management Profile Specification Usage Guide, "
+             "appendix C for the regular expression syntax "
+             "permitted. \r\n"
+             "Since the ElementNameMask can describe the maximum "
+             "length of the ElementName,any length defined in "
+             "the regexp is in addition to the restriction "
+             "defined in MaxElementNameLen (causing the smaller "
+             "value to be the maximum length)The ElementName "
+             "value satisfies the restriction, if and only if it "
+             "matches the regular expression.\r\n"
+             "If NULL, it indicates no restrictions on the "
+             "ElementName." ), 
+          ModelCorrespondence { 
+             "CIM_EnabledLogicalElementCapabilities.ElementNameMask" }]
+      string ElementNameMask);
+
+};

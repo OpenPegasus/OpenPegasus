@@ -1,0 +1,364 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::System::FileServices" ), 
+    Description ( 
+       "Provides configuration support for importing and hosting "
+       "FileShares exported from other ComputerSystems. "
+       "FileImportService is the base class managing the client-side "
+       "application in a client-server-based shared file system. A "
+       "FileImportService is hosted by a ComputerSystem and supports "
+       "\'mounting\' (binding to a name in a local namespace) a "
+       "FileSystem element or a FileShare element exported by a remote "
+       "ComputerSystem host. Specifically this local name will be a "
+       "LogicalFile sub-element of a FileSystem hosted by the local "
+       "ComputerSystem. The relationship between the mount-point and "
+       "the Share is represented by a CIM_ImportedShare association. \n"
+       "The FileSystem required here only needs to support a namespace "
+       "for a LogicalFile (it need not support the full complexity of "
+       "a LocalFileSystem, for instance, real storage). The namespace "
+       "could be constructed using any provider-specific algorithm - "
+       "if it is based on LocalFileSystem, it would be configured by a "
+       "FileSystemConfigurationService, hosted by the same "
+       "ComputerSystem, on a StorageExtent, also hosted by that "
+       "ComputerSystem. \n"
+       "The remote Share is identified by a durable Id - this is a "
+       "string that represents a path that uniquely identifies the "
+       "remote Share." )]
+class CIM_FileImportService : CIM_Service {
+
+
+      [Description ( 
+          "Start a Job to import a share exported by a remote host. \n"
+          "If 0 is returned, the method completed successfully and "
+          "no ConcreteJob instance was required. If 0x1000 is "
+          "returned, a ConcreteJob will be started to import the "
+          "Share. The Job\'s Reference will be returned in the OUT "
+          "parameter Job. \n"
+          "If the method is successful, a CIM_FileShare will be "
+          "created, hosted (via CIM_HostedShare) by the "
+          "ComputerSystem host of this service. A reference to the "
+          "FileShare will be returned in TheShare. The created "
+          "FileShare will be mounted on a local mount-point "
+          "(possibly a file/directory of a local file system) with "
+          "the CIM_ImportedShare association. \n"
+          "This method MUST return a CIM_Error representing that a "
+          "single named property of a setting (or other) parameter "
+          "(either reference or embedded object) has an invalid "
+          "value or that an invalid combination of named properties "
+          "of a setting (or other) parameter (either reference or "
+          "embedded object) has been requested. \n"
+          "The remote Share is specified by the IN parameter "
+          "TheRemote, which can be either a CIM_FileShare or a "
+          "CIM_FileSystem and therefore is typed as a "
+          "CIM_EnabledLogicalElement. \n"
+          "Goal is a CIM_ImportedFileShareSetting element encoded "
+          "as a string-valued EmbeddedInstance; this allows the "
+          "client to specify the properties desired for the share. \n"
+          "The associated CIM_HostedShare.RemoteWWN property will "
+          "hold the name of TheRemote file share." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "..", "0x1000", 
+          "0x1001..0x7FFF", "0x8000.." }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Mount-point already in use, Failed", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint16 CreateImportedShare(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "A reference to the remote FileShare or FileSystem "
+             "that is to be imported." )]
+      CIM_EnabledLogicalElement REF TheRemote, 
+         [IN, Description ( 
+             "A reference indicating an element whose "
+             "sub-element is the mount-point. The class that "
+             "Root references must be a FileSystem, or a "
+             "FileShare that has an ImportedShare association "
+             "(or a derived class of ImportedShare) to a "
+             "LogicalFile (or Directory), or a LogicalFile (or "
+             "Directory) that has a AttachedElement association "
+             "to a FileShare or FileSystem. \n"
+             "If Root is NULL, it indicates the root of the "
+             "FileImportService host\'s default local "
+             "FileSystem, that is used as the default local name "
+             "space. It is a requirement that the host of the "
+             "FileImportService must be the host for the newly "
+             "created FileShare, as well as the host for the "
+             "FileSystem or FileShare indicated by Root." )]
+      CIM_LogicalElement REF Root, 
+         [IN, Description ( 
+             "A string representing a path to the mount-point "
+             "attached to the share from the element indicated "
+             "by Root. \n"
+             "If MountPointPath is NULL or the empty string, it "
+             "indicates the FileSystem element indicated by "
+             "Root. It is an error if the element indicated by "
+             "MountPointPath is already in use as a mount-point "
+             "(has a CIM_ImportedShare association). If both "
+             "Root and MountPointPath are NULL, it would be "
+             "considered an attempt to reuse a mount-point and "
+             "would also return an error." )]
+      string MountPointPath, 
+         [IN, Description ( 
+             "The client-specified requirements for how the "
+             "specified FileShare element is to be shared or "
+             "imported by the FileImportService. This is an "
+             "element of the CIM_ImportedFileShareSetting class, "
+             "or a derived class, encoded as a string-valued "
+             "embedded object parameter. If NULL or the empty "
+             "string, the default configuration will be "
+             "specified by the FileImportService." ), 
+          EmbeddedInstance ( "CIM_ImportedFileShareSetting" )]
+      string Goal, 
+         [OUT, Description ( 
+             "This specifies the FileShare element (or its "
+             "derived class) that is created by the method, if "
+             "successful." )]
+      CIM_FileShare REF TheShare, 
+         [IN, Description ( 
+             "An array of references to RemotePorts that this "
+             "Share may use to connect to the remote Share, if "
+             "the CIM_ImportedFileShareSettings.AccessPoints "
+             "property is set to \'Named Ports\'. \n"
+             "The array will be processed in index order. If the "
+             "array is NULL, or an entry in the array is NULL, "
+             "all access points supported by the remote share "
+             "will be surfaced as RemotePorts and made "
+             "available. If the array is empty, no access points "
+             "will be made available. All the RemotePorts will "
+             "be associated with the created FileShare via the "
+             "SAPAvailableForElement association." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_ImportedFileShareSetting.AccessPoints" }]
+      CIM_RemotePort REF AccessPointPorts[]);
+
+      [Description ( 
+          "Start a Job to modify an imported share. \n"
+          "If 0 is returned, the method completed successfully and "
+          "no ConcreteJob instance was required. If 0x1000 is "
+          "returned, a ConcreteJob will be started to modify the "
+          "Share. The Job\'s Reference will be returned in the OUT "
+          "parameter Job. \n"
+          "If the Job succeeds, the FileShare will be modified and "
+          "re-configured and ready to be enabled. A reference to "
+          "the FileShare will be returned in TheShare. The "
+          "FileShare will have a HostedShare association to the "
+          "host ComputerSystem, as before. \n"
+          "This method MUST return a CIM_Error representing that a "
+          "single named property of a setting (or other) parameter "
+          "(either reference or embedded object) has an invalid "
+          "value or that an invalid combination of named properties "
+          "of a setting (or other) parameter (either reference or "
+          "embedded object) has been requested. \n"
+          "This method cannot be used to change the remotely shared "
+          "entity or the mount point in the local namespace, but a "
+          "provider may support changing the pathname to the "
+          "mount-point by specifying Root and/or MountPointPath. "
+          "The reference parameter Root indicates the FileSystem or "
+          "FileShare whose element provides the mount-point, either "
+          "directly, or indirectly by specifying a Directory "
+          "element that is associated via MountedElement to the "
+          "FileSystem or FileShare. The FileSystem or FileShare so "
+          "indicated cannot be changed by this method. \n"
+          "The parameter MountPointPath indicates the mount-point "
+          "element within the file hierarchy by a path relative to "
+          "the Root. If the Root is a FileSystem, this path begins "
+          "at the root directory of the FileSystem; if the Root is "
+          "a FileShare, this path begins at the directory "
+          "associated to the FileShare via MountedElement; if the "
+          "Root is a Directory, this path begins at that Directory. "
+          "If this path is modified, it must still indicate the "
+          "same terminal element. \n"
+          "Goal is a CIM_ImportedFileShareSetting element encoded "
+          "as a string-valued embedded object parameter; this "
+          "allows the client to specify the properties desired for "
+          "the share. \n"
+          "If the method is successful, it will return a reference "
+          "to the same CIM_FileShare in the INOUT parameter "
+          "TheShare. The settings for the FileShare and the "
+          "ServiceAccessPoint associations may change, but the "
+          "HostedShare and ServiceAffectsElement associations to "
+          "the share must not be changed by this method. \n"
+          "The input TheShare must not be NULL." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "..", "0x1000", "0x1001..0x7FFF", "0x8000.." }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "FileImportService Not Accessible", 
+          "Root is not accessible", 
+          "Base Directory element of Root is Not Accessible", 
+          "Path does not specify a mount point element", 
+          "Share in use, cannot be Modify, Failed", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint16 ModifyImportedShare(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "A reference indicating an element whose "
+             "sub-element is the mount point. The class that "
+             "Root references must be a FileSystem, a FileShare "
+             "that has an ImportedShare association (or a "
+             "derived class of ImportedShare) to a LogicalFile "
+             "(or Directory), or a LogicalFile (or Directory) "
+             "that has a MountedElement association to a "
+             "FileShare or FileSystem. If the FileShare being "
+             "modified is currently exported or imported, this "
+             "parameter should indicate the same Root FileSystem "
+             "or FileShare element. \n"
+             "If Root is NULL, it indicates no change to the "
+             "current root." )]
+      CIM_LogicalElement REF Root, 
+         [IN, Description ( 
+             "A string representing a path to the mount point "
+             "from the element indicated by Root. If the "
+             "FileShare being modified is currently exported or "
+             "imported, this parameter should specify the same "
+             "mount point element, even if via a different path. \n"
+             "If MountPointPath is NULL, it indicates no change "
+             "to the current path. If MountPointPath is the "
+             "empty string, it indicates the FileSystem element "
+             "indicated by Root." )]
+      string MountPointPath, 
+         [IN, Description ( 
+             "The client-specified requirements for how the "
+             "import settings for the specified FileShare "
+             "element are to be modifed by the "
+             "FileImportService. This operation cannot be "
+             "performed on a FileShare that not already imported "
+             "(implying that it is currently only exported). "
+             "Goal is an element of the "
+             "CIM_ImportedFileShareSetting class, or a derived "
+             "class, encoded as a string-valued embedded object "
+             "parameter. If NULL or the empty string, the "
+             "existing configuration must include an "
+             "ImportedFileShareSetting which may be unchanged. "
+             "Any differences in property values will be "
+             "resolved by the FileImportService and CIM_Errors "
+             "generated if appropriate." ), 
+          EmbeddedInstance ( "CIM_ImportedFileShareSetting" )]
+      string Goal, 
+         [IN, OUT, Description ( 
+             "TheShare indicates the FileShare element that is "
+             "to be modified and must be an existing imported "
+             "FileShare." )]
+      CIM_FileShare REF TheShare, 
+         [IN, Description ( 
+             "An enumerated integer that specifies the action "
+             "that the provider should take if the FileShare is "
+             "still in use when this request is made. The "
+             "WaitTime parameter indicates the \'specified time\' "
+             "used for this function. \n"
+             "This option is only relevant if the FileShare must "
+             "be made unavailable while the request is being "
+             "executed." ), 
+          ValueMap { "2", "3", "4", "..", "0x1000..0xFFFF" }, 
+          Values { "Do Not Execute Request", 
+             "Wait for specified time, then Execute Request Immediately", 
+             "Attempt Quiescence for specified time, then Execute Request Immediately", 
+             "DMTF Reserved", "Vendor Defined" }]
+      uint16 InUseOptions, 
+         [IN, Description ( 
+             "An integer that indicates the time (in seconds) "
+             "that the provider must wait before executing this "
+             "request if it cannot be made while the share is in "
+             "use. If WaitTime is not zero, the method will "
+             "create a job, if supported by the provider, and "
+             "return immediately. If the provider does not "
+             "support asynchronous jobs, there is a possibility "
+             "that the client could time-out before the job is "
+             "completed. \n"
+             "The combination of InUseOptions = \'4\' and "
+             "WaitTime =\'0\' (the default) is interpreted as "
+             "\'Wait (forever) until Quiescence, then Execute "
+             "Request\' and will be performed asynchronously if "
+             "possible." ), 
+          Units ( "seconds" ), 
+          PUnit ( "second" )]
+      uint32 WaitTime, 
+         [IN, Description ( 
+             "An array of references to RemotePorts that this "
+             "Share may use to connect to the remote Share, if "
+             "the CIM_ImportedFileShareSettings.AccessPoints "
+             "property is set to \'Named Ports\'. \n"
+             "The array will be processed in index order and "
+             "added to the existing set of RemotePorts. If the "
+             "array is NULL, the existing set will not be "
+             "changed. If an entry in the array is NULL, all "
+             "access points supported by the remote share will "
+             "be surfaced as RemotePorts and made available. If "
+             "the array is empty, no access points will be made "
+             "available, and existing access points will be "
+             "disabled. All the RemotePorts will be associated "
+             "with the created FileShare via the "
+             "SAPAvailableForElement association." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_ImportedFileShareSetting.AccessPoints" }]
+      CIM_RemotePort REF AccessPointPorts[]);
+
+      [Description ( 
+          "Start a Job to release an imported FileShare. \n"
+          "If 0 is returned, the method completed successfully and "
+          "no ConcreteJob instance was required. If 0x1000 is "
+          "returned, a ConcreteJob will be started to release the "
+          "Share. The Job\'s reference will be returned in the OUT "
+          "parameter Job. \n"
+          "If the method is successful, the FileShare element will "
+          "not be imported anymore. This method cannot be called if "
+          "the FileShare element is also being exported - the "
+          "FileExportService.ReleaseExportedShare method must be "
+          "called first. \n"
+          "If InUseOptions are specified, this method will succeed "
+          "only if no more clients are accessing the share." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "10", "..", 
+          "0x1000", "0x1001..0x7FFF", "0x8000.." }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Share in use, Failed", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ReleaseImportedShare(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "The imported FileShare to be released." )]
+      CIM_FileShare REF TheShare, 
+         [IN, Description ( 
+             "An enumerated integer that specifies the action "
+             "that the provider should take if the FileShare is "
+             "still in use when this request is made. The "
+             "WaitTime parameter indicates the \'specified time\' "
+             "used for this function." ), 
+          ValueMap { "2", "3", "4", "..", "0x1000..0xFFFF" }, 
+          Values { "Do Not Release", 
+             "Wait for specified time, then Release Immediately", 
+             "Attempt Quiescence for specified time, then Release Immediately", 
+             "DMTF Reserved", "Vendor Defined" }]
+      uint16 InUseOptions, 
+         [IN, Description ( 
+             "An integer that indicates the time (in seconds) "
+             "that the provider must wait before releasing this "
+             "FileShare. If WaitTime is not zero, the method "
+             "will create a job, if supported by the provider, "
+             "and return immediately. If the provider does not "
+             "support asynchronous jobs, there is a possibility "
+             "that the client could time-out before the job is "
+             "completed. \n"
+             "The combination of InUseOptions = \'4\' and "
+             "WaitTime =\'0\' (the default) is interpreted as "
+             "\'Wait (forever) until Quiescence, then Release\' "
+             "and will be performed asynchronously if possible." ), 
+          Units ( "seconds" ), 
+          PUnit ( "second" )]
+      uint32 WaitTime);
+
+};

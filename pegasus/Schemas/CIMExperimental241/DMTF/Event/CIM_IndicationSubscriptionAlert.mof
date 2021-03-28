@@ -1,0 +1,67 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Indication, Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::Event" ), 
+    Description ( 
+       "This class represents a special type of Alert Indication to "
+       "notify a CIM Listener of a state change affecting referencing "
+       "subscriptions. A CIM Client would typically not subscribe to "
+       "one of these Indications, rather it would be sent to any "
+       "Listener potentially affected by the state change affecting "
+       "referencing subscriptions." )]
+class CIM_IndicationSubscriptionAlert : CIM_AlertIndication {
+
+      [Description ( 
+          "The type of state change affecting the Indication "
+          "Subscription. Possible values include: \n"
+          "(0) \"Unknown\" - the type of state change is unknown; \n"
+          "(1) \"Other\" - another type of state change as "
+          "specified in the OtherIndicationSubscriptionStateChange; \n"
+          "(2) \"Indication Service Shutdown\" - the Indication "
+          "Service is shutting down; \n"
+          "(3) \"Subcomponent Missing\" - a subcomponent of the "
+          "Indication Service (e.g. a provider) is missing; \n"
+          "(4) \"Subcomponent Disabled\" - a subcomponent of the "
+          "Indication Service has been disabled; \n"
+          "(5) \"Subcomponent Enabled\" - a subcomponent of the "
+          "Indication Service been enabled (re-enabled)." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5" }, 
+       Values { "Unknown", "Other", "Indication Service Shutdown", 
+          "Subcomponent Missing", "Subcomponent Disabled", 
+          "Subcomponent Enabled" }, 
+       ModelCorrespondence { 
+          "CIM_IndicationSubscriptionAlert.OtherIndicationSubscriptionStateChange" }]
+   uint16 IndicationSubscriptionStateChange;
+
+      [Description ( 
+          "A string defining \"Other\" values for "
+          "IndicationSubscriptionStateChange. This value MUST be "
+          "set to a non NULL value when "
+          "IndicationSubscriptionStateChange is set to a value of 1 "
+          "(\"Other\"). For all other values of "
+          "IndicationSubscriptionStateChange, the value of this "
+          "string MUST be set to NULL." ), 
+       ModelCorrespondence { 
+          "CIM_IndicationSubscriptionAlert.IndicationSubscriptionStateChange" }]
+   string OtherIndicationSubscriptionStateChange;
+
+      [Description ( 
+          "An IndicationSubscriptionAlert potentially affects one "
+          "or more IndicationSubscriptions. This property lists the "
+          "IndicationSubscriptions as an array of CIMObjectPaths "
+          "with format "
+          "<NamespacePath>:<ClassName>.Filter=\"<Value1>\", "
+          "Handler=\"<Value2>\". Value1 and Value2 are in turn the "
+          "CIMObjectPaths of the IndicationFilter and "
+          "ListenerDestination, thus each having the format "
+          "<NamespacePath>:<ClassName>.SystemCreationClassName=\"<ValueA>\", "
+          "SystemName=\"<ValueB>\",CreationClassName=\"<ValueC>\", "
+          "Name=\"<ValueD>\". \n"
+          "This array MUST contain only the subscriptions "
+          "applicable to the Listener to receive the "
+          "IndicationSubscriptionAlert." ), 
+       ModelCorrespondence { "CIM_IndicationSubscription.Filter", 
+          "CIM_IndicationSubscription.Handler" }]
+   string IndicationSubscriptions[];
+
+
+};

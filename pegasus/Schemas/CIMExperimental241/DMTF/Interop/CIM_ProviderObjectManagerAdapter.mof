@@ -1,0 +1,43 @@
+// Copyright (c) 2006 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.14.0" ), 
+    UMLPackagePath ( "CIM::Interop" ), 
+    Description ( 
+       "A Provider Object Manager Adapter is a Service of the CIM "
+       "Object Manager that is responsible for handling providers for "
+       "a specific interface (i.e. CMPI, JSR48, ...)." )]
+class CIM_ProviderObjectManagerAdapter : CIM_ObjectManagerAdapter {
+
+      [Required, Override ( "AdapterType" ), 
+       Description ( "This value shall be 3 - Provider." ), 
+       ValueMap { "3" }, 
+       Values { "Provider" }, 
+       ModelCorrespondence { 
+          "CIM_ObjectManagerAdapter.OtherAdapterTypeDescription" }]
+   uint16 AdapterType = 3;
+
+      [Required, Description ( 
+          "Interface describes the interface that this Provider "
+          "Object Manager Adapter uses to communicate with Providers.\n"
+          "Other - If the adapter does not fit into one of the "
+          "other catagories in the list. If specified, the "
+          "OtherInterfaceDescription property shall be populated. \n"
+          "CMPI - Common Manageability Programming Interface by The "
+          "Open Group. \n"
+          "JSR48 - WBEM Services Specification by The Java "
+          "Community Process." ), 
+       ValueMap { "1", "2", "3", "..", "0x8000.." }, 
+       Values { "Other", "CMPI", "JSR48", "DMTF Reserverd", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_ProviderObjectManagerAdapter.OtherInterfaceDescription" }]
+   uint16 Interface;
+
+      [Description ( 
+          "The type of Interface when \"Other\" or \"Vendor "
+          "Reserved\" is specified for the Interface property." ), 
+       ModelCorrespondence { 
+          "CIM_ProviderObjectManagerAdapter.Interface" }]
+   string OtherInterfaceDescription;
+
+
+};

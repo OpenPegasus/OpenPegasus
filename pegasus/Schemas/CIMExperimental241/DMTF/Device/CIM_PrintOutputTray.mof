@@ -1,0 +1,209 @@
+// Copyright (c) 2008 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.19.0" ), 
+    UMLPackagePath ( "CIM::Device::Printing" ), 
+    Description ( 
+       "This class represents the PrintOutputTray component of a "
+       "Printer (print device). It contains properties that describe a "
+       "device capable of receiving media delivered from the printing "
+       "process. Note: A PrintOutputTray shall be associated with "
+       "exactly one Printer via an instance of the PrinterComponent "
+       "class. See: Model in section 2 of Printer MIB (RFC 3805)." ), 
+    MappingStrings { "MIB.IETF|Printer-MIB.prtOutputEntry" }]
+class CIM_PrintOutputTray : CIM_PrinterElement {
+
+      [Required, Override ( "ElementName" ), 
+       Description ( 
+          "The user-friendly name for this instance of "
+          "PrintOutputTray. In addition, the user-friendly name can "
+          "be used as an index property for a search or query. "
+          "(Note: The name does not have to be unique within a "
+          "namespace.) This name shall be generated as a factory "
+          "default by the manufacturer and may be changed "
+          "out-of-band to a site-specific name by the system "
+          "administrator." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtOutputName" }, 
+       ModelCorrespondence { "CIM_ManagedElement.ElementName" }]
+   string ElementName;
+
+      [Description ( 
+          "Denotes whether or not this PrintOutputTray is the "
+          "default PrintOutputTray for this printer. If the default "
+          "PrintOutputTray feature is not supported for this "
+          "printer, then this property shall be null. If the "
+          "default PrintOutputTray feature is supported for this "
+          "printer, then this property shall be true for at most "
+          "one instance of CIM_PrintOutputTray on this printer, "
+          "i.e., the default may not be currently configured." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtOutputDefaultIndex" }]
+   boolean IsDefault;
+
+      [Description ( 
+          "A free-form text description of this PrintOutputTray in "
+          "the localization specified by "
+          "CIM_Printer.CurrentNaturalLanguage." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtOutputDescription", 
+          "MIB.IETF|Printer-MIB.PrtLocalizedDescriptionStringTC" }, 
+       ModelCorrespondence { "CIM_Printer.CurrentNaturalLanguage" }]
+   string LocalizedDescription;
+
+      [Description ( 
+          "The type of technology supported by this PrintOutputTray." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", ".." }, 
+       Values { "Other", "Unknown", "RemovableBin", 
+          "UnRemovableBin", "ContinuousRollDevice", "MailBox", 
+          "ContinuousFanFold", "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtOutputType", 
+          "MIB.IETF|IANA-PRINTER-MIB.PrtOutputTypeTC" }]
+   uint32 Type;
+
+      [Description ( 
+          "A free-form string that describes the type of technology "
+          "when the value of the Type property is equal to 1 "
+          "(Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 )]
+   string OtherTypeDescription;
+
+      [Description ( 
+          "The unit of measurement for use in calculating and "
+          "relaying capacity values for this PrintOutputTray." ), 
+       ValueMap { "1", "2", "3", "4", "8", "16", "17", "18", "19", 
+          ".." }, 
+       Values { "Other", "Unknown", "TenThousandthsOfInches", 
+          "Micrometers", "Sheets", "Feet", "Meters", "Items", 
+          "Percent", "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtOutputCapacityUnit", 
+          "MIB.IETF|Printer-MIB.PrtCapacityUnitTC" }]
+   uint32 CapacityUnit;
+
+      [Description ( 
+          "A free-form string that describes the capacity unit when "
+          "the value of the CapacityUnit property is equal to 1 "
+          "(Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 )]
+   string OtherCapacityUnit;
+
+      [Description ( 
+          "The basis for the limit property MaxCapacity, that "
+          "specifies whether a meaningful value is available. 1 "
+          "(Other) means the PrintOutputTray places no restrictions "
+          "on capacity and MaxCapacity shall be null. 2 (Unknown) "
+          "means the PrintOutputTray cannot sense a meaningful "
+          "value and MaxCapacity shall be null. 3 (Actual) means "
+          "the PrintOutputTray can sense a meaningful value and "
+          "MaxCapacity shall be present." ), 
+       ValueMap { "1", "2", "3", ".." }, 
+       Values { "Other", "Unknown", "Actual", "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtOutputMaxCapacity" }, 
+       ModelCorrespondence { "CIM_PrintOutputTray.MaxCapacity" }]
+   uint16 MaxCapacityBasis;
+
+      [Description ( 
+          "The maximum capacity of this PrintOutputTray. There is "
+          "no convention associated with the media itself so this "
+          "value essentially reflects claimed capacity. If this "
+          "PrintOutputTray can reliably sense this value, the value "
+          "is sensed by the Printer and cannot be changed by the "
+          "system administrator; otherwise, the value may be "
+          "changed out-of-band by the system administrator." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 2147483647 ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.prtOutputMaxCapacity", 
+          "MIB.IETF|Printer-MIB.prtOutputCapacityUnit", 
+          "MIB.IETF|Printer-MIB.PrtCapacityUnitTC" }]
+   uint32 MaxCapacity;
+
+      [Description ( 
+          "The basis for the gauge property RemainingCapacity, that "
+          "specifies whether a meaningful value is available. 1 "
+          "(Other) means the Printer places no restrictions on "
+          "capacity and RemainingCapacity shall be null. 2 "
+          "(Unknown) means the Printer cannot sense a meaningful "
+          "value and RemainingCapacity shall be null. 3 (Actual) "
+          "means the Printer can sense a meaningful value and "
+          "RemainingCapacity shall be present. 4 (AtLeastOne) means "
+          "that the Printer can only sense that at least one "
+          "capacity unit remains and RemainingCapacity shall be "
+          "present and shall contain the value zero or one." ), 
+       ValueMap { "1", "2", "3", "4", ".." }, 
+       Values { "Other", "Unknown", "Actual", "AtLeastOne", 
+          "DMTF Reserved" }, 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtOutputRemainingCapacity" }]
+   uint16 RemainingCapacityBasis;
+
+      [Description ( 
+          "The remaining capacity of this PrintOutputTray. If this "
+          "PrintOutputTray can reliably sense this value, the value "
+          "is sensed by the Printer and cannot be changed by the "
+          "system administrator; otherwise, the value may be "
+          "changed out-of-band by the system administrator." ), 
+       MinValue ( 0 ), 
+       MaxValue ( 2147483647 ), 
+       MappingStrings { 
+          "MIB.IETF|Printer-MIB.prtOutputRemainingCapacity", 
+          "MIB.IETF|Printer-MIB.prtOutputCapacityUnit", 
+          "MIB.IETF|Printer-MIB.PrtCapacityUnitTC" }]
+   uint32 RemainingCapacity;
+
+      [Description ( 
+          "This property contains detailed availability information "
+          "for this PrintOutputTray, as follows: 1 (Other) means "
+          "other detailed availability information is present in "
+          "the OtherAvailabilityStatus property. 2 (Unknown) means "
+          "detailed availability information for this "
+          "PrintOutputTray is unknown. 3 (AvailableIdle) means this "
+          "PrintOutputTray is available and idle, i.e., not "
+          "currently in use. 4 (AvailableStandy) means this "
+          "PrintOutputTray is available but on standby, e.g., in a "
+          "power saving mode. 5 (AvailableActive) means this "
+          "PrintOutputTray is available and active, i.e., currently "
+          "in use. 6 (AvailableBusy) means this PrintOutputTray is "
+          "available but busy, i.e., not immediately available for "
+          "its primary function. 7 (UnavailableOnRequest) means "
+          "this PrintOutputTray is not available and is on request, "
+          "i.e., needs human intervention. 8 (UnavailableBroken) "
+          "means this PrintOutputTray is not available and is "
+          "broken, e.g., needs repair/replacement." ), 
+       ValueMap { "1", "2", "3", "4", "5", "6", "7", "8", ".." }, 
+       Values { "Other", "Unknown", "AvailableIdle", 
+          "AvailableStandby", "AvailableActive", "AvailableBusy", 
+          "UnavailableOnRequest", "UnavailableBroken", 
+          "DMTF Reserved" }, 
+       MappingStrings { "MIB.IETF|Printer-MIB.PrtSubUnitStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.OperatingStatus", 
+          "CIM_PrintOutputTray.OtherAvailabilityStatus" }]
+   uint32 AvailabilityStatus;
+
+      [Description ( 
+          "A free-form string that describes the detailed "
+          "availability of this PrintOutputTray when the value of "
+          "the AvailabilityStatus property is equal to 1 (Other)." ), 
+       MinLen ( 0 ), 
+       MaxLen ( 255 ), 
+       ModelCorrespondence { "CIM_PrintOutputTray.AvailabilityStatus" }]
+   string OtherAvailabilityStatus;
+
+      [Description ( 
+          "If true, there are currently non-critical alerts on this "
+          "PrintOutputTray." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.PrtSubUnitStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.DetailedStatus" }]
+   boolean NonCriticalAlertsPresent;
+
+      [Description ( 
+          "If true, there are currently critical alerts on this "
+          "PrintOutputTray." ), 
+       MappingStrings { "MIB.IETF|Printer-MIB.PrtSubUnitStatusTC" }, 
+       ModelCorrespondence { 
+          "CIM_ManagedSystemElement.DetailedStatus" }]
+   boolean CriticalAlertsPresent;
+
+
+};

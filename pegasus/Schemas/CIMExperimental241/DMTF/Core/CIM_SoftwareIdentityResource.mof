@@ -1,0 +1,64 @@
+// Copyright (c) 2011 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.10.0" ), 
+    UMLPackagePath ( "CIM::Core::Software" ), 
+    Description ( 
+       "SoftwareIdentityResource describes the URL of a file or other "
+       "resource that contains all or part of of a SoftwareIdentity "
+       "for use by the SoftwareInstallationService. For example, a "
+       "CIM_SoftwareIdentity might consist of a meta data file, a "
+       "binary executable file, and a installability checker file for "
+       "some software on a system. This class allows a management "
+       "client to selectively access the constituents of the install "
+       "package to perform a check function, or retrieve some meta "
+       "data information for the install package represented by the "
+       "SoftwareIdentity class without downloading the entire package. "
+       "SoftwareIdentityResources will be related to the "
+       "SoftwareIdentity using the SAPAvailableForElement association." )]
+class CIM_SoftwareIdentityResource : CIM_RemoteServiceAccessPoint {
+
+      [Override ( "InfoFormat" ), 
+       Description ( 
+          "A SoftwareIdentityResource will always be a URL." )]
+   uint16 InfoFormat = 200;
+
+      [Description ( 
+          "An enumerated integer that specifies the type of "
+          "resource referenced by the "
+          "RemoteServiceAccessPoint.AccessInfo property." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "9", "10", 
+          "11", "12", "..", "0x8000..0xFFFF" }, 
+       Values { "Unknown", "Other", "Installer and Payload", 
+          "Installer", "Payload", "Installability checker", 
+          "Security Advisory", "Engineering Advisory", 
+          "Technical release notes", "Change notification", 
+          "Whitepaper", "Marketing Documentation", "DMTF Reserved", 
+          "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_SoftwareIdentityResource.OtherResourceType", 
+          "CIM_SoftwareIdentityResource.ExtendedResourceType" }]
+   uint16 ResourceType;
+
+      [Description ( 
+          "A enumerated integer that provides further information "
+          "for ResourceType. It will set to 2 (\'Not Applicable\') "
+          "if there is no extended information available." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "11", 
+          "101..200", "201", "202", "203", "..", "0x8000..0xFFFF" }, 
+       Values { "Unknown", "Not Applicable", "Linux RPM", 
+          "HP-UX Depot", "Windows MSI", "Solaris Package", 
+          "Macintosh Disk Image", "Debian linux Package", 
+          "HP Smart Component", "Vendor Reserved", "HTML", "PDF", 
+          "Text File", "DMTF Reserved", "Vendor Reserved" }, 
+       ModelCorrespondence { 
+          "CIM_SoftwareIdentityResource.ResourceType" }]
+   uint16 ExtendedResourceType;
+
+      [Description ( 
+          "A string describing the file type when the instance\'s "
+          "ResourceType property is 1 (\"Other\")." ), 
+       ModelCorrespondence { 
+          "CIM_SoftwareIdentityResource.ResourceType" }]
+   string OtherResourceType;
+
+
+};

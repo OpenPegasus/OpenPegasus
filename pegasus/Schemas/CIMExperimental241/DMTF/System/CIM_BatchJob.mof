@@ -1,0 +1,51 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.8.1000" ), 
+    UMLPackagePath ( "CIM::System::Processing" ), 
+    Description ( 
+       "Description of a batch request that is either waiting on a "
+       "BatchQueue to run, in the process of running, or that has "
+       "previously run. Jobs that are completed and not recurring will "
+       "NOT be associated with a BatchQueue. Jobs that are completed "
+       "but recurring WILL be associated with a BatchQueue, since they "
+       "are waiting to run given the scheduling information in the "
+       "associated JobSettingData instance." )]
+class CIM_BatchJob : CIM_ConcreteJob {
+
+      [Required, Override ( "Name" ), 
+       Description ( 
+          "Uniquely identifies this Job within a BatchQueue and "
+          "BatchService. This property can be used in the "
+          "construction of the InstanceID key inherited from "
+          "ConcreteJob." )]
+   string Name;
+
+      [Write, Description ( 
+          "Specifies the maximum number of milliseconds of CPU time "
+          "that this job can use in any individual run." ), 
+       Units ( "MilliSeconds" ), 
+       PUnit ( "second * 10^-3" )]
+   uint32 MaxCPUTime;
+
+      [Description ( 
+          "Time when this BatchJob was completed. This value is "
+          "only valid if the inherited JobState property has been "
+          "set to \"Completed\" (value=7), \"Terminated\" "
+          "(value=8), or \"Killed\" (value=9)." ), 
+       ModelCorrespondence { "CIM_BatchJob.JobState" }]
+   datetime TimeCompleted;
+
+      [Write, Description ( 
+          "Provides additional information, beyond Job Owner "
+          "inherited from CIM_Job, to identify the origins of the "
+          "BatchJob. This property could include information such "
+          "as the System, application or Process that created the "
+          "BatchJob." )]
+   string JobOrigination;
+
+      [Description ( 
+          "Provides the command and parameters, in string form, for "
+          "the execution of this job." )]
+   string Task;
+
+
+};

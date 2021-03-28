@@ -1,0 +1,63 @@
+// Copyright (c) 2007 DMTF.  All rights reserved.
+// <change cr="CIMCoreCR00892" type ="new">Add the base class, 
+// InitiatorTargetLogicalUnitPath, to the existing class 
+// SCSIInitiatorTargetLogicalUnitPath and add class 
+// ATAInitiatorTargetLogicalUnitPath with same base.</
+// ==================================================================
+//  CIM_InitiatorTargetLogicalUnitPath
+// ==================================================================
+   [Association, Experimental, Version ( "2.15.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageDevices" ), 
+    Description ( 
+       "An association that models a host driver path to a logical "
+       "unit. Each permutation of initiator and target "
+       "ProtocolEndpoints and logical units is considered a separate "
+       "path." )]
+class CIM_InitiatorTargetLogicalUnitPath {
+
+      [Key, Description ( "An initiator endpoint." )]
+   CIM_ProtocolEndpoint REF Initiator;
+
+      [Key, Description ( "A target endpoint." )]
+   CIM_ProtocolEndpoint REF Target;
+
+      [Key, Description ( 
+          "A subclass of LogicalDevice representing a Logical Unit "
+          "(such as StorageVolume or TapeDrive). Refer to the "
+          "Logical Unit Number section of ANSI INCITS 402-2005 , "
+          "the SCSI-3 Architecture Model (SAM)." )]
+   CIM_LogicalDevice REF LogicalUnit;
+
+      [Write, Description ( 
+          "The state of this path. Values are defined as follows: \n"
+          "Unknown - the path is unavailable,but the cause is not "
+          "known. \n"
+          "Active - The path is okay and active. \n"
+          "Passive - The path is okay, but is associated with a "
+          "target port of target port group in standby access "
+          "state. Only applies to devices with asymmetric access. \n"
+          "Disabled - The path is disabled by administrative "
+          "request (DisablePathLU). \n"
+          "Path Error - The path is unusable due to an error on "
+          "this path and no SCSI status was received. \n"
+          "Logical Unit Error - A SCSI status was received for an "
+          "I/O through this path indicating a logical unit error. \n"
+          "Reserved - The path is unavailable due to a reservation. \n"
+          "Removed - The path is unavailable because the OS or "
+          "drivers marked the pathunusable. \n"
+          "Transitioning - the path is transitioning between two "
+          "valid states. \n"
+          "The only valid values a client can specify are Disabled "
+          "and Active. All other states are determined by the "
+          "underlying implementation; attempts to set them should "
+          "be given an error response." ), 
+       ValueMap { "0", "2", "3", "4", "5", "6", "7", "8", "9" }, 
+       Values { "Unknown", "Active", "Passive", "Disabled", 
+          "Path Error", "Logical Unit Error", "Reserved", "Removed", 
+          "Transitioning" }, 
+       MappingStrings { 
+          "MP_API.SNIA|MP_PATH_LOGICAL_UNIT_PROPERTIES|pathState" }]
+   uint32 State;
+
+
+};

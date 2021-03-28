@@ -1,0 +1,90 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.41.0" ), 
+    UMLPackagePath ( "CIM::Device::StorageServices" ), 
+    Description ( 
+       "This class represents a replication entity, such as an entity "
+       "known by its World Wide Name (WWN)." )]
+class CIM_ReplicationEntity : CIM_EnabledLogicalElement {
+
+      [Key, Override ( "InstanceID" ), 
+       Description ( 
+          "Within the scope of the instantiating Namespace, "
+          "InstanceID opaquely and uniquely identifies an instance "
+          "of this class. To ensure uniqueness within the "
+          "NameSpace, the value of InstanceID should be constructed "
+          "using the following \"preferred\" algorithm: \n"
+          "<OrgID>:<LocalID> \n"
+          "Where <OrgID> and <LocalID> are separated by a colon "
+          "(:), and where <OrgID> must include a copyrighted, "
+          "trademarked, or otherwise unique name that is owned by "
+          "the business entity that is creating or defining the "
+          "InstanceID or that is a registered ID assigned to the "
+          "business entity by a recognized global authority. (This "
+          "requirement is similar to the <Schema Name>_<Class Name> "
+          "structure of Schema class names.) In addition, to ensure "
+          "uniqueness, <OrgID> must not contain a colon (:). When "
+          "using this algorithm, the first colon to appear in "
+          "InstanceID must appear between <OrgID> and <LocalID>. \n"
+          "<LocalID> is chosen by the business entity and should "
+          "not be reused to identify different underlying "
+          "(real-world) elements. If the above \"preferred\" "
+          "algorithm is not used, the defining entity must assure "
+          "that the resulting InstanceID is not reused across any "
+          "InstanceIDs produced by this or other providers for the "
+          "NameSpace of this instance. \n"
+          "For DMTF-defined instances, the \"preferred\" algorithm "
+          "must be used with the <OrgID> set to CIM." )]
+   string InstanceID;
+
+      [Description ( 
+          "Indicates how to interpret the information appearing in "
+          "EntityID. \n"
+          "Encoded in EntityID: indicates the ID has an "
+          "implementation specific method of including the entity "
+          "type in the ID. For example: \"vol+foobar\" says the "
+          "entity represents a volume called foobar. \n"
+          "Embedded Instance: indicates the object is an embedded "
+          "instance found in the property Element. \n"
+          "URI: Refers to a WBEM URI value per DMTF DSP0207 "
+          "specification. \n"
+          "Objectpath: The address of an object consisting of a "
+          "namespace path and model path per DMTF DSP0004 "
+          "specification." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "11", "..", "0x8000.." }, 
+       Values { "Unknown", "Other", "StoragePool", "StorageExtent", 
+          "StorageVolume", "LogicalDisk", "Filesystem", "WWN", 
+          "URI", "Objectpath", "Encoded in EntityID", 
+          "Embedded Instance", "DMTF Reserved", "Vendor Specific" }, 
+       ModelCorrespondence { "CIM_ReplicationEntity.EntityID", 
+          "CIM_ReplicationEntity.OtherTypeDescription", 
+          "CIM_ReplicationEntity.Element" }]
+   uint16 Type;
+
+      [Description ( 
+          "An ID representing the resource identified by this "
+          "entity. For example, the WWN or the URI of an element. "
+          "The property Type is to be used to interpret the ID." ), 
+       ModelCorrespondence { "CIM_ReplicationEntity.Type" }]
+   string EntityID;
+
+      [Description ( 
+          "Populated when \"Type\" has the value of \"Other\"." ), 
+       ModelCorrespondence { "CIM_ReplicationEntity.Type" }]
+   string OtherTypeDescription;
+
+      [Write, Description ( 
+          "If false, the instance of this object, not the element "
+          "represented by this entity, may be deleted at the "
+          "completion of a copy operation." )]
+   boolean Persistent = true;
+
+      [Write, Description ( 
+          "Populated when \"Type\" has the value of \"Embedded Instance\"."
+           ), 
+       EmbeddedInstance ( "CIM_LogicalElement" ), 
+       ModelCorrespondence { "CIM_ReplicationEntity.Type" }]
+   string Element;
+
+
+};

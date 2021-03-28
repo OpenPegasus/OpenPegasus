@@ -1,0 +1,54 @@
+// Copyright (c) 2005 DMTF.  All rights reserved.
+// <change cr="DMTFCR01192.001" type ="new">Add FCPortSettings</
+// <change cr="CIMCoreCR00804.001" type ="change">Remove Experimental
+// from class.</
+// <change cr="CIMCoreCR00805" type = "change">Changed superclass.</change>
+// <change cr="ArchCR00066.004" type="add">Add UmlPackagePath
+// qualifier values to CIM Schema.</change>
+// ===================================================================
+// FCPortSettings
+// ===================================================================
+   [Version ( "2.13.0" ), 
+    UMLPackagePath ( "CIM::Device::FC" ), 
+    Description ( 
+       "A port that supports FibreChannel capabilities may be "
+       "configured via the FCPortSettings class. The configuration "
+       "changes are expected to be stored to non-volatile memory." )]
+class CIM_FCPortSettings : CIM_NetworkPortSettings {
+
+      [Write, Description ( 
+          "RequestedType acts as a filter on the enabled port types "
+          "that a port may negotiate after a connection is "
+          "established. \n"
+          "Changing this value may cause a port reset if the "
+          "enabled port type doesn\'t fall within the boundaries of "
+          "the new requested port type filter. It may also cause "
+          "the port to stay disabled if the new port type filter is "
+          "incompatible with the attached device. \n"
+          "Acceptable values for this property may be found in the "
+          "FCPortCapabilities.RequestedTypesSupported array. \n"
+          "\"G\" = Port may only act as an expansion port (E), or a "
+          "fabric port (F). \"GL\" = Port may only act an an "
+          "expansion port (E), a fabric port (F), or a fabric port "
+          "supporting FC arbitrated loop (FL). \"E\" = Port may "
+          "only act as an expansion port (E) connecting fabric "
+          "elements. \"F\" = Port may only act as a fabric port "
+          "(F). \"FX\" = Port may only act as a fabric port (F), or "
+          "a fabric port supporting FC arbitrated loop (FL). \"B\" "
+          "= Port may only act as a bridge port (B). \"NX\" = Port "
+          "may only act as a node port (N) or a node port "
+          "supporting FC arbitrated loop (NL). \"N\" = Port may "
+          "only act as a Node port. \"NL\" = Port may only act as a "
+          "Node Port supporting FC arbitrated loop." ), 
+       ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", "10", 
+          "..", "16000..65535" }, 
+       Values { "G", "GL", "E", "F", "FX", "B", "NX", "N", "NL", 
+          "DMTF Reserved", "Vendor Reserved" }, 
+       MappingStrings { "FC-SWAPI.INCITS-T11|UcPortConfigSetType" }, 
+       ModelCorrespondence { 
+          "CIM_FCPortCapabilities.RequestedTypesSupported", 
+          "CIM_FCPort.PortType" }]
+   uint16 RequestedType;
+
+
+};

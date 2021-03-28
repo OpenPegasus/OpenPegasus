@@ -1,0 +1,518 @@
+// Copyright (c) 2013 DMTF.  All rights reserved.
+   [Experimental, Version ( "2.37.0" ), 
+    UMLPackagePath ( "CIM::System::FileServices" ), 
+    Description ( 
+       "Provides configuration support for exporting elements "
+       "(\'files\') of a FileSystem. FileExportService(s) are hosted "
+       "by a ComputerSystem that exports the files (these would be the "
+       "Filers in a NAS Head). These shared elements (FileShares) are "
+       "accessed through ProtocolEndpoint(s) hosted by the Filer that "
+       "support the specified file-sharing protocol. FileShares are "
+       "associated with the Service via ServiceAffectsElement and with "
+       "the ProtocolEndpoint(s) via SAPAvailableForElement." )]
+class CIM_FileExportService : CIM_Service {
+
+
+      [Description ( 
+          "Start a Job to create a FileShare from an element of a "
+          "FileSystem or an imported FileShare. Makes the element "
+          "available as a FileShare and returns it as the parameter "
+          "TheShare of type CIM_FileShare. \n"
+          "If 0 is returned, the method completed successfully and "
+          "no ConcreteJob instance was required. If 0x1000 is "
+          "returned, a ConcreteJob has been started to create the "
+          "FileShare. The Job\'s reference will be returned in the "
+          "output parameter Job. If the Job succeeds, the FileShare "
+          "will be created and configured and ready to be exported. "
+          "If the FileShare has been configured to be exported at a "
+          "later time, its \'EnabledState\' attribute will not be "
+          "set to \"Enabled\", until exported. The FileShare will "
+          "have a HostedShare association to the host "
+          "ComputerSystem. \n"
+          "This method MUST return a CIM_Error representing that a "
+          "single named property of a setting (or other) parameter "
+          "(either reference or embedded object) has an invalid "
+          "value or that an invalid combination of named properties "
+          "of a setting (or other) parameter (either reference or "
+          "embedded object) has been requested. \n"
+          "The reference parameter Root indicates the FileSystem or "
+          "FileShare whose element is being exported, either "
+          "directly, or indirectly by specifying a Directory "
+          "element that is associated via MountedElement to the "
+          "FileSystem or FileShare. \n"
+          "The string parameter SharedElementPath indicates the "
+          "shared element within the file hierarchy by a path "
+          "relative to the Root. If the Root is a FileSystem, this "
+          "path begins at the root directory of the FileSystem; if "
+          "the Root is a FileShare, this path begins at the "
+          "directory associated to the FileShare via "
+          "MountedElement; if the Root is a Directory, this path "
+          "begins at that Directory. This is a string because "
+          "multiple paths could lead to the same element but the "
+          "access rights or other privileges could be specific to "
+          "the path. \n"
+          "Goal is a CIM_ExportedFileShareSetting element encoded "
+          "as a string-valued EmbeddedInstance parameter; this "
+          "allows the client to specify the properties desired for "
+          "the share. \n"
+          "If the method is successful, it will return a "
+          "CIM_FileShare in the OUT parameter TheShare. The "
+          "settings on the FileShare will be specified by the "
+          "ExportedFileShareSetting element associated with the "
+          "TheShare element via CIM_ElementSettingData. This "
+          "ExportedFileShareSetting will also be associated via "
+          "SettingGeneratedByCapabilities to the "
+          "ExportedFileShareCapabilities element that was used for "
+          "creating the FileShare. The FileShare will also be "
+          "associated to the ComputerSystem via HostedShare, to the "
+          "FileExportService via ServiceAffectsElement, and to one "
+          "or more ServiceAccessPoints via SAPAvailableForElement." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "..", "0x1000", "0x1001..0x7FFF", "0x8000.." }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "FileExportService Not Accessible", 
+          "Root is not accessible", 
+          "Base Directory element of Root is Not Accessible", 
+          "Path does not specify a shareable element", 
+          "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 CreateExportedShare(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, OUT, Description ( 
+             "A reference indicating an element whose "
+             "sub-element is being exported. The class that Root "
+             "references must be a FileSystem, a FileShare that "
+             "has a MountedElement association (or a derived "
+             "class of MountedElement) to a LogicalFile (or "
+             "Directory), or a LogicalFile (or a derived class "
+             "such as Directory) that has a MountedElement "
+             "association to a FileShare or FileSystem. \n"
+             "If Root is NULL, it indicates the root of the "
+             "FileExportService host\'s default local "
+             "FileSystem, that is used as the default local name "
+             "space." )]
+      CIM_LogicalElement REF Root, 
+         [IN, Description ( 
+             "A string representing a path to the shared element "
+             "from the Directory indicated by Root. \n"
+             "Multiple paths could lead to the same element but "
+             "the access rights or other privileges could be "
+             "specific to the path. The client must specify the "
+             "path. \n"
+             "If SharedElementPath is NULL or the empty string, "
+             "it indicates the \"root\" LogicalElement contained "
+             "by Root." )]
+      string SharedElementPath, 
+         [IN, Description ( 
+             "The client-specified requirements for how the "
+             "specified FileShare element is to be shared or "
+             "exported by the FileExportService. This is an "
+             "element of the CIM_ExportedFileShareSetting class, "
+             "or a derived class, encoded as a string-valued "
+             "embedded object parameter. If NULL or the empty "
+             "string, the default configuration will be "
+             "specified by the FileExportService." ), 
+          EmbeddedInstance ( "CIM_ExportedFileShareSetting" )]
+      string Goal, 
+         [OUT, Description ( 
+             "This specifies the FileShare element (or its "
+             "derived class) that is created by the method, if "
+             "successful." )]
+      CIM_FileShare REF TheShare, 
+         [IN, Description ( 
+             "A reference to a concrete derived class of "
+             "CIM_Identity that indicates the user id to use for "
+             "default access to this share. A NULL value "
+             "indicates that no user id is specified. The "
+             "provider is expected to surface this access using "
+             "the privilege model." )]
+      CIM_Identity REF DefaultUserId, 
+         [IN, Description ( 
+             "An array of strings that specify the hosts that "
+             "have root access to this Share, if the "
+             "CIM_ExportedFileShareSetting.RootAccess property "
+             "is set to \'Allow Root Access\'. Each entry "
+             "specifies a host by a vendor-specific host-id, "
+             "prefixed with \'+\' or \'-\' to indicate that "
+             "access is either Granted or Denied. The name of "
+             "the host is its Durable Name, which is expected to "
+             "be a fully-qualified-domain-name or its IP "
+             "Address. If one of the entries is \'+*\', root "
+             "access will be allowed from all hosts. If one of "
+             "the entries is \'-*\', root access will be denied "
+             "to all hosts, effectively overriding the value of "
+             "the property "
+             "CIM_ExportedFileShareSetting.RootAccess. The "
+             "provider is expected to surface this access using "
+             "the privilege model. \n"
+             "This property needs to be a string because the "
+             "remote host may not be known to the provider and "
+             "therefore a reference to the host may not exist." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_ExportedFileShareSetting.RootAccess" }]
+      string RootAccessHosts[], 
+         [IN, Description ( 
+             "An array of strings that specify the "
+             "ServiceAccessPoints that can connect to this "
+             "Share, if the "
+             "CIM_ExportedFileShareSettings.AccessPoints "
+             "property is set to \'Named Ports\'. Each entry "
+             "specifies one or more access points by its Name, "
+             "unique within the System hosting the FileShare. "
+             "The ids may be prefixed with \'+\' or \'-\'to "
+             "indicate that access is to be granted or denied. \n"
+             "If one of the entries is \'+*\', all access points "
+             "supported by the service will be supported. If one "
+             "of the entries is \'-*\', all access points will "
+             "be denied access, effectively overriding the value "
+             "of the property "
+             "CIM_ExportedFileShareSetting.AccessPoints. The "
+             "provider is expected to surface these access "
+             "rights (whether granted or denied) using the "
+             "privilege model. Any AccessPoints granted access "
+             "via this parameter will also be associated to this "
+             "share with CIM_SAPAvailableForElement. If the "
+             "AccessPoint is not already enabled it will appear "
+             "in a disabled state. \n"
+             "This property needs to be a string because the "
+             "access point may not be known to the provider and "
+             "therefore a reference to the ServiceAccessPoint "
+             "may not exist." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_ExportedFileShareSetting.AccessPoints" }]
+      string AccessPointPorts[]);
+
+      [Description ( 
+          "Start a Job to modify an Exported FileShare. \n"
+          "If 0 is returned, the method completed successfully and "
+          "no ConcreteJob instance was required. If 0x1000 is "
+          "returned, a ConcreteJob has been started to modify the "
+          "FileShare. The Job\'s reference will be returned in the "
+          "output parameter Job. \n"
+          "If the Job succeeds, the FileShare will be modified and "
+          "re-configured and ready to be exported. If the FileShare "
+          "has been configured to be exported at a later time, its "
+          "\'EnabledState\' attribute will not be set to \"Enabled\", "
+          "until exported. A reference to the FileShare will be "
+          "returned in TheShare. The FileShare will have a "
+          "HostedShare association to the host ComputerSystem, as "
+          "before. If the parameters are, invalid, this method MUST "
+          "return a CIM_Error representing that a single named "
+          "property of a setting (or other) parameter (either "
+          "reference or embedded object) has an invalid value or "
+          "that an invalid combination of named properties of a "
+          "setting (or other) parameter (either reference or "
+          "embedded object) has been requested. \n"
+          "This method cannot be used to change the element that "
+          "has been exported, but a provider may support changing "
+          "the pathname used to access it by re-specifying Root "
+          "and/or SubElementPath. The reference parameter Root "
+          "indicates the FileSystem or FileShare whose element is "
+          "being exported, either directly, or indirectly by "
+          "specifying a Directory element that is associated via "
+          "MountedElement to the FileSystem or FileShare. The "
+          "FileSystem or FileShare so indicated cannot be changed "
+          "by this method. \n"
+          "The parameter SharedElementPath indicates the shared "
+          "element within the file hierarchy by a path relative to "
+          "the Root. If the Root is a FileSystem, this path begins "
+          "at the root directory of the FileSystem; if the Root is "
+          "a FileShare, this path begins at the directory "
+          "associated to the FileShare via MountedElement; if the "
+          "Root is a Directory, this path begins at that Directory. "
+          "If this path is modified, it must still indicate the "
+          "same terminal element. \n"
+          "Goal is a CIM_ExportedFileShareSetting element encoded "
+          "as a string-valued embedded object parameter; this "
+          "allows the client to specify the properties desired for "
+          "the share. \n"
+          "If the method is successful, it will return a reference "
+          "to the same CIM_FileShare in the INOUT parameter "
+          "TheShare. The settings for the FileShare and the "
+          "ServiceAccessPoint associations may change, but the "
+          "HostedShare and ServiceAffectsElement associations to "
+          "the share must not be changed by this method. \n"
+          "The input TheShare must not be NULL." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+          "10", "..", "0x1000", "0x1001..0x7FFF", "0x8000.." }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "FileExportService Not Accessible", 
+          "Root is not accessible", 
+          "Base Directory element of Root is Not Accessible", 
+          "Path does not specify a shareable element", 
+          "Share in use and cannot be Modified, Failed", 
+          "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ModifyExportedShare(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( 
+             "A reference indicating an element whose "
+             "sub-element is being exported. The class that Root "
+             "references must be a FileSystem, a FileShare that "
+             "has a MountedElement association (or a derived "
+             "class of MountedElement) to a Directory, or a "
+             "Directory that has a MountedElement association to "
+             "a FileShare or FileSystem. If the FileShare being "
+             "modified is currently exported or imported, this "
+             "parameter should indicate the same Root FileSystem "
+             "or FileShare element. \n"
+             "If Root is NULL, it indicates no change to the "
+             "current root." )]
+      CIM_LogicalElement REF Root, 
+         [IN, Description ( 
+             "A string representing a path to the shared element "
+             "from the Directory element indicated by Root. If "
+             "the FileShare being modified is currently exported "
+             "or imported, this parameter should specify the "
+             "same shared element, even if via a different path. \n"
+             "Multiple paths could lead to the same element but "
+             "the access rights or other privileges could be "
+             "specific to the path. The client must specify the "
+             "path during creation. \n"
+             "If SharedElementPath is NULL, it indicates no "
+             "change to the current path. If SharedElementPath "
+             "is the empty string, it indicates the element "
+             "indicated by Root." )]
+      string SharedElementPath, 
+         [IN, Description ( 
+             "The client-specified requirements for how the "
+             "export settings for the specified FileShare "
+             "element are to be modifed by the "
+             "FileExportService. If the FileShare is currently "
+             "imported and not exported this will set up the "
+             "necessary SharedElement, SharedElementRoot, "
+             "HostedShare, and other associations. Goal is an "
+             "element of the CIM_ExportedFileShareSetting class, "
+             "or a derived class, encoded as a string-valued "
+             "embedded object parameter. If NULL or the empty "
+             "string, the existing configuration must include an "
+             "ExportedFileShareSetting which will not be "
+             "changed. Any differences in property values will "
+             "be merged by the FileExportService." ), 
+          EmbeddedInstance ( "CIM_ExportedFileShareSetting" )]
+      string Goal, 
+         [IN, Description ( 
+             "TheShare indicates the FileShare that is to be "
+             "modified. This can be an existing exported "
+             "FileShare or an existing imported FileShare." )]
+      CIM_FileShare REF TheShare, 
+         [IN, Description ( 
+             "An enumerated integer that specifies the action "
+             "that the provider should take if the FileShare is "
+             "still in use when this request is made. The "
+             "WaitTime parameter indicates the \'specified time\' "
+             "used for this function. \n"
+             "This option is only relevant if the FileShare must "
+             "be made unavailable while the request is being "
+             "executed." ), 
+          ValueMap { "2", "3", "4", "..", "0x1000..0xFFFF" }, 
+          Values { "Do Not Execute Request", 
+             "Wait for specified time, then Execute Request Immediately", 
+             "Attempt Quiescence for specified time, then Execute Request Immediately", 
+             "DMTF Reserved", "Vendor Defined" }]
+      uint16 InUseOptions, 
+         [IN, Description ( 
+             "An integer that indicates the time (in seconds) "
+             "that the provider must wait before executing this "
+             "request if it cannot be done while the FileShare "
+             "is in use. If WaitTime is not zero, the method "
+             "will create a job, if supported by the provider, "
+             "and return immediately. If the provider does not "
+             "support asynchronous jobs, there is a possibility "
+             "that the client could time-out before the job is "
+             "completed. \n"
+             "The combination of InUseOptions = \'4\' and "
+             "WaitTime =\'0\' (the default) is interpreted as "
+             "\'Wait (forever) until Quiescence, then Execute "
+             "Request\' and will be performed asynchronously if "
+             "possible." ), 
+          Units ( "seconds" ), 
+          PUnit ( "second" )]
+      uint32 WaitTime, 
+         [IN, Description ( 
+             "A reference to a concrete derived class of "
+             "CIM_Identity that indicates the user id to use for "
+             "default access to this share. A NULL value "
+             "indicates that any existing user id is not "
+             "changed. The provider is expected to surface this "
+             "access using the privilege model. This method does "
+             "not support disabling the currently specified "
+             "default user id, which must be done using the "
+             "privilege model." )]
+      CIM_Identity REF DefaultUserId, 
+         [IN, Description ( 
+             "An array of strings that specify additional hosts "
+             "that have root access to this Share, if the "
+             "CIM_ExportedFileShareSetting.RootAccess property "
+             "is set to \'Allow Root Access\'. Each entry "
+             "specifies a host by a vendor-specific host-id, "
+             "prefixed with \'+\' or \'-\' to indicate that "
+             "access is either Granted or Denied. The name of "
+             "the host is its Durable Name, which is expected to "
+             "be a fully-qualified-domain-name or its IP "
+             "Address. If one of the entries is \'+*\', root "
+             "access will be allowed from all hosts. If one of "
+             "the entries is \'-*\', root access will be denied "
+             "to all hosts, effectively overriding the value of "
+             "the property "
+             "CIM_ExportedFileShareSetting.RootAccess. If this "
+             "is a null entry, the currently configured set of "
+             "hosts will not be changed. If this is an empty "
+             "array, the currently configured set of hosts will "
+             "be cleared. The provider is expected to surface "
+             "this access using the privilege model. \n"
+             "This property needs to be a string because the "
+             "remote host may not be known to the provider and "
+             "therefore a REF to the host may not exist." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_ExportedFileShareSetting.RootAccess" }]
+      string RootAccessHosts[], 
+         [IN, Description ( 
+             "An array of strings that specify additional "
+             "ServiceAccessPoints that can connect to this "
+             "Share, if the "
+             "CIM_ExportedFileShareSettings.AccessPoints "
+             "property is set to \'Named Ports\'. Each entry "
+             "specifies one or more access points by its Name, "
+             "unique within the System hosting the FileShare. "
+             "The ids may be prefixed with \'+\' or \'-\'to "
+             "indicate that access is to be granted or denied. \n"
+             "If one of the entries is \'+*\', all access points "
+             "supported by the service will be supported. If one "
+             "of the entries is \'-*\', all access points will "
+             "be denied access, effectively overriding the value "
+             "of the property "
+             "CIM_ExportedFileShareSetting.AccessPoints. If this "
+             "is a null entry, the currently configured set of "
+             "access points will not be changed. If this is an "
+             "empty array, the currently configured set of "
+             "access points will be cleared. The provider is "
+             "expected to surface these access rights (whether "
+             "granted or denied) using the privilege model. Any "
+             "AccessPoints granted access via this parameter "
+             "will also be associated to this share with "
+             "CIM_SAPAvailableForElement. If the AccessPoint is "
+             "not already enabled it will appear in a disabled "
+             "state. \n"
+             "This property needs to be a string because the "
+             "access point may not be known to the provider and "
+             "therefore a REF to the ServiceAccessPoint may not "
+             "exist." ), 
+          ArrayType ( "Indexed" ), 
+          ModelCorrespondence { 
+             "CIM_ExportedFileShareSetting.AccessPoints" }]
+      string AccessPointPorts[]);
+
+      [Description ( 
+          "Start a Job to release an exported Share. \n"
+          "If 0 is returned, the method completed successfully and "
+          "no ConcreteJob instance was required. If 0x1000 is "
+          "returned, a ConcreteJob will be started to release the "
+          "Share. The Job\'s reference will be returned in the OUT "
+          "parameter Job. \n"
+          "If the method is successful, the Share element will not "
+          "be surfaced for export and the shared element will not "
+          "be exported anymore through this Share. \n"
+          "If InUseOptions are specified, this method will succeed "
+          "only if no more clients are accessing the share." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", "10", "..", 
+          "0x1000", "0x1001..0x7FFF", "0x8000.." }, 
+       Values { "Job Completed with No Error", "Not Supported", 
+          "Unknown", "Timeout", "Failed", "Invalid Parameter", 
+          "Share in use, Failed", "DMTF Reserved", 
+          "Method Parameters Checked - Job Started", 
+          "Method Reserved", "Vendor Specific" }]
+   uint32 ReleaseExportedShare(
+         [IN ( false ), OUT, Description ( 
+             "Reference to the job (may be null if job completed)."
+              )]
+      CIM_ConcreteJob REF Job, 
+         [IN, Description ( "The imported Share to be released." )]
+      CIM_Share REF TheShare, 
+         [IN, Description ( 
+             "An enumerated integer that specifies the action "
+             "that the provider should take if the FileShare is "
+             "still in use when this request is made. The "
+             "WaitTime parameter indicates the \'specified time\' "
+             "used for this function. \n"
+             "This option is only relevant if the FileShare must "
+             "be made unavailable while the request is being "
+             "executed." ), 
+          ValueMap { "2", "3", "4", "..", "0x1000..0xFFFF" }, 
+          Values { "Do Not Execute Request", 
+             "Wait for specified time, then Release Immediately", 
+             "Attempt Quiescence for specified time, then Release Immediately", 
+             "DMTF Reserved", "Vendor Defined" }]
+      uint16 InUseOptions, 
+         [IN, Description ( 
+             "An integer that indicates the time (in seconds) "
+             "that the provider must wait before releasing this "
+             "FileShare. If WaitTime is not zero, the method "
+             "will create a job, if supported by the provider, "
+             "and return immediately. If the provider does not "
+             "support asynchronous jobs, there is a possibility "
+             "that the client could time-out before the job is "
+             "completed. \n"
+             "The combination of InUseOptions = \'4\' and "
+             "WaitTime =\'0\' (the default) is interpreted as "
+             "\'Wait (forever) until Quiescence, then Release\' "
+             "and will be performed asynchronously if possible." ), 
+          Units ( "seconds" ), 
+          PUnit ( "second" )]
+      uint32 WaitTime);
+
+      [Description ( 
+          "AssignPrivilegeToExportedShaare will assign all of the "
+          "supplied activities to the specified Identities." ), 
+       ValueMap { "0", "1", "2", "3", "4", "5", ".." }, 
+       Values { "Completed with No Error", "Not Supported", 
+          "Failed", "Activities Not Supported", 
+          "Identity Not Found", "File Share Not Found", 
+          "DMTF Reserved" }]
+   uint32 AssignPrivilegeToExportedShare(
+         [Required, Description ( 
+             "The list of Identities to assign privilege to share."
+              )]
+      CIM_Identity REF Identities[], 
+         [Required, Description ( 
+             "The Activities to assign to the share. The "
+             "Activities are defined in the "
+             "CIM_AssociatedPrivilege.Activities property." ), 
+          ValueMap { "2", "3", "4", "5", "6", "7", "8", "9", 
+             "10", "11", "12", "13", "14", "15", "16", "17", 
+             "18", "19", "20", "21", "22", "23", "24", "25", 
+             "26", ".." }, 
+          Values { "Create", "Delete", "Detect", "Read", "Write", 
+             "Execute", "Deny Create", "Deny Delete", 
+             "Deny Detect", "Deny Read", "Deny Write", 
+             "Deny Execute", 
+             "Authorize to Grant/Deny Authorization", 
+             "Authorize to Create", "Authorize to Delete", 
+             "Authorize to Detect", "Authorize to Read", 
+             "Authorize to Write", "Authorize to Execute", 
+             "Authorize to Deny Create", 
+             "Authorize to Deny Delete", 
+             "Authorize to Deny Detect", 
+             "Authorize to Deny Read", "Authorize to Deny Write", 
+             "Authorize to Deny Execute", "DMTF Reserved" }, 
+          ModelCorrespondence { 
+             "CIM_AssociatedPrivilege.Activities" }]
+      uint16 Activities[], 
+         [Required, Description ( 
+             "The FileShare to assing the privileges." )]
+      CIM_FileShare REF FileShare);
+
+};
