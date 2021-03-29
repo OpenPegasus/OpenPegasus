@@ -98,7 +98,7 @@ do
     --flavor=*)
       flavor=$optarg
       ;;
- 
+
     --disable-wsman)
       dis_wsman=1
       ;;
@@ -184,12 +184,12 @@ if [ -z "$platform" ]; then
       platform=SOLARIS_X86_64_CC
       libbase=lib/64
       ;;
-    
+
     ia64:HP-UX)
       platform=HPUX_IA64_ACC
       libbase=lib/64
       ;;
- 
+
     9000/800:HP-UX)
       platform=HPUX_PARISC_ACC
       libbase=lib
@@ -199,12 +199,12 @@ if [ -z "$platform" ]; then
       platform=LINUX_IA64_GNU
       libbase=lib/64
       ;;
-    
+
     ppc:Linux)
       platform=LINUX_PPC_GNU
       libbase=lib
       ;;
-   
+
     ppc64:Linux)
       platform=LINUX_PPC64_GNU
       libbase=lib/64
@@ -222,7 +222,7 @@ if [ -z "$platform" ]; then
 
 
     *)
-        
+
      unresolved=1
      ;;
 
@@ -231,7 +231,7 @@ if [ -z "$platform" ]; then
   if [ "unresolved" = "1" ]; then
       Machine=`(Uname -m) 2>/dev/null`||Machine=unknown
       System=`(Uname -s) 2>/dev/null`||System=unknown
-      Token="$Machine:$System"  
+      Token="$Machine:$System"
 
       case "$Token" in
 
@@ -251,7 +251,7 @@ if [ -z "$platform" ]; then
         echo "  system=$system"
         exit 1
         ;;
-   
+
       esac
    fi
 fi
@@ -331,7 +331,7 @@ done
 if [ "missing" = "1" ]; then
    echo "$0: missing dependency $cc"
    exit 1;
-fi    
+fi
 
 ##==============================================================================
 ##
@@ -340,50 +340,61 @@ fi
 ##==============================================================================
 enable_ssl=0
 with_ssl=""
+
 if [ "$tiny" != "1" ] ;then
-sslcmd="openssl"
-sslYes=0
-echo "checking for $sslcmd"
-for i in $path
-do
-  if test -f $i/$sslcmd; then
-     sslYes=1
-     withssl=$i
-     break
-  fi
-done
-if [ "$sslYes" = "1" ]; then
-   echo "ssl: Yes = $withssl/$sslcmd"
-   with_ssl=${withssl%/*}
-else
-   echo "ssl: No"
-fi
+    sslcmd="openssl"
+    sslYes=0
+    echo "checking for $sslcmd"
+    for i in $path
+        # Test for sslcmd exists
+        do
+            if test -f $i/$sslcmd; then
+                sslYes=1
+                withssl=$i
+                break
+            fi
+        done
 
-if [ ! -z "$with_ssl" ]; then
+    if [ "$sslYes" = "1" ]; then
+        echo "ssl: Yes = $withssl/$sslcmd"
+        with_ssl=${withssl%/*}
+    else
+        echo "ssl: No"
+    fi
 
-  if [ ! -d "$with_ssl" ]; then
-    echo "$0: Error: No such directory: --with-ssl=$with_ssl"
-    exit 1;
-  fi
+    if [ ! -z "$with_ssl" ]; then
 
-  if [ ! -f "$with_ssl/include/openssl/ssl.h" ]; then
-    echo "$0: missing dependency: \$with_ssl/include/openssl/ssl.h"
-    missing=1
-  fi
+        if [ ! -d "$with_ssl" ]; then
+            echo "$0: Error: No such directory: --with-ssl=$with_ssl"
+            exit 1;
+        fi
 
-  if [ ! -f "$with_ssl/$libbase/libssl.so" ]; then
-    echo "$0: missing dependency: \$with_ssl/$libbase/libssl.so"
-    missing=1
-  fi
+        if [ ! -f "$with_ssl/include/openssl/ssl.h" ]; then
+            echo "$0: missing dependency: \$with_ssl/include/openssl/ssl.h"
+            echo "SSL development library (ex. libssl-dev) must be installed"
+            missing=1
+        fi
 
-  if [ "$missing" = "1" ]; then
-    echo "$0: where --with-ssl=$with_ssl"
-    unset with_ssl
-  else
-    enable_ssl=1
-  fi
+        # TODO: Direct access to libssl fails on newer Linux systems because
+        # the library is within a set of links.  It would appear that the
+        # better solution is to user ldconfig -p | grep <libname> which
+        # bypasses the direct system library access.
+        # For the moment just bypass the test.
+        #if [ ! -f "$with_ssl/$libbase/libssl.so" ]; then
+        #    echo "$0: missing dependency: \$with_ssl/$libbase/libssl.so"
+        #    missing=1
+        #fi
+	echo "Test libssl with ldconfig"
+	echo ldconfig -p | grep libssl
 
-fi
+        if [ "$missing" = "1" ]; then
+            echo "$0: where --with-ssl=$with_ssl"
+            unset with_ssl
+        else
+            enable_ssl=1
+        fi
+
+    fi
 fi
 ##==============================================================================
 ##
@@ -395,51 +406,51 @@ enable_slp=0
 with_openslp=""
 enable_openslp=0
 if [ "$tiny" != "1" ] ;then
-slpcmd="slptool"
-slpYes=0
-echo "checking for openslp"
-for i in $path
-do
-  if test -f $i/$slpcmd; then
-     slpYes=1
-     withslp=$i
-     break
-  fi
-done
-if [ "$slpYes" = "1" ]; then
-    echo "slp: Yes = $withslp/$slpcmd"
-    with_openslp=${withslp%/*}
-else
-    echo "slp: No"
-fi
+    slpcmd="slptool"
+    slpYes=0
+    echo "checking for openslp"
+    for i in $path
+    do
+      if test -f $i/$slpcmd; then
+         slpYes=1
+         withslp=$i
+         break
+      fi
+    done
+    if [ "$slpYes" = "1" ]; then
+        echo "slp: Yes = $withslp/$slpcmd"
+        with_openslp=${withslp%/*}
+    else
+        echo "slp: No"
+    fi
 
 
 
-if [ ! -z "$with_openslp" ]; then
+    if [ ! -z "$with_openslp" ]; then
 
-  if [ ! -d "$with_openslp" ]; then
-    echo "$0: Error: No such directory: --with-openslp=$with_openslp"
-    exit 1;
-  fi
+      if [ ! -d "$with_openslp" ]; then
+        echo "$0: Error: No such directory: --with-openslp=$with_openslp"
+        exit 1;
+      fi
 
-  if [ ! -f "$with_openslp/include/slp.h" ]; then
-    echo "$0: missing dependency: \$with_openslp/include/slp.h"
-    missing=1
-  fi
+      if [ ! -f "$with_openslp/include/slp.h" ]; then
+        echo "$0: missing dependency: \$with_openslp/include/slp.h"
+        missing=1
+      fi
 
-  if [ ! -f "$with_openslp/$libbase/libslp.so" ]; then
-    echo "$0: missing dependency: \$with_openslp/$libbase/libslp.so"
-    missing=1
-  fi
+      if [ ! -f "$with_openslp/$libbase/libslp.so" ]; then
+        echo "$0: missing dependency: \$with_openslp/$libbase/libslp.so"
+        missing=1
+      fi
 
-  if [ "$missing" = "1" ]; then
-    echo "$0: where --with-openslp=$with_openslp"
-    enable_slp=1
-  else
-    enable_openslp=1  
-  fi
+      if [ "$missing" = "1" ]; then
+        echo "$0: where --with-openslp=$with_openslp"
+        enable_slp=1
+      else
+        enable_openslp=1
+      fi
 
-fi
+    fi
 fi
 
 ##==============================================================================
@@ -477,6 +488,7 @@ if [ ! -z "$with_sql" ]; then
     exit 1;
   fi
 
+# TODO: The same problem with direct access to find the library exists here.
   if [ ! -f "$with_sql/lib64/libsqlite3.so" ]; then
     echo "$0: missing dependency: \$with_sql/lib64/libsqlite3.so"
     missing=1
@@ -598,7 +610,7 @@ if [ "$icuYes" = "1" ]; then
    fi
 
    if [ "$supporticu" = "1" ]; then
-      
+
       if test -f $with_icu/$libbase/libicul18n.so; then
         echo " missing dependency "
         missing=1
@@ -612,7 +624,7 @@ fi
 
 ##=============================================================================
 ##
-##Detect libz 
+##Detect libz
 ##
 ##=============================================================================
 libzpath=/usr
@@ -661,7 +673,7 @@ done
 if [ "$tiny" != "1" ] ;then
 for i in \
   with_ssl \
-  with_pam 
+  with_pam
 do
 
   eval v=$`echo $i`
@@ -677,8 +689,8 @@ do
   esac
 
 done
-fi 
-     
+fi
+
 ##==============================================================================
 ##
 ## Check whether the test user will be able to access pegasus home.
@@ -745,18 +757,19 @@ fi
 
 
 if [ ! -z "$with_pam" ]
-then
+    then
 
-  if [ ! -f "/usr/include/security/pam_appl.h" -a \
-       ! -f "/usr/local/include/security/pam_appl.h" ]
-  then
-      echo "$0: <security/pam_appl.h> is missing (required by --enable_pam)"
-      exit 1
-  else
-      enable_pam=1
-  fi
+      if [ ! -f "/usr/include/security/pam_appl.h" -a \
+           ! -f "/usr/local/include/security/pam_appl.h" ]
+      then
+          echo "$0: <security/pam_appl.h> is missing (required by --enable_pam)"
+          echo "The pam development library (ex. libpam0g on Ubuntu) must be installed."
+          exit 1
+      else
+          enable_pam=1
+      fi
 
-fi
+    fi
 fi
 
 
@@ -784,7 +797,7 @@ echo "export PEGASUS_PLATFORM=$platform" >> $options
 echo "export PEGASUS_ROOT=$prefix" >> $options
 echo "export PEGASUS_HOME=$prefix" >> $options
 
-if [ "$tiny" != "1" ]; 
+if [ "$tiny" != "1" ];
 then
 enable_debug=1
 interop_name=root/PG_InterOp
@@ -830,7 +843,7 @@ then
   echo "export PEGASUS_SKIP_MOST_TEST_DIRS=true" >> $options
 fi
 if [ "$enable_perinst" = "1" ];
-then 
+then
   echo "export PEGASUS_DISABLE_PERFINST=true" >> $options
   echo "export PEGASUS_INDICATION_PERFINST=true" >> $options
 fi
@@ -948,12 +961,12 @@ if [ "$test_option" = "1" ]; then
    echo "export PEGASUS_OVERRIDE_SSL_CERT_VERIFICATION_RESULT=true" >> $options
    echo "export PEGASUS_TMP=." >> $options
    echo "export PLATFORM_CORE_PATTERN=true" >> $options
-fi 
+fi
    echo "export PATH=$bindir:$PATH" >> $options
    echo "export LD_LIBRARY_PATH=$libdir:$LD_LIBRARY_PATH" >> $options
 
 IFS="@@@"
-export PATH=$bindir:$PATH 
+export PATH=$bindir:$PATH
 export LD_LIBRARY_PATH=$libdir:$LD_LIBRARY_PATH
 export PEGASUS_HOME PEGASUS_ROOT PEGASUS_PLATFORM
 

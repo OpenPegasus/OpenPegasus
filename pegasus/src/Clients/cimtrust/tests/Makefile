@@ -144,7 +144,7 @@ ifdef PEGASUS_HAS_SSL
 	@$(COPY) testexpired1.cert $(PEGASUS_HOME)/testexpired1.cert
 	@$(COPY) testexpired1.key $(PEGASUS_HOME)/testexpired1.key
         #
-        # Create the not yet valid certificate to the staging area
+        # Copy the not yet valid certificate to the staging area
         #
 	@$(COPY) testnotyetvalid1.cert $(PEGASUS_HOME)/testnotyetvalid1.cert
 	@$(COPY) testnotyetvalid1.key $(PEGASUS_HOME)/testnotyetvalid1.key
@@ -804,7 +804,7 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Connect with a not yet valid certificate -- should fail." >> $(RESULTFILE)
-	@TestCertClient $(PEGASUS_HOME)/testnotyetvalid1.cert $(PEGASUS_HOME)/testnotyetvalid1.key $(PEGASUS_HOME)/ssl.rnd >> $(RESULTFILE) $(REDIRECTERROR)
+	@TestCertClient $(PEGASUS_HOME)/ $(PEGASUS_HOME)/testnotyetvalid1.key $(PEGASUS_HOME)/ssl.rnd >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Add the not yet valid certificate to the truststore -- should get a not yet valid error." >> $(RESULTFILE)
