@@ -128,6 +128,13 @@ usage: FORCE
 	$(USAGE)"  After \"cvs update\" or to start over: make new world"
 	$(USAGE)
 
+##
+## Alternate target name for usage
+##
+
+FORCE:
+
+help: usage
 
 listplatforms: FORCE
 	$(USAGE)

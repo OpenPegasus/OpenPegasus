@@ -56,6 +56,7 @@
 ##    3. run the script with the following options
 ##        a.  parameter 1 the schema version (ex. 214)
 ##        b.  parameter 2 is the location/name of the downloaded zip file.
+##            This must be a file path since the script changes directories.
 ##        c.  parameter 3 is the name of the top level schema file without
 ##            the extension (.mof)
 ##            The 2nd and 3rd parameters implemented because somewhere between
@@ -73,9 +74,14 @@
 ##   2. This is a bash script and intended to be used only on systems
 ##      with the bash shell.
 ##   3. Does not test to determne if the input schema version is valid
-##   4. Two manual updates need to be made in the generated OpenPegasus mofs,
+##   4. If a file name is used as input for the zip file the script will
+##      return not found when trying to unzip because it has changed the
+##      cwd.   
+##   4. Manual updates need to be made in the generated OpenPegasus mofs,
 ##      since version 2.22 of the DMTF CIM Schema after running this script.
 ##
+##      For example, when finale DMTF schemas are loaded at least the
+##      following fixes must be entered.
 ##          In CIM_Core.mof add the line:
 ##          #pragma include ("DMTF/Interop/CIM_Error.mof")
 ##          at the top of all other includes.
@@ -97,7 +103,7 @@ function usage {
     printf " where:\n" >&2
     printf "    cim version - version of cim to be used as directory name\n" >&2
     printf "                  without separators ( ex. 222 or 221 )\n" >&2
-    printf "    DMTF mof file-The file name and location of the zip file\n" >&2
+    printf "    DMTF mof file-The file name and location (file path) of the zip file\n" >&2
     printf "                  containing the mof files as downloaded from\n"  >&2
     printf "                  DMTF.\n" >&2
     printf "    schema file name - The base name of the top level file from\n"  >&2
@@ -212,7 +218,7 @@ function choice {
 ## Test and setup variables for this create
 ## $1 - CIM Schema version to create in the #PEGASUS_ROOT/Schemas
 ##      directory (ex. 214)
-## $2 - Name of the DMTF CIM release zip file to install.
+## $2 - File path of the DMTF CIM release zip file to install.
 ## $3 - Name of the DMTF top level Schema file being installed. This file
 ##      will appear in the DMTF directory when the release mof file
 ##      is installed.  This is the name only without file name extension.
@@ -222,20 +228,44 @@ if (( $# < 3 )); then
 fi
 
 CIM_SCHEMA_VER=${1:?"Error. CIM Version parameter required ex. 214"}
-ZIP_FILE=${2:?"Error. Name of CIM MOF zip file required"}
+ZIP_FILE=${2:?"Error. File path of CIM MOF zip file required"}
 SCHEMA_FILE_NAME=${3:?"Error. Name on Top Level Schema file required"}
 
-SCHEMA_DIR=$PEGASUS_ROOT/Schemas/CIM${CIM_SCHEMA_VER}
-if [ ! -d "$PEGASUS_ROOT" ]; then
-    echo "PEGASUS_ROOT required to execute this script"
-    echo 1
+# Test if environment variable for pegasus root set.
+if [ -z ${PEGASUS_ROOT} ]; then
+    echo "Error: The Environment variable PEGASUS_ROOT must exist"
+    exit 1
 fi
 
-## confirm that the zip file exists. Error if not
+# and is a directory
+if [ ! -d "$PEGASUS_ROOT" ]; then
+    echo "PEGASUS_ROOT Environment variable required to execute this script"    
+    exit 1
+fi
+
+## confirm that the zip file path exists. Error if not
 if [ !  -e "$ZIP_FILE" ]; then
     echo "The input MOF ZIP file $ZIP_FILE does not exist."
     exit 1
 fi
+
+
+# Is this an experimental schema (The substring Experimental is in the zipfile name
+if [[ "$ZIP_FILE" == *"Experimental"* ]]; then
+    SCHEMA_DIR=$PEGASUS_ROOT/Schemas/CIMExperimental${CIM_SCHEMA_VER}
+    echo "Compiling Experimental schema into dir $SCHEMA_DIR"
+else
+    SCHEMA_DIR=$PEGASUS_ROOT/Schemas/CIM${CIM_SCHEMA_VER}
+    echo "Compiling Final, etc. DMTF Schema into directory $SCHEMA_DIR"
+fi
+
+
+# Create the directory path
+#if [[ exp == 0 ]]; then
+#    SCHEMA_DIR=$PEGASUS_ROOT/Schemas/CIM${CIM_SCHEMA_VER}
+#else
+#    SCHEMA_DIR=$PEGASUS_ROOT/Schemas/CIMExperimental${CIM_SCHEMA_VER}
+#fi
 
 ## Check with user to be sure input was correct
 choice "Create ${SCHEMA_DIR} from input file ${ZIP_FILE} [y/n]?"
@@ -244,9 +274,9 @@ if [ "$CHOICE" != "y" ]; then
     exit 1
 fi
 
-## if the schema directory exists, ask if we want to redo it.
+## If the schema directory exists, ask if we want to redo it.
 ## Deletes the DMTF subdirectory and mof in the SCHEMA_DIR
-if [ -a $SCHEMA_DIR ]; then
+if [ -a ${SCHEMA_DIR} ]; then
     echo Schema directory $SCHEMA_DIR already exists.
     choice "Replace existing Directory ${SCHEMA_DIR} [y/n]?"
     if [ "$CHOICE" = "y" ]; then
@@ -259,6 +289,12 @@ fi
 
 mkdir "$SCHEMA_DIR" || { echo Unable to create $SCHEMA_DIR ; exit 4; }
 cd $SCHEMA_DIR
+
+## re-confirm that the zip file path exists. Error if not
+if [ !  -e "$ZIP_FILE" ]; then
+    echo "The input MOF ZIP file $ZIP_FILE does not exist. Did you enter file path or just name?"
+    exit 1
+fi
 
 ## Create DMTF directory and unzip the CIM release into this directory
 mkdir DMTF
@@ -326,3 +362,6 @@ CREATE_MOF_FILE CIM_System
 INSERT_EXTRACTED_INCLUDES CIM_System System ;
 INSERT_BLANK_LINE CIM_System ;
 
+echo
+echo "Be sure to do any manual fixup of the CIM_Core.mof, etc. files"
+echo "Done. Schema ${SCHEMA_DIR} created."
