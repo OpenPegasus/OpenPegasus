@@ -56,6 +56,8 @@ else
     SETSERIAL_3 =
 endif
 
+MONTH_CERT_SN=18446744073709551615
+
 tests:
 
 poststarttests:
@@ -509,8 +511,8 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List the Certificates, should all succeed." >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -l -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Jan -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -l -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Feb  >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Jan -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/U=OpenPegasus/CN=TestSelfSigned1-Feb  >> $(RESULTFILE) $(REDIRECTERROR)
 	@cimtrust -l -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Mar >> $(RESULTFILE) $(REDIRECTERROR)
 	@cimtrust -l -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Apr >> $(RESULTFILE) $(REDIRECTERROR)
 	@cimtrust -l -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-May >> $(RESULTFILE) $(REDIRECTERROR)
@@ -524,18 +526,18 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Remove the Certificates, should all succeed." >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Jan -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Feb -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Mar -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Apr -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-May -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Jun -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Jul -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Aug -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Sept -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Oct -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Nov -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
-	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Dec -n 18446744073709551615 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Jan -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Feb -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Mar -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Apr -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-May -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Jun -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Jul -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Aug -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Sept -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Oct -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Nov -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-Dec -n $(MONTH_CERT_SN) >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO)  +++++++++ Functional tests - Delete operation testing +++++++++ >> $(RESULTFILE)
@@ -582,7 +584,7 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Add the intermediate CA signed certificate to the truststore." >> $(RESULTFILE)
-	@cimtrust -a -T a -U $(CURRENT_USER) -f $(PEGASUS_HOME)/testinter.cert >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -a -Ta -U $(CURRENT_USER) -f $(PEGASUS_HOME)/testinter.cert >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify non-existent serial number. No certs listed." >> $(RESULTFILE)

@@ -22,6 +22,8 @@ ElementIn () {
   return 1
 }
 
+CERT_SN=18446744073709551615
+
 # Create a single month cert from the integer in $1 
 CreateMonthCert() {
 	NUMBER=$1
@@ -40,18 +42,17 @@ CreateMonthCert() {
 	csr_file="${cert_name}.csr"
 	txt_file="${cert_name}.txt"
 	if [ -f "$cert_file" ]; then
-		echo "$cert_file exists."
+		echo "old $cert_file exists."
 	else
 		echo "$cert_file does not exist. Exit"
 		#exit 1
 	fi
-	months_array=("unknown" "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec")
+	months_array=("unknown" "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sept" "Oct" "Nov" "Dec")
 
 	MONTH=${months_array[ $1 ]}
 
-	SUBJ="/C=US/ST=Virginia/L=Fairfax/O=OpenGroup/OU=OpenGroup/CN=TestSelfSigned1-$MONTH"
+	SUBJ="/C=US/ST=VIRGINIA/L=Fairfax/O=OpenGroup/OU=OpenPegasus/CN=TestSelfSigned1-$MONTH"
 
-	rm $key_name $cert_name
 	# Alternate form openssl genpkey -algorithm RSA -out $key_fo;e -pkeyopt rsa_keygen_bits:2048
 	
 	# Generate the key
@@ -78,8 +79,10 @@ CreateMonthCert() {
         -in $csr_file  \
         -signkey $key_file \
         -out $cert_file  \
-        -set_serial 0 \
+        -set_serial $CERT_SN \
         -days 3650	
+        
+    # was set_serial 18446744073709551615
 	
 	if [ -f $cert_file ]; then
 		echo created $cert_name
@@ -93,7 +96,7 @@ CreateMonthCert() {
 
 if [ -z "$1" ]; then
 	for i in {1..12}; do
-		CreateCert $i
+		CreateMonthCert $i
 	done
 	
 else
