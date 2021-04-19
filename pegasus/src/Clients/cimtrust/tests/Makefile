@@ -704,7 +704,7 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Remove the CA2 certificate from the truststore, this should succeed." >> $(RESULTFILE)
-	@cimtrust -r -i /C=US/ST=OREGON/L=Portland/O=OpenGroup/OU=OpenPegasus/CN=TestCA -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=OREGON/L=Portland/O=OpenGroup/OU=OpenPegasus/CN=TestCA2 -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Add the testdup certificate to the truststore, this should fail with duplicate subject error." >> $(RESULTFILE)

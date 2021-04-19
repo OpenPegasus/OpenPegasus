@@ -17,7 +17,7 @@ OPENSSL_CNF=openssl.cnf
 
 # Create the Testchca CA key and certificate
 openssl genrsa -out testchca2.key 2048
-openssl req -new -key testchca2.key -x509 -config openssl.cnf -set_serial 0 -days 3650 -out testchca2.cert < testchca.txt
+openssl req -new -key testchca2.key -x509 -config openssl.cnf -set_serial 0 -days 3650 -out testchca2.csr < testchca.txt
 
 # create the intermediate key, csr and signed cert
 openssl genrsa -out testinter.key 2048
@@ -28,4 +28,5 @@ openssl x509 -req -set_serial 2 -days 3650 -in testinter.csr -CA testchca.cert -
 # create the leaf key, csr and signed cert
 openssl genrsa -out testleaf.key 2048
 openssl req -config ${OPENSSL_CNF} -new -key testleaf.key -out testleaf.csr < testleaf.txt
-openssl x509 -req -set_serial 0 -days 3650 -in testleaf.csr -CA testinter.cert -CAkey testinter.key -CAcreateserial -out testleaf.cert
+openssl x509 -req -set_serial 2 -days 3650 -in testleaf.csr -CA testinter.cert -CAkey testinter.key -CAcreateserial -out testleaf.cert
+
