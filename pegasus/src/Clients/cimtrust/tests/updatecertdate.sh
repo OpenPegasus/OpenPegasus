@@ -13,7 +13,6 @@ example usage: ./certrenew.sh keycert.cert -days 365
 # First arg is pointed to current PEM file
 cert_name="$1"
 
-
 # shift off first parameter. Remainder are -req parameters
 shift
 echo "INPUT CERT name" $cert_name

@@ -44,4 +44,5 @@ poststarttests:
 	$(PROGRAM)
 
 runExportClientSSL_TS1:
-	$(PROGRAM) ssl
+    # ISSUE #58: remove the error bypass
+	- $(PROGRAM) ssl

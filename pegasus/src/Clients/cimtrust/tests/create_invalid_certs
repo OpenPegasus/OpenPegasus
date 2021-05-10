@@ -1,0 +1,14 @@
+#! /bin/bash
+
+OPENSSL_CNF=openssl.cnf
+
+NAME=notyetvalid1
+openssl genrsa -out $NAME.key 2048
+echo  "openssl req -new -config ${OPENSSL_CNF} -key ${NAME}.key -out ${NAME}.csr"
+openssl req -new -config ${OPENSSL_CNF} -key ${NAME}.key -out ${NAME}.csr < ${NAME}.txt
+faketime '2029-12-24 00:00:00' openssl x509 -req -set_serial 2 -days 1 -in ${NAME}.csr -signkey ${NAME}.key -out ${NAME}.cert
+
+NAME=testexpired1
+#openssl genrsa -out $NAME.key 2048
+#openssl req -config ${OPENSSL_CNF} -new -key ${NAME}.key -out ${NAME}.csr < ${NAME}.txt
+#faketime '2015-12-24 00:00:00' openssl x509 -req -set_serial 2 -days 1 -signkey ${NAME}.key -in ${NAME}.csr -out ${NAME}.cert
