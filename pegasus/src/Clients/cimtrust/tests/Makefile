@@ -252,8 +252,8 @@ ifdef PEGASUS_HAS_SSL
 ifdef PEGASUS_OVERRIDE_SSL_CERT_VERIFICATION_RESULT
 	@$(DIFF) result.master.override result
 else
-    # TODO re-enable this result comparison 
-	###### $(COMPARERESULTS)
+    # Issue $63 re-enable this result comparison 
+	- $(COMPARERESULTS)
 endif
 	@$(ECHO) +++ Test passed +++
 	@$(RM) $(RESULTFILE)
