@@ -17,18 +17,7 @@ Change log
 openpegasus 14.2.dev1
 ---------------------
 
-
-openpegasus 14.1 - Release
-branch: release_14_1
-
 Bugs
-
-This stable branch represents the 14.1 release of OpenPegasus taken from the
-OpenPegasus web site gzip file.  It includes only extensions to add a
-.gitignore and simple README.md.
-
-Users may use this branch or the gzip/zip files available from the OpenPegasus
-website.
 
 1. Fix issue with gcc compile warnings for class_memaccess and deprecated-copy
    and deprecated. These were fixes for now by hiding the tests in the compiler
@@ -39,6 +28,8 @@ website.
 
 2. Fix issue with literal use of root/PG_Interop in Makefile for
    Client/test/pullop/pullop.cpp. (See issue #2)
+   
+3. Issue with pulltest and namespaces fixed (Issue #3)
 
 3. Fix code from warning messages for vsprintf, etc. where the buffer could
    be too small. Enlarged output buffer. (See issue #5)
@@ -48,13 +39,45 @@ website.
    to references.  See Issue #6)
 
 5. Hide gcc compiler warning for function readdir_r as deprecated. This was
-   corrected by setting the Wno-deprecated flag in configure_linux (see #7)
+   corrected by setting the Wno-deprecated flag in configure_linux (see issue #7)
 
 6. Fix issue with function valid() in Pegasus/Common/Message.cpp that was causing
    issue in non-debug mode.   (see issue #12)
+   
+7. MOF compiler fails with mof where EmbeddedInstance is in a non-leaf class (see
+   issue #50)
+   
+8. The certificate and key files in pegasus/src/Server were built a number of years
+   ago and were obsolete, expired and with SHA1 rather than SHA256 for digest
+   definition. They would not pass tests.  These certificates and keys were rebuilt
+   to update the dates and the characteristics to be usable with OpenSSL 1.1.1. See
+   issue #63)
+   
+9. Upgrade OpenPegasus SSL functions to interface with OpenSSL 1.1.x.  This version
+   of OpenSSL is a significatn API change from the 1.0.2 version. (see issue #54)
+   
+10. Fix issue in Message.cpp causing failure in not-debug mode. (see issue #19)
+
+   
+Enhancements
+
+1. Integrate DMTF schema 2.41 experimental into OpenPegasus schemas.  This required
+   extendint the schema definition capability to allow for experimental schemas and
+   modifying the list of mof files in the Schemas directory for CIMExperimental241
+   (See issue #46, #62). Note that the test suite cannot be run with this schema because
+   the test suite depends on particular class definitions.
+   
+2. Allow defintion of Experimental DMTF schema as OpenPegasus repositories (see issue #51)
+   
 
 cleanup
 
 1. Update version to 2.14.2 and status development.
 
 2. Change executable names on several test executables. (See issue # 27)
+
+
+openpegasus 14.1 - Release
+--------------------------
+branch: release_14_1
+

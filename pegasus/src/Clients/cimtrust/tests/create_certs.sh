@@ -19,7 +19,7 @@ OPENSSL_CNF=minica.cnf
 CERTNAMEROOT=testchca
 echo ------------------Create key for $CERTNAMEROOT
 # generate private key
-openssl genrsa -out ${CERTNAMEROOT}.key 2048
+#openssl genrsa -out ${CERTNAMEROOT}.key 2048
 # generate certificate signing request
 echo -------------------create root csr  for ${CERTNAMEROOT}.
 
@@ -39,8 +39,11 @@ openssl req -new \
  	-config ${OPENSSL_CNF} \
  	-key ${CERTNAMEROOT}.key \
  	-nodes \
- 	-set_serial 0 \
+ 	-set_serial 1 \
  	-days 3650 \
+ 	-newkey rsa:2048 \
+ 	-keyout ${CERTNAMEROOT}.key \
+ 	-verbose \
 	-out ${CERTNAMEROOT}.csr < ${CERTNAMEROOT}.txt
 	
 echo show results after csr create
@@ -63,10 +66,34 @@ openssl ca \
 	-extensions v3_ca \
 	-days 3650 \
 	-create_serial \
+	-batch \
+	-verbose \
 	-in ${CERTNAMEROOT}.csr \
 	-out ${CERTNAMEROOT}.cert
 	
+#Verify the certificate
+
+openssl verify -verbose -CAfile {CERTNAMEROOT}.cert {CERTNAMEROOT}.cert
+	
 exit
+
+# From other test
+openssl ca \
+	-config ./rootssl.cnf \
+	-create_serial \
+	-days 3650 \
+	-keyfile $KEY \
+	-selfsign \
+	-extensions v3_ca \
+	-batch \
+	-in $CSR \
+	-out certs/${CA_FILENAME}.cert \
+# verify root  certificate
+
+openssl x509 -noout -text -in certs/${CA_FILENAME}.cert
+
+# verify as valid
+openssl verify -verbose -CAfile certs/${CA_FILENAME}.cert certs/${CA_FILENAME}.cert
 
 
 
