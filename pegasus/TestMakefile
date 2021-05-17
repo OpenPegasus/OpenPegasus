@@ -286,9 +286,11 @@ slptests:
 	$(MAKE) --directory=$(PEGASUS_ROOT)/src/slp/tests/slptests -f Makefile slptests
 	@ $(ECHO) "+++++ TestMakefile slp test suite completed"
 
-# TODO: Temporary test target defined to execute just cert testssince they have issues.
+# TODO: Temporary test target defined to execute just cert tests since they have issues.
 # To enable, unblock the following statement and comment the statement afterwards.
-# servertests: servertestsclean servertestssetup serversuite_cert_tests
+#servertests: servertestsclean servertestssetup serversuite_short_tests
+#	@ $(ECHO) "+++++ TestMakefile servertests  cert_tests complete"
+
 servertests: servertestsclean servertestssetup serversuite
 	@ $(ECHO) "+++++ TestMakefile servertests suites complete"
 
@@ -331,9 +333,10 @@ endif
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ENUMCTXT_TS1
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_ENUMCTXT_TS2
 
-# The following is the certificate and cipher tests
+# The following is a short set of tests.  This target can be used to test just a
+# limited group of tests in the server test suite.
 # It is not directly referenced today but linked to serversuite.
-serversuite_cert_tests: FORCE
+serversuite_short_tests: FORCE
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_SSL_CBA_TS1
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile runCBATestSuites
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_sslCipherSuiteTests

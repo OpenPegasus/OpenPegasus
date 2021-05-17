@@ -30,10 +30,9 @@ key_file="${cert_name}.key"
 echo "FILES KEY=" $key_file " CERT=" $cert_file
 
 # Create a corresponding pem file
-openssl x509 -inform DER -outform PEM -in $cert_file -out $tmp_pem
+#openssl x509 -inform DER -outform PEM -in $cert_file -out $tmp_pem
 
-
-openssl x509 -noout -enddate -in $cert_file -out $pem_file
+# openssl x509 -noout -enddate -in $cert_file -out $pem_file
 
 # Extract a certificate sign request form certification file (PEM)
 openssl x509 -x509toreq -in $cert_file -out $tmp_csr -signkey $key_file
