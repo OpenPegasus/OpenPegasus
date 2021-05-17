@@ -252,8 +252,7 @@ ifdef PEGASUS_HAS_SSL
 ifdef PEGASUS_OVERRIDE_SSL_CERT_VERIFICATION_RESULT
 	@$(DIFF) result.master.override result
 else
-    # Issue $63 re-enable this result comparison 
-	- $(COMPARERESULTS)
+	$(COMPARERESULTS)
 endif
 	@$(ECHO) +++ Test passed +++
 	@$(RM) $(RESULTFILE)
@@ -355,27 +354,27 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Missing value for serial number." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -n >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Duplicate option, issuer specified twice." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -i test -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -i test -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Duplicate option, serial number specified twice." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -n 0 -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 0 -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Duplicate option, subject specified twice." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -S test -S test >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -S test -S test >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Invalid remove option, incorrect serial number." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -n 2222 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 2222 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Invalid remove option, incorrect subject." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -S abcd >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -S abcd >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Required option missing, issuer not specified." >> $(RESULTFILE)
@@ -387,23 +386,23 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Required option missing, serial number not specified." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Unexpected option, combine remove and certfile." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -n 0 -f abc >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 0 -f abc >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Unexpected option, combine subject and serial number." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -S abc -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -S abc -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Unexpected option, combine serial number and subject." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -n 1 -S abc >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 1 -S abc >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Unexpected option, combine remove and certuser." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -n 0 -U abc >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 0 -U abc >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Unexpected option, combine add and help." >> $(RESULTFILE)
@@ -447,7 +446,7 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Command-line tests complete, remove the CA certificate from the truststore, this should succeed." >> $(RESULTFILE)
-	@cimtrust -r -i /CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO)  +++++++++ Functional tests - Add operation testing +++++++++ >> $(RESULTFILE)
@@ -589,15 +588,15 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify non-existent serial number. No certs listed." >> $(RESULTFILE)
-	@cimtrust -l -i "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" -n 1234 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 1234 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify non-existent issuername. No certs listed." >> $(RESULTFILE)
-	@cimtrust -l -i "/CN=TestChainCAx/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i "/CN=NameNotExist/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify non-existent subject. No certs listed." >> $(RESULTFILE)
-	@cimtrust -l -i "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" -S "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=NoSuchCert" >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -S "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=NoSuchCert" >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify only the serial number. This should fail." >> $(RESULTFILE)
@@ -605,7 +604,7 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify only the subject. This should fail." >> $(RESULTFILE)
-	@cimtrust -l -S "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -S "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify the only serial number. Should fail since issuer not specified." >> $(RESULTFILE)
@@ -613,28 +612,28 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify both serial number & subject, this should fail." >> $(RESULTFILE)
-	@cimtrust -l -i "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" -n 1 -S "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 1 -S "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify both subject & serial number, this should fail." >> $(RESULTFILE)
-	@cimtrust -l -i "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" -S "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -S "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Positive testcases." >> $(RESULTFILE)
 	@$(ECHO) "List certificates, specify the issuername." >> $(RESULTFILE)
-	@cimtrust -l -i "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify the issuername & subject." >> $(RESULTFILE)
-	@cimtrust -l -i "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" -S "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -S "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List certificates, specify the issuername & serial number." >> $(RESULTFILE)
-	@cimtrust -l -i "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 16 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Remove the CA certificate from the truststore, this should succeed." >> $(RESULTFILE)
-	@cimtrust -r -i "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Try to connect with the intermediate certificate issued by the CA, this should fail." >> $(RESULTFILE)
@@ -646,7 +645,7 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Remove the intermediate CA certificate from the truststore, this should succeed." >> $(RESULTFILE)
-	@cimtrust -r -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 16 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) +++++++++ Functional tests - Certificate chain tests +++++++++ >> $(RESULTFILE)
@@ -738,7 +737,7 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "List the leaf certificate, specify the issuername." >> $(RESULTFILE)
-	@cimtrust -l -i "/C=US/ST=Nevada/L=LasVegas/O=OpenGroup/OU=OpenPegasus/CN=TestInterCA" -n 2 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -l -i "/C=US/ST=Nevada/L=LasVegas/O=OpenGroup/OU=OpenPegasus/CN=TestInterCA" -n 100 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Try to connect, this should succeed since the leaf has an associated username." >> $(RESULTFILE)
@@ -746,15 +745,15 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Remove the CA certificate from the truststore, this should succeed." >> $(RESULTFILE)
-	@cimtrust -r -i "/CN=TestChainCA/ST=California/L=Sacramento/C=US/O=OpenGroup/OU=OpenPegasus" -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i "/C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA" -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Remove the intermediate CA certificate from the truststore, this should succeed." >> $(RESULTFILE)
-	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 2 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 16 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Remove the leaf CA signed certificate from the truststore, this should succeed." >> $(RESULTFILE)
-	@cimtrust -r -i /C=US/ST=Nevada/L=LasVegas/O=OpenGroup/OU=OpenPegasus/CN=TestInterCA -n 2 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=Nevada/L=LasVegas/O=OpenGroup/OU=OpenPegasus/CN=TestInterCA -n 100 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Add the self-signed root certificate with an associated user to the truststore." >> $(RESULTFILE)
@@ -786,11 +785,11 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Remove the CA certificate from the truststore, this should succeed." >> $(RESULTFILE)
-	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 0 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 1 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Remove the intermediate CA certificate from the truststore, this should succeed." >> $(RESULTFILE)
-	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 2 >> $(RESULTFILE) $(REDIRECTERROR)
+	@cimtrust -r -i /C=US/ST=California/L=Sacramento/O=OpenGroup/OU=OpenPegasus/CN=TestChainCA -n 16 >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO)  +++++++++ Funtional tests - Tests for special cases +++++++++ >> $(RESULTFILE)
@@ -807,7 +806,7 @@ endif
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Connect with a not yet valid certificate -- should fail." >> $(RESULTFILE)
-	@TestCertClient $(PEGASUS_HOME)/ $(PEGASUS_HOME)/testnotyetvalid1.key $(PEGASUS_HOME)/ssl.rnd >> $(RESULTFILE) $(REDIRECTERROR)
+	@TestCertClient $(PEGASUS_HOME)/testnotyetvalid1.cert $(PEGASUS_HOME)/testnotyetvalid1.key $(PEGASUS_HOME)/ssl.rnd >> $(RESULTFILE) $(REDIRECTERROR)
 	@$(ECHO) >> $(RESULTFILE)
 
 	@$(ECHO) "Add the not yet valid certificate to the truststore -- should get a not yet valid error." >> $(RESULTFILE)
