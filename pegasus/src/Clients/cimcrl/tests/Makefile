@@ -80,8 +80,9 @@ endif
 #
 # Create certificates and CRLs required for running the tests
 #
-test_setup: $(PEGASUS_HOME)/crltest_setup 
+test_setup: $(PEGASUS_HOME)/crltest_setup
 
+# crltest_setup file in home forces the setup to be executed before the test
 $(PEGASUS_HOME)/crltest_setup: $(OPENSSL_CNF)
 	@$(MAKE) -i -s clean
 	@$(TOUCH) $(PEGASUS_HOME)/crltest_setup
