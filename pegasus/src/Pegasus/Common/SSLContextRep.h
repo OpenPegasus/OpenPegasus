@@ -38,11 +38,6 @@
 # include <openssl/ssl.h>
 # include <openssl/rand.h>
 
-// Set flag if Openssl version ge 1.1.0
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
-#  define OPENSSL_11
-# endif
-
 //Include the applink.c to stop crashes as per OpenSSL FAQ
 //http://www.openssl.org/support/faq.html#PROG
 # ifdef PEGASUS_OS_TYPE_WINDOWS
@@ -109,7 +104,7 @@ public:
 
             //important as per following site for 
             //http://www.openssl.org/support/faq.html#PROG
-#ifdef OPENSSL_11
+#ifdef OPENSSL_11_API_COMPATIBILITY
             OPENSSL_malloc_init();
 #else            
             CRYPTO_malloc_init();            
@@ -188,7 +183,7 @@ private:
     static void _uninitializeCallbacks()
     {
         PEG_TRACE_CSTRING(TRC_SSL, Tracer::LEVEL4, "Resetting SSL callbacks.");
-#ifndef OPENSSL_11
+#ifndef OPENSSL_11_API_COMPATIBILITY
         CRYPTO_set_locking_callback(NULL);
         CRYPTO_set_id_callback(NULL);
 #endif
@@ -269,7 +264,7 @@ public:
         SSLCertificateVerifyFunction* verifyCert = NULL,
         const String& randomFile = String::EMPTY,
         const String& cipherSuite = String::EMPTY,
-        const Boolean& sslCompatibility = false);
+        const Boolean& sslBackwardCompatibility = false);
 
     SSLContextRep(const SSLContextRep& sslContextRep);
 
@@ -326,7 +321,7 @@ private:
     String _crlPath;
     String _randomFile;
     String _cipherSuite;
-    Boolean _sslCompatibility;
+    Boolean _sslBackwardCompatibility;
     SSL_CTX * _sslContext;
 
     Boolean _verifyPeer;

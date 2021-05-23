@@ -89,7 +89,7 @@ public:
         Uint32 consumerIdleTimeout,
         Uint32 shutdownTimeout,
         const String & sslCipherSuite="DEFAULT",
-        const Boolean& sslCompatibility = false);
+        const Boolean& sslBackwardCompatibility = false);
 
     ~DynamicListenerRep();
 
@@ -170,7 +170,7 @@ DynamicListenerRep::DynamicListenerRep(
     Uint32 consumerIdleTimeout,            
     Uint32 shutdownTimeout,
     const String & sslCipherSuite,
-    const Boolean& sslCompatibility) :
+    const Boolean& sslBackwardCompatibility) :
         _port(portNumber),
         _sslContext(0),
         _sslContextObjectLock(0),
@@ -191,7 +191,7 @@ DynamicListenerRep::DynamicListenerRep(
             true,
             String(),
             sslCipherSuite,
-            sslCompatibility);
+            sslBackwardCompatibility);
         _sslContext = _sslContextMgr->getSSLContext();
         _sslContextObjectLock = _sslContextMgr->getSSLContextObjectLock();
     }
@@ -343,7 +343,7 @@ DynamicListener::DynamicListener(
     Uint32 consumerIdleTimeout,
     Uint32 shutdownTimeout,
     const String & sslCipherSuite,
-    const Boolean& sslCompatibility)
+    const Boolean& sslBackwardCompatibility)
         //ONLY IF PEGASUS_HAS_SSL
 {
 
@@ -358,7 +358,7 @@ DynamicListener::DynamicListener(
         consumerIdleTimeout,
         shutdownTimeout,
         sslCipherSuite,
-        sslCompatibility);
+        sslBackwardCompatibility);
 }
 
 DynamicListener::DynamicListener(

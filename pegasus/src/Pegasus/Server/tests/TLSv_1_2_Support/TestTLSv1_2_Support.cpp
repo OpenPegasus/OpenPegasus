@@ -61,26 +61,30 @@ void _testTLS1_2_support(String &host , Uint32 &port, String &randPath)
 {
 
 //A rudimentary way to detect TLS1_2 support on openSSL and hence on pegasus
+// The TLS1_2_VERSION flag is in Openssl tls1.h
 #ifdef TLS1_2_VERSION
 
+	// Test with cipherSuite SSLv3 in connect but TLSV1_2 defined in config file and
+	// sslBackwardCompatibility=false
     String trustStorePath;
     String certPath;
     String keyPath;
     String cipherSuite = "SSLv3";
-    Boolean sslCompatibility = false;
+    Boolean sslBackwardCompatibility = false;
     AutoPtr<CIMClient> cc(new CIMClient);
 
     try
     {
         AutoPtr<SSLContext> sslContext(new SSLContext (trustStorePath, 
             certPath, keyPath, String::EMPTY, 0, randPath, cipherSuite,
-            sslCompatibility));
+            sslBackwardCompatibility));
 
         if (sslContext.get())
         {
             cc->connect (host, port, *sslContext, "", "");
             //
-            //Unreachable when server is started with correct versions
+            //Unreachable when server is started with correct versions.
+            // Exceptions should occur. I.e command should fail
             //Otherwise it informs that server is not started properly
             //
             PEGASUS_TEST_ASSERT( 0 &&
@@ -98,15 +102,16 @@ void _testTLS1_2_support(String &host , Uint32 &port, String &randPath)
         cerr << "SSLCipherTest Failed:  "<< e.getMessage() << endl;
         PEGASUS_TEST_ASSERT(0 && (bool)"Got unexpected Exception, Aborting");
     }
-
-
+    
+    // Test if the same operation succeeds with cipherSuite TLSV1.2 and
+    // sslBackwardCompatibility true
     cipherSuite = "TLSv1.2";
     try
     {
 
         AutoPtr<SSLContext> sslContext(new SSLContext (trustStorePath, 
             certPath, keyPath, String::EMPTY, 0, randPath, cipherSuite,
-            sslCompatibility));
+            sslBackwardCompatibility));
         if (sslContext.get())
         {
             cc->connect (host, port, *sslContext, "", "");
