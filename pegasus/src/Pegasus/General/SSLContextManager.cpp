@@ -99,7 +99,7 @@ void SSLContextManager::createSSLContext(
     Boolean callback, 
     const String& randFile,
     const String& cipherSuite,
-    const Boolean& sslCompatibility)
+    const Boolean& sslBackwardCompatibility)
 {
     PEG_METHOD_ENTER(TRC_SSL, "SSLContextManager::createSSLContext()");
 
@@ -116,17 +116,17 @@ void SSLContextManager::createSSLContext(
             _sslContext = new SSLContext(trustStore, certPath,
                 keyPath, crlStore,
                 (SSLCertificateVerifyFunction*)verifyClientOptionalCallback,
-                randFile, cipherSuite,sslCompatibility);
+                randFile, cipherSuite, sslBackwardCompatibility);
         }
         else if ( trustStore != String::EMPTY )
         {
             _sslContext = new SSLContext(trustStore, certPath,
-                keyPath, crlStore, 0, randFile, cipherSuite,sslCompatibility);
+                keyPath, crlStore, 0, randFile, cipherSuite, sslBackwardCompatibility);
         }
         else
         {
             _sslContext = new SSLContext(String::EMPTY, certPath,
-                keyPath, crlStore, 0, randFile, cipherSuite,sslCompatibility);
+                keyPath, crlStore, 0, randFile, cipherSuite, sslBackwardCompatibility);
         }
     }
 

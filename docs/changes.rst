@@ -42,7 +42,7 @@ Bugs
    corrected by setting the Wno-deprecated flag in configure_linux (see issue #7)
 
 6. Fix issue with function valid() in Pegasus/Common/Message.cpp that was causing
-   issue in non-debug mode.   (see issue #12)
+   issue in non-debug mode.  (see issue #12 and #19)
    
 7. MOF compiler fails with mof where EmbeddedInstance is in a non-leaf class (see
    issue #50)
@@ -54,30 +54,51 @@ Bugs
    issue #63)
    
 9. Upgrade OpenPegasus SSL functions to interface with OpenSSL 1.1.x.  This version
-   of OpenSSL is a significatn API change from the 1.0.2 version. (see issue #54)
+   of OpenSSL is a significatn API change from the 1.0.2 version. (see issue #17)
    
 10. Fix issue in Message.cpp causing failure in not-debug mode. (see issue #19)
+
+11. Fixed a number of minor spelling bugs in the help, specifically  the 
+   configuration help.
 
    
 Enhancements
 
 1. Integrate DMTF schema 2.41 experimental into OpenPegasus schemas.  This required
-   extendint the schema definition capability to allow for experimental schemas and
+   extending the schema definition capability to allow for DMTF experimental schemas and
    modifying the list of mof files in the Schemas directory for CIMExperimental241
    (See issue #46, #62). Note that the test suite cannot be run with this schema because
-   the test suite depends on particular class definitions.
+   the test suite depends on particular class definitions. Isee issue #52 and #62
    
 2. Allow defintion of Experimental DMTF schema as OpenPegasus repositories (see issue #51)
+
+3. Expand SSL support to include OpenSSL versions 1.1.0+ including updated
+   OpenSSL APIs. (See issue #17)
    
 
 cleanup
 
-1. Update version to 2.14.2 and status development.
+1. Update version to 2.14.2.
 
-2. Change executable names on several test executables. (See issue # 27)
+2. Change executable names on several test executables. (See issue #23 and #27)
+
+3. Change variable names in SSLContext to keep internal variable names consistent with
+   the cimconfig names for the variables.
+
+4. Implemented shell scripts to be able to create specific security keys, and certificates
+   for tests.  Previously the complete keys and certificates were presented but when
+   the required changes because they were out-of-date or had invalid parameters for
+   newer versions of OpenSSL, there was no way to recreate them.  Note that these
+   scripts are bash based so that the scripts must be rebuilt on Linux systems or other
+   *nix systems. This should not be an issue since all of the before dates were set
+   about 10 years in the future beyond 2021 so that requiring rebuild should be
+   straight forward.
 
 
 openpegasus 14.1 - Release
 --------------------------
 branch: release_14_1
+
+This version of OpenPegasus is maintained in the OpenGroup CVS repository and the
+changes are documented in the OpenPegasus WEB site.
 

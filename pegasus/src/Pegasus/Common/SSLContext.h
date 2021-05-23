@@ -44,6 +44,14 @@ typedef struct x509_store_st X509_STORE;
 # define X509_STORE int
 #endif
 
+// If OpenSSL version  1.1.0 or greater set flag to control API differences
+// Required because of API issues in version 1.1.0
+// Some of the APIs are completely different.
+// If OPENSSL_11_API_COMPATIBILITY version OpenSSL version >= 1.1.0
+# if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#  define OPENSSL_11_API_COMPATIBILITY
+# endif
+
 PEGASUS_NAMESPACE_BEGIN
 
 class SSLCertificateInfoRep;
@@ -526,7 +534,7 @@ public:
         @param randomFile  file path of a random file that may be used as a seed
         for random number generation by OpenSSL.
         @param cipherSuite cipher list
-        @param sslCompatibility  a false value of sslCompatibility 
+        @param sslBackwardCompatibility  a false value of sslBackwardCompatibility 
         will support only TLS1.2 and true will support SSLv3 and TLSv1 
 
 
@@ -551,7 +559,7 @@ public:
         SSLCertificateVerifyFunction* verifyCert,
         const String& randomFile,
         const String& cipherSuite,
-        const Boolean & sslCompatibility = false);
+        const Boolean & sslBackwardCompatibility = false);
 
 
 #endif

@@ -245,8 +245,8 @@ struct configPropertyDescription configPropertyDescriptionList[] =
         "String containing OpenSSL cipher specifications to configure\n"
         "cipher suite the client is permitted to negotiate with the server\n"
         "during SSL handshake phase. Enclose values in single quotes to\n"
-        "avoid issues with special characters. Default if this parameter is\n"
-        "is the list of ciphers in OpenSSL."},
+        "avoid issues with special characters. Default for this parameter is\n"
+        "the list of ciphers in OpenSSL."},
 
     {"repositoryIsDefaultInstanceProvider",
         "If 'true', Repository functions as Provider (for instance and\n"

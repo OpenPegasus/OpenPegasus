@@ -56,12 +56,6 @@
 # include <ILEWrapper/ILEUtilities.h>
 #endif
 
-// If OpenSSL version  1.1.0 or greater set flag
-// Required because of API issues in version
-// 1.1.0
-# if OPENSSL_VERSION_NUMBER >= 0x10100000L
-#  define OPENSSL_11
-# endif
 
 typedef struct x509_store_ctx_st X509_STORE_CTX;
 
@@ -268,7 +262,7 @@ int SSLCallback::verificationCRLCallback(
 
     //initialize the CRL store
     // TODO: is this a 1.1.0 change to use pointers
-#ifdef OPENSSL_11
+#ifdef OPENSSL_11_API_COMPATIBILITY
     X509_STORE_CTX* crlStoreCtx = X509_STORE_CTX_new();
 
     X509_STORE_CTX_init(crlStoreCtx, sslCRLStore, NULL, NULL);
@@ -361,7 +355,7 @@ int SSLCallback::verificationCRLCallback(
         revokedCert = sk_X509_REVOKED_value(X509_CRL_get_REVOKED(crl), i);
         // A matching serial number indicates revocation
 
-#ifdef OPENSSL_11
+#ifdef OPENSSL_11_API_COMPATIBILITY
         // Cannot access serial number in 1.1.0 directly.
         // TODO: Why not use X509_CRL_get0_by_serial() or
         //                 or X509_CRL_get0_by_cert(crl, **ret, *x509)
@@ -621,7 +615,7 @@ SSLContextRep::SSLContextRep(
     SSLCertificateVerifyFunction* verifyCert,
     const String& randomFile,
     const String& cipherSuite,
-    const Boolean& sslCompatibility)
+    const Boolean& sslBackwardCompatibility)
 {
     PEG_METHOD_ENTER(TRC_SSL, "SSLContextRep::SSLContextRep()");
 
@@ -631,7 +625,7 @@ SSLContextRep::SSLContextRep(
     _crlPath = crlPath;
     _certificateVerifyFunction = verifyCert;
     _cipherSuite = cipherSuite;
-    _sslCompatibility = sslCompatibility;
+    _sslBackwardCompatibility = sslBackwardCompatibility;
     //
     // If a truststore and/or peer verification function is specified,
     // enable peer verification
@@ -657,7 +651,7 @@ SSLContextRep::SSLContextRep(const SSLContextRep& sslContextRep)
     _certificateVerifyFunction = sslContextRep._certificateVerifyFunction;
     _randomFile = sslContextRep._randomFile;
     _cipherSuite = sslContextRep._cipherSuite;
-    _sslCompatibility = sslContextRep._sslCompatibility;
+    _sslBackwardCompatibility = sslContextRep._sslBackwardCompatibility;
     _sslContext = _makeSSLContext();
 
     PEG_METHOD_EXIT();
@@ -801,7 +795,6 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
 {
     PEG_METHOD_ENTER(TRC_SSL, "SSLContextRep::_makeSSLContext()");
 
-
     //
     // create SSL Context Area
     //
@@ -814,22 +807,36 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
             "Could not get SSL CTX");
         throw SSLException(parms);
     }
-
-
+	
+	// NOTE: The values in SSL_OP_ALL differ pre and post SSL version 1.1.
+	// New bug associated options were set.  See OpenSSL SSL_OP_ALL for list
+	// We are ignoring these differences.
     int options = SSL_OP_ALL;
-
-
-
     SSL_CTX_set_options(sslContext, options);
-    if ( _sslCompatibility == false )
-    {
-
-#ifdef TLS1_2_VERSION
+    
+    // If _sslBackwardCompatibility is false, set flags to allow only TLS 1.2+
+    // for OpenSSL v 1.1.0+ set the max and min versions
+    // Note that min version allowed by OpenSSL 1.1.0+ is SSL3_VERSION
+# ifdef OPENSSL_11_API_COMPATIBILITY
+	// TODO: Should we set the max version???
+	assert(SSL_CTX_set_max_proto_version(sslContext,TLS1_2_VERSION) == 1);
+	unsigned long int min_ver = 
+            (_sslBackwardCompatibility == false) ? TLS1_2_VERSION : SSL3_VERSION;
+	
+	// call SSL to set the min TLS version
+	assert(SSL_CTX_set_min_proto_version(
+                sslContext, 
+                min_ver
+            ) == 1);
+	
+# else  // # ifdef OPENSSL_11_API_COMPATIBILITY
+// The TLS1_2_VERSION flag is in Openssl tls1.h
+// We are expecting TLS 1.2 as the current version.
+#  ifdef TLS1_2_VERSION
         // Enable only TLSv1.2 and disable all other protocol (SSL v2, SSL v3,
         // TLS v1.0, TLSv1.1)
-
         options = SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_SSLv3;
-#else  // not TLS1_2_VERSION
+#  else  // not TLS1_2_VERSION
         PEG_METHOD_EXIT();
         MessageLoaderParms parms(
             " Common.SSLContext.TLS_1_2_PROTO_NOT_SUPPORTED",
@@ -837,12 +844,14 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
             " To run in less secured mode, set sslBackwardCompatibility=true"
             " in planned config file and start cimserver.");
         throw SSLException(parms);
-#endif // TLS1_2_VERSION
-    }
+#  endif // TLS1_2_VERSION
 
-    // sslv2 is off permanently even if sslCompatibility is true
+    // sslv2 is off permanently even if sslBackwardCompatibility is true
     options |= SSL_OP_NO_SSLv2;
     SSL_CTX_set_options(sslContext, options);
+    
+# endif // # ifdef OPENSSL_11_API_COMPATIBILITY
+
 
 #ifdef PEGASUS_SSL_WEAKENCRYPTION
     if (!(SSL_CTX_set_cipher_list(sslContext, SSL_TXT_EXP40)))
@@ -887,6 +896,7 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
     // CRIME attack so don.t disable compression For other OpenSSL versions
     // zero out the compression methods.
 #ifdef SSL_OP_NO_COMPRESSION
+// ISSUE #69: Should we disable compression for TLS 1.2
 #ifndef TLS1_2_VERSION
     SSL_CTX_set_options(sslContext, SSL_OP_NO_COMPRESSION);
 #endif // TLS1_2_VERSION
@@ -1484,7 +1494,7 @@ SSLContext::SSLContext(
         SSLCertificateVerifyFunction* verifyCert,
         const String& randomFile,
         const String& cipherSuite,
-        const Boolean& sslCompatibility)
+        const Boolean& sslBackwardCompatibility)
 {
 #ifndef PEGASUS_ENABLE_SSL_CRL_VERIFICATION
     if (crlPath.size() > 0)
@@ -1497,7 +1507,7 @@ SSLContext::SSLContext(
 #endif
     _rep = new SSLContextRep(
         trustStore, certPath, keyPath, crlPath, verifyCert, randomFile,
-        cipherSuite,sslCompatibility);
+        cipherSuite,sslBackwardCompatibility);
 }
 #endif
 

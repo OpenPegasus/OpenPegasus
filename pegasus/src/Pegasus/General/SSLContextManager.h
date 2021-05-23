@@ -63,7 +63,7 @@ public:
         Boolean callback,
         const String& randFile,
         const String& cipherSuite,
-        const Boolean& sslCompatibility);
+        const Boolean& sslBackwardCompatibility);
 
     /**
         Reload the trust store used by either the CIM Server or
