@@ -54,6 +54,7 @@ PEGASUS_NAMESPACE_BEGIN
 // The same general class exists in several places in OpenPegasus.
 // TODO: make this a general part of Pegasus so it is not duplicated in
 // many different files.
+// NOTE: This is used in permanent code in this module
 class Str
 {
 public:
@@ -76,6 +77,7 @@ private:
 
 // When set enables the diagnostic traces in this class
 // These should only be enabled for development or special testing
+// ISSUE #72 - A test depends on this define
 #define ENUMERATION_CONTEXT_DIAGNOSTIC_TRACE
 
 
