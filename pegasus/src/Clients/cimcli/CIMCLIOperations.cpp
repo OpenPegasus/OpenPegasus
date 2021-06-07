@@ -381,7 +381,7 @@ OperationExampleEntry OperationExamples[] = {
 
     // Create Class Not Supported
     {"Clients.cimcli.CIMCLIClient.OPERATION_NOT_SUPPORTED",
-    "Operation Not supported..\n",
+    "Create Class Operation Not supported..\n",
     "Clients.cimcli.CIMCLIClient.OPERATION_NOT_SUPPORTED",
     "\n"},
 
@@ -424,13 +424,13 @@ OperationExampleEntry OperationExamples[] = {
     {"Clients.cimcli.CIMCLIClient.GQ_COMMAND_EXAMPLE",
     "cimcli gq Association\n"
         "    -- Get the qualifier named Association in mof output\n"
-        "       in the default namespace (normally root/cimv2)",
+        "       in the default namespace (normally root/cimv2)\n",
     "Clients.cimcli.CIMCLIClient.GQ_COMMAND_OPTIONS",
     "    -n\n"},
 
     // setQualifier
     {"Clients.cimcli.CIMCLIClient.OPERATION_NOT_SUPPORTED",
-    "Operation Not supported..\n",
+    "setQualifier Operation Not supported..\n",
     "Clients.cimcli.CIMCLIClient.OPERATION_NOT_SUPPORTED",
     "\n"},
 
