@@ -428,6 +428,9 @@ int SSLCallback::verificationCallback(int preVerifyOk, X509_STORE_CTX* ctx)
 
     PEG_TRACE((TRC_SSL, Tracer::LEVEL4,
         "---> SSL: CRL callback returned %d", revoked));
+#else
+    PEG_TRACE((TRC_SSL, Tracer::LEVEL4,
+        "---> SSL: SSL_CRL_VERIFICATION not enabled %d", revoked));
 #endif
 
     //
@@ -807,28 +810,28 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
             "Could not get SSL CTX");
         throw SSLException(parms);
     }
-	
+
 	// NOTE: The values in SSL_OP_ALL differ pre and post SSL version 1.1.
 	// New bug associated options were set.  See OpenSSL SSL_OP_ALL for list
 	// We are ignoring these differences.
     int options = SSL_OP_ALL;
     SSL_CTX_set_options(sslContext, options);
-    
+
     // If _sslBackwardCompatibility is false, set flags to allow only TLS 1.2+
     // for OpenSSL v 1.1.0+ set the max and min versions
     // Note that min version allowed by OpenSSL 1.1.0+ is SSL3_VERSION
 # ifdef OPENSSL_11_API_COMPATIBILITY
 	// TODO: Should we set the max version???
 	assert(SSL_CTX_set_max_proto_version(sslContext,TLS1_2_VERSION) == 1);
-	unsigned long int min_ver = 
+	unsigned long int min_ver =
             (_sslBackwardCompatibility == false) ? TLS1_2_VERSION : SSL3_VERSION;
-	
+
 	// call SSL to set the min TLS version
 	assert(SSL_CTX_set_min_proto_version(
-                sslContext, 
+                sslContext,
                 min_ver
             ) == 1);
-	
+
 # else  // # ifdef OPENSSL_11_API_COMPATIBILITY
 // The TLS1_2_VERSION flag is in Openssl tls1.h
 // We are expecting TLS 1.2 as the current version.
@@ -849,7 +852,7 @@ SSL_CTX* SSLContextRep::_makeSSLContext()
     // sslv2 is off permanently even if sslBackwardCompatibility is true
     options |= SSL_OP_NO_SSLv2;
     SSL_CTX_set_options(sslContext, options);
-    
+
 # endif // # ifdef OPENSSL_11_API_COMPATIBILITY
 
 
