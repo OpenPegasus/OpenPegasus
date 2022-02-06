@@ -117,6 +117,12 @@ else
     FLAGS += -Wno-deprecated-declarations
   endif
     FLAGS += -D_GNU_SOURCE -DTHREAD_SAFE -D_REENTRANT
+  ifeq ($(shell expr $(GCC_VERSION) '>=' 8.0), 1)
+    # TODO: Future fix.  See issue # 1
+    FLAGS += -Wno-deprecated-copy
+    FLAGS += -Wno-class-memaccess
+  endif
+
 endif
 
 
