@@ -1,32 +1,27 @@
 # This is a basic workflow to help you get started with Actions
 # workflow -
 name: OpenPegasus Build Matrix
-#  why the double openpegasus/home/runner/work/OpenPegasus/OpenPegasus/pegasus
+
 env:
-    #PEGASUS_ROOT: $GITHUB_WORKSPACE}/pegasus
-    #PEGASUS_HOME: $GITHUB_WORKSPACE/home
-    # The following should be in build type config
-    # LD_LIBRARY_PATH: $PEGASUS_HOME/lib64
-    PEGASUS_PLATFORM: LINUX_X86_64_GNU
     # Until we figure out how to create the home subdirectory
     ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
-# Controls when the action will run. Triggers the workflow on push
+# Controls when the action will run. Triggers the workflow on push, pull
+
 on:
+
   push:
   # pull_request:
-  release:
+  # release:
     # tags:
     # - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
-#defaults:
-#  run:
-#    working-directory: pegasus # The working directory path
 
 
 # A workflow run is made up of one or more jobs that can run sequentially or
 # in parallel
+
 jobs:
+
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
@@ -45,12 +40,21 @@ jobs:
             cc: "gcc",
             cxx: "g++",
           }
+        # Ignore this one for now.
+        #- {
+            #name: "Ubuntu_GCC_9",
+            #os: ubuntu-latest,
+            #artifact: "ubuntu_gcc9",
+            #build_type: "Development",
+            #cc: "gcc",
+            #cxx: "g++",
+          #}
 
     steps:
       # Checks-out repository under GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Print env
+      - name: Display event name, etc
         run: |
           echo github.event.action: ${{ github.event.action }}
           echo github.event_name: ${{ github.event_name }}
@@ -62,13 +66,10 @@ jobs:
           ##cmake --version
         ## cmd "${{ matrix.config.environment_script }}"
 
-      - name: Install dependencies on ubuntu
+      - name: Install ubuntu dependencies and updates
         if: startsWith(matrix.config.name, 'Ubuntu_Latest_GCC')
         run: |
           sudo apt-get update
-          sudo apt-get install ninja-build cmake
-          ninja --version
-          cmake --version
           gcc --version
       - name: Install dependencies on ubuntu9
         if: startsWith(matrix.config.name, 'Ubuntu_GCC_9')
@@ -78,9 +79,9 @@ jobs:
           gcc --version
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test
           sudo apt-get update
-          sudo apt-get install cmake gcc-9 g++-9
+          sudo apt-get install gcc-9 g++-9
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9 --slave /usr/bin/gcov gcov /usr/bin/gcov-9
-          echo gcc version after
+          echo gcc version after update
           gcc --version
       - name: Install dependencies on macos
         if: startsWith(matrix.config.os, 'macos')
@@ -92,22 +93,19 @@ jobs:
       - name: Configure OpenPegasus
         shell: bash
         run: |
-            echo "Step Configure OpenPegasus for build and test"
-            #echo ::set-env name=workspace::$GITHUB_WORKSPACE
-            # Set the common required Env Variables PEGASUDS_ROOT, PEGASUS_HOME
+            echo "Step Configure OpenPegasus for build and test common config"
+            # Set the common required Env Variables PEGASUS_ROOT, PEGASUS_HOME
             # PEGASUS_PLATFORM
             echo "PEGASUS_ROOT=$GITHUB_WORKSPACE/pegasus" >> $GITHUB_ENV
+            # Set path to include bin for testing
+            echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+            # Put PEGASUS_HOME in OpenPegasus directory for now
+            # mkdir -p ${{ env.PEGASUS_HOME }}
+            #
             echo "PEGASUS_HOME=$GITHUB_WORKSPACE" >> $GITHUB_ENV
             echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib64" >> $GITHUB_ENV
             echo "PEGASUS_PLATFORM=${{ matrix.config.pegasus_platform}}" >> $GITHUB_ENV
-            # Set to run in user space for now
-            echo "PEGASUS_DISABLE_PROV_USERCTXT=true" >> $GITHUB_ENV
-            # Put PEGASUS_HOME in OpenPegasus directory for now
-            # mkdir -p ${{ env.PEGASUS_HOME }}
-            # Set path to include bin for testing
-            echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-            echo "Show files for GITHUB_WORKSPACE"
-            ls -ltr $GITHUB_WORKSPACE
+            #
             echo "Show github env"
             githubjson=`cat $GITHUB_ENV`
             echo $githubjson
@@ -129,7 +127,7 @@ jobs:
             export
             echo "Display env variables end"
 
-      - name: Build OpenPegasus
+      - name: Build OpenPegasus non-privileged
         shell: bash
         run: |
             echo "show export"
@@ -139,11 +137,11 @@ jobs:
             cd pegasus
             make world
             echo "End build Step"
-        #env:
-        #    PEGASUS_ROOT: ${{ github.workspace }}/pegasus
-        #    PEGASUS_HOME: ${{ github.workspace }}
-        #    LD_LIBRARY_PATH: ${{ github.workspace }}/lib64
-        #    PEGASUS_PLATFORM: ${{ matrix.config.pegasus_platform}}
+        env:
+            # env variables required for non-root minimal build and test
+            PEGASUS_DISABLE_PROV_USERCTXT: true
+            PEGASUS_DISABLE_PRIVILEGED_TESTS: true
+
 
       #- name: Test
       #  shell: bash
