@@ -710,6 +710,9 @@ testInvokeMethod:
 	    InParam1="test/TestProvider:class.key1=\"aaa\",key2=0" \
 	    InParam2="test/TestProvider:class.key1=\\\"aaa01\\\"\,key2=1","test/TestProvider:class.key1=\\\"aaa02\\\"\,key2=2" \
 	     -x >>$(RESULTFILE)
+
+	@cimcli im Test_CLITestProviderClass -n "$(PROVIDERNS)" \
+	    delayedMethodResponse delayInSeconds=2 >>$(RESULTFILE)
 	    
 	@$(ECHO) +++++ Test invoke method Passed.
 

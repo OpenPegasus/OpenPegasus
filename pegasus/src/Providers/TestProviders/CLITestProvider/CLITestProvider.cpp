@@ -70,6 +70,7 @@ instances array.
     Parameters:
       substituteHostName - String parameter that provides an alternate name
       to be used as host name on all responses that include host name.
+
    -debugMode - method that enables or disables debug mode for
     the provider.  If the boolean parameter newState is set, the provider
     provider internal debug flag is set to that state. The return code
@@ -79,6 +80,10 @@ instances array.
       the provider to it original initialized state. This does not change
       the debug mode.
    -ReferenceParamTest - Generates a specific set of Out Parameters
+
+   -delayedMethodResponse - Generate a normal response with the input parameter
+    but delayed by the number of seconds defined in the input parameter. Can
+    be used to test delayed responses.
 
 The Test_CLITestProviderLinkClassProvides a means to test the reference and
 associator operations.  Note that the instances do not really represent
@@ -122,6 +127,7 @@ Pegasus timeout of providers for unload, they will be discarded.
 #include <Pegasus/Common/ArrayInternal.h>
 #include <Pegasus/Common/CIMQualifierNames.h>
 #include <Pegasus/Common/Print.h>
+#include <Pegasus/Common/System.h>
 
 PEGASUS_USING_STD;
 PEGASUS_USING_PEGASUS;
@@ -330,6 +336,57 @@ void CLITestProvider::invokeMethod(
         {
             if (inParameters.size() > 0)
             {
+                //Returns all input parameters
+                handler.deliverParamValue(inParameters);
+            }
+            handler.deliver(Uint32(0));
+        }
+
+        else if(methodName.equal("delayedMethodResponse"))
+        {
+            if (inParameters.size() > 0)
+            {
+                Uint32 rtnCode = 0;
+                if (inParameters.size() > 0)
+                {
+                    for(Uint32 i = 0; i < inParameters.size(); ++i)
+                    {
+                        String paramName = inParameters[i].getParameterName();
+                        CIMValue paramVal = inParameters[i].getValue();
+
+                        if (paramName == "delayInSeconds")
+                        {
+                            if (paramVal.getType() == CIMTYPE_UINT32)
+                            {
+                                Uint32 delay = 0;
+
+                                if (!paramVal.isNull())
+                                    paramVal.get(delay);
+
+                                //sleep for defined time
+                                System::sleep(delay);
+                            }
+                            else
+                            {
+                                String errMsg = "Incorrect in parameter type \"";
+                                errMsg.append(paramName);
+                                errMsg.append( "\" for method ");
+                                errMsg.append(methodName.getString());
+                                throw CIMOperationFailedException(errMsg);
+                            }
+                        }
+
+                        else
+                        {
+                                String errMsg = "Incorrect in parameter \"";
+                                errMsg.append(paramName);
+                                errMsg.append( "\" for method ");
+                                errMsg.append(methodName.getString());
+                                throw CIMOperationFailedException(errMsg);
+                        }
+                    }
+                }
+                handler.deliver(rtnCode);
                 //Returns all input parameters
                 handler.deliverParamValue(inParameters);
             }

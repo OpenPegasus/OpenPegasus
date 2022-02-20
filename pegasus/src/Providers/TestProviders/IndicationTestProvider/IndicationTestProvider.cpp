@@ -405,8 +405,10 @@ void IndicationTestProvider::invokeMethod(
     else
     {
          handler.deliver( CIMValue( 1 ) );
-         PEGASUS_STD(cout) << "Provider is not enabled." <<
-             PEGASUS_STD(endl);
+         PEGASUS_STD(cout) << "IndicationTestProvider not enabled for class "
+             << objectReference.getClassName().getString()
+             << "."
+             << PEGASUS_STD(endl);
     }
 
     handler.complete();
