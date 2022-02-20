@@ -59,7 +59,9 @@ int main(int, char** argv)
         sw.printElapsed();
     }
 
-    PEGASUS_TEST_ASSERT((elapsed >= 4.5) && (elapsed <= 5.5));
+    // KS. Modified the minimum from 4.5 to 4.0 because in virtual envrionments
+    // the the sleep occasionally produces times lest than 4.5. KS Feb 2022
+    PEGASUS_TEST_ASSERT((elapsed >= 4.0) && (elapsed <= 5.5));
 
     cout << argv[0] << " +++++ passed all tests" << endl;
 
