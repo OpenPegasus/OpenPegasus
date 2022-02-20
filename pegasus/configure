@@ -220,7 +220,6 @@ if [ -z "$platform" ]; then
       libbase=lib/64
       ;;
 
-
     *)
 
      unresolved=1
@@ -265,35 +264,35 @@ fi
 # --prefix:
 
 if [ -z "$prefix" ]; then
-  prefix=`pwd`
+    prefix=`pwd`
 fi
 
 # --bindir:
 
 if [ -z "$bindir" ]; then
-  bindir=$prefix/bin
+    bindir=$prefix/bin
 fi
 
 # --sbindir:
 
 if [ -z "$sbindir" ]; then
-  sbindir=$prefix/sbin
+    sbindir=$prefix/sbin
 fi
 
 # --libdir:
 
 if [ -z "$libdir" ]; then
-  libdir=$prefix/$libbase
+    libdir=$prefix/$libbase
 fi
 
 # --includedir:
 
 if [ -z "$includedir" ]; then
-  includedir=$prefix/include
+    includedir=$prefix/include
 fi
 
 if [ -z "$with_pam" ]; then
-  with_pam=/etc/pam.d
+    with_pam=/etc/pam.d
 fi
 
 ##=============================================================================
@@ -312,19 +311,19 @@ do
 echo "checking for $cc"
 for i in $path
 do
-  if test -f $i/$cc; then
-     ccYes=1
-     break
-  fi
+    if test -f $i/$cc; then
+        ccYes=1
+        break
+    fi
 done
 
 if [ "$ccYes" = "1" ];
 then
-   echo "$cc :yes"
+    echo "$cc :yes"
 else
-   echo "$cc :no"
-   missing=1
-   break
+    echo "$cc :no"
+    missing=1
+    break
 fi
 done
 
@@ -384,8 +383,8 @@ if [ "$tiny" != "1" ] ;then
         #    echo "$0: missing dependency: \$with_ssl/$libbase/libssl.so"
         #    missing=1
         #fi
-	echo "Test libssl with ldconfig"
-	echo ldconfig -p | grep libssl
+        echo "Test libssl with ldconfig"
+        echo ldconfig -p | grep libssl
 
         if [ "$missing" = "1" ]; then
             echo "$0: where --with-ssl=$with_ssl"
@@ -393,7 +392,6 @@ if [ "$tiny" != "1" ] ;then
         else
             enable_ssl=1
         fi
-
     fi
 fi
 ##==============================================================================
@@ -423,8 +421,6 @@ if [ "$tiny" != "1" ] ;then
     else
         echo "slp: No"
     fi
-
-
 
     if [ ! -z "$with_openslp" ]; then
 
@@ -461,49 +457,48 @@ fi
 enable_sql=0
 
 if [ "$tiny" != "1" ] ;then
-sqlcmd="sqlite3"
-sqlYes=0
-echo "checking for sql"
-for i in $path
-do
-  if test -f $i/$sqlcmd; then
-     sqlYes=1
-     withsql=$i
-     break
-  fi
-done
-if [ "$sqlYes" = "1" ]; then
-    echo "sql: Yes = $withsql/$sqlcmd"
-    with_sql=${withsql%/*}
-else
-    echo "sql: No"
-fi
+    sqlcmd="sqlite3"
+    sqlYes=0
+    echo "checking for sql"
+    for i in $path
+    do
+      if test -f $i/$sqlcmd; then
+         sqlYes=1
+         withsql=$i
+         break
+      fi
+    done
+    if [ "$sqlYes" = "1" ]; then
+        echo "sql: Yes = $withsql/$sqlcmd"
+        with_sql=${withsql%/*}
+    else
+        echo "sql: No"
+    fi
+
+    if [ ! -z "$with_sql" ]; then
+
+      if [ ! -d "$with_sql" ]; then
+        echo "$0: Error: No such directory: $with_sql"
+        exit 1;
+      fi
 
 
+      # TODO: The same problem with direct access to find the library exists here.
+      if [ ! -f "$with_sql/lib64/libsqlite3.so" ]; then
+        echo "$0: missing dependency: \$with_sql/lib64/libsqlite3.so"
+        missing=1
+      fi
+      if [ ! -f "$with_sql/include/sqlite3.h" ]; then
+        echo "$0:missing dependency :\$with_sql/include/sqlite3.h"
+        missing=1
+      fi
+      if [ "$missing" = "1" ]; then
+        echo "$0: sql not installed properly at $with_sql"
+      else
+        enable_sql=1
+      fi
 
-if [ ! -z "$with_sql" ]; then
-
-  if [ ! -d "$with_sql" ]; then
-    echo "$0: Error: No such directory: $with_sql"
-    exit 1;
-  fi
-
-# TODO: The same problem with direct access to find the library exists here.
-  if [ ! -f "$with_sql/lib64/libsqlite3.so" ]; then
-    echo "$0: missing dependency: \$with_sql/lib64/libsqlite3.so"
-    missing=1
-  fi
-  if [ ! -f "$with_sql/include/sqlite3.h" ]; then
-    echo "$0:missing dependency :\$with_sql/include/sqlite3.h"
-    missing=1
-  fi
-  if [ "$missing" = "1" ]; then
-    echo "$0: sql not installed properly at $with_sql"
-  else
-    enable_sql=1
-  fi
-
-fi
+    fi
 fi
 
 ##==============================================================================
@@ -514,112 +509,111 @@ fi
 
 enable_snmp=0
 if [ "$tiny" != "1" ]; then
-snmpcmd="net-snmp-config"
-snmpYes=0
-echo "checking for net-snmp"
-for i in $path
-do
-  if test -f $i/$snmpcmd; then
-     snmpYes=1
-     withsnmp=$i
-     break
-  fi
-done
-if [ "$snmpYes" = "1" ]; then
-    echo "snmp: Yes = $withsnmp/$snmpcmd"
-    with_snmp=${withsnmp%/*}
-else
-    echo "snmp: No"
-fi
+    snmpcmd="net-snmp-config"
+    snmpYes=0
+    echo "checking for net-snmp"
+    for i in $path
+    do
+        if test -f $i/$snmpcmd; then
+            snmpYes=1
+            withsnmp=$i
+            break
+        fi
+    done
+    if [ "$snmpYes" = "1" ]; then
+        echo "snmp: Yes = $withsnmp/$snmpcmd"
+        with_snmp=${withsnmp%/*}
+    else
+        echo "snmp: No"
+    fi
 
 
 
-if [ ! -z "$with_snmp" ]; then
+    if [ ! -z "$with_snmp" ]; then
 
-  if [ ! -d "$with_snmp" ]; then
-    echo "$0: Error: No such directory: $with_snmp"
-    exit 1;
-  fi
+        if [ ! -d "$with_snmp" ]; then
+            echo "$0: Error: No such directory: $with_snmp"
+            exit 1;
+        fi
 
-  if [ ! -f "$with_snmp/lib64/libnetsnmp.so" ]; then
-    echo "$0: missing dependency: "
-    missing=1
-  fi
+        if [ ! -f "$with_snmp/lib64/libnetsnmp.so" ]; then
+            echo "$0: missing dependency: "
+            missing=1
+        fi
 
-  if [ "$missing" = "1" ]; then
-    echo "$0: snmp not installed properly at $with_snmp"
-  else
-    enable_snmp=1
-  fi
+        if [ "$missing" = "1" ]; then
+            echo "$0: snmp not installed properly at $with_snmp"
+        else
+            enable_snmp=1
+        fi
 
-fi
+    fi
 fi
 
 ##=============================================================================
 ##
-##Detect icu ( Currently supported till 3.6)
+## Detect icu ( Currently supported till 3.6)
 ##
 ##=============================================================================
 supporticu=0
 if [ "$tiny" != "1" ] ;then
-icucmd="icu-config"
-gencmd="genrb"
-icuYes=0
-echo "checking for icu"
-for i in $path
-do
-  if test -f $i/$icucmd ;then
-     if test -f $i/$gencmd ; then
-         icuYes=1
-         withicu=$i
-         break
-     fi
-  fi
-done
-if [ "$icuYes" = "1" ]; then
-    echo "icu: Yes = $withicu/$icucmd"
-    with_icu=${withicu%/*}
-else
-    echo "icu: No"
-fi
+    icucmd="icu-config"
+    gencmd="genrb"
+    icuYes=0
+    echo "checking for icu"
+    for i in $path
+    do
+        if test -f $i/$icucmd ;then
+            if test -f $i/$gencmd ; then
+                icuYes=1
+                withicu=$i
+                break
+            fi
+        fi
+    done
+    if [ "$icuYes" = "1" ]; then
+        echo "icu: Yes = $withicu/$icucmd"
+        with_icu=${withicu%/*}
+    else
+        echo "icu: No"
+    fi
 
-if [ "$icuYes" = "1" ]; then
-   icuversion=$(icu-config --version)
+    if [ "$icuYes" = "1" ]; then
+        icuversion=$(icu-config --version)
 
-   echo $icuversion
-   IFS='.'
-   op=0
-   for i in $icuversion
-   do
-      if [ "$op" = "0" ]; then
-         icumajor=$i
-      fi
-      if [ "$op" = "1" ]; then
-         icuminor=$i
-      fi
-      if [ "$op" -gt "1" ]; then
-         break
-      fi
-      op=$((op+1))
-   done
-   IFS='@@@'
-   supporticu=0
-
-   if [ "$icumajor" -le "3" -a "$icuminor" -le "6" ]; then
-      supporticu=1
-   fi
-
-   if [ "$supporticu" = "1" ]; then
-
-      if test -f $with_icu/$libbase/libicul18n.so; then
-        echo " missing dependency "
-        missing=1
+        echo $icuversion
+        IFS='.'
+        op=0
+        for i in $icuversion
+        do
+            if [ "$op" = "0" ]; then
+                icumajor=$i
+            fi
+            if [ "$op" = "1" ]; then
+                icuminor=$i
+            fi
+            if [ "$op" -gt "1" ]; then
+                break
+            fi
+            op=$((op+1))
+        done
+        IFS='@@@'
         supporticu=0
-      fi
-   fi
 
-fi
+        if [ "$icumajor" -le "3" -a "$icuminor" -le "6" ]; then
+            supporticu=1
+        fi
 
+        if [ "$supporticu" = "1" ]; then
+
+        if test -f $with_icu/$libbase/libicul18n.so; then
+            echo " missing dependency "
+            missing=1
+            supporticu=0
+            fi
+        fi
+
+    fi
 fi
 
 ##=============================================================================
@@ -649,12 +643,12 @@ fi
 ##==============================================================================
 
 for i in \
-  prefix \
-  bindir \
-  sbindir \
-  libdir \
-  includedir \
-  datadir
+    prefix \
+    bindir \
+    sbindir \
+    libdir \
+    includedir \
+    datadir
 do
 
   eval v=$`echo $i`
@@ -672,20 +666,20 @@ do
 done
 if [ "$tiny" != "1" ] ;then
 for i in \
-  with_ssl \
-  with_pam
+    with_ssl \
+    with_pam
 do
 
-  eval v=$`echo $i`
+    eval v=$`echo $i`
 
-  case $v in
-    /* | "")
-      ;;
+    case $v in
+        /* | "")
+        ;;
 
-    *)
-      echo "$0: Error: Must be an absolute directory name: --$i=$v"
-      exit 1;
-      ;;
+        *)
+            echo "$0: Error: Must be an absolute directory name: --$i=$v"
+            exit 1;
+        ;;
   esac
 
 done
@@ -697,34 +691,33 @@ fi
 ##
 ##==============================================================================
 if [ "$test_option" = "-1" ] ; then
-with_test_user=guest
-with_test_user_pass=guest
-uid=`id -u`
-cwd=`/bin/pwd`
+    with_test_user=guest
+    with_test_user_pass=guest
+    uid=`id -u`
+    cwd=`/bin/pwd`
 
-if [ "$uid" = "0" -a "$disable_tests" != "1" ]; then
+    if [ "$uid" = "0" -a "$disable_tests" != "1" ]; then
 
-  if [ "$enable_pam" = "1" -o "$enable_pam_standalone" = "1" ]; then
+      if [ "$enable_pam" = "1" -o "$enable_pam_standalone" = "1" ]; then
 
-    su $with_test_user -c "/bin/true"
+        su $with_test_user -c "/bin/true"
 
-    if [ "$?" != "0" ]; then
-      echo "$0: The test user account ($with_test_user) does not exist on this system. Please create a test user with this name or designate an existing one with the --with-test-user option."
-      exit 1
+        if [ "$?" != "0" ]; then
+          echo "$0: The test user account ($with_test_user) does not exist on this system. Please create a test user with this name or designate an existing one with the --with-test-user option."
+          exit 1
+        fi
+
+        su $with_test_user -c "cd $cwd 2> /dev/null"
+
+        if [ "$?" != "0" ]; then
+          echo "$0: The test user account ($with_test_user) has insufficient privileges to access the pegasus root directory ($cwd), which will cause the user-context tests to fail. Please configure from a different directory."
+          exit 1
+        fi
+      else
+         echo "Warning: Using --with-test-user without --enable_pam or --enable-pam-standalone"
+      fi
+
     fi
-
-    su $with_test_user -c "cd $cwd 2> /dev/null"
-
-    if [ "$?" != "0" ]; then
-      echo "$0: The test user account ($with_test_user) has insufficient privileges to access the pegasus root directory ($cwd), which will cause the user-context tests to fail. Please configure from a different directory."
-      exit 1
-    fi
-  else
-     echo "Warning: Using --with-test-user without --enable_pam or --enable-pam-standalone"
-  fi
-
-
-fi
 fi
 ##==============================================================================
 ##
@@ -733,32 +726,30 @@ fi
 ##==============================================================================
 enable_pam=0
 if [ "$tiny" != "1" ] ;then
-pamcmd="pam_console_apply"
-pamYes=0
-IFS=':'
-echo "checking for pam"
-for i in $path
-do
-  if test -f $i/$pamcmd; then
-     pamYes=1
-     withpam=$i
-     break
-  fi
-done
-if [ "$pamYes" = "1" ]; then
-    echo "pam: Yes = $withpam/$pamcmd"
-    with_pam=${withpam%/*}
-    if [ "$with_pam" = "" ]; then
-       with_pam=/
+    pamcmd="pam_console_apply"
+    pamYes=0
+    IFS=':'
+    echo "checking for pam"
+    for i in $path
+    do
+        if test -f $i/$pamcmd; then
+            pamYes=1
+            withpam=$i
+            break
+        fi
+    done
+    if [ "$pamYes" = "1" ]; then
+        echo "pam: Yes = $withpam/$pamcmd"
+        with_pam=${withpam%/*}
+        if [ "$with_pam" = "" ]; then
+           with_pam=/
+        fi
+    else
+        echo "pam: No"
     fi
-else
-    echo "pam: No"
-fi
-
 
 if [ ! -z "$with_pam" ]
     then
-
       if [ ! -f "/usr/include/security/pam_appl.h" -a \
            ! -f "/usr/local/include/security/pam_appl.h" ]
       then
@@ -994,9 +985,9 @@ export LD_LIBRARY_PATH := \$(LD_LIBRARY_PATH):\$(PEGASUS_HOME)/bin
 include Makefile
 
 distclean:
-	rm -f GNUmakefile
-	rm -f options.mak
-	rm -f options.mak.bak
+    rm -f GNUmakefile
+    rm -f options.mak
+    rm -f options.mak.bak
 END
 
 echo "created GNUmakefile"
