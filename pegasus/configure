@@ -220,7 +220,6 @@ if [ -z "$platform" ]; then
       libbase=lib/64
       ;;
 
-
     *)
 
      unresolved=1
@@ -265,35 +264,35 @@ fi
 # --prefix:
 
 if [ -z "$prefix" ]; then
-  prefix=`pwd`
+    prefix=`pwd`
 fi
 
 # --bindir:
 
 if [ -z "$bindir" ]; then
-  bindir=$prefix/bin
+    bindir=$prefix/bin
 fi
 
 # --sbindir:
 
 if [ -z "$sbindir" ]; then
-  sbindir=$prefix/sbin
+    sbindir=$prefix/sbin
 fi
 
 # --libdir:
 
 if [ -z "$libdir" ]; then
-  libdir=$prefix/$libbase
+    libdir=$prefix/$libbase
 fi
 
 # --includedir:
 
 if [ -z "$includedir" ]; then
-  includedir=$prefix/include
+    includedir=$prefix/include
 fi
 
 if [ -z "$with_pam" ]; then
-  with_pam=/etc/pam.d
+    with_pam=/etc/pam.d
 fi
 
 ##=============================================================================
@@ -312,19 +311,19 @@ do
 echo "checking for $cc"
 for i in $path
 do
-  if test -f $i/$cc; then
-     ccYes=1
-     break
-  fi
+    if test -f $i/$cc; then
+        ccYes=1
+        break
+    fi
 done
 
 if [ "$ccYes" = "1" ];
 then
-   echo "$cc :yes"
+    echo "$cc :yes"
 else
-   echo "$cc :no"
-   missing=1
-   break
+    echo "$cc :no"
+    missing=1
+    break
 fi
 done
 
@@ -384,8 +383,8 @@ if [ "$tiny" != "1" ] ;then
         #    echo "$0: missing dependency: \$with_ssl/$libbase/libssl.so"
         #    missing=1
         #fi
-	echo "Test libssl with ldconfig"
-	echo ldconfig -p | grep libssl
+        echo "Test libssl with ldconfig"
+        echo ldconfig -p | grep libssl
 
         if [ "$missing" = "1" ]; then
             echo "$0: where --with-ssl=$with_ssl"
@@ -422,7 +421,6 @@ if [ "$tiny" != "1" ] ;then
     else
         echo "slp: No"
     fi
-
 
     if [ ! -z "$with_openslp" ]; then
 
@@ -516,11 +514,11 @@ if [ "$tiny" != "1" ]; then
     echo "checking for net-snmp"
     for i in $path
     do
-      if test -f $i/$snmpcmd; then
-         snmpYes=1
-         withsnmp=$i
-         break
-      fi
+        if test -f $i/$snmpcmd; then
+            snmpYes=1
+            withsnmp=$i
+            break
+        fi
     done
     if [ "$snmpYes" = "1" ]; then
         echo "snmp: Yes = $withsnmp/$snmpcmd"
@@ -533,21 +531,21 @@ if [ "$tiny" != "1" ]; then
 
     if [ ! -z "$with_snmp" ]; then
 
-      if [ ! -d "$with_snmp" ]; then
-        echo "$0: Error: No such directory: $with_snmp"
-        exit 1;
-      fi
+        if [ ! -d "$with_snmp" ]; then
+            echo "$0: Error: No such directory: $with_snmp"
+            exit 1;
+        fi
 
-      if [ ! -f "$with_snmp/lib64/libnetsnmp.so" ]; then
-        echo "$0: missing dependency: "
-        missing=1
-      fi
+        if [ ! -f "$with_snmp/lib64/libnetsnmp.so" ]; then
+            echo "$0: missing dependency: "
+            missing=1
+        fi
 
-      if [ "$missing" = "1" ]; then
-        echo "$0: snmp not installed properly at $with_snmp"
-      else
-        enable_snmp=1
-      fi
+        if [ "$missing" = "1" ]; then
+            echo "$0: snmp not installed properly at $with_snmp"
+        else
+            enable_snmp=1
+        fi
 
     fi
 fi
@@ -565,13 +563,13 @@ if [ "$tiny" != "1" ] ;then
     echo "checking for icu"
     for i in $path
     do
-      if test -f $i/$icucmd ;then
-         if test -f $i/$gencmd ; then
-             icuYes=1
-             withicu=$i
-             break
-         fi
-      fi
+        if test -f $i/$icucmd ;then
+            if test -f $i/$gencmd ; then
+                icuYes=1
+                withicu=$i
+                break
+            fi
+        fi
     done
     if [ "$icuYes" = "1" ]; then
         echo "icu: Yes = $withicu/$icucmd"
@@ -581,39 +579,39 @@ if [ "$tiny" != "1" ] ;then
     fi
 
     if [ "$icuYes" = "1" ]; then
-       icuversion=$(icu-config --version)
+        icuversion=$(icu-config --version)
 
-       echo $icuversion
-       IFS='.'
-       op=0
-       for i in $icuversion
-       do
-          if [ "$op" = "0" ]; then
-             icumajor=$i
-          fi
-          if [ "$op" = "1" ]; then
-             icuminor=$i
-          fi
-          if [ "$op" -gt "1" ]; then
-             break
-          fi
-          op=$((op+1))
-       done
-       IFS='@@@'
-       supporticu=0
+        echo $icuversion
+        IFS='.'
+        op=0
+        for i in $icuversion
+        do
+            if [ "$op" = "0" ]; then
+                icumajor=$i
+            fi
+            if [ "$op" = "1" ]; then
+                icuminor=$i
+            fi
+            if [ "$op" -gt "1" ]; then
+                break
+            fi
+            op=$((op+1))
+        done
+        IFS='@@@'
+        supporticu=0
 
-       if [ "$icumajor" -le "3" -a "$icuminor" -le "6" ]; then
-          supporticu=1
-       fi
+        if [ "$icumajor" -le "3" -a "$icuminor" -le "6" ]; then
+            supporticu=1
+        fi
 
-       if [ "$supporticu" = "1" ]; then
+        if [ "$supporticu" = "1" ]; then
 
-          if test -f $with_icu/$libbase/libicul18n.so; then
+        if test -f $with_icu/$libbase/libicul18n.so; then
             echo " missing dependency "
             missing=1
             supporticu=0
-          fi
-       fi
+            fi
+        fi
 
     fi
 fi
@@ -645,12 +643,12 @@ fi
 ##==============================================================================
 
 for i in \
-  prefix \
-  bindir \
-  sbindir \
-  libdir \
-  includedir \
-  datadir
+    prefix \
+    bindir \
+    sbindir \
+    libdir \
+    includedir \
+    datadir
 do
 
   eval v=$`echo $i`
@@ -668,20 +666,20 @@ do
 done
 if [ "$tiny" != "1" ] ;then
 for i in \
-  with_ssl \
-  with_pam
+    with_ssl \
+    with_pam
 do
 
-  eval v=$`echo $i`
+    eval v=$`echo $i`
 
-  case $v in
-    /* | "")
-      ;;
+    case $v in
+        /* | "")
+        ;;
 
-    *)
-      echo "$0: Error: Must be an absolute directory name: --$i=$v"
-      exit 1;
-      ;;
+        *)
+            echo "$0: Error: Must be an absolute directory name: --$i=$v"
+            exit 1;
+        ;;
   esac
 
 done
@@ -734,11 +732,11 @@ if [ "$tiny" != "1" ] ;then
     echo "checking for pam"
     for i in $path
     do
-      if test -f $i/$pamcmd; then
-         pamYes=1
-         withpam=$i
-         break
-      fi
+        if test -f $i/$pamcmd; then
+            pamYes=1
+            withpam=$i
+            break
+        fi
     done
     if [ "$pamYes" = "1" ]; then
         echo "pam: Yes = $withpam/$pamcmd"
