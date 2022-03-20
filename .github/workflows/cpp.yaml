@@ -127,7 +127,22 @@ jobs:
             export
             echo "Display env variables end"
 
-      - name: Build OpenPegasus non-privileged
+      #- name: Build OpenPegasus non-privileged
+        #shell: bash
+        #run: |
+            #echo "show export"
+            #export
+            #echo "End show export"
+            #echo "Start build"
+            #cd pegasus
+            #make world
+            #echo "End build Step"
+        #env:
+            ## env variables required for non-root minimal build and test
+            #PEGASUS_DISABLE_PROV_USERCTXT: true
+            #PEGASUS_DISABLE_PRIVILEGED_TESTS: true
+
+      - name: Build OpenPegasus privileged
         shell: bash
         run: |
             echo "show export"
@@ -135,12 +150,14 @@ jobs:
             echo "End show export"
             echo "Start build"
             cd pegasus
-            make world
+            # Execute as sudo with env variables  and the bin added to path
+            sudo "PATH=$PATH:$PEGASUS_HOME/bin" \
+                --preserve-env=PEGASUS_ROOT,PEGASUS_HOME,PEGASUS_PLATFORM,PEGASUS_HAS_SSL \
+                make -f $PWD/Makefile world
             echo "End build Step"
         env:
             # env variables required for non-root minimal build and test
-            PEGASUS_DISABLE_PROV_USERCTXT: true
-            PEGASUS_DISABLE_PRIVILEGED_TESTS: true
+            PEGASUS_HAS_SSL: true
 
 
       #- name: Test

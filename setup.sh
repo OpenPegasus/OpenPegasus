@@ -1,7 +1,8 @@
 # Test of a fixed configure as bash shell
 echo $PWD
 
-export ROOT=.
+# Set Root to the current directory.
+export ROOT=$PWD
 export PEGASUS_ROOT=$ROOT/pegasus
 export PEGASUS_HOME=$ROOT/home
 export PATH=$PEGASUS_HOME/bin:$PATH

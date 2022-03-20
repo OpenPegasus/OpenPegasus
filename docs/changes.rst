@@ -30,6 +30,17 @@ Enhancements
 
 cleanup
 
+* Add use of github actions to test capability.  Tests are executed on each
+  push.  The tests are currently limited because each execution of the test
+  suite currently takes about an hour.
+
+* Update a number of tests that apparently were not executed because we were
+  not executing tests in the the user non-privileged.  This includes tests in
+  Clients/wbemexec and TestProviders/CLIProviderTests.
+
+
+
+
 
 openpegasus 14.2 - Release
 --------------------------
