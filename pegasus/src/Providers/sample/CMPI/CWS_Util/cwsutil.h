@@ -51,12 +51,13 @@
 #define CWS_TYPE_DIR   'd'
 #define CWS_TYPE_PLAIN 'f'
 
-#if defined(PEGASUS_PLATFORM_WIN64_IA64_MSVC) || \
-    defined(PEGASUS_PLATFORM_WIN64_X86_64_MSVC) || \
-    defined(PEGASUS_PLATFORM_WIN32_IX86_MSVC)
+// Long line and do bypass gcc warnings.
+#if defined(PEGASUS_PLATFORM_WIN64_IA64_MSVC) || defined(PEGASUS_PLATFORM_WIN64_X86_64_MSVC) || defined(PEGASUS_PLATFORM_WIN32_IX86_MSVC)
+do { \
 #define SINT64 __int64
 #define strcasecmp _stricmp
 CMPI_EXTERN_C char * dirname(char *path);
+}while (0)
 #else
 #define SINT64 long long
 #endif

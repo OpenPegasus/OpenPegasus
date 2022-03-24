@@ -727,7 +727,7 @@ int main(int argc, char** argv)
                        tmsc.logInfo(clientId, clientPid, globalStatus, pidFile);
                    }
                 }
-                catch (CannotConnectException)
+                catch (CannotConnectException &e)
                 {
                     globalStatus = CLIENT_UNKNOWN;
                     tmsc.logInfo(clientId, clientPid, globalStatus, pidFile);
@@ -815,7 +815,7 @@ int main(int argc, char** argv)
                 // through the loop.
                 //
 
-                catch (CannotConnectException)
+                catch (CannotConnectException &e)
                 {
                     globalStatus = CLIENT_UNKNOWN;
                     tmsc.logInfo(clientId, clientPid, globalStatus, pidFile);

@@ -111,18 +111,12 @@ else
   # existing code is running and we do not know when deprecations
   # like this might actually be removed.
   ifeq ($(shell expr $(GCC_VERSION) '>=' 8.0), 1)
-    FLAGS += -Wno-class-memaccess
-    FLAGS += -Wno-deprecated-copy
+    EXTRA_CXX_FLAGS += -Wno-class-memaccess
+    EXTRA_CXX_FLAGS += -Wno-deprecated-copy
     # See github issue #7. Specifically bypasses depricated readdir_r
     FLAGS += -Wno-deprecated-declarations
   endif
     FLAGS += -D_GNU_SOURCE -DTHREAD_SAFE -D_REENTRANT
-  ifeq ($(shell expr $(GCC_VERSION) '>=' 8.0), 1)
-    # TODO: Future fix.  See issue # 1
-    FLAGS += -Wno-deprecated-copy
-    FLAGS += -Wno-class-memaccess
-  endif
-
 endif
 
 

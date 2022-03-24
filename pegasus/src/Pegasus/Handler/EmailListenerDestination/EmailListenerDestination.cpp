@@ -682,6 +682,10 @@ void EmailListenerDestination::_openFile(
 
     String exceptionStr;
 
+    // This call to tmpnam results in gcc warning.  However, since this
+    // is test program only, we will not modify this warning.
+    // In the future, it could use mkstemp instead which also opens 
+    // the file. 
     *filePtr = fopen(tmpnam(mailFile), "w");
 #ifdef PEGASUS_OS_VMS
     strcpy(mailFileVms, mailFile);
