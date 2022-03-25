@@ -40,11 +40,7 @@ cleanup
   
 * Removed a number of compile warning messages by modifying the code to
   eliminate the warnings.  NOTE: There are still a few warnings in the
-  compile but they are in test providers.
-
-
-
-
+  compile but they are in test providers. (see issue #22)
 
 openpegasus 14.2 - Release
 --------------------------
