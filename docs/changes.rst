@@ -37,10 +37,10 @@ cleanup
 * Update a number of tests that apparently were not executed because we were
   not executing tests in the the user non-privileged.  This includes tests in
   Clients/wbemexec and TestProviders/CLIProviderTests.
-
-
-
-
+  
+* Removed a number of compile warning messages by modifying the code to
+  eliminate the warnings.  NOTE: There are still a few warnings in the
+  compile but they are in test providers. (see issue #22)
 
 openpegasus 14.2 - Release
 --------------------------

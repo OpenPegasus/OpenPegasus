@@ -203,9 +203,9 @@ CMPIStatus CWS_DirectoryModifyInstance( CMPIInstanceMI * mi,
 
   if (!silentMode()) fprintf(stderr,"--- CWS_DirectorySetInstance() \n");
 
-  if (!makeFileBuf(ci,&filebuf) || !CWS_Update_File(&filebuf))
+  if (!makeFileBuf(ci,&filebuf) || !CWS_Update_File(&filebuf)) {
     CWSSetStatusWithChars(CMPI_RC_ERR_FAILED,
-             "Could not update instance");
+             "Could not update instance")};
 
   return st;
 }
