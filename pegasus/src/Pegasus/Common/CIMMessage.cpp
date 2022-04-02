@@ -2545,7 +2545,7 @@ CIMOpenAssociatorInstancePathsResponseMessage::
         const Boolean endOfSequence_ ,
         const String& enumerationContext_
         )
-    :CIMOpenOrPullResponseDataMessage(
+    : CIMOpenOrPullResponseDataMessage(
         CIM_OPEN_ASSOCIATOR_INSTANCE_PATHS_RESPONSE_MESSAGE,
         messageId_, cimException_, queueIds_,CIMResponseData::RESP_OBJECTPATHS,
         endOfSequence_, enumerationContext_)
