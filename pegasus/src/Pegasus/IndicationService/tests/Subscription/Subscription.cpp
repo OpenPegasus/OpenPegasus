@@ -1235,6 +1235,7 @@ void _valid (CIMClient & client, String& qlang)
     _checkUint64Property (retrievedInstance, "RepeatNotificationInterval", 60);
     _checkUint64Property (retrievedInstance, "RepeatNotificationGap", 30);
     _checkUint16Property (retrievedInstance, "RepeatNotificationCount", 5);
+    // TODO test Handler and Filter reference properties against path
 
     //
     //  Enumerate subscriptions

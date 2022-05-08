@@ -685,6 +685,8 @@ void IndicationService::_setOrAddSystemNameInHandlerFilter(
     CIMInstance& instance,
     const String& sysname)
 {
+    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
+        "IndicationService::__setOrAddSystemNameInHandlerFilter");
     // Key property SystemName should be ignored by server according to
     // DSP1054 v1.2, setting it to empty string for further processing
     // host name will replace empty string on returning instances
@@ -701,12 +703,16 @@ void IndicationService::_setOrAddSystemNameInHandlerFilter(
         CIMProperty p=instance.getProperty(sysNamePos);
         p.setValue(x);
     }
+    PEG_METHOD_EXIT();
 }
 
 void IndicationService::_setSystemNameInHandlerFilter(
     CIMObjectPath& objPath,
     const String& sysname)
 {
+    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
+        "IndicationService::_setSystemNameInHandlerFilter");
+
     Array<CIMKeyBinding> keys=objPath.getKeyBindings();
     Array<CIMKeyBinding> updatedKeys;
 
@@ -719,12 +725,21 @@ void IndicationService::_setSystemNameInHandlerFilter(
         CIMKeyBinding::STRING));
     objPath.setKeyBindings(updatedKeys);
     objPath.setHost(String::EMPTY);
+
+    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+        "_setSystemNameInHandlerFilterReference sysname: %s objPath: %s",
+        (const char*) sysname.getCString(),
+        (const char*) objPath.toString().getCString()));    
+    PEG_METHOD_EXIT();
 }
 
 void IndicationService::_setSystemNameInHandlerFilterReference(
     String& reference,
     const String& sysname)
 {
+    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
+        "IndicationService::_setSystemNameInHandlerFilterReference");
+
     static const Char16 quote = 0x0022;
 
     reference.remove(reference.size()-1);
@@ -743,14 +758,24 @@ void IndicationService::_setSystemNameInHandlerFilterReference(
         Uint32 ns = reference.find(2, slash);
         reference.remove(0,ns+1);
     }
+    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+        "_setSystemNameInHandlerFilterReference sysname: %s reference: %s",
+        (const char*) sysname.getCString(),
+        (const char*) reference.getCString()));
+
+    PEG_METHOD_EXIT();
 }
 
 void IndicationService::_setSubscriptionSystemName(
     CIMObjectPath& objPath,
     const String& sysname)
 {
+    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
+        "IndicationService::_setSubscriptionSystemName");
+
     Array<CIMKeyBinding> keys=objPath.getKeyBindings();
 
+    // Makes assumption 0 is filter, 1 is handler
     String filterValue = keys[0].getValue();
     String handlerValue = keys[1].getValue();
 
@@ -770,12 +795,20 @@ void IndicationService::_setSubscriptionSystemName(
         CIMKeyBinding::REFERENCE));
 
     objPath.setKeyBindings(newKeys);
+    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+        "_setSubscriptionSystemName sysname %s objPath %s",
+        (const char*) sysname.getCString(),
+        (const char*) objPath.toString().getCString()));
+
+    PEG_METHOD_EXIT();
 }
 
 void IndicationService::_setSystemName(
     CIMObjectPath& objPath,
     const String& sysname)
 {
+    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
+        "IndicationService::_setSystemName");
 
     // Need different handling for subscriptions
     if ((objPath.getClassName().equal(
@@ -790,13 +823,18 @@ void IndicationService::_setSystemName(
         // this is a Filter or Handler object path
         _setSystemNameInHandlerFilter(objPath,sysname);
     }
+    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+        "_setSubscriptionSystemName sysname %s objPath %s",
+        (const char*) sysname.getCString(),
+        (const char*) objPath.toString().getCString()));
+        
+    PEG_METHOD_EXIT();
 }
 
 void IndicationService::_setSystemName(
     CIMInstance& instance,
     const String& sysname)
 {
-
     PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
         "IndicationService::_setSystemName");
 
@@ -809,15 +847,43 @@ void IndicationService::_setSystemName(
              PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
     {
         _setSubscriptionSystemName(newPath,sysname);
+
+        // Set sysname in handler and filter  referenceproperties
+        _setSystemName(instance, PEGASUS_PROPERTYNAME_FILTER, sysname);
+        _setSystemName(instance, PEGASUS_PROPERTYNAME_HANDLER, sysname);
     }
     else
     {
         // this is a Filter or Handler instance
         _setOrAddSystemNameInHandlerFilter(instance,sysname);
         _setSystemNameInHandlerFilter(newPath,sysname);
-
     }
     instance.setPath(newPath);
+
+    PEG_METHOD_EXIT();
+}
+
+void IndicationService::_setSystemName(
+    CIMInstance& instance,
+    const CIMName& propertyName,
+    const String& sysname)
+{
+    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE, "IndicationService::_setSystemName");
+                     
+    CIMProperty property = instance.getProperty
+        (instance.findProperty (propertyName));
+    CIMValue propertyValue = property.getValue();
+    CIMObjectPath propertyPath;
+    propertyValue.get(propertyPath);
+    _setSystemNameInHandlerFilter(propertyPath,sysname);
+    
+    propertyValue.set(propertyPath);
+    property.setValue(propertyValue);
+
+    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+        "_setProperty sysname %s property name %s",
+        (const char*) sysname.getCString(),
+        (const char*) propertyName.getString().getCString()));
 
     PEG_METHOD_EXIT();
 }
@@ -2257,6 +2323,8 @@ void IndicationService::_handleGetInstanceRequest(const Message* message)
         if ((!className.equal(PEGASUS_CLASSNAME_INDSUBSCRIPTION)) &&
             (!className.equal(PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
         {
+            PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+                "getSubscriptionInstance  - set-addSystemNameinHandlerFilter "));
             // this is a Filter or Handler instance
             _setOrAddSystemNameInHandlerFilter(
                 instance,
@@ -2274,7 +2342,18 @@ void IndicationService::_handleGetInstanceRequest(const Message* message)
         }
 
         propIndex = instance.findProperty(
-            PEGASUS_PROPERTYNAME_INDSUB_CONTENTLANGS);
+            PEGASUS_PROPERTYNAME_FILTER);
+        if (propIndex != PEG_NOT_FOUND)
+        {
+             // Get the content languages to be sent in the Content-Language
+             // header
+             instance.getProperty(propIndex).getValue().
+                 get(contentLangsString);
+             instance.removeProperty(propIndex);
+        }
+
+        propIndex = instance.findProperty(
+            PEGASUS_PROPERTYNAME_HANDLER);
         if (propIndex != PEG_NOT_FOUND)
         {
              // Get the content languages to be sent in the Content-Language
@@ -2403,7 +2482,8 @@ void IndicationService::_handleEnumerateInstancesRequest(const Message* message)
         //  If a subscription with a duration, calculate subscription
         //  time remaining, and add property to the instance
         //
-        //  put the host name into SystemName properties and key bindings
+        //  put the host name into SystemName properties key bindings
+        //  and reference properties
         //
         for (Uint32 i = 0; i < enumInstances.size(); i++)
         {
@@ -2519,6 +2599,8 @@ void IndicationService::_handleEnumerateInstancesRequest(const Message* message)
                 }
             }
             // put the host name into SystemName properties and key bindings
+            PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+                "IndicationService::enumerateInstances._setSystemName"));
             _setSystemName(
                 adjustedInstance,
                 System::getFullyQualifiedHostName());
@@ -2596,6 +2678,8 @@ void IndicationService::_handleEnumerateInstanceNamesRequest(
         // put the hostname back into SystemName key binding
         for (Uint32 i=0;i<enumInstanceNames.size();i++)
         {
+            PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+                "IndicationService::EnumerateInstanceNames"));
             _setSystemName(
                 enumInstanceNames[i],
                 System::getFullyQualifiedHostName());

@@ -186,6 +186,19 @@ public:
      */
     static void _setSystemName(CIMInstance& instance, const String& sysname);
 
+    /** Replaces value of SystemName key in reference CIM Property with 
+        name in instance of CIM_IndicationSubscription
+
+        Used for Subscription object paths to set sysname in the
+        Handler and Filter reference properties
+
+        @param   instance             instance containing property
+        @param   propertyName         name of proerty to change
+        @param   sysname              system name to set
+     */
+    static void _setSystemName(CIMInstance& instance,
+                               const CIMName& propertyName,
+                               const String& sysname);
 
 private:
 
