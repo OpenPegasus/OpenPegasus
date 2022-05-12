@@ -24,8 +24,8 @@ Bugs
   when getInstance and EnumerateInstance called in IndicationServices.
   This property was left empty before meaning that the value of the
   paths was not equal to the value of the corresponding property
-  components because the properties had left the sysname key of the
-  Filter and Handler cim objects empty.  (See issue #82)
+  components because the missing key property.   Also reorganized
+  some code to simplify logic. (See issue #82)
 
 
 Enhancements

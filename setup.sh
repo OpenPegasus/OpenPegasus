@@ -11,9 +11,6 @@ export PATH=$PEGASUS_HOME/bin:$PATH
 mkdir $PEGASUS_HOME -p
 export LD_LIBRARY_PATH=$PEGASUS_HOME/lib64:
 
-
-
-
 # Storage mode of the CIM repository created on initial build
 # This may be modified using cimconfig.
 # The default if this is not uses is XML
@@ -39,3 +36,5 @@ export PEGASUS_PAM_AUTHENTICATION=true
 export PEGASUS_USE_PAM_STANDALONE_PROC=false
 export PEGASUS_ENABLE_CMPI_PROVIDER_MANAGER=true
 export PEGASUS_PLATFORM_FOR_32BIT_PROVIDER_SUPPORT=LINUX_X86_64_GNU
+
+export | grep PEGASUS

@@ -68,6 +68,21 @@ PEGASUS_USING_STD;
 
 PEGASUS_NAMESPACE_BEGIN
 
+class Str
+{
+public:
+    Str(const String& s) : _cstr(s.getCString()) { }
+    Str(const CIMName& n) : _cstr(n.getString().getCString()) { }
+    Str(const CIMNamespaceName& n) : _cstr(n.getString().getCString()) { }
+    Str(const Exception& e) : _cstr(e.getMessage().getCString()) { }
+    Str(const CIMDateTime& x) : _cstr(x.toString().getCString()) { }
+    Str(const CIMObjectPath& x) : _cstr(x.toString().getCString()) { }
+    const char* operator*() const { return (const char*)_cstr; }
+    operator const char*() const { return (const char*)_cstr; }
+private:
+    CString _cstr;
+};
+
 //
 // Message constants
 //
@@ -686,7 +701,8 @@ void IndicationService::_setOrAddSystemNameInHandlerFilter(
     const String& sysname)
 {
     PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
-        "IndicationService::__setOrAddSystemNameInHandlerFilter");
+        "IndicationService::_setOrAddSystemNameInHandlerFilter");
+        
     // Key property SystemName should be ignored by server according to
     // DSP1054 v1.2, setting it to empty string for further processing
     // host name will replace empty string on returning instances
@@ -706,13 +722,51 @@ void IndicationService::_setOrAddSystemNameInHandlerFilter(
     PEG_METHOD_EXIT();
 }
 
-void IndicationService::_setSystemNameInHandlerFilter(
+Boolean IndicationService::_isSubscription(const CIMInstance& instance)
+{
+    if ((instance.getClassName().equal(
+             PEGASUS_CLASSNAME_INDSUBSCRIPTION)) ||
+        (instance.getClassName().equal(
+             PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
+        return true;
+    else
+        return false;
+}
+Boolean IndicationService::_isSubscription(const CIMObjectPath& objPath)
+{
+    if ((objPath.getClassName().equal(
+             PEGASUS_CLASSNAME_INDSUBSCRIPTION)) ||
+        (objPath.getClassName().equal(
+             PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
+        return true;
+    else
+        return false;
+}
+
+Boolean IndicationService::_isSubscription(const CIMName& className)
+{
+    if ((className.equal(
+             PEGASUS_CLASSNAME_INDSUBSCRIPTION)) ||
+        (className.equal(
+             PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
+        return true;
+    else
+        return false;
+}
+
+
+void IndicationService::_setSystemNameInHandlerFilterPath(
     CIMObjectPath& objPath,
     const String& sysname)
 {
     PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
-        "IndicationService::_setSystemNameInHandlerFilter");
-
+        "IndicationService::_setSystemNameInHandlerFilterPath");
+        
+    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,  // TODO: remove
+        "_setSystemNameInHandlerFilterPath sysname: %s objPath: %s",
+        (const char*) sysname.getCString(),
+        (const char*) objPath.toString().getCString()));
+        
     Array<CIMKeyBinding> keys=objPath.getKeyBindings();
     Array<CIMKeyBinding> updatedKeys;
 
@@ -726,10 +780,12 @@ void IndicationService::_setSystemNameInHandlerFilter(
     objPath.setKeyBindings(updatedKeys);
     objPath.setHost(String::EMPTY);
 
-    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
-        "_setSystemNameInHandlerFilterReference sysname: %s objPath: %s",
+    // Trace shows SystemName in place here.    
+    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,  // TODO: remove
+        "_setSystemNameInHandlerFilterPath sysname: %s objPath: %s",
         (const char*) sysname.getCString(),
-        (const char*) objPath.toString().getCString()));    
+        (const char*) objPath.toString().getCString()));
+ 
     PEG_METHOD_EXIT();
 }
 
@@ -766,16 +822,74 @@ void IndicationService::_setSystemNameInHandlerFilterReference(
     PEG_METHOD_EXIT();
 }
 
-void IndicationService::_setSubscriptionSystemName(
+void IndicationService::_setSystemNameInSubscription(
+    CIMInstance& instance,
+    const String& sysname,
+    Boolean setPathFlag)
+{
+    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
+        "IndicationService::_setSystemNameInSubscription");
+
+    // Set system name in object path
+    if (setPathFlag)
+    {
+        PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4, // TODO tmp
+            "_setSystemNameInSubscription  - setSystemName objpath=%s",
+            (const char *)instance.getPath().toString().getCString()));
+            
+        CIMObjectPath objPath = instance.getPath();
+        _setSystemNameinSubscriptionPath(objPath, sysname);
+
+        //TODO  confirm the following necessary
+        instance.setPath(objPath);
+        
+        PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+            "_setSystemNameInSubscription sysname %s objPath %s",
+            (const char*) sysname.getCString(),
+            (const char*) objPath.toString().getCString()));
+    }
+
+    // Set system name in handler and filter reference properties
+    // systemname key
+    _setSystemNameInProperty(instance,
+                           PEGASUS_PROPERTYNAME_FILTER, sysname);
+    _setSystemNameInProperty(instance,
+                           PEGASUS_PROPERTYNAME_HANDLER, sysname);
+
+    PEG_METHOD_EXIT();
+}
+
+void IndicationService::_setSystemNameInObjectPath(
     CIMObjectPath& objPath,
     const String& sysname)
 {
     PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
-        "IndicationService::_setSubscriptionSystemName");
+        "IndicationService::_setSystemNameInObjectPath");
 
+    if (_isSubscription(objPath))
+    {
+        _setSystemNameinSubscriptionPath(objPath, sysname);
+    }
+    else
+    {
+        // Filter or Handler object path
+        _setSystemNameInHandlerFilterPath(objPath,sysname);
+
+    }  
+    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+        "_setSystemNameInObjectPath sysname: %s objPath: %s",
+        (const char*) sysname.getCString(),
+        (const char*) objPath.toString().getCString()));        
+    PEG_METHOD_EXIT();
+}
+
+void IndicationService::_setSystemNameinSubscriptionPath(
+    CIMObjectPath& objPath,
+    const String& sysname)
+{    
     Array<CIMKeyBinding> keys=objPath.getKeyBindings();
 
-    // Makes assumption 0 is filter, 1 is handler
+    // Makes assumption 0 is filter, 1 is handler, that is valid
     String filterValue = keys[0].getValue();
     String handlerValue = keys[1].getValue();
 
@@ -795,93 +909,57 @@ void IndicationService::_setSubscriptionSystemName(
         CIMKeyBinding::REFERENCE));
 
     objPath.setKeyBindings(newKeys);
-    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
-        "_setSubscriptionSystemName sysname %s objPath %s",
-        (const char*) sysname.getCString(),
-        (const char*) objPath.toString().getCString()));
-
-    PEG_METHOD_EXIT();
-}
-
-void IndicationService::_setSystemName(
-    CIMObjectPath& objPath,
-    const String& sysname)
-{
-    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
-        "IndicationService::_setSystemName");
-
-    // Need different handling for subscriptions
-    if ((objPath.getClassName().equal(
-             PEGASUS_CLASSNAME_INDSUBSCRIPTION)) ||
-        (objPath.getClassName().equal(
-             PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
-    {
-        _setSubscriptionSystemName(objPath,sysname);
-    }
-    else
-    {
-        // this is a Filter or Handler object path
-        _setSystemNameInHandlerFilter(objPath,sysname);
-    }
-    PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
-        "_setSubscriptionSystemName sysname %s objPath %s",
-        (const char*) sysname.getCString(),
-        (const char*) objPath.toString().getCString()));
-        
-    PEG_METHOD_EXIT();
 }
 
 void IndicationService::_setSystemName(
     CIMInstance& instance,
-    const String& sysname)
+    const String& sysname,
+    Boolean setPathFlag)
 {
     PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
         "IndicationService::_setSystemName");
 
-    CIMObjectPath newPath=instance.getPath();
-
-    // Need different handling for subscriptions
-    if ((instance.getClassName().equal(
-             PEGASUS_CLASSNAME_INDSUBSCRIPTION)) ||
-        (instance.getClassName().equal(
-             PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
+    // For subscriptions set object path and Filter, Handler
+    // reference property system name values
+    if (_isSubscription(instance))
     {
-        _setSubscriptionSystemName(newPath,sysname);
-
-        // Set sysname in handler and filter  referenceproperties
-        _setSystemName(instance, PEGASUS_PROPERTYNAME_FILTER, sysname);
-        _setSystemName(instance, PEGASUS_PROPERTYNAME_HANDLER, sysname);
+        // Sets both path and reference properties system name
+        _setSystemNameInSubscription(instance,sysname, setPathFlag);
     }
     else
     {
-        // this is a Filter or Handler instance
         _setOrAddSystemNameInHandlerFilter(instance,sysname);
-        _setSystemNameInHandlerFilter(newPath,sysname);
+        
+        if (setPathFlag)
+        {
+            CIMObjectPath instPath = instance.getPath();
+            _setSystemNameInHandlerFilterPath(instPath, sysname);
+            instance.setPath(instPath);
+        }
     }
-    instance.setPath(newPath);
 
     PEG_METHOD_EXIT();
 }
 
-void IndicationService::_setSystemName(
+void IndicationService::_setSystemNameInProperty(
     CIMInstance& instance,
     const CIMName& propertyName,
     const String& sysname)
 {
-    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE, "IndicationService::_setSystemName");
+    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE, "IndicationService::_setSystemNameInProperty");
                      
     CIMProperty property = instance.getProperty
         (instance.findProperty (propertyName));
     CIMValue propertyValue = property.getValue();
     CIMObjectPath propertyPath;
     propertyValue.get(propertyPath);
-    _setSystemNameInHandlerFilter(propertyPath,sysname);
+    _setSystemNameInHandlerFilterPath(propertyPath,sysname);
     
     propertyValue.set(propertyPath);
     property.setValue(propertyValue);
 
     PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
-        "_setProperty sysname %s property name %s",
+        "_setProperty sysname: %s property: name %s",
         (const char*) sysname.getCString(),
         (const char*) propertyName.getString().getCString()));
 
@@ -934,7 +1012,6 @@ void IndicationService::_initialize()
 
     PEG_METHOD_EXIT();
 }
-
 
 
 #ifdef PEGASUS_ENABLE_DMTF_INDICATION_PROFILE_SUPPORT
@@ -2062,10 +2139,7 @@ void IndicationService::_handleCreateInstanceRequest(const Message * message)
         Array<NamespaceClassList> indicationSubclasses;
         Array<ProviderClassList> indicationProviders;
 
-        if ((instance.getClassName().equal(
-                 PEGASUS_CLASSNAME_INDSUBSCRIPTION)) ||
-            (instance.getClassName().equal(
-                 PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
+        if (_isSubscription(instance))
         {
             _beginCreateSubscription(instance.getPath());
 
@@ -2137,13 +2211,15 @@ void IndicationService::_handleCreateInstanceRequest(const Message * message)
                     //
                     //  Create instance for disabled subscription
                     //
+
                     instanceRef = _subscriptionRepository->createInstance(
                         instance, request->nameSpace, userName,
                         acceptLangs, contentLangs, false);
                     _commitCreateSubscription(subscriptionPath);
 
-                    // put correct SystemName in place
-                    _setSubscriptionSystemName(
+                    // put correct SystemName in place in returned object
+                    // Note: instanceRef set into response 
+                    _setSystemNameInObjectPath(
                         instanceRef,
                         System::getFullyQualifiedHostName());
                 }
@@ -2154,7 +2230,7 @@ void IndicationService::_handleCreateInstanceRequest(const Message * message)
                 throw;
             }
         }
-        else
+        else  // create instance filter or handler
         {
             //
             //  Create instance for filter or handler
@@ -2163,10 +2239,19 @@ void IndicationService::_handleCreateInstanceRequest(const Message * message)
                 instance, request->nameSpace, userName,
                 acceptLangs, contentLangs, false);
 
-            // put correct SystemName in place
-            _setSystemNameInHandlerFilter(
+            // NOTE: SystemName already blank here in instancePath
+            PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4, // TODO: remove
+                "_handleCreateInstanceRequest=1  - getFromRepo objpath=%s",
+                (const char *)instanceRef.toString().getCString()));
+            
+            // put correct SystemName in place            
+            _setSystemNameInHandlerFilterPath(
                 instanceRef,
                 System::getFullyQualifiedHostName());
+
+            PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4, // TODO: remove
+                "_handleCreateInstanceRequest2, postset  - objpath=%s",
+                (const char *)instanceRef.toString().getCString()));
 
         }
     }
@@ -2178,7 +2263,7 @@ void IndicationService::_handleCreateInstanceRequest(const Message * message)
     //
     if (!responseSent)
     {
-// l10n - no Content-Language in response
+        // l10n - no Content-Language in response
         CIMCreateInstanceResponseMessage* response =
             dynamic_cast<CIMCreateInstanceResponseMessage*>(
                 request->buildResponse());
@@ -2255,13 +2340,14 @@ void IndicationService::_handleGetInstanceRequest(const Message* message)
             durationAdded);
 
         // Set SystemName to empty String for internal processing
-        // the SystemName will be fixed with correct fully qualified hostname
-        // on return.
-        _setSystemName(request->instanceName,String::EMPTY);
+        // the SystemName will be fixed with correct fully qualified system
+        // name later in processing
+        _setSystemNameInObjectPath(request->instanceName,String::EMPTY);
 
         //
         //  Get instance from repository
         //
+            
         instance = _subscriptionRepository->getInstance(
             request->nameSpace,
             request->instanceName,
@@ -2319,17 +2405,17 @@ void IndicationService::_handleGetInstanceRequest(const Message* message)
             }
         }
 
-        // Put host name back into SystemName property if not Subscription
-        if ((!className.equal(PEGASUS_CLASSNAME_INDSUBSCRIPTION)) &&
-            (!className.equal(PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
-        {
-            PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
-                "getSubscriptionInstance  - set-addSystemNameinHandlerFilter "));
-            // this is a Filter or Handler instance
-            _setOrAddSystemNameInHandlerFilter(
-                instance,
-                System::getFullyQualifiedHostName());
-        }
+        // NOTE: Path no keys here.
+        PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4, // TODO tmp
+            "_handleGetInstanceRequest1  - setSystemName objpath=%s",
+            (const char *)instance.getPath().toString().getCString()));
+
+        // Sets sysname only in properties since no path on returned instance
+        _setSystemName(instance, System::getFullyQualifiedHostName(), false);
+        
+        PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,  // TODO tmp
+            "_handleGetInstanceRequest2  - setSystemName objpath=%s",
+            (const char *)instance.getPath().toString().getCString()));
 
         //
         //  Remove the language properties from instance before returning
@@ -2342,18 +2428,7 @@ void IndicationService::_handleGetInstanceRequest(const Message* message)
         }
 
         propIndex = instance.findProperty(
-            PEGASUS_PROPERTYNAME_FILTER);
-        if (propIndex != PEG_NOT_FOUND)
-        {
-             // Get the content languages to be sent in the Content-Language
-             // header
-             instance.getProperty(propIndex).getValue().
-                 get(contentLangsString);
-             instance.removeProperty(propIndex);
-        }
-
-        propIndex = instance.findProperty(
-            PEGASUS_PROPERTYNAME_HANDLER);
+            PEGASUS_PROPERTYNAME_INDSUB_CONTENTLANGS);
         if (propIndex != PEG_NOT_FOUND)
         {
              // Get the content languages to be sent in the Content-Language
@@ -2482,7 +2557,7 @@ void IndicationService::_handleEnumerateInstancesRequest(const Message* message)
         //  If a subscription with a duration, calculate subscription
         //  time remaining, and add property to the instance
         //
-        //  put the host name into SystemName properties key bindings
+        //  Put the system name into SystemName properties key bindings
         //  and reference properties
         //
         for (Uint32 i = 0; i < enumInstances.size(); i++)
@@ -2601,9 +2676,11 @@ void IndicationService::_handleEnumerateInstancesRequest(const Message* message)
             // put the host name into SystemName properties and key bindings
             PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
                 "IndicationService::enumerateInstances._setSystemName"));
+                
             _setSystemName(
                 adjustedInstance,
-                System::getFullyQualifiedHostName());
+                System::getFullyQualifiedHostName(),
+                true);
 
             returnedInstances.append(adjustedInstance);
         }
@@ -2675,14 +2752,20 @@ void IndicationService::_handleEnumerateInstanceNamesRequest(
                 request->nameSpace,
                 request->className);
 
-        // put the hostname back into SystemName key binding
+        // Put the system name back into SystemName key binding
         for (Uint32 i=0;i<enumInstanceNames.size();i++)
         {
             PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
-                "IndicationService::EnumerateInstanceNames"));
-            _setSystemName(
+                "IndicationService::EnumerateInstanceNames: Before path %s",
+                (const char * ) enumInstanceNames[i].toString().getCString()));
+                
+            _setSystemNameInObjectPath(
                 enumInstanceNames[i],
                 System::getFullyQualifiedHostName());
+                
+            PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+                "IndicationService::EnumerateInstanceNames: After path %s",
+                (const char * ) enumInstanceNames[i].toString().getCString()));
         }
     }
 
@@ -2715,11 +2798,11 @@ void IndicationService::_handleModifyInstanceRequest(const Message* message)
     //  Get modified instance and instance name from request
     //
     CIMInstance modifiedInstance = request->modifiedInstance;
-    CIMObjectPath instanceReference = modifiedInstance.getPath();
+    CIMObjectPath instancePath = modifiedInstance.getPath();
 
     // set SystemName keybinding to empty in request's reference and instance
-    _setSystemName(instanceReference,String::EMPTY);
-    modifiedInstance.setPath(instanceReference);
+    _setSystemNameInObjectPath(instancePath,String::EMPTY);
+    modifiedInstance.setPath(instancePath);
 
     //
     //  Get instance from repository
@@ -2727,15 +2810,15 @@ void IndicationService::_handleModifyInstanceRequest(const Message* message)
     CIMInstance instance;
 
     instance = _subscriptionRepository->getInstance(
-        request->nameSpace, instanceReference);
+        request->nameSpace, instancePath);
 
-    if (_canModify(request, instanceReference, instance, modifiedInstance))
+    if (_canModify(request, instancePath, instance, modifiedInstance))
     {
         //
         //  Set path in instance
         //
-        instanceReference.setNameSpace(request->nameSpace);
-        instance.setPath(instanceReference);
+        instancePath.setNameSpace(request->nameSpace);
+        instance.setPath(instancePath);
 
         //
         //  Check for expired subscription
@@ -2747,10 +2830,10 @@ void IndicationService::_handleModifyInstanceRequest(const Message* message)
                 //
                 //  Delete the subscription instance
                 //
-                _deleteExpiredSubscription(instanceReference);
+                _deleteExpiredSubscription(instancePath);
 #ifdef PEGASUS_ENABLE_DMTF_INDICATION_PROFILE_SUPPORT
                 _sendSubscriptionNotActiveMessagetoHandlerService(
-                    instanceReference);
+                    instancePath);
 #endif
                 PEG_METHOD_EXIT();
 
@@ -2939,7 +3022,7 @@ void IndicationService::_handleModifyInstanceRequest(const Message* message)
                     //  There are no providers that can support this
                     //  subscription
                     //
-                    instance.setPath(instanceReference);
+                    instance.setPath(instancePath);
                     _subscriptionRepository->reconcileFatalError(instance);
                     PEG_METHOD_EXIT();
 
@@ -2952,7 +3035,7 @@ void IndicationService::_handleModifyInstanceRequest(const Message* message)
             //
             //  Modify the instance in the repository
             //
-            modifiedInstance.setPath(instanceReference);
+            modifiedInstance.setPath(instancePath);
             _subscriptionRepository->modifyInstance(
                 request->nameSpace, modifiedInstance,
                 request->includeQualifiers, propertyList);
@@ -2977,8 +3060,8 @@ void IndicationService::_handleModifyInstanceRequest(const Message* message)
                 && ((currentState != STATE_ENABLED) &&
                     (currentState != STATE_ENABLEDDEGRADED)))
             {
-                instanceReference.setNameSpace(request->nameSpace);
-                instance.setPath(instanceReference);
+                instancePath.setNameSpace(request->nameSpace);
+                instance.setPath(instancePath);
 
                 _sendAsyncCreateRequests(
                     indicationProviders,
@@ -3007,8 +3090,8 @@ void IndicationService::_handleModifyInstanceRequest(const Message* message)
                 //  Subscription was previously enabled but is now to be
                 //  disabled
                 //
-                instanceReference.setNameSpace(request->nameSpace);
-                instance.setPath(instanceReference);
+                instancePath.setNameSpace(request->nameSpace);
+                instance.setPath(instancePath);
                 indicationProviders =
                     _getDeleteParams(instance, indicationSubclasses);
 
@@ -3034,7 +3117,7 @@ void IndicationService::_handleModifyInstanceRequest(const Message* message)
                     responseSent = true;
 #ifdef PEGASUS_ENABLE_DMTF_INDICATION_PROFILE_SUPPORT
                     _sendSubscriptionNotActiveMessagetoHandlerService(
-                        instanceReference);
+                        instancePath);
 #endif
                 }
             }
@@ -3071,7 +3154,7 @@ void IndicationService::_handleDeleteInstanceRequest(const Message* message)
     _checkNonprivilegedAuthorization(userName);
 
     // set eventual SystemName keybinding to empty string
-    _setSystemName(request->instanceName,String::EMPTY);
+    _setSystemNameInObjectPath(request->instanceName,String::EMPTY);
 
     //
     //  Check if instance may be deleted -- a filter or handler instance
@@ -3083,10 +3166,7 @@ void IndicationService::_handleDeleteInstanceRequest(const Message* message)
         //  If a subscription, get the instance from the repository
         //
         CIMInstance subscriptionInstance;
-        if (request->instanceName.getClassName().equal(
-                PEGASUS_CLASSNAME_INDSUBSCRIPTION) ||
-            request->instanceName.getClassName ().equal(
-                PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION))
+        if (_isSubscription(request->instanceName))
         {
             subscriptionInstance =
                 _subscriptionRepository->getInstance(
@@ -3113,9 +3193,7 @@ void IndicationService::_handleDeleteInstanceRequest(const Message* message)
         }
 #endif
 
-        PEG_TRACE((
-            TRC_INDICATION_SERVICE,
-            Tracer::LEVEL3,
+        PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL3,
             "IndicationService::_handleDeleteInstanceRequest - "
                 "Name Space: %s  Instance name: %s",
             (const char*) request->nameSpace.getString().getCString(),
@@ -3123,10 +3201,7 @@ void IndicationService::_handleDeleteInstanceRequest(const Message* message)
            request->instanceName.getClassName().getString().getCString()
         ));
 
-        if (request->instanceName.getClassName().equal(
-                PEGASUS_CLASSNAME_INDSUBSCRIPTION) ||
-            request->instanceName.getClassName ().equal(
-                PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION))
+        if (_isSubscription(request->instanceName))
         {
             //
             //  If subscription is active, send delete requests to providers
@@ -3305,7 +3380,9 @@ void IndicationService::_handleProcessIndicationResponse(Message* message)
 
 void IndicationService::_handleProcessIndicationRequest(Message* message)
 {
-
+    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
+        "IndicationService::_handleProcessIndicationRequest");
+        
 #ifdef PEGASUS_ENABLE_DMTF_INDICATION_PROFILE_SUPPORT
     _processIndicationThreads++;
     AutoPtr<AtomicInt, DecAtomicInt> counter(&_processIndicationThreads);
@@ -3314,9 +3391,6 @@ void IndicationService::_handleProcessIndicationRequest(Message* message)
 #ifdef PEGASUS_INDICATION_PERFINST
     Stopwatch stopWatch;
 #endif
-
-    PEG_METHOD_ENTER(TRC_INDICATION_SERVICE,
-        "IndicationService::_handleProcessIndicationRequest");
 
 #ifdef PEGASUS_INDICATION_PERFINST
         stopWatch.reset();
@@ -4620,9 +4694,7 @@ Boolean IndicationService::_canCreate (
     //  null, add or set property with default value
     //  For a property that has a specified set of valid values, validate
     //
-    if ((instance.getClassName ().equal (PEGASUS_CLASSNAME_INDSUBSCRIPTION)) ||
-        (instance.getClassName ().equal
-            (PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
+    if (_isSubscription(instance))
     {
         //
         //  Filter and Handler are key properties for Subscription
@@ -4688,7 +4760,7 @@ Boolean IndicationService::_canCreate (
         // Set SystemName key property to empty
         try
         {
-            IndicationService::_setSystemNameInHandlerFilter(
+            IndicationService::_setSystemNameInHandlerFilterPath(
                 filterPath,
                 String::EMPTY);
             filterValue.set(filterPath);
@@ -4727,7 +4799,7 @@ Boolean IndicationService::_canCreate (
         // Set SystemName key property to empty
         try
         {
-            IndicationService::_setSystemNameInHandlerFilter(
+            IndicationService::_setSystemNameInHandlerFilterPath(
                 handlerPath,
                 String::EMPTY);
             handlerValue.set(handlerPath);
@@ -4944,7 +5016,7 @@ Boolean IndicationService::_canCreate (
             _PROPERTY_SYSTEMCREATIONCLASSNAME,
             System::getSystemCreationClassName());
 
-        if (instance.getClassName ().equal (PEGASUS_CLASSNAME_INDFILTER))
+        if (instance.getClassName().equal (PEGASUS_CLASSNAME_INDFILTER))
         {
             //
             //  Query and QueryLanguage properties are required for Filter
@@ -5824,10 +5896,7 @@ Boolean IndicationService::_canModify (
     //  Currently, only modification allowed is of Subscription State
     //  property in Subscription class
     //
-    if (!(instanceReference.getClassName ().equal
-        (PEGASUS_CLASSNAME_INDSUBSCRIPTION)) &&
-    !(instanceReference.getClassName ().equal
-    (PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION)))
+    if (!(_isSubscription(instanceReference)))
     {
         PEG_METHOD_EXIT ();
         throw PEGASUS_CIM_EXCEPTION(CIM_ERR_NOT_SUPPORTED, String::EMPTY);
@@ -8480,6 +8549,9 @@ void IndicationService::_handleOperationResponseAggregation(
     PEG_METHOD_EXIT();
 }
 
+/* Aggregate the responses from providers and send response to
+ * client. This includes Create, Modify, Delete subscriptions.
+ */
 void IndicationService::_handleCreateResponseAggregation(
     IndicationOperationAggregate * operationAggregate)
 {
@@ -8665,7 +8737,15 @@ void IndicationService::_handleCreateResponseAggregation(
             response->cimException = cimException;
 
             // put correct SystemName in place
-            _setSubscriptionSystemName(
+            // TODO: This looks wrong. InstanceRef is ObjectPath
+            // instanceRef must always exist and this must be a
+            // subscription instance
+            PEG_TRACE((TRC_INDICATION_SERVICE, Tracer::LEVEL4,
+                "_setSystemNameInHandlerhandleCreateInstance Send Response sysname: %s path: %s",
+            (const char*) System::getFullyQualifiedHostName().getCString(),
+            (const char *) instanceRef.toString().getCString()));
+        
+            _setSystemNameInObjectPath(
                 instanceRef,
                 System::getFullyQualifiedHostName());
 
@@ -8680,6 +8760,7 @@ void IndicationService::_handleCreateResponseAggregation(
             // l10n
             // Note: don't need to set Content-language in the response
             //
+            // TODO: Do we need to set system name here also.
             CIMResponseMessage * response =
                 operationAggregate->getOrigRequest()->buildResponse();
             response->cimException = cimException;
@@ -9057,8 +9138,7 @@ void IndicationService::_updatePropertyList(
     //  A null propertyList means all properties
     //  If the class is Subscription, that includes the Time Remaining property
     //
-    if (className.equal(PEGASUS_CLASSNAME_INDSUBSCRIPTION) ||
-        className.equal(PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION))
+    if (_isSubscription(className))
     {
         setTimeRemaining = true;
     }
@@ -9082,8 +9162,7 @@ void IndicationService::_updatePropertyList(
             properties.append(PEGASUS_PROPERTYNAME_INDSUB_CREATOR);
         }
 
-        if (className.equal(PEGASUS_CLASSNAME_INDHANDLER_CIMXML) ||
-            className.equal(PEGASUS_CLASSNAME_LSTNRDST_CIMXML))
+        if (_isSubscription(className))
         {
             properties.append(PEGASUS_PROPERTYNAME_LSTNRDST_CREATIONTIME);
         }
@@ -9092,8 +9171,7 @@ void IndicationService::_updatePropertyList(
         //  If a Subscription and Time Remaining is requested,
         //  Ensure Subscription Duration and Start Time are in property list
         //
-        if (className.equal(PEGASUS_CLASSNAME_INDSUBSCRIPTION) ||
-            className.equal(PEGASUS_CLASSNAME_FORMATTEDINDSUBSCRIPTION))
+        if (_isSubscription(className))
         {
             if (ContainsCIMName(properties, _PROPERTY_TIMEREMAINING))
             {

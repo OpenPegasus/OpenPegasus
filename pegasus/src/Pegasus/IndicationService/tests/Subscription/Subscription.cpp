@@ -471,6 +471,45 @@ void _checkStringProperty
     }
 }
 
+void _checkReferenceProperty
+    (CIMInstance & instance,
+     const String & name,
+     const CIMObjectPath &value,
+     Boolean null = false)
+{
+    Uint32 pos = instance.findProperty (name);
+    PEGASUS_TEST_ASSERT (pos != PEG_NOT_FOUND);
+
+    CIMProperty theProperty = instance.getProperty (pos);
+    CIMValue theValue = theProperty.getValue();
+
+    PEGASUS_TEST_ASSERT (theValue.getType() == CIMTYPE_REFERENCE);
+    PEGASUS_TEST_ASSERT (!theValue.isArray());
+    if (null)
+    {
+        PEGASUS_TEST_ASSERT (theValue.isNull());
+    }
+    else
+    {
+        PEGASUS_TEST_ASSERT (!theValue.isNull());
+        CIMObjectPath result;
+        theValue.get (result);
+
+        if (verbose)
+        {
+            if (result != value)
+            {
+                cerr << "Property value comparison failed.  ";
+                cerr << "Expected " << value.toString() << "; ";
+                cerr << "Actual property value was " << result.toString() << "." << endl;
+            }         
+        }
+
+        PEGASUS_TEST_ASSERT (result == value);
+    }
+}
+
+
 void _checkUint16Property
     (CIMInstance & instance,
      const String & name,
@@ -724,6 +763,8 @@ void _register (CIMClient & client)
 void _valid (CIMClient & client, String& qlang)
 {
     CIMObjectPath path;
+    CIMObjectPath filterPath;
+    CIMObjectPath handlerPath;
     String query;
     CIMInstance retrievedInstance;
     Array <CIMInstance> instances;
@@ -1218,6 +1259,7 @@ void _valid (CIMClient & client, String& qlang)
 
     _checkSubscriptionPath (path, "Filter01",
         PEGASUS_CLASSNAME_INDHANDLER_CIMXML, "Handler01");
+        
     retrievedInstance =
         client.getInstance (PEGASUS_NAMESPACENAME_INTEROP, path);
     _checkUint16Property (retrievedInstance, "OnFatalErrorPolicy", 2);
@@ -1235,8 +1277,16 @@ void _valid (CIMClient & client, String& qlang)
     _checkUint64Property (retrievedInstance, "RepeatNotificationInterval", 60);
     _checkUint64Property (retrievedInstance, "RepeatNotificationGap", 30);
     _checkUint16Property (retrievedInstance, "RepeatNotificationCount", 5);
-    // TODO test Handler and Filter reference properties against path
 
+    // Validate Handler and Filter reference properties against path
+    filterPath = _buildFilterOrHandlerPath(PEGASUS_CLASSNAME_INDFILTER,
+        "Filter01", String::EMPTY, CIMNamespaceName());
+    _checkReferenceProperty (retrievedInstance, "Filter", filterPath);
+
+    handlerPath = _buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
+        "Handler01", String::EMPTY, CIMNamespaceName());
+     _checkReferenceProperty (retrievedInstance, "Handler", handlerPath);
+        
     //
     //  Enumerate subscriptions
     //
@@ -1265,6 +1315,15 @@ void _valid (CIMClient & client, String& qlang)
     _checkSubscriptionPath (path, "Filter01",
         PEGASUS_CLASSNAME_INDHANDLER_CIMXML, "Handler01");
 
+    // Validate Handler and Filter reference properties against path
+    filterPath = _buildFilterOrHandlerPath(PEGASUS_CLASSNAME_INDFILTER,
+        "Filter01", String::EMPTY, CIMNamespaceName());
+    _checkReferenceProperty (retrievedInstance, "Filter", filterPath);
+
+    handlerPath = _buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
+        "Handler01", String::EMPTY, CIMNamespaceName());
+    _checkReferenceProperty (retrievedInstance, "Handler", handlerPath);
+
     CIMInstance subscription02 = _buildSubscriptionInstance
         (_buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDFILTER, "Filter02"),
         PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
@@ -1280,6 +1339,15 @@ void _valid (CIMClient & client, String& qlang)
     _checkUint16Property (retrievedInstance, "OnFatalErrorPolicy", 2);
     _checkUint16Property (retrievedInstance, "SubscriptionState", 2);
     _checkUint16Property (retrievedInstance, "RepeatNotificationPolicy", 2);
+
+    // Validate Handler and Filter reference properties against path
+    filterPath = _buildFilterOrHandlerPath(PEGASUS_CLASSNAME_INDFILTER,
+        "Filter02", String::EMPTY, CIMNamespaceName());
+    _checkReferenceProperty (retrievedInstance, "Filter", filterPath);
+
+    handlerPath = _buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
+        "Handler01", String::EMPTY, CIMNamespaceName());
+     _checkReferenceProperty (retrievedInstance, "Handler", handlerPath);
 
     CIMInstance subscription03 = _buildSubscriptionInstance
         (_buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDFILTER, "Filter03"),
@@ -1297,6 +1365,15 @@ void _valid (CIMClient & client, String& qlang)
     _checkUint16Property (retrievedInstance, "SubscriptionState", 2);
     _checkUint16Property (retrievedInstance, "RepeatNotificationPolicy", 2);
 
+    // Validate Handler and Filter reference properties against path
+    filterPath = _buildFilterOrHandlerPath(PEGASUS_CLASSNAME_INDFILTER,
+        "Filter03", String::EMPTY, CIMNamespaceName());
+    _checkReferenceProperty (retrievedInstance, "Filter", filterPath);
+
+    handlerPath = _buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
+        "Handler01", String::EMPTY, CIMNamespaceName());
+     _checkReferenceProperty (retrievedInstance, "Handler", handlerPath);
+
     CIMInstance subscription04 = _buildSubscriptionInstance
         (_buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDFILTER, "Filter04"),
         PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
@@ -1312,6 +1389,15 @@ void _valid (CIMClient & client, String& qlang)
     _checkUint16Property (retrievedInstance, "OnFatalErrorPolicy", 2);
     _checkUint16Property (retrievedInstance, "SubscriptionState", 2);
     _checkUint16Property (retrievedInstance, "RepeatNotificationPolicy", 2);
+
+    // Validate Handler and Filter reference properties against path
+    filterPath = _buildFilterOrHandlerPath(PEGASUS_CLASSNAME_INDFILTER,
+        "Filter04", String::EMPTY, CIMNamespaceName());
+    _checkReferenceProperty (retrievedInstance, "Filter", filterPath);
+
+    handlerPath = _buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
+        "Handler01", String::EMPTY, CIMNamespaceName());
+     _checkReferenceProperty (retrievedInstance, "Handler", handlerPath);
 
     CIMInstance subscription05 = _buildSubscriptionInstance
         (_buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDFILTER, "Filter05"),
@@ -1329,6 +1415,15 @@ void _valid (CIMClient & client, String& qlang)
     _checkUint16Property (retrievedInstance, "SubscriptionState", 2);
     _checkUint16Property (retrievedInstance, "RepeatNotificationPolicy", 2);
 
+    // Validate Handler and Filter reference properties against path
+    filterPath = _buildFilterOrHandlerPath(PEGASUS_CLASSNAME_INDFILTER,
+        "Filter05", String::EMPTY, CIMNamespaceName());
+    _checkReferenceProperty (retrievedInstance, "Filter", filterPath);
+
+    handlerPath = _buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
+        "Handler01", String::EMPTY, CIMNamespaceName());
+     _checkReferenceProperty (retrievedInstance, "Handler", handlerPath);
+
     CIMInstance subscription06 = _buildSubscriptionInstance
         (_buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDFILTER, "Filter06"),
         PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
@@ -1345,9 +1440,21 @@ void _valid (CIMClient & client, String& qlang)
     _checkUint16Property (retrievedInstance, "SubscriptionState", 2);
     _checkUint16Property (retrievedInstance, "RepeatNotificationPolicy", 2);
 
+    // Validate Handler and Filter reference properties against path
+    filterPath = _buildFilterOrHandlerPath(PEGASUS_CLASSNAME_INDFILTER,
+        "Filter06", String::EMPTY, CIMNamespaceName());
+    _checkReferenceProperty (retrievedInstance, "Filter", filterPath);
+
+    handlerPath = _buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
+        "Handler01", String::EMPTY, CIMNamespaceName());
+     _checkReferenceProperty (retrievedInstance, "Handler", handlerPath);
+
     //
     //  Create subscription with transient handler
     //
+
+    // NOTE: Subscription filter and handler property test not included
+    // for some of tthe following tests
     CIMInstance subscription07 = _buildSubscriptionInstance
         (_buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDFILTER, "Filter01"),
         PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
@@ -1363,6 +1470,15 @@ void _valid (CIMClient & client, String& qlang)
     _checkUint16Property (retrievedInstance, "OnFatalErrorPolicy", 2);
     _checkUint16Property (retrievedInstance, "SubscriptionState", 2);
     _checkUint16Property (retrievedInstance, "RepeatNotificationPolicy", 2);
+
+    // Validate Handler and Filter reference properties against path
+    filterPath = _buildFilterOrHandlerPath(PEGASUS_CLASSNAME_INDFILTER,
+        "Filter01", String::EMPTY, CIMNamespaceName());
+    _checkReferenceProperty (retrievedInstance, "Filter", filterPath);
+
+    handlerPath = _buildFilterOrHandlerPath (PEGASUS_CLASSNAME_INDHANDLER_CIMXML,
+        "Handler02", String::EMPTY, CIMNamespaceName());
+     _checkReferenceProperty (retrievedInstance, "Handler", handlerPath);
 
     //
     //  Delete transient handler - referencing subscription must be deleted
