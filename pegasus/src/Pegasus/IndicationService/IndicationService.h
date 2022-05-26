@@ -138,14 +138,27 @@ public:
         CIMInstance& instance,
         const String& sysname);
 
+    /**  TODO TODO eliminate.
+        Sets property with name SystemName to sysname if existant. If
+        property does not exist on instance, adds it.
+        Should be used for instances of classes Filter, Handler only
+        Does not change the objectPath of the instance !!!
+
+        @param   instance              instance to set property on
+        @param   sysname               system name to set
+    static void _setSystemName(
+        CIMInstance& instance,
+        const String& sysname);
+     */
+
     /**
-        Sets key binding with name SystemName to string if existant. Should be
+        Sets key binding with name SystemName to object path if exists. Should be
         used with Handler and Filter object paths only
 
         @param   objPath              object path to change keybinding on
         @param   sysname              system name to set
      */
-    static void _setSystemNameInHandlerFilter(
+    static void _setSystemNameInHandlerFilterPath(
         CIMObjectPath& objPath,
         const String& sysname);
 
@@ -161,31 +174,88 @@ public:
         Sets key binding with name SystemName in the two keybinding references
         Filter and Handler of a Subscription object path
 
-        @param   objPath              object path to change SystemNames on
+        @param   String               string to change SystemNames on
+        @param   sysname              system name to set
+        @param   setPathFlag          Boolean where true requests that
+                                      method set the sysname in the path
+     */
+    static void _setSystemNameInSubscription(
+        CIMInstance& instance,
+        const String& sysname,
+        Boolean setPathFlag);
+
+    /** Replaces value in all components of indication subscription
+        response object including path and reference properties.
+
+        @param   instance              instance to change SystemNames on
         @param   sysname              system name to set
      */
-    static void _setSubscriptionSystemName(
+    static void _setSystemNameInObjectPath(
+        CIMObjectPath& objPath,
+        const String& sysname);
+        
+    /** Replaces value indication subscription
+        object path tp include the system math
+
+        @param   objPath              objectPath to change SystemNames on
+        @param   sysname              system name to set
+     */        
+    static void _setSystemNameinSubscriptionPath(
         CIMObjectPath& objPath,
         const String& sysname);
 
-    /** Replaces value in all occurences of SystemName key with String sysname
-        used for Handler, Filter and Subscription object paths
+    /** Replaces value in provided object path with system name
 
-        @param   objPath              object path to change SystemNames on
-        @param   sysname              system name to set
-     */
-    static void _setSystemName(CIMObjectPath& objPath, const String& sysname);
+        Used for Handler, Filter and Subscription object paths.
 
-    /** Replaces value in all occurences of SystemName key and SystemName
-        property with String sysname
-
-        Used for Handler, Filter and Subscription object paths
+        Sets system name in properties as required by class and
+        conditionally sets system name in path component. Not
+        all instances include the path component (i.e. instances
+        retrieved with GetInstance do not include path)
 
         @param   instance             instance to change
         @param   sysname              system name to set
+        @param   setPathFlag          Boolean defines existence
+                                      of object path
      */
-    static void _setSystemName(CIMInstance& instance, const String& sysname);
+    static void _setSystemName(CIMInstance& instance,
+                               const String& sysname,
+                               Boolean setPathFlag);
 
+    /** Replaces value of SystemName key in reference CIM Property
+        define by propertyName with sysname.
+
+        Used for Subscription object paths to set sysname in the
+        Handler and Filter reference properties
+
+        @param   instance             instance containing property
+        @param   propertyName         name of proerty to change
+        @param   sysname              system name to set
+     */
+    static void _setSystemNameInProperty(CIMInstance& instance,
+                               const CIMName& propertyName,
+                               const String& sysname);
+
+    /** If the instance is an IndicationSubscription instance return
+        true, otherwise return false.
+        
+        @param instance              instance to be tested. 
+     */
+    static Boolean _isSubscription(const CIMInstance& instance);
+    
+    /** If the object path is an IndicationSubscription cim instance 
+        return true, otherwise return false.
+        
+        @param instance              instance to be tested. 
+     */
+    static Boolean _isSubscription(const CIMObjectPath& objPath);
+
+    /** If the CIMName is an IndicationSubscription className 
+        return true, otherwise return false.
+        
+        @param className              CIMName className to be tested. 
+     */
+    static Boolean _isSubscription(const CIMName& className);
 
 private:
 

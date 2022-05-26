@@ -1,15 +1,15 @@
 # Test of a fixed configure as bash shell
 echo $PWD
 
+export PEGASUS_PLATFORM=LINUX_X86_64_GNU
+
 # Set Root to the current directory.
 export ROOT=$PWD
 export PEGASUS_ROOT=$ROOT/pegasus
 export PEGASUS_HOME=$ROOT/home
 export PATH=$PEGASUS_HOME/bin:$PATH
-mkdir $PEGASUS_HOME
+mkdir $PEGASUS_HOME -p
 export LD_LIBRARY_PATH=$PEGASUS_HOME/lib64:
-
-export PEGASUS_PLATFORM=LINUX_X86_64_GNU
 
 # Storage mode of the CIM repository created on initial build
 # This may be modified using cimconfig.
@@ -36,3 +36,5 @@ export PEGASUS_PAM_AUTHENTICATION=true
 export PEGASUS_USE_PAM_STANDALONE_PROC=false
 export PEGASUS_ENABLE_CMPI_PROVIDER_MANAGER=true
 export PEGASUS_PLATFORM_FOR_32BIT_PROVIDER_SUPPORT=LINUX_X86_64_GNU
+
+export | grep PEGASUS

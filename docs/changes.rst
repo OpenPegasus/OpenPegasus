@@ -20,6 +20,13 @@ Status: Development
 
 Bugs
 
+* Add code to set the system name into Indication subscription instances
+  when getInstance and EnumerateInstance called in IndicationServices.
+  This property was left empty before meaning that the value of the
+  paths was not equal to the value of the corresponding property
+  components because the missing key property.   Also reorganized
+  some code to simplify logic. (See issue #82)
+
 
 Enhancements
 
