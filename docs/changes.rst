@@ -37,16 +37,19 @@ Enhancements
 
 cleanup
 
-* Add use of github actions to test capability.  Tests are executed on each
+* Add use of github actions to test capability so CI tests are run for each
   push.  The tests are currently limited because each execution of the test
-  suite currently takes about an hour.
+  suite currently takes about an hour.  The CI test is on Linux with current
+  gcc compiler
 
-* Update a number of tests that apparently were not executed because we were
+* Update a number of tests  that apparently were not executed because we were
   not executing tests in the the user non-privileged.  This includes tests in
-  Clients/wbemexec and TestProviders/CLIProviderTests.
-  
+  Clients/wbemexec and TestProviders/CLIProviderTests. This was primarily
+  changes to the regression compare files and not changes to the test code
+  or OpenPegasus code.
+
 * Removed a number of compile warning messages by modifying the code to
-  eliminate the warnings.  NOTE: There are still a few warnings in the
+  eliminate the warnings.  NOTE: There are still a warnings in the
   compile but they are in test providers. (see issue #22)
 
 openpegasus 14.2 - Release
