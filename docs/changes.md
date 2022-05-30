@@ -1,24 +1,12 @@
+# OpenPegasus Change log
 
+##Change log
 
-.. _`Change log`:
+## openpegasus 14.3
 
-Change log
-==========
+Status: **Development**
 
-.. ifconfig:: '.dev' in version
-
-   This version of the documentation is development version |version| and
-   contains the `main` branch up to this commit:
-
-   .. git_changelog::
-      :revisions: 1
-
-openpegasus 14.3-dev
---------------------
-
-Status: Development
-
-Bugs
+### Bugs
 
 * Add code to set the system name into Indication subscription instances
   when getInstance and EnumerateInstance called in IndicationServices.
@@ -28,14 +16,14 @@ Bugs
   some code to simplify logic. (See issue #82)
 
 
-Enhancements
+### Enhancements
 
 * Add test capability to test delays from the server with a provider.  This
   enhances the CLITestProvider to add a method delayedMethodResponse that
   includes a parameter delayInSeconds.  When this method is called, it delays
   the response by the value of delayInSeconds (see issue #84)
 
-cleanup
+### Cleanup
 
 * Add use of github actions to test capability so CI tests are run for each
   push.  The tests are currently limited because each execution of the test
@@ -52,12 +40,11 @@ cleanup
   eliminate the warnings.  NOTE: There are still a warnings in the
   compile but they are in test providers. (see issue #22)
 
-openpegasus 14.2 - Release
---------------------------
+## openpegasus 14.2 - Release
 
 Status: Released 21 June 2021
 
-Bugs
+### Bugs
 
 1. Fix issue with gcc compile warnings for class_memaccess and deprecated-copy
    and deprecated. These were fixes for now by hiding the tests in the compiler
@@ -102,7 +89,7 @@ Bugs
    configuration help.
 
 
-Enhancements
+### Enhancements
 
 1. Integrate DMTF schema 2.41 experimental into OpenPegasus schemas.  This required
    extending the schema definition capability to allow for DMTF experimental schemas and
@@ -116,7 +103,7 @@ Enhancements
    OpenSSL APIs. (See issue #17)
 
 
-cleanup
+### Cleanup
 
 1. Update version to 2.14.2.
 
@@ -135,9 +122,10 @@ cleanup
    straight forward.
 
 
-openpegasus 14.1 - Release
---------------------------
+## openpegasus 2. 14.1 - Release
+
 branch: release_14_1
 
-This version of OpenPegasus is maintained in the OpenGroup CVS repository and the
-changes are documented in the OpenPegasus WEB site.
+This version the of OpenPegasus is maintained in the OpenGroup CVS repository and the
+changes are documented in the OpenPegasus WEB site.  It is also in this repository
+as the starting  point for subsequent releases in this github repository.

@@ -1,4 +1,4 @@
-# PEP 368 update for OpenPegasus Version 2,14.2
+# PEP 368 update for OpenPegasus Version 2.14.2
 
 
 ## Overview of the changes
