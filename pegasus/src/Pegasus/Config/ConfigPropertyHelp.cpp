@@ -99,7 +99,7 @@ struct configPropertyDescription configPropertyDescriptionList[] =
     {"traceFileSizeKBytes",
         "Integer defines the maximum size of the tracefile in kbytes.\n"
         "The trace file will be rolled over when size exceeds the specified\n"
-        "size. Minimum is 10,240 kbytes. Maximum is 2,097 mbytes."
+        "size. Minimum is 10,240 kbytes. Maximum is 2,097 mbytes.\n"
         "Ignored if 'traceFacility=memory'. See also 'numberOfTraceFiles'."},
 
     {"numberOfTraceFiles","Integer defines the maximum number of trace files\n"
