@@ -84,6 +84,21 @@ zip or tar file that are created by github as part of the release process and
 located on the release page for version 2.14.2 (See the top page of the
 OpenPegasus github repository)
 
+
+* Update a number of tests  that apparently were not executed because we were
+  not executing tests in the the user non-privileged.  This includes tests in
+  Clients/wbemexec and TestProviders/CLIProviderTests. This was primarily
+  changes to the regression compare files and not changes to the test code
+  or OpenPegasus code.
+
+* Removed a number of compile warning messages by modifying the code to
+  eliminate the warnings.  NOTE: There are still a warnings in the
+  compile but they are in test providers. (see issue #22)
+
+## openpegasus 14.2 - Release
+
+Status: Released 21 June 2021
+
 ### Bugs
 
 1. Fix issue with gcc compile warnings for class_memaccess and deprecated-copy
