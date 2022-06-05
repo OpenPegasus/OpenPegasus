@@ -1,24 +1,17 @@
+# OpenPegasus Change log
 
+##Change log
 
-.. _`Change log`:
+## openpegasus 2.14.3
 
-Change log
-==========
+Status: **Released**
 
-.. ifconfig:: '.dev' in version
+This release was based on the main branch, since there is no 2.14.0 branch
+to serve as the base (We started this repository from OpenPegasus 2.14.1)
 
-   This version of the documentation is development version |version| and
-   contains the `main` branch up to this commit:
+Released: 16 May 2022
 
-   .. git_changelog::
-      :revisions: 1
-
-openpegasus 14.3-dev
---------------------
-
-Status: Development
-
-Bugs
+### Bugs
 
 * Add code to set the system name into Indication subscription instances
   when getInstance and EnumerateInstance called in IndicationServices.
@@ -28,33 +21,51 @@ Bugs
   some code to simplify logic. (See issue #82)
 
 
-Enhancements
+### Enhancements
 
 * Add test capability to test delays from the server with a provider.  This
   enhances the CLITestProvider to add a method delayedMethodResponse that
   includes a parameter delayInSeconds.  When this method is called, it delays
   the response by the value of delayInSeconds (see issue #84)
 
-cleanup
+### Cleanup
 
-* Add use of github actions to test capability.  Tests are executed on each
+* Add use of github actions to test capability so CI tests are run for each
   push.  The tests are currently limited because each execution of the test
-  suite currently takes about an hour.
+  suite currently takes about an hour.  The CI test is on Linux with current
+  gcc compiler
 
-* Update a number of tests that apparently were not executed because we were
-  not executing tests in the the user non-privileged.  This includes tests in
-  Clients/wbemexec and TestProviders/CLIProviderTests.
-  
+* Update a number of tests  that apparently were not executed because we were
+  not executing tests in the the user non-privileged mode.  This includes tests in
+  Clients/wbemexec and TestProviders/CLIProviderTests. This was primarily
+  changes to the regression compare files and not changes to the test code
+  or OpenPegasus code.
+
 * Removed a number of compile warning messages by modifying the code to
-  eliminate the warnings.  NOTE: There are still a few warnings in the
+  eliminate the warnings.  NOTE: There are still warnings in the
   compile but they are in test providers. (see issue #22)
 
-openpegasus 14.2 - Release
---------------------------
+* Added a new OpenPegasus/docs directory where new documents are being placed
+  so that the existing OpenPegasus/pegasus/doc directory is not modified. The
+  new documents define: changes for each version, tutorials on building and
+  running OpenPegasus, and a recreation of the BuildAndReleaseOptions.html
+  document into markdown so that it is readable from the README.md file. The
+  new documents are all in the github markdown format.
+
+## openpegasus 2.14.2 - Release
 
 Status: Released 21 June 2021
 
-Bugs
+NOTE: No branch was created for this release just the tag v.2.14.2.  Therefore
+to use the code that this branch represents, the user must access it with the tag
+v2.14.2.
+
+The release is available by checkout of the tag or by getting either the
+zip or tar file that are created by github as part of the release process and
+located on the release page for version 2.14.2 (See the top page of the
+OpenPegasus github repository)
+
+### Bugs
 
 1. Fix issue with gcc compile warnings for class_memaccess and deprecated-copy
    and deprecated. These were fixes for now by hiding the tests in the compiler
@@ -99,7 +110,7 @@ Bugs
    configuration help.
 
 
-Enhancements
+### Enhancements
 
 1. Integrate DMTF schema 2.41 experimental into OpenPegasus schemas.  This required
    extending the schema definition capability to allow for DMTF experimental schemas and
@@ -113,7 +124,7 @@ Enhancements
    OpenSSL APIs. (See issue #17)
 
 
-cleanup
+### Cleanup
 
 1. Update version to 2.14.2.
 
@@ -132,9 +143,13 @@ cleanup
    straight forward.
 
 
-openpegasus 14.1 - Release
---------------------------
+## openpegasus 2.14.1 - Release
+
 branch: release_14_1
 
-This version of OpenPegasus is maintained in the OpenGroup CVS repository and the
-changes are documented in the OpenPegasus WEB site.
+This version the of OpenPegasus is maintained in the OpenGroup CVS repository and the
+changes are documented in the OpenPegasus WEB site.  It is also in this repository
+as the starting  point for subsequent releases in this github repository.
+
+We chose not to attempt to update the complete CVS history of OpenPegasus but to
+start the github repository from the last public release tar file.

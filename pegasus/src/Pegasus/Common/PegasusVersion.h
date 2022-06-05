@@ -77,7 +77,7 @@
 
 # define PEGASUS_CIMOM_GENERIC_NAME "Pegasus"
 // If the following is non-zero length it becomes SLP description.
-# define PEGASUS_CIMOM_DESCRIPTION "Development"
+# define PEGASUS_CIMOM_DESCRIPTION "OpenPegasus 2.14.3"
 #endif
 
 #ifdef PEGASUS_OS_HPUX

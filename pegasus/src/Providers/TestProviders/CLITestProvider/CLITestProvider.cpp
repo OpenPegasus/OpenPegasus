@@ -79,7 +79,12 @@ instances array.
       set the provider parameters and clears the cache restoring
       the provider to it original initialized state. This does not change
       the debug mode.
+
    -ReferenceParamTest - Generates a specific set of Out Parameters
+
+   -delayedMethodResponse - Generate a normal response with the input parameter
+    but delayed by the number of seconds defined in the input parameter. Can
+    be used to test delayed responses.
 
    -delayedMethodResponse - Generate a normal response with the input parameter
     but delayed by the number of seconds defined in the input parameter. Can
