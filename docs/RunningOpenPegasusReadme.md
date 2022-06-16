@@ -7,8 +7,8 @@ minimum set of environment variables to execute.
 
 The required environment variables required are those that define the runtime
 location for the server/client executablesslibraries, location
-of SSL keys, trust directories,  crl directories, 
-and the CIM class repository for the server. 
+of SSL keys, trust directories,  crl directories,
+and the CIM class repository for the server.
 
 Normally all these are created under a single directory, **PEGASUS_HOME **
 which is defined for the build
@@ -20,7 +20,7 @@ and its subdirectories as part of the setup.  Thus, binary files, the class repo
 the directories for certificates and certificate revocation lists, any trace
 output, are normally placed in subdirectories of **PEGASUS_HOME**. Normally all
 of the components of the build and runtime data are built under the
-single **PEGASUS_HOME**Directory
+single **PEGASUS_HOME** Directory
 
 The command to start the server is :
 
@@ -34,7 +34,7 @@ The command to start the server is :
     value is the value to be set.
 
     Runtime options are those options defined for the
-    for OpenPegasus in the **cimconfig** command CLI.
+    for OpenPegasus in the `cimconfig` command CLI.
 
 Thus:
 
@@ -48,7 +48,7 @@ current execution of the server.
 
 In addition, the run environment must be able to find the executables
 for the server, client executables, etc.  Thus the path to the
-binaries for OpenPegaus should be included in the PATH environment variable.
+binaries for OpenPegasus should be included in the PATH environment variable.
 
     export PATH=$PEGASUS_HOME/bin:$PATH
 
@@ -60,21 +60,21 @@ environment variable LD_LIBRARY_PATH covers that. For example:
 ## Configuring the CIMServer
 
 The OpenPegasus CIMServer run configuration is controlled by the
-options define in the CLI **cimconfig**, see
+options define in the CLI `cimconfig`, see
 [OpenPegasus Runtime Options section](#openPegasus-runtime-options) .
 They may be set either as planned (static) options (the value is
-retained in the CIMRepository, is applied at the next sever startup and
+retained in the server CIM Repository, is applied at the next sever startup and
 is persistent through server start and stop) or current options where
 they are set only in the current execution of the server.
 
-**cimconfig** is a command line client that can set or unset any of the
+`cimconfig` is a command line client that can set or unset any of the
 OpenPegasus runtime configuration properties, show the current status of each of
 the runtime configuration properties.
 
 The options may also be modified through the WEBAdmin facility if it is
 enabled.
 
-The syntax of the **cimconfig** command is:
+The syntax of the `cimconfig` command is:
 
 ```
 cimconfig --help
@@ -86,7 +86,7 @@ Usage: cimconfig -g name [ -c ] [ -d ] [ -p ]
                  -h
                  --help
                  --version
-Options : 
+Options :
     -c         - Use current configuration
                  it is the default optional option for options like -l
     -d         - Use default configuration
@@ -121,15 +121,15 @@ The following command resets the traceLevel to the default value
 
 ### OpenPegasus Runtime Options
 
-The options are documented both in the help for the **cimconfig -H ALL** cli,
+The options are documented both in the help for the `cimconfig -H ALL` cli,
 in the documentation for OpenPegasus
 [docs/BuildAndReleaseOptions.md](docs/BuildAndReleaseOptions.md).
 
 The following is the list of cimconfig run time variables as documented
-in the **cimconfig** CLI with the command **cimconfig -H ALL**
+in the `cimconfig` CLI with the command `cimconfig -H ALL`.
 
 Options defined as static are enabled only when the server is
-restarte. Dynamic options may be modified when the server is running.
+restarted. Dynamic options may be modified when the server is running.
 
 ```
 authorizedUserGroups (Static,Default:)
@@ -263,7 +263,7 @@ value for idle client connections. If set to zero, idle client
 connections do not time out.
 
 indexFile (Static,Default:index.html)
-Specifies the name of index file used by pegasus webserver, default 
+Specifies the name of index file used by pegasus webserver, default
 to index.html. This file should be available at the webRoot path
 
 listenAddress (Static,Default:All)
@@ -281,9 +281,9 @@ Log levels are accumulative(i.e. 'warning' logs 'warning', 'severe',
 and 'fatal'.
 Possible Values:
     'trace'       Most Detailed. Output all log events
-    'information' Log information level. Default   
-    'warning'     Log warnings and more severe events 
-    'severe'      Log fatal and severe events  
+    'information' Log information level. Default
+    'warning'     Log warnings and more severe events
+    'severe'      Log fatal and severe events
     'fatal'       Log only events that are fatal to server
 
 maxFailedProviderModuleRestarts (Dynamic,Default:3)
@@ -297,7 +297,7 @@ automatically and will be moved to Degraded state immediately.
 maxIndicationDeliveryRetryAttempts (Dynamic,Default:3)
 
 If set to a positive integer, value defines the number of times
-indication service will enable the reliableIndication feature 
+indication service will enable the reliableIndication feature
 & try to deliver an indication to a particular listener destination.
 This does not effect the original delivery attempt. A value of 0
 disables reliable indication feature completely, and cimserver will
@@ -316,8 +316,8 @@ message bundles.
 
 mimeTypesFile (Static,Default:www/mimeTypes.txt)
 
-Refers to the file which holds the mime types being served by the 
-pegasus webserver 
+Refers to the file which holds the mime types being served by the
+pegasus webserver
 
 minIndicationDeliveryRetryInterval (Dynamic,Default:30)
 
@@ -452,15 +452,15 @@ Defines OpenPegasus server components to be traced.
 Define multiple components as comma-separated list. 'ALL' traces
 all components. Only OpenPegasus server components on this list
 generate entries in the trace output.
-Possible Values: 
-    ALL Xml XmlIO Http Repository Dispatcher OsAbstraction Config 
-    IndicationHandler Authentication Authorization UserManager Shutdown 
-    Server IndicationService MessageQueueService ProviderManager 
-    ObjectResolution WQL CQL FQL Thread CIMExportRequestDispatcher SSL 
-    ControlProvider CIMOMHandle L10N ExportClient Listener DiscardedData 
-    ProviderAgent IndicationFormatter StatisticalData CMPIProvider 
-    IndicationGeneration IndicationReceipt CMPIProviderInterface WsmServer 
-    RsServer WebServer LogMessages WMIMapperConsumer InternalProvider 
+Possible Values:
+    ALL Xml XmlIO Http Repository Dispatcher OsAbstraction Config
+    IndicationHandler Authentication Authorization UserManager Shutdown
+    Server IndicationService MessageQueueService ProviderManager
+    ObjectResolution WQL CQL FQL Thread CIMExportRequestDispatcher SSL
+    ControlProvider CIMOMHandle L10N ExportClient Listener DiscardedData
+    ProviderAgent IndicationFormatter StatisticalData CMPIProvider
+    IndicationGeneration IndicationReceipt CMPIProviderInterface WsmServer
+    RsServer WebServer LogMessages WMIMapperConsumer InternalProvider
     EnumContext
 
 traceFacility (Dynamic,Default:File)
@@ -523,7 +523,7 @@ The existence of the WEB adminstration pags is controlled by the build
 environment variable PEGASUS_ENABLE_PROTOCOL_WEB, which is 'true by
 default'. To disable it set PEGASUS_ENABLE_PROTOCOL_WEB=false.
 
-There is a readme in OpenPegasus/pegasus that provides more information
+There is a readme `OpenPegasus/pegasus/webadmin` that provides more information
 on WEBAdmin.
 
 ## Gathering and viewing Operation Statistics
@@ -533,13 +533,41 @@ including request and response size, number of operations executed, execution
 time. This capability is normally disable but may be enabled by setting
 a property in the CIM_ObjectManager instance within OpenPegasus.
 
-The cli tool can set this property with the command **cimcli son** or turn
-off statistics with **cimcli soff**. The pywbem python tool pywbemcli can
+The cli tool can set this property with the command `cimcli son` or turn
+off statistics with `cimcli soff`. The pywbem python tool pywbemcli can
 also enable this with its statistics commands.
 
 Note that the statistics gathering is always not persistent, it is
 disabled on server startup so it must be reenabled on each restart of
 the server.
-    
+
+The file `OpenPegasus\pegasus\readme.statistics` provides more information
+on statistics in OpenPegasus.
+
+## OpenPegasus command line utilities
+
+* cimauth - Cli for authorization manaagement. add, modify, remove or list
+  CIM user authorizations.
+* cimcli - Command line client to execute requests against the WBEM server.
+* cimcrl -  Manage the certificate revocation list.
+* cimconfig - Manage OpenPegasus run-time parameters.
+* cimperf - Display performance information when server statistics are enabled.
+* cimtrust - Manage server and indication listener certificates.
+* cimmofl - MOF compiler for OpenPegasus. Compiles MOF directly into the
+  currently defined server CIM repository. Generally this compiler should only
+  be used to build a new CIM repository
+* cimmof - MOF compiler for OpenPegasus. Compiles MOF by using the compiler
+  as a WBEM client and sending the requests to create/modify/delete CIM
+  classes and objects to the WBEM server.
+* cimprovider - Provider management. Disable, enable, remove or list
+  registered CIM providers or CIM provider modules and module status. For help
+  there is an html file with the source code.
+* cimsub - Command line to to manage CIM Subscriptions.
+* cimuser - Manage users if PEGASUS_PAM_AUTHENTICATION functionality not
+  compiled into OpenPegasus. Otherwise nto build
 
 
+In general these tools have a --help option to get help with parameters and usage.
+
+See the directory `OpenPegasus\pegasus\src\Clients` for list of all of the
+client test and usage tools for OpenPegasus.
