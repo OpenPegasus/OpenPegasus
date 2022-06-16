@@ -2,10 +2,19 @@
 
 ##Change log
 
+<<<<<<< HEAD
 
 ## openpegasus 2.14.4
+=======
+## openpegasus 2.14.3
+>>>>>>> 5f9c4a0 (Changes status to Released (#100))
 
-Status: **Development**
+Status: **Released**
+
+This release was based on the main branch, since there is no 2.14.0 branch
+to serve as the base (We started this repository from OpenPegasus 2.14.1)
+
+Released: 16 May 2022
 
 ### Enhancements
 
@@ -56,6 +65,7 @@ Released: 16 May 2022
 
 * Update a number of tests  that apparently were not executed because we were
   not executing tests in the the user non-privileged mode.  This includes tests in
+<<<<<<< HEAD
   Clients/wbemexec and TestProviders/CLIProviderTests. This was primarily
   changes to the regression compare files and not changes to the test code
   or OpenPegasus code.
@@ -87,17 +97,35 @@ OpenPegasus github repository)
 
 * Update a number of tests  that apparently were not executed because we were
   not executing tests in the the user non-privileged.  This includes tests in
+=======
+>>>>>>> 5f9c4a0 (Changes status to Released (#100))
   Clients/wbemexec and TestProviders/CLIProviderTests. This was primarily
   changes to the regression compare files and not changes to the test code
   or OpenPegasus code.
 
 * Removed a number of compile warning messages by modifying the code to
-  eliminate the warnings.  NOTE: There are still a warnings in the
+  eliminate the warnings.  NOTE: There are still warnings in the
   compile but they are in test providers. (see issue #22)
 
-## openpegasus 14.2 - Release
+* Added a new OpenPegasus/docs directory where new documents are being placed
+  so that the existing OpenPegasus/pegasus/doc directory is not modified. The
+  new documents define: changes for each version, tutorials on building and
+  running OpenPegasus, and a recreation of the BuildAndReleaseOptions.html
+  document into markdown so that it is readable from the README.md file. The
+  new documents are all in the github markdown format.
+
+## openpegasus 2.14.2 - Release
 
 Status: Released 21 June 2021
+
+NOTE: No branch was created for this release just the tag v.2.14.2.  Therefore
+to use the code that this branch represents, the user must access it with the tag
+v2.14.2.
+
+The release is available by checkout of the tag or by getting either the
+zip or tar file that are created by github as part of the release process and
+located on the release page for version 2.14.2 (See the top page of the
+OpenPegasus github repository)
 
 ### Bugs
 

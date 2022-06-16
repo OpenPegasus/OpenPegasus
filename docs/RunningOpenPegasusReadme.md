@@ -34,7 +34,7 @@ The command to start the server is :
     value is the value to be set.
 
     Runtime options are those options defined for the
-    for OpenPegasus in the **cimconfig** command CLI.
+    for OpenPegasus in the `cimconfig` command CLI.
 
 Thus:
 
@@ -61,6 +61,7 @@ environment variable LD_LIBRARY_PATH covers that. For example:
 
 The OpenPegasus CIMServer run configuration is controlled by the
 options define in the CLI `cimconfig`, see
+<<<<<<< HEAD
 [OpenPegasus Runtime Options section](#openPegasus-runtime-options) .
 They may be set either as planned (static) options (the value is
 retained in the server CIM Repository, is applied at the next sever startup and
@@ -69,19 +70,25 @@ they are set only in the current execution of the server.
 
 `cimconfig` is a command line client that can set or unset any of the
 options defined in the CLI **cimconfig**, see
+=======
+>>>>>>> 5f9c4a0 (Changes status to Released (#100))
 [OpenPegasus Runtime Options section](#openPegasus-runtime-options) .
 They may be set either as planned (static) options (the value is
-retained in the CIMRepository, is applied at the next sever startup and
+retained in the server CIM Repository, is applied at the next sever startup and
 is persistent through server start and stop) or current options where
 they are set only in the current execution of the server.
 
+<<<<<<< HEAD
+=======
+`cimconfig` is a command line client that can set or unset any of the
+>>>>>>> 5f9c4a0 (Changes status to Released (#100))
 OpenPegasus runtime configuration properties, show the current status of each of
 the runtime configuration properties.
 
 The options may also be modified through the WEBAdmin facility if it is
 enabled.
 
-The syntax of the **cimconfig** command is:
+The syntax of the `cimconfig` command is:
 
 ```
 cimconfig --help
@@ -128,19 +135,22 @@ The following command resets the traceLevel to the default value
 
 ### OpenPegasus Runtime Options
 
-The options are documented both in the help for the **cimconfig -H ALL** cli,
+The options are documented both in the help for the `cimconfig -H ALL` cli,
 in the documentation for OpenPegasus
 [docs/BuildAndReleaseOptions.md](docs/BuildAndReleaseOptions.md).
 
 The following is the list of cimconfig run time variables as documented
 in the `cimconfig` CLI with the command `cimconfig -H ALL`.
+<<<<<<< HEAD
 
 Options defined as static are enabled only when the server is
 restarted. Dynamic options may be modified when the server is running.
 in the **cimconfig** CLI with the command **cimconfig -H ALL**
+=======
+>>>>>>> 5f9c4a0 (Changes status to Released (#100))
 
 Options defined as static are enabled only when the server is
-restarte. Dynamic options may be modified when the server is running.
+restarted. Dynamic options may be modified when the server is running.
 
 ```
 authorizedUserGroups (Static,Default:)
@@ -544,8 +554,8 @@ including request and response size, number of operations executed, execution
 time. This capability is normally disable but may be enabled by setting
 a property in the CIM_ObjectManager instance within OpenPegasus.
 
-The cli tool can set this property with the command **cimcli son** or turn
-off statistics with **cimcli soff**. The pywbem python tool pywbemcli can
+The cli tool can set this property with the command `cimcli son` or turn
+off statistics with `cimcli soff`. The pywbem python tool pywbemcli can
 also enable this with its statistics commands.
 
 Note that the statistics gathering is always not persistent, it is
@@ -582,4 +592,7 @@ In general these tools have a --help option to get help with parameters and usag
 
 See the directory `OpenPegasus\pegasus\src\Clients` for list of all of the
 client test and usage tools for OpenPegasus.
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5f9c4a0 (Changes status to Released (#100))

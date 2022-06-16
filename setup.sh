@@ -1,6 +1,7 @@
 # Test of a fixed configure as bash shell. This example
 # configures for Linux build with gcc compiler and using
 # an X86-64 bit platform.
+
 echo $PWD
 
 echo "This is an example of a build setup script that"
