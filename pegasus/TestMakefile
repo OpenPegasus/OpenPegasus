@@ -59,6 +59,8 @@ usage: FORCE
 	$(USAGE)"unittests          - Execute the unit functional tests - no repository"
 	$(USAGE)"                     or active server is required"
 	$(USAGE)"servertests        - Execute a basic server test suites (No security, No SSL)"
+	$(USAGE)"sanitytests        - Execute limited server tests in short time"
+
 	$(USAGE)"standardtests      - Execute an extended server test suites "
 	$(USAGE)"                     using multiple options."
 	$(USAGE)"perftests          - Executes a brief server performance test"
@@ -288,8 +290,11 @@ slptests:
 
 # TODO: Temporary test target defined to execute just cert tests since they have issues.
 # To enable, unblock the following statement and comment the statement afterwards.
-#servertests: servertestsclean servertestssetup serversuite_short_tests
+#servertests: servertestsclean servertestssetup
 #	@ $(ECHO) "+++++ TestMakefile servertests  cert_tests complete"
+
+sanitytests: servertestsclean servertestssetup serversuite_sanity_tests
+	@ $(ECHO) "+++++ TestMakefile sanitytests complete"
 
 servertests: servertestsclean servertestssetup serversuite
 	@ $(ECHO) "+++++ TestMakefile servertests suites complete"
@@ -343,6 +348,15 @@ serversuite_short_tests: FORCE
 	#$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_sslCipherSuiteTests
 	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile run_TLSv1_2_tests
 
+# The following is a short set of tests.  This target can be used to test just a
+# limited group of tests in the server test suite.
+# It allows testing if the server is basically runnable
+serversuite_sanity_tests: FORCE
+    # Run the cimcli tests. Provides a number of requests against running server
+	$(MAKE) --directory=$(PEGASUS_ROOT/src/clients/cimcli/test) make poststarttests
+    # TODO: Run indication test
+
+
 #####################
 #
 # stresstests
@@ -356,7 +370,7 @@ stresstests:
 #
 # - Turns statistics on (uses TestInterop until we have better)
 # - runs poststarttests suite and TestBenchmark
-# - runs cimperf to displat the statistics
+# - runs cimperf to display the statistics
 # - turns statistics off
 #
 perftests: servertestsclean servertestssetup perfsuite

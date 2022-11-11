@@ -72,6 +72,7 @@ usage: FORCE
 	$(USAGE)"messages            - rootbundle recursive messages"
 	$(USAGE)"tests               - recursive tests"
 	$(USAGE)"poststarttests      - recursive poststarttests"
+	$(USAGE)"sanitytests         - short server tests just to assure server works"
 	$(USAGE)
 	$(USAGE)"Combinational rules - Combine other rules to achieve results"
 	$(USAGE)"DEFAULT RULE        - all, setupdevserver"
@@ -237,6 +238,9 @@ standardtests: FORCE
 
 alltests: FORCE
 	@ $(MAKE) -f TestMakefile alltests
+
+alltests: FORCE
+	@ $(MAKE) -f TestMakefile sanitytests
 
 testusage: FORCE
 	@ $(MAKE) -f TestMakefile usage
