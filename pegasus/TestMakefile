@@ -289,6 +289,7 @@ slptests:
 	@ $(ECHO) "+++++ TestMakefile slp test suite completed"
 
 # TODO: Temporary test target defined to execute just cert tests since they have issues.
+# REMOVE when the cert tests are comfortably passed.
 # To enable, unblock the following statement and comment the statement afterwards.
 #servertests: servertestsclean servertestssetup
 #	@ $(ECHO) "+++++ TestMakefile servertests  cert_tests complete"
@@ -352,6 +353,8 @@ serversuite_short_tests: FORCE
 # limited group of tests in the server test suite.
 # It allows testing if the server is basically runnable
 serversuite_sanity_tests: FORCE
+	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Pegasus/Server/tests -f Makefile commandtests
+	$(MAKE) --directory=$(PEGASUS_ROOT) -f TestMakefile cimstart
     # Run the cimcli tests. Provides a number of requests against running server
 	$(MAKE) --directory=$(PEGASUS_ROOT/src/clients/cimcli/test) make poststarttests
     # TODO: Run indication test
