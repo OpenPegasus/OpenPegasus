@@ -105,6 +105,7 @@ usage: FORCE
 	$(USAGE)"testusage           - TestMakefile usage"
 	$(USAGE)"testusage2          - TestMakefile usage2"
 	$(USAGE)"stresstests         - Runs the default stresstests"
+	$(USAGE)"sanitytest          - Subset of tests to determine if build worked"
 	$(USAGE)
 	$(USAGE)"--------------------"
 	$(USAGE)"Quick start:"
@@ -239,7 +240,7 @@ standardtests: FORCE
 alltests: FORCE
 	@ $(MAKE) -f TestMakefile alltests
 
-alltests: FORCE
+sanitytests: FORCE
 	@ $(MAKE) -f TestMakefile sanitytests
 
 testusage: FORCE
