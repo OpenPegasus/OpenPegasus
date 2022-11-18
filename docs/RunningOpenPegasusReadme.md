@@ -61,7 +61,6 @@ environment variable LD_LIBRARY_PATH covers that. For example:
 
 The OpenPegasus CIMServer run configuration is controlled by the
 options define in the CLI `cimconfig`, see
-<<<<<<< HEAD
 [OpenPegasus Runtime Options section](#openPegasus-runtime-options) .
 They may be set either as planned (static) options (the value is
 retained in the server CIM Repository, is applied at the next sever startup and
@@ -69,19 +68,6 @@ is persistent through server start and stop) or current options where
 they are set only in the current execution of the server.
 
 `cimconfig` is a command line client that can set or unset any of the
-options defined in the CLI **cimconfig**, see
-=======
->>>>>>> 5f9c4a0 (Changes status to Released (#100))
-[OpenPegasus Runtime Options section](#openPegasus-runtime-options) .
-They may be set either as planned (static) options (the value is
-retained in the server CIM Repository, is applied at the next sever startup and
-is persistent through server start and stop) or current options where
-they are set only in the current execution of the server.
-
-<<<<<<< HEAD
-=======
-`cimconfig` is a command line client that can set or unset any of the
->>>>>>> 5f9c4a0 (Changes status to Released (#100))
 OpenPegasus runtime configuration properties, show the current status of each of
 the runtime configuration properties.
 
@@ -141,13 +127,6 @@ in the documentation for OpenPegasus
 
 The following is the list of cimconfig run time variables as documented
 in the `cimconfig` CLI with the command `cimconfig -H ALL`.
-<<<<<<< HEAD
-
-Options defined as static are enabled only when the server is
-restarted. Dynamic options may be modified when the server is running.
-in the **cimconfig** CLI with the command **cimconfig -H ALL**
-=======
->>>>>>> 5f9c4a0 (Changes status to Released (#100))
 
 Options defined as static are enabled only when the server is
 restarted. Dynamic options may be modified when the server is running.
@@ -592,7 +571,3 @@ In general these tools have a --help option to get help with parameters and usag
 
 See the directory `OpenPegasus\pegasus\src\Clients` for list of all of the
 client test and usage tools for OpenPegasus.
-<<<<<<< HEAD
-
-=======
->>>>>>> 5f9c4a0 (Changes status to Released (#100))

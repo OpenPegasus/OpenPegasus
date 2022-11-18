@@ -2,19 +2,10 @@
 
 ##Change log
 
-<<<<<<< HEAD
 
 ## openpegasus 2.14.4
-=======
-## openpegasus 2.14.3
->>>>>>> 5f9c4a0 (Changes status to Released (#100))
 
-Status: **Released**
-
-This release was based on the main branch, since there is no 2.14.0 branch
-to serve as the base (We started this repository from OpenPegasus 2.14.1)
-
-Released: 16 May 2022
+Status: **Development**
 
 ### Enhancements
 
@@ -65,7 +56,7 @@ Released: 16 May 2022
 
 * Update a number of tests  that apparently were not executed because we were
   not executing tests in the the user non-privileged mode.  This includes tests in
-<<<<<<< HEAD
+
   Clients/wbemexec and TestProviders/CLIProviderTests. This was primarily
   changes to the regression compare files and not changes to the test code
   or OpenPegasus code.
@@ -97,8 +88,7 @@ OpenPegasus github repository)
 
 * Update a number of tests  that apparently were not executed because we were
   not executing tests in the the user non-privileged.  This includes tests in
-=======
->>>>>>> 5f9c4a0 (Changes status to Released (#100))
+
   Clients/wbemexec and TestProviders/CLIProviderTests. This was primarily
   changes to the regression compare files and not changes to the test code
   or OpenPegasus code.

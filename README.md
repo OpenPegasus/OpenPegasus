@@ -42,8 +42,6 @@ of the CIM/WBEM components defined by the DMTF including:
 * A command WBEM client (cimcli) for inspecting and executing WBEM requests
   on a running WBEM server.  This client includes some commands specific to
   OpenPegasus.
-<<<<<<< HEAD
-=======
 
 ## OpenPegasus Availability:
 
@@ -264,7 +262,6 @@ project OpenPegasus/OpenPegasusDocker: https://github.com/OpenPegasus/OpenPegasu
 2. OpenPegasus Presentations - https://collaboration.opengroup.org/pegasus/documents.php?action=page&offset=100&limit=100&archived=N&grouped=N&sdir=DESC&sort=gdc_updated&gdc_category=0&gdc_docage=0&allver=N&gdc_status=0&oldcat=0&dcat=&oldarch=N
 
 3. OpenPegasus APIs - http://cvs.opengroup.org/pegasus-doc/
->>>>>>> 5f9c4a0 (Changes status to Released (#100))
 
 ## OpenPegasus license
    OpenPegasus has been and will be maintained under the license defined as
@@ -300,7 +297,6 @@ project OpenPegasus/OpenPegasusDocker: https://github.com/OpenPegasus/OpenPegasu
     COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
     IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
     CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-<<<<<<< HEAD
 
 ## OpenPegasus Availability:
 
@@ -716,23 +712,3 @@ allow building Docker images for OpenPegasus.
 
 3. OpenPegasus APIs - http://cvs.opengroup.org/pegasus-doc/
 
-   
-
-
-
-
-
-
-
-
-
-   
-
-
-   
-
-
-
->>>>>>> 963399b (fixes issue # 28 Ks/more release notes.md (#99))
-=======
->>>>>>> 5f9c4a0 (Changes status to Released (#100))
