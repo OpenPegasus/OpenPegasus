@@ -2,6 +2,25 @@
 
 ##Change log
 
+
+## openpegasus 2.14.4
+
+Status: **Development**
+
+### Enhancements
+
+### Bugs
+
+### Enhancements
+
+* Add sanitytests target to Makefile.  This initializes the repository and
+  executes a short set of server tests to determine if the server is runnable.
+  Note that it does not restore the repository or certificates to the state
+  in which they might have existed before the sanity test was executed.
+  (see issue #)
+
+### Cleanup
+
 ## openpegasus 2.14.3
 
 Status: **Released**
