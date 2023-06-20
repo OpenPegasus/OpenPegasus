@@ -2,7 +2,6 @@
 
 ##Change log
 
-
 ## openpegasus 2.14.4
 
 Status: **Development**
@@ -20,6 +19,12 @@ Status: **Development**
   (see issue #)
 
 ### Cleanup
+
+### Bugs
+
+* Fix issue in TestProvider Test_IndicationProviderClass where parameters
+  not specified for MOF.
+
 
 ## openpegasus 2.14.3
 
