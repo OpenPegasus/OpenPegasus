@@ -6,9 +6,7 @@
 
 Status: **Development**
 
-### Enhancements
-
-### Bugs
+Released: TODO
 
 ### Enhancements
 
@@ -16,14 +14,16 @@ Status: **Development**
   executes a short set of server tests to determine if the server is runnable.
   Note that it does not restore the repository or certificates to the state
   in which they might have existed before the sanity test was executed.
-  (see issue #)
 
 ### Cleanup
+
+* Clean up CI test defintion to set more build parameters
 
 ### Bugs
 
 * Fix issue in TestProvider Test_IndicationProviderClass where parameters
-  not specified for MOF.
+  not specified for MOF. Get class on this class returned class without
+  the method parameters defined.
 
 
 ## openpegasus 2.14.3
