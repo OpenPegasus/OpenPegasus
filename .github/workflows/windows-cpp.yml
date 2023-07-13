@@ -1,0 +1,41 @@
+name: Windows OpenPegasus Build
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run:  choco install make --version=3.81
+
+    - name: Run MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      
+    - name: Configure OpenPegasus
+      shell: cmd
+      run: |
+            echo "Step Configure OpenPegasus for build and test common config"
+            # Set the common required Env Variables PEGASUS_ROOT, PEGASUS_HOME
+            # PEGASUS_PLATFORM
+            echo "PEGASUS_ROOT=$GITHUB_WORKSPACE/pegasus" >> $GITHUB_ENV
+            # Set path to include bin for testing
+            echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+            # Put PEGASUS_HOME in OpenPegasus directory for now
+            # mkdir -p ${{ env.PEGASUS_HOME }}
+            #
+            echo "PEGASUS_HOME=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+            echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/lib64" >> $GITHUB_ENV
+            echo "PEGASUS_PLATFORM=${{ matrix.config.pegasus_platform}}" >> $GITHUB_ENV
+            #
+            echo "Show github env"
+            githubjson=`cat $GITHUB_ENV`
+            echo $githubjson
+            echo "Showed json github env"
+      
+    - name: Build
+      working-directory: pegasus
+      run: make buildmu
