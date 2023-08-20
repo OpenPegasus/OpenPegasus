@@ -25,8 +25,11 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
+
     name: ${{ matrix.config.name }}
+
     runs-on: ${{ matrix.config.os }} #
+
     strategy:
       fail-fast: true
       matrix:
@@ -107,9 +110,9 @@ jobs:
             echo "PEGASUS_PLATFORM=${{ matrix.config.pegasus_platform}}" >> $GITHUB_ENV
             #
             echo "Show github env"
-            githubjson=`cat $GITHUB_ENV`
-            echo $githubjson
-            echo "Showed json github env"
+            githubenv=`cat $GITHUB_ENV`
+            echo $githubenv
+            echo "Showed  github env"
 
       - name: Dump GitHub context
         shell: bash
@@ -123,7 +126,6 @@ jobs:
         shell: bash
         run: |
             echo "Step Show Pegasus env variables created in previous step"
-            echo "Display env variables that exist"
             export
             echo "Display env variables end"
 
@@ -158,8 +160,16 @@ jobs:
         env:
             # env variables required for privileged minimal build and test
             PEGASUS_HAS_SSL: true
+            PEGASUS_PAM_AUTHENTICATION: true
+            PEGASUS_USE_PAM_STANDALONE_PROC: false
+            PEGASUS_ENABLE_CQL: true
+            PEGASUS_ENABLE_WQL: true
+            PEGASUS_ENABLE_INTEROP_PROVIDER: true
+            PEGASUS_REPOSITORY_MODE: BIN
+            PEGASUS_ENABLE_DMTF_INDICATION_PROFILE_SUPPORT: true
 
 
-      #- name: Test
+
+      #- name: Test OpenPegasus privileged
       #  shell: bash
       #  run: cmake --build . --config ${{ matrix.config.build_type }}

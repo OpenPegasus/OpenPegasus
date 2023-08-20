@@ -138,6 +138,8 @@ FORCE:
 
 help: usage
 
+FORCE:
+
 listplatforms: FORCE
 	$(USAGE)
 	$(USAGE)"The $(words $(VALID_PLATFORMS)) valid platforms are:"
