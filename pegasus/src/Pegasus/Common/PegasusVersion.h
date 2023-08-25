@@ -73,11 +73,11 @@
 # define PEGASUS_PRODUCT_NAME    "CIM Server"
 
 # define PEGASUS_PRODUCT_STATUS  ""
-# define PEGASUS_PRODUCT_VERSION "2.14.3"
+# define PEGASUS_PRODUCT_VERSION "2.14.4"
 
 # define PEGASUS_CIMOM_GENERIC_NAME "Pegasus"
 // If the following is non-zero length it becomes SLP description.
-# define PEGASUS_CIMOM_DESCRIPTION "OpenPegasus 2.14.3"
+# define PEGASUS_CIMOM_DESCRIPTION "OpenPegasus 2.14.4"
 #endif
 
 #ifdef PEGASUS_OS_HPUX
@@ -148,6 +148,6 @@ static const char *PLATFORM_EMBEDDED_IDENTIFICATION_STRING =
 // CAUTION: always check whether PEGASUS_VERSION_NUMBER is defined when
 // integrating with versions prior to 2.5.1.
 //
-#define PEGASUS_VERSION_NUMBER 0x02140300
+#define PEGASUS_VERSION_NUMBER 0x02140400
 
 #endif /* Pegasus_Version_h */

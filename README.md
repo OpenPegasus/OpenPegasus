@@ -122,11 +122,15 @@ The following three environment variables are absolutely required to compile Ope
    called build_output and placed at the same level as the `pegasus` folder so
    as to separate build products from the source code. For example:
 
+```
+
     # a setup defined in the OpenPegasus directory
     export ROOT=$PWD
     export PEGASUS_ROOT=$ROOT/pegasus
     export PEGASUS_HOME=$ROOT/home
     export PEGASUS_PLATFORM=LINUX_X86_64_GNU
+
+```
 
 A number of other environment variables may be defined to control compilation of the
 various options/features that are used in the OpenPegasus build.  These environment
@@ -377,11 +381,15 @@ The following three environment variables are absolutely required to compile Ope
    called build_output and placed at the same level as the `pegasus` folder so
    as to separate build products from the source code. For example:
 
+```
+
     # a setup defined in the OpenPegasus directory
     export ROOT=$PWD
     export PEGASUS_ROOT=$ROOT/pegasus
     export PEGASUS_HOME=$ROOT/home
     export PEGASUS_PLATFORM=LINUX_X86_64_GNU
+
+```
 
 A number of other environment variables may be defined to control compilation of the
 various options/features that are used in the OpenPegasus build.  These environment
@@ -480,7 +488,7 @@ notes on particular subjects.
 5. Subsequent to creating the github repository an additional documentation directory
    has been created (OpenPegasus/docs) that includes documents created subsequent to
    the creation of the github project.
-5. readme... text documents and other documents maintained in the
+6. readme's, text documents and other documents maintained in the
    `OpenPegasus/pegasus` directory. These were largely documents on
    particular subjects that it was felt might be important to the developers
    and users of OpenPegasus.
