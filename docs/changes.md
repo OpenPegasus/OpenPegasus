@@ -2,11 +2,13 @@
 
 ##Change log
 
+
 ## openpegasus 2.14.4
 
-Status: **Development**
+Status: **Released**
 
-Released: TODO
+Released: 22 August 2023
+
 
 ### Enhancements
 
@@ -24,6 +26,14 @@ Released: TODO
 * Fix issue in TestProvider Test_IndicationProviderClass where parameters
   not specified for MOF. Get class on this class returned class without
   the method parameters defined.
+
+* The Client wbemexec test produces output with some CR/LF in place of
+  LF on linux test.  Bypasing fail on this test. See issue #115.:
+
+### Outstanding issues
+
+* Fails Clients/wbemexec tests because of bug #115. Test error result ignored
+  for now.
 
 
 ## openpegasus 2.14.3
