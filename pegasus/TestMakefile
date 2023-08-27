@@ -287,19 +287,21 @@ slptests:
 	$(MAKE) --directory=$(PEGASUS_ROOT)/src/slp/tests/slptests -f Makefile slptests
 	@ $(ECHO) "+++++ TestMakefile slp test suite completed"
 
+
 # servertest target to execute complete server test suite
 servertests: servertestsclean servertestssetup serversuite
 	@ $(ECHO) "+++++ TestMakefile servertest suite complete"
 
-# Version of servertests target that executes a shortened test suite.
-# This is not a complete server test but can server to confirm that the
-# server basically works.
-shortservertests: servertestsclean servertestssetup serversuite_short_tests
-
-# sanitytests, very simple set of tests that confirms server is basicilly
+# sanitytests target, very simple set of tests that confirms server is basicilly
 # running in a couple of minutes.
 sanitytests: servertestsclean servertestssetup serversuite_sanity_tests
 	@ $(ECHO) "+++++ TestMakefile sanitytests"
+
+# Version of servertests target that executes a shortened test suite.
+# This is not a complete server test but can server to confirm that the
+# server basically works. Currently only runs cert tests.
+shortservertests: servertestsclean servertestssetup serversuite_short_tests
+	@ $(ECHO) "+++++ TestMakefile shortservertests complete"
 
 serversuite: FORCE
 	$(MAKE) --directory=$(PEGASUS_ROOT)/src/Pegasus/Server/tests -f Makefile commandtests

@@ -9,6 +9,11 @@ Status: **Released**
 
 Released: 22 August 2023
 
+Start Branch: main
+
+This release was based on the main branch, since there is no 2.14.0 branch
+to serve as the base (We started this repository from OpenPegasus 2.14.1)
+
 
 ### Enhancements
 
@@ -39,6 +44,8 @@ Released: 22 August 2023
 ## openpegasus 2.14.3
 
 Status: **Released**
+
+Start Branch: main
 
 This release was based on the main branch, since there is no 2.14.0 branch
 to serve as the base (We started this repository from OpenPegasus 2.14.1)
