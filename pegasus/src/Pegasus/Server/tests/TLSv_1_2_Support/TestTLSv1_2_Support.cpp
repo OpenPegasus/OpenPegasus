@@ -53,6 +53,8 @@ const CIMNamespaceName NAMESPACE = CIMNamespaceName("root/cimv2");
  *
  *  enableHttpsConnection=true and sslCipherSuite = TLSv1.2
  *
+ * Otherwise test ignored and client returns success.
+ *
  */
 
 #ifdef PEGASUS_HAS_SSL
@@ -75,7 +77,7 @@ void _testTLS1_2_support(String &host , Uint32 &port, String &randPath)
 
     try
     {
-        AutoPtr<SSLContext> sslContext(new SSLContext (trustStorePath, 
+        AutoPtr<SSLContext> sslContext(new SSLContext (trustStorePath,
             certPath, keyPath, String::EMPTY, 0, randPath, cipherSuite,
             sslBackwardCompatibility));
 
@@ -102,14 +104,14 @@ void _testTLS1_2_support(String &host , Uint32 &port, String &randPath)
         cerr << "SSLCipherTest Failed:  "<< e.getMessage() << endl;
         PEGASUS_TEST_ASSERT(0 && (bool)"Got unexpected Exception, Aborting");
     }
-    
+
     // Test if the same operation succeeds with cipherSuite TLSV1.2 and
     // sslBackwardCompatibility true
     cipherSuite = "TLSv1.2";
     try
     {
 
-        AutoPtr<SSLContext> sslContext(new SSLContext (trustStorePath, 
+        AutoPtr<SSLContext> sslContext(new SSLContext (trustStorePath,
             certPath, keyPath, String::EMPTY, 0, randPath, cipherSuite,
             sslBackwardCompatibility));
         if (sslContext.get())
