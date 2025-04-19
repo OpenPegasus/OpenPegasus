@@ -338,7 +338,7 @@ of the various options and features that are used in the OpenPegasus build.
 These environment variables define the various build options such as:
 
 1. including SSL,
-2. compiling in debug vs production mode
+2. compiling in debug mode vs production mode
 3. enabling/disabling function options such as the provider user context
 4. enabling the audit logger
 5. the CIM repository format
@@ -348,7 +348,7 @@ These options are documented in the OpenPegasus document
 [docs/BuildAndReleaseOptions.md](docs/BuildAndReleaseOptions.md). That document is
 the most complete reference to all of the OpenPegasus build and test
 options and their environment variables. All compile and test options
-for OpenPegasus are defined in this file as of OpenPegasus 2.14.3.
+for OpenPegasus are defined in this file as of OpenPegasus 2.14.4.
 
 ### OpenPegasus Build and Test
 
