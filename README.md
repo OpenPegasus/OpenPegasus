@@ -304,8 +304,63 @@ project OpenPegasus/OpenPegasusDocker: https://github.com/OpenPegasus/OpenPegasu
 
 
 
+    https://github.com/OpenPegasus/OpenPegasus.git
 
-==========================
+The github repository defines `OpenPegasus` as the root directory and
+this new `OpenPegasus` directory includes the original `pegasus` directory
+(source code, support code, documentation, CIM Schemas, etc.) which was
+the root directory in the CVS (ie. OpenPegasus version 2.14.1 and before)) and a
+new `OpenPegasus\docs` directory where documentation in markdown and
+rst is contained including some of the documents in the pegasus/doc directory.
+
+## Limitations:
+
+There are several limitations to the OpenPegasus code base in github:
+
+1. Releases since 2.14.1 and in this github repository have not been tested
+against the full set of platforms for which OpenPegasus was designed.
+Previously releases were tested by the individual OpenPegasus teams on their
+own platforms (IBM AIX, HPUX, etc.). The current development team no longer has
+access to these platforms. As of 2.14.2 tests are run against the Linux and
+Windows platforms.
+
+2. We do not expect to make significant new changes to OpenPegasus but to
+keep it up to date with changing compiler and platform technologies,
+fix documented issues and to assure that the released code does run on
+the platforms available to us.
+
+## Changes made for the github platform
+
+The only significant change made for the github platform was to create a new
+top level directory (OpenPegasus) in which the original CVS top level
+directory (pegasus) and a new docs directory reside.
+
+## OpenPegasus versions in github repository
+
+See [docs/changes.md](docs/changes.md) and the release documents in the
+`OpenPegasus/docs` directory for information on releases maintained in this
+github repository.
+
+## Building, Testing, and Running OpenPegasus
+
+### Setting OpenPegasus Build Configuration
+OpenPegasus configuration is based entirely on environment variables to define the
+location of the source code, the build output directory,  the compile characteristics,
+and the OpenPegasus configuration options In general all OpenPegasus configuration
+environment variables start with 'PEGASUS_'.
+
+The OpenPegasus build is configurable through a set environment variables.
+These variables define OpenPegasus characteristics such as:
+
+- Build type; debug, production
+- Definition of the compile hardware target, OS, and compiler
+- Location of the source code
+- Build output directory
+- Compile characteristics for the defined compilers.
+- The OpenPegasus functionality and test functionality to be built.
+
+In general, all OpenPegasus environment variables start with 'PEGASUS_'.
+
 The following three environment variables are absolutely required to compile OpenPegaus:
 
 1. **PEGASUS_PLATFORM** Defines the platform for which OpenPegasus is being compiled.
@@ -338,7 +393,7 @@ of the various options and features that are used in the OpenPegasus build.
 These environment variables define the various build options such as:
 
 1. including SSL,
-2. compiling in debug vs production mode
+2. compiling in debug mode vs production mode
 3. enabling/disabling function options such as the provider user context
 4. enabling the audit logger
 5. the CIM repository format
@@ -348,7 +403,7 @@ These options are documented in the OpenPegasus document
 [docs/BuildAndReleaseOptions.md](docs/BuildAndReleaseOptions.md). That document is
 the most complete reference to all of the OpenPegasus build and test
 options and their environment variables. All compile and test options
-for OpenPegasus are defined in this file as of OpenPegasus 2.14.3.
+for OpenPegasus are defined in this file as of OpenPegasus 2.14.4.
 
 ### OpenPegasus Build and Test
 
