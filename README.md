@@ -112,8 +112,6 @@ The following three environment variables are absolutely required to compile Ope
    The allowed configurations are defined by make files in OpenPegaus/pegasus/mak
    (ex. platform_LINUX_X86_64_GNU.mak) and the list of available platforms can
    be viewed with the make file OpenPegasus/pegasus/mak/  TODO:
-
-
 2. **PEGASUS_ROOT** - Defines the `pegasus` directory the top of the pegasus source
    tree. This directory contains the top level build make file (`Makefile`) for OpenPegasus and the
    subdirectories that define the OpenPegasus components (src, docs, schemas, etc.)
@@ -306,8 +304,6 @@ project OpenPegasus/OpenPegasusDocker: https://github.com/OpenPegasus/OpenPegasu
 
 
 
-<<<<<<< HEAD
-=======
     https://github.com/OpenPegasus/OpenPegasus.git
 
 The github repository defines `OpenPegasus` as the root directory and
@@ -364,9 +360,7 @@ These variables define OpenPegasus characteristics such as:
 - The OpenPegasus functionality and test functionality to be built.
 
 In general, all OpenPegasus environment variables start with 'PEGASUS_'.
->>>>>>> d981fb7 (WIP)
 
-==========================
 The following three environment variables are absolutely required to compile OpenPegaus:
 
 1. **PEGASUS_PLATFORM** Defines the platform for which OpenPegasus is being compiled.
