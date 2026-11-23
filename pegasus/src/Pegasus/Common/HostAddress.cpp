@@ -347,7 +347,11 @@ HostAddress::~HostAddress()
 Boolean HostAddress::setHostAddress(const String &addrStr)
 {
 
-    if (addrStr.size() != 0)
+    // Reject an address that would not fit, together with its terminating
+    // NUL, in the PEGASUS_MAXHOSTNAMELEN sized buffers that callers copy
+    // getHost() into.  No valid host name reaches this length: RFC 1035
+    // limits a domain name to 253 characters in presentation form.
+    if (addrStr.size() != 0 && addrStr.size() < PEGASUS_MAXHOSTNAMELEN)
     {
 
         if (isValidIPV4Address(addrStr))

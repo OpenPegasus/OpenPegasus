@@ -357,7 +357,8 @@ public:
 
             HostLocator addr(destStr.subString(0, destStr.find("/")));
             char hostName[PEGASUS_MAXHOSTNAMELEN];
-            if (addr.isValid())
+            if (addr.isValid() &&
+                addr.getHost().size() < PEGASUS_MAXHOSTNAMELEN)
             {
                 strcpy(hostName, addr.getHost().getCString());
                 if (addr.isPortSpecified())

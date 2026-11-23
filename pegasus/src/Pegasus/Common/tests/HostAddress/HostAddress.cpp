@@ -196,6 +196,45 @@ void testHostAddress()
     PEGASUS_TEST_ASSERT(!HostAddress::isValidIPV6Address(hostaddr.getHost()));
     PEGASUS_TEST_ASSERT(!HostAddress::isValidIPV4Address(hostaddr.getHost()));
 
+    // Host name length boundary.
+    //
+    // Callers of getHost() copy the result into buffers of
+    // PEGASUS_MAXHOSTNAMELEN bytes, so a name that would not fit there
+    // together with its terminating NUL has to be rejected. Both sides of
+    // the boundary are checked so that the limit cannot drift unnoticed
+    // in either direction. isValidHostName() itself imposes no length
+    // limit, which is why the check lives in setHostAddress().
+
+    // The longest name that still fits: PEGASUS_MAXHOSTNAMELEN - 1.
+    String longestHost;
+    while (longestHost.size() < PEGASUS_MAXHOSTNAMELEN - 5)
+    {
+        longestHost.append("a");
+    }
+    longestHost.append(".com");
+    PEGASUS_TEST_ASSERT(longestHost.size() == PEGASUS_MAXHOSTNAMELEN - 1);
+    hostaddr.setHostAddress(longestHost);
+    PEGASUS_TEST_ASSERT(hostaddr.isValid());
+    PEGASUS_TEST_ASSERT(HostAddress::isValidHostName(hostaddr.getHost()));
+    PEGASUS_TEST_ASSERT(hostaddr.getAddressType() == HostAddress::AT_HOSTNAME);
+    PEGASUS_TEST_ASSERT(hostaddr.getHost() == longestHost);
+
+    // One character too long: PEGASUS_MAXHOSTNAMELEN.
+    String tooLongHost;
+    while (tooLongHost.size() < PEGASUS_MAXHOSTNAMELEN - 4)
+    {
+        tooLongHost.append("a");
+    }
+    tooLongHost.append(".com");
+    PEGASUS_TEST_ASSERT(tooLongHost.size() == PEGASUS_MAXHOSTNAMELEN);
+    hostaddr.setHostAddress(tooLongHost);
+    PEGASUS_TEST_ASSERT(!hostaddr.isValid());
+    PEGASUS_TEST_ASSERT(hostaddr.getAddressType() == HostAddress::AT_INVALID);
+    PEGASUS_TEST_ASSERT(hostaddr.getHost() == String::EMPTY);
+
+    // The name itself is otherwise well formed, so only the length
+    // distinguishes the two cases above.
+    PEGASUS_TEST_ASSERT(HostAddress::isValidHostName(tooLongHost));
 
 }
 
